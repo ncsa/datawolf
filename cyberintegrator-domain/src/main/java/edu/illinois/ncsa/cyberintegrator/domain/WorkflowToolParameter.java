@@ -49,9 +49,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
-@Entity(name = "WorkflowParameter")
-@Document(collection = "WorkflowParameter")
-public class WorkflowParameter extends AbstractBean {
+@Entity(name = "WorkflowToolParameter")
+@Document(collection = "WorkflowToolParameter")
+public class WorkflowToolParameter extends AbstractBean {
     public enum ParameterType {
         BOOLEAN, STRING, NUMBER, OPTION; // , FILE, SELECTION, GEOLOCATION;
     }
@@ -90,7 +90,7 @@ public class WorkflowParameter extends AbstractBean {
     /**
      * Create a new instance of the workflow parameter.
      */
-    public WorkflowParameter() {}
+    public WorkflowToolParameter() {}
 
     /**
      * Return the id of the workflow parameter.

@@ -109,7 +109,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowToolParameters")
     @DBRef
-    private List<WorkflowParameter> parameters       = new ArrayList<WorkflowParameter>();
+    private List<WorkflowToolParameter> parameters       = new ArrayList<WorkflowToolParameter>();
 
     /** Executor of the tool. */
     private String                  executor         = null;
@@ -461,7 +461,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * @return collection of WorkflowParameterBean that represents all the
      *         parameters to the workflow tool.
      */
-    public List<WorkflowParameter> getParameters() {
+    public List<WorkflowToolParameter> getParameters() {
         return this.parameters;
     }
 
@@ -472,12 +472,12 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      *            the id whose parameter to return.
      * @return parameter associated with the id.
      */
-    public WorkflowParameter getParameter(String id) {
+    public WorkflowToolParameter getParameter(String id) {
         if ((id == null) || id.equals("")) { //$NON-NLS-1$
             return null;
         }
 
-        for (WorkflowParameter wpb : parameters) {
+        for (WorkflowToolParameter wpb : parameters) {
             if (id.equals(wpb.getParameterId())) {
                 return wpb;
             }
@@ -493,7 +493,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      *            collection of WorkflowParameterBean that represents all the
      *            parameters to the workflow tool.
      */
-    public void setParameters(List<WorkflowParameter> parameters) {
+    public void setParameters(List<WorkflowToolParameter> parameters) {
         this.parameters.clear();
         if (parameters != null) {
             this.parameters.addAll(parameters);
@@ -506,7 +506,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * @param parameter
      *            the parameter to be added.
      */
-    public void addParameter(WorkflowParameter parameter) {
+    public void addParameter(WorkflowToolParameter parameter) {
         this.parameters.add(parameter);
     }
 
@@ -516,7 +516,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * @param parameter
      *            the parameter to be removed.
      */
-    public void removeParameter(WorkflowParameter parameter) {
+    public void removeParameter(WorkflowToolParameter parameter) {
         this.parameters.remove(parameter);
     }
 }

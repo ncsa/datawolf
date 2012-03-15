@@ -60,39 +60,48 @@ import edu.illinois.ncsa.domain.Person;
 @Document(collection = "WorkflowStep")
 public class WorkflowStep extends AbstractBean {
     /** Used for serialization of object */
-    private static final long             serialVersionUID = 1L;
+    private static final long                  serialVersionUID = 1L;
 
     /** Title of the workflow step */
-    private String                        title            = "";                                     //$NON-NLS-1$
+    private String                             title            = "";                                          //$NON-NLS-1$
 
     /** creator of the workflow step */
     @DBRef
-    private Person                        creator          = null;
+    private Person                             creator          = null;
 
     /** Date the workflow step is created */
-    private Date                          createDate       = new Date();
+    private Date                               createDate       = new Date();
 
     /** Tool the workflow step is executing */
     @DBRef
-    private WorkflowTool                  tool             = null;
+    private WorkflowTool                       tool             = null;
 
     /**
-     * List of inputs to the workflow step. This is a map from a specific input
-     * UUID to a specific WorkflowToolData.
-     */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowStepInputs")
-    @DBRef
-    private Map<String, WorkflowToolData> inputs           = new HashMap<String, WorkflowToolData>();
-
-    /**
-     * List of outputs from the workflow step. This is a map from a specific
-     * output UUID to a specific WorkflowToolData.
+     * List of parameters from the workflow step. This is a map from a specific
+     * UUID to a specific WorkflowToolParameter.
      */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowStepOutputs")
     @DBRef
-    private Map<String, WorkflowToolData> outputs          = new HashMap<String, WorkflowToolData>();
+    private Map<String, WorkflowToolParameter> parameters       = new HashMap<String, WorkflowToolParameter>();
+
+    /**
+     * List of inputs to the workflow step. This is a map from a specific UUID
+     * to a specific WorkflowToolData.
+     */
+    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @JoinTable(name = "WorkflowStepInputs")
+    @DBRef
+    private Map<String, WorkflowToolData>      inputs           = new HashMap<String, WorkflowToolData>();
+
+    /**
+     * List of outputs from the workflow step. This is a map from a specific
+     * UUID to a specific WorkflowToolData.
+     */
+    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @JoinTable(name = "WorkflowStepOutputs")
+    @DBRef
+    private Map<String, WorkflowToolData>      outputs          = new HashMap<String, WorkflowToolData>();
 
     /**
      * Create a new instance of the workflow step.
