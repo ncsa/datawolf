@@ -1,0 +1,32 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>edu.illinois.ncsa</groupId>
+		<artifactId>cyberintegrator-parent</artifactId>
+		<version>3.0.0-SNAPSHOT</version>
+		<relativePath>../cyberintegrator-parent</relativePath>
+	</parent>
+	<artifactId>cyberintegrator-domain</artifactId>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.java</include>
+					<include>**/*.gwt.xml</include>
+				</includes>
+			</resource>
+		</resources>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>ncsa-common</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+</project>
