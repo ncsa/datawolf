@@ -1,0 +1,27 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>edu.illinois.ncsa</groupId>
+		<artifactId>ncsa-common-parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../ncsa-common-parent</relativePath>
+	</parent>
+	<artifactId>ncsa-common-springdata</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>ncsa-common-domain</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
+		<!-- SPRING DATA -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons-core</artifactId>
+			<version>${spring.data}</version>
+		</dependency>
+	</dependencies>
+</project>
