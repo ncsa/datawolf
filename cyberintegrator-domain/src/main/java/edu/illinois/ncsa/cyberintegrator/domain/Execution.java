@@ -126,4 +126,74 @@ public class Execution extends AbstractBean {
     public void setCreator(Person creator) {
         this.creator = creator;
     }
+
+    /**
+     * Returns the value for a specific parameter.
+     * TODO this should search the workflow for the default if not found.
+     * 
+     * @param uuid
+     *            the uuid for parameter
+     * @return the value of the parameter.
+     */
+    public String getParameter(String uuid) {
+        return this.parameters.get(uuid);
+    }
+
+    /**
+     * Sets the value for the specific parameter.
+     * 
+     * @param uuid
+     *            the uuid of the parameter to set.
+     * @param value
+     *            the value of the parameter.
+     */
+    public void setParameter(String uuid, String value) {
+        this.parameters.put(uuid, value);
+    }
+
+    /**
+     * Returns the value for a specific dataset.
+     * 
+     * @param uuid
+     *            the uuid for dataset
+     * @return the dataset.
+     */
+    public Dataset getDataset(String uuid) {
+        return this.datasets.get(uuid);
+    }
+
+    /**
+     * Sets the dataset associated with that specific uuid.
+     * 
+     * @param uuid
+     *            the uuid of the output to set.
+     * @param value
+     *            the dataset generated.
+     */
+    public void setDataset(String uuid, Dataset dataset) {
+        this.datasets.put(uuid, dataset);
+    }
+
+    /**
+     * Returns the state for a specific step.
+     * 
+     * @param uri
+     *            the uri for the step in the workflow
+     * @return the state of the step.
+     */
+    public State getStepState(String uri) {
+        return this.stepState.get(uri);
+    }
+
+    /**
+     * Sets the state of the specific step in the workflow.
+     * 
+     * @param uri
+     *            the uri of the workflow step.
+     * @param state
+     *            the state of the workflow step.
+     */
+    public void setStepState(String uri, State state) {
+        this.stepState.put(uri, state);
+    }
 }
