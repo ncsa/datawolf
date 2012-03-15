@@ -7,31 +7,9 @@
 	<artifactId>cyberintegrator</artifactId>
 	<packaging>pom</packaging>
 
-	<properties>
-		<slf4j>1.6.4</slf4j>
-	</properties>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
-	<dependencies>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j}</version>
-			<scope>compile</scope>
-		</dependency>
-	</dependencies>
-
+	<modules>
+		<module>ncsa-common-domain</module>
+		<module>ncsa-common-springdata</module>
+		<module>cyberintegrator-parent</module>
+	</modules>
 </project>

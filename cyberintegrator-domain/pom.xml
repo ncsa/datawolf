@@ -23,9 +23,10 @@
 	</build>
 
 	<dependencies>
+		<!-- NCSA COMMON BEANS -->
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>ncsa-common</artifactId>
+			<artifactId>ncsa-common-domain</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
