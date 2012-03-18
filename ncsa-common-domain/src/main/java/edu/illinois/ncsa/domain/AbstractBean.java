@@ -73,18 +73,8 @@ public class AbstractBean implements Serializable {
      * 
      * @return id of the bean
      */
-    protected final String getId() {
+    public final String getId() {
         return id;
-    }
-
-    /**
-     * Sets the id of the bean
-     * 
-     * @param id
-     *            sets the id of the bean.
-     */
-    protected final void setId(String id) {
-        this.id = id;
     }
 
     /**

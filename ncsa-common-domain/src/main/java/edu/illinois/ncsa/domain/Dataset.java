@@ -81,11 +81,17 @@ public class Dataset extends AbstractBean implements Serializable {
     @DBRef
     private Set<Person>       contributors     = null;
 
-    /** Mime type of the workflow tool data */
+    /** Mime type of the dataset data */
     private String            mimetype         = "";        //$NON-NLS-1$
 
     /** Original filename */
     private String            filename         = null;
+
+    /** all blobs associated with this dataset */
+    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @JoinTable(name = "DatasetBlobs")
+    @DBRef
+    private Set<Blob>         blobs            = null;
 
     /**
      * Create a new instance of the artifact.
@@ -214,7 +220,7 @@ public class Dataset extends AbstractBean implements Serializable {
     }
 
     /**
-     * Remove the contributor from the set of contributors to the worflow tool.
+     * Remove the contributor from the set of contributors to the dataset.
      * 
      * @param contributor
      *            the PersonBean of the contributor to be removed.
@@ -283,5 +289,52 @@ public class Dataset extends AbstractBean implements Serializable {
      */
     public String getFilename() {
         return filename;
+    }
+
+    /**
+     * Return the set of blobs associated with the dataset.
+     * 
+     * @return set of blob associated with the dataset.
+     */
+    public Set<Blob> getBlobs() {
+        if (blobs == null) {
+            blobs = new HashSet<Blob>();
+        }
+        return blobs;
+    }
+
+    /**
+     * Set the set of blobs associated with the dataset.
+     * 
+     * @param blobs
+     *            the set of blobs to the dataset.
+     */
+    public void setBlobs(Collection<Blob> blobs) {
+        getBlobs().clear();
+        if (blobs != null) {
+            getBlobs().addAll(blobs);
+        }
+    }
+
+    /**
+     * Add the blob to the set of blobs to the dataset.
+     * 
+     * @param blob
+     *            the blob to be added.
+     */
+    public void addBlob(Blob blob) {
+        if (blob != null) {
+            getBlobs().add(blob);
+        }
+    }
+
+    /**
+     * Remove the blob from the set of blobs of the dataset.
+     * 
+     * @param blob
+     *            the blob to be removed.
+     */
+    public void removeBlob(Blob blob) {
+        getBlobs().remove(blob);
     }
 }
