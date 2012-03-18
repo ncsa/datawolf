@@ -21,7 +21,7 @@ import edu.illinois.ncsa.domain.Person;
 @Document(collection = "Execution")
 public class Execution extends AbstractBean {
     public enum State {
-        WAITING, RUNNING, FINISHED, ABORTED, ERROR
+        WAITING, RUNNING, FINISHED, ABORTED, FAILED
     }
 
     /** Used for serialization of object */

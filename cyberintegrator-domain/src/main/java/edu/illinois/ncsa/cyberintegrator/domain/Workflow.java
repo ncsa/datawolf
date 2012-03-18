@@ -232,6 +232,20 @@ public class Workflow extends AbstractBean {
     }
 
     /**
+     * Retrieve a specific step from the workflow.
+     * 
+     * @return the step requested, or null if it is not found.
+     */
+    public WorkflowStep getStep(String step) {
+        for (WorkflowStep ws : this.steps) {
+            if (ws.getUri().equals(step)) {
+                return ws;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Set the list of steps of a workflow. This sets the list of the steps as
      * they have been added to the workflow.
      * 

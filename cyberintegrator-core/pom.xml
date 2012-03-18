@@ -16,6 +16,11 @@
 			<artifactId>cyberintegrator-domain</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>cyberintegrator-springdata</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		
 		<!-- LOGGING -->
 		<dependency>

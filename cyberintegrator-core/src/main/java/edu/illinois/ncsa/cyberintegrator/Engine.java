@@ -1,19 +1,19 @@
 package edu.illinois.ncsa.cyberintegrator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 
 /**
  * Engine that is responsible for executing the steps. This is an abstract class
@@ -33,6 +33,9 @@ public abstract class Engine {
 
     /** List of submitted steps */
     private List<ExecutionInfo>   queue      = new ArrayList<Engine.ExecutionInfo>();
+
+    @Autowired
+    protected ExecutionDAO        executionDAO;
 
     /**
      * Create the engine with no properties set.
@@ -151,8 +154,23 @@ public abstract class Engine {
      *            environment.
      */
     public void execute(ExecutionInfo executionInfo) {
-        synchronized (executionInfo) {
+        synchronized (queue) {
             queue.add(executionInfo);
+            saveQueue();
+        }
+    }
+
+    /**
+     * Postpone the step, this could be because the executor is not ready.
+     * 
+     * @param executionInfo
+     *            the execution to be placed at the end of the list.
+     */
+    protected void postponeExecution(ExecutionInfo executionInfo) {
+        synchronized (queue) {
+            queue.remove(executionInfo);
+            queue.add(executionInfo);
+            saveQueue();
         }
     }
 
@@ -201,7 +219,7 @@ public abstract class Engine {
         synchronized (queue) {
             for (ExecutionInfo ei : queue) {
                 if (ei.getStep().equals(step)) {
-                    return ei.getExecution().getStepState(step) == Execution.State.RUNNING;
+                    return getStepState(ei) == Execution.State.RUNNING;
                 }
             }
         }
@@ -219,7 +237,7 @@ public abstract class Engine {
 
         synchronized (queue) {
             for (ExecutionInfo ei : queue) {
-                if (ei.getExecution().getStepState(ei.getStep()) == Execution.State.RUNNING) {
+                if (getStepState(ei) == Execution.State.RUNNING) {
                     running.add(ei);
                 }
             }
@@ -238,7 +256,7 @@ public abstract class Engine {
 
         synchronized (queue) {
             for (ExecutionInfo ei : queue) {
-                if (ei.getExecution().getStepState(ei.getStep()) == Execution.State.WAITING) {
+                if (getStepState(ei) == Execution.State.WAITING) {
                     waiting.add(ei);
                 }
             }
@@ -255,22 +273,12 @@ public abstract class Engine {
      *            the list of steps to be stopped.
      */
     public void stop(String... steps) {
-        List<String> stepsList = Arrays.asList(steps);
-
-        synchronized (queue) {
-            Iterator<ExecutionInfo> iter = queue.iterator();
-            while (iter.hasNext()) {
-                ExecutionInfo ei = iter.next();
-                if (stepsList.contains(ei.getStep())) {
-                    if (ei.getExecution().getStepState(ei.getStep()) == State.RUNNING) {
-                        try {
-                            kill(ei);
-                        } catch (Exception e) {
-                            logger.error("Could not kill step.", e);
-                        }
+        for (String step : steps) {
+            synchronized (queue) {
+                for (ExecutionInfo ei : queue) {
+                    if (ei.getStep().equals(step)) {
+                        stopExecution(ei);
                     }
-                    ei.getExecution().setStepState(ei.getStep(), State.ABORTED);
-                    iter.remove();
                 }
             }
         }
@@ -282,20 +290,100 @@ public abstract class Engine {
      */
     public void stopAll() {
         synchronized (queue) {
-            Iterator<ExecutionInfo> iter = queue.iterator();
-            while (iter.hasNext()) {
-                ExecutionInfo ei = iter.next();
-                if (ei.getExecution().getStepState(ei.getStep()) == State.RUNNING) {
-                    try {
-                        kill(ei);
-                    } catch (Exception e) {
-                        logger.error("Could not kill step.", e);
-                    }
-                }
-                ei.getExecution().setStepState(ei.getStep(), State.ABORTED);
-                iter.remove();
+            while (!queue.isEmpty()) {
+                stopExecution(queue.get(0));
             }
         }
+    }
+
+    private void stopExecution(ExecutionInfo executionInfo) {
+        if (getStepState(executionInfo) == State.RUNNING) {
+            try {
+                kill(executionInfo);
+            } catch (Exception e) {
+                logger.error("Could not kill step.", e);
+            }
+        }
+        stepAborted(executionInfo);
+    }
+
+    /**
+     * Return the state of a specific step for this execution. This will load
+     * the bean and return the state of a specific step in this execution.
+     * 
+     * @param executionInfo
+     *            the execution and step whose state to return.
+     * @return the sate of the step in this execution.
+     */
+    protected State getStepState(ExecutionInfo executionInfo) {
+        return executionDAO.findOne(executionInfo.getExecution()).getStepState(executionInfo.getStep());
+    }
+
+    /**
+     * Marks the specific step in the execution as running.
+     * 
+     * @param executionInfo
+     *            the execution and step whose state to set.
+     */
+    protected void stepRunning(ExecutionInfo executionInfo) {
+        setStepState(executionInfo, State.RUNNING);
+    }
+
+    /**
+     * Marks the specific step in the execution as done.
+     * 
+     * @param executionInfo
+     *            the execution and step whose state to set.
+     */
+    protected void stepFinished(ExecutionInfo executionInfo) {
+        setStepState(executionInfo, State.FINISHED);
+        synchronized (queue) {
+            queue.remove(executionInfo);
+            saveQueue();
+        }
+    }
+
+    /**
+     * Marks the specific step in the execution as aborted.
+     * 
+     * @param executionInfo
+     *            the execution and step whose state to set.
+     */
+    protected void stepAborted(ExecutionInfo executionInfo) {
+        setStepState(executionInfo, State.ABORTED);
+        synchronized (queue) {
+            queue.remove(executionInfo);
+            saveQueue();
+        }
+    }
+
+    /**
+     * Marks the specific step in the execution as failed.
+     * 
+     * @param executionInfo
+     *            the execution and step whose state to set.
+     */
+    protected void stepFailed(ExecutionInfo executionInfo) {
+        setStepState(executionInfo, State.FAILED);
+        synchronized (queue) {
+            queue.remove(executionInfo);
+            saveQueue();
+        }
+    }
+
+    /**
+     * Sets the state of the step in the execution and save the execution
+     * information.
+     * 
+     * @param executionInfo
+     *            the execution and step whose state to set.
+     * @param state
+     *            the sate of the step in this execution.
+     */
+    protected void setStepState(ExecutionInfo executionInfo, State state) {
+        Execution exec = executionDAO.findOne(executionInfo.getExecution());
+        exec.setStepState(executionInfo.getStep(), state);
+        executionDAO.save(exec);
     }
 
     /**
@@ -308,7 +396,7 @@ public abstract class Engine {
      * @throws Exception
      *             throws an exception if the step could not be stopped.
      */
-    abstract protected void kill(ExecutionInfo executionInfo) throws Exception;
+    protected abstract void kill(ExecutionInfo executionInfo) throws Exception;
 
     /**
      * This will mark the engine as started.
@@ -339,19 +427,19 @@ public abstract class Engine {
      * Called when then engine is started, or when the properties is set. The
      * default implementation does nothing.
      */
-    abstract protected void initialize();
+    protected abstract void initialize();
 
     /**
      * Save the queue to the underlying persistence layer.
      */
-    protected void saveQueue() {
+    private void saveQueue() {
         // TODO implement
     }
 
     /**
      * Load the queue from the underlying persistence layer.
      */
-    protected void loadQueue() {
+    private void loadQueue() {
         // TODO implement
     }
 
@@ -360,11 +448,11 @@ public abstract class Engine {
      * TODO this should become a bean so it can be saved/loaded
      */
     static public class ExecutionInfo {
-        private final Execution execution;
-        private final String    step;
+        private final String execution;
+        private final String step;
 
         public ExecutionInfo(Execution execution, String step) {
-            this.execution = execution;
+            this.execution = execution.getId();
             this.step = step;
         }
 
@@ -372,7 +460,7 @@ public abstract class Engine {
             return step;
         }
 
-        public Execution getExecution() {
+        public String getExecution() {
             return execution;
         }
     }

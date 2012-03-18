@@ -56,54 +56,55 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
+import edu.illinois.ncsa.domain.Blob;
 import edu.illinois.ncsa.domain.Person;
 
 @Entity(name = "WorkflowTool")
 @Document(collection = "WorkflowTool")
 public class WorkflowTool extends AbstractBean implements Serializable {
     /** Used for serialization of object */
-    private static final long       serialVersionUID = 1L;
+    private static final long           serialVersionUID = 1L;
 
     /** Title of the workflow tool */
-    private String                  title            = "";                                //$NON-NLS-1$
+    private String                      title            = "";                                    //$NON-NLS-1$
 
     /** Description of the workflow tool */
-    private String                  description      = "";                                //$NON-NLS-1$
+    private String                      description      = "";                                    //$NON-NLS-1$
 
     /** Version of the workflow tool */
-    private String                  version          = "1";                               //$NON-NLS-1$
+    private String                      version          = "1";                                   //$NON-NLS-1$
 
     /** Previous version of the workflow tool */
     @DBRef
-    private WorkflowTool            previousVersion  = null;
+    private WorkflowTool                previousVersion  = null;
 
     /** Date the workflow tool is created */
-    private Date                    date             = new Date();
+    private Date                        date             = new Date();
 
     /** implementation, this is executor specific. */
-    private String                  implementation   = "";                                //$NON-NLS-1$
+    private String                      implementation   = "";                                    //$NON-NLS-1$
 
     /** creator of the workflow tool */
     @DBRef
-    private Person                  creator          = null;
+    private Person                      creator          = null;
 
     /** List of contributors to the workflow tool. */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowToolContributors")
     @DBRef
-    private Set<Person>             contributors     = new HashSet<Person>();
+    private Set<Person>                 contributors     = new HashSet<Person>();
 
     /** List of inputs to the workflow tool. */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowToolInputs")
     @DBRef
-    private List<WorkflowToolData>  inputs           = new ArrayList<WorkflowToolData>();
+    private List<WorkflowToolData>      inputs           = new ArrayList<WorkflowToolData>();
 
     /** List of outputs to the workflow tool. */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowToolOutputs")
     @DBRef
-    private List<WorkflowToolData>  outputs          = new ArrayList<WorkflowToolData>();
+    private List<WorkflowToolData>      outputs          = new ArrayList<WorkflowToolData>();
 
     /** List of parameters to the workflow tool. */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
@@ -112,7 +113,13 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private List<WorkflowToolParameter> parameters       = new ArrayList<WorkflowToolParameter>();
 
     /** Executor of the tool. */
-    private String                  executor         = null;
+    private String                      executor         = null;
+
+    /** all blobs associated with this tool */
+    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @JoinTable(name = "ToolBlobs")
+    @DBRef
+    private Set<Blob>                   blobs            = null;
 
     /**
      * Create a new instance of the workflow tool.
@@ -501,7 +508,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     }
 
     /**
-     * Add the parameter from the set of parameters to the worflow tool.
+     * Add the parameter from the set of parameters to the workflow tool.
      * 
      * @param parameter
      *            the parameter to be added.
@@ -511,12 +518,59 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     }
 
     /**
-     * Remove the parameter from the set of parameters to the worflow tool.
+     * Remove the parameter from the set of parameters to the workflow tool.
      * 
      * @param parameter
      *            the parameter to be removed.
      */
     public void removeParameter(WorkflowToolParameter parameter) {
         this.parameters.remove(parameter);
+    }
+
+    /**
+     * Return the set of blobs associated with the workflow too.
+     * 
+     * @return set of blob associated with the workflow tool.
+     */
+    public Set<Blob> getBlobs() {
+        if (blobs == null) {
+            blobs = new HashSet<Blob>();
+        }
+        return blobs;
+    }
+
+    /**
+     * Set the set of blobs associated with the workflow tool.
+     * 
+     * @param blobs
+     *            the set of blobs to the workflow tool.
+     */
+    public void setBlobs(Collection<Blob> blobs) {
+        getBlobs().clear();
+        if (blobs != null) {
+            getBlobs().addAll(blobs);
+        }
+    }
+
+    /**
+     * Add the blob to the set of blobs to the workflow tool.
+     * 
+     * @param blob
+     *            the blob to be added.
+     */
+    public void addBlob(Blob blob) {
+        if (blob != null) {
+            getBlobs().add(blob);
+        }
+    }
+
+    /**
+     * Remove the blob from the set of blobs of the worflow tool.
+     * 
+     * @param blob
+     *            the blob to be removed.
+     */
+    public void removeBlob(Blob blob) {
+        getBlobs().remove(blob);
     }
 }
