@@ -98,7 +98,7 @@ public abstract class Executor {
      */
     public void setup(File cwd, WorkflowStep step) throws Exception {
         for (Blob blob : step.getTool().getBlobs()) {
-            // TODO fetch all blobs.
+            // TODO RK : fetch all blobs.
 //            try {
 //                File zipfile = TupeloHelper.getBlob(context, tool);
 //                if (zipfile != null) {
