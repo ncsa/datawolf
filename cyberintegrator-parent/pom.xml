@@ -56,5 +56,8 @@
 	<modules>
 		<module>../cyberintegrator-domain</module>
 		<module>../cyberintegrator-springdata</module>
+		<module>../cyberintegrator-core</module>
+		<module>../cyberintegrator-executor-java-tool</module>
+		<module>../cyberintegrator-executor-java</module>
 	</modules>
 </project>
