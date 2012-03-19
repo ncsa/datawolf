@@ -83,6 +83,7 @@ public abstract class Engine {
      */
     public Engine(Properties properties) {
         setProperties(properties);
+        loadQueue();
     }
 
     /**
@@ -464,19 +465,19 @@ public abstract class Engine {
      * Save the queue to the underlying persistence layer.
      */
     private void saveQueue() {
-        // TODO Enable saving of queue to spring-data
+        // TODO RK : Enable saving of queue to spring-data
     }
 
     /**
      * Load the queue from the underlying persistence layer.
      */
     private void loadQueue() {
-        // TODO Enable loading of queue from spring-data
+        // TODO RK : Enable loading of queue from spring-data
     }
 
     /**
      * Class to capture information about steps known to the engine.
-     * TODO this should become a bean so it can be saved/loaded
+     * TODO RK : this should become a bean so it can be saved/loaded
      */
     static public class ExecutionInfo {
         private final String execution;

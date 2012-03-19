@@ -192,6 +192,7 @@ public class DisposeClassLoader extends URLClassLoader {
     /**
      * Clear references.
      */
+    @SuppressWarnings("unchecked")
     protected void clearReferences() {
         // Unregister any JDBC drivers loaded by this classloader
         Enumeration<Driver> drivers = DriverManager.getDrivers();
@@ -433,7 +434,6 @@ public class DisposeClassLoader extends URLClassLoader {
             }
             stream = loader.getResourceAsStream(name);
             if (stream != null) {
-                // FIXME - cache???
                 log.trace("  --> Returning stream from parent");
                 return (stream);
             }
@@ -443,7 +443,6 @@ public class DisposeClassLoader extends URLClassLoader {
         log.trace("  Searching local repositories");
         URL url = findResource(name);
         if (url != null) {
-            // FIXME - cache???
             log.trace("  --> Returning stream from local");
             stream = findLoadedResource(name);
             if (stream != null) {
@@ -460,7 +459,6 @@ public class DisposeClassLoader extends URLClassLoader {
             }
             stream = loader.getResourceAsStream(name);
             if (stream != null) {
-                // FIXME - cache???
                 log.trace("  --> Returning stream from parent");
                 return stream;
             }

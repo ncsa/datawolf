@@ -55,17 +55,28 @@ import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
  * 
  */
 public class JavaExecutor extends Executor {
-    static private Logger logger = LoggerFactory.getLogger(JavaExecutor.class);
+    static private Logger logger      = LoggerFactory.getLogger(JavaExecutor.class);
+
+    private Thread        worker      = null;
+    private boolean       interrupted = false;
 
     @Override
     public void kill() throws Exception {
-        // TODO Auto-generated method stub
-
+        interrupted = true;
+        if (worker != null) {
+            worker.interrupt();
+        }
     }
 
     @Override
     public void execute(File cwd, Execution execution, WorkflowStep step) throws AbortException, FailedException {
         logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
+
+        // store worker so we can get interrupted.
+        worker = Thread.currentThread();
+        if (interrupted) {
+            throw (new FailedException("Thread got interrupted."));
+        }
 
         // parse the implementation
         String[] impl = step.getTool().getImplementation().split("\n");
@@ -122,7 +133,7 @@ public class JavaExecutor extends Executor {
             // set inputs
             if (tool.getInputs() != null) {
                 for (String runid : step.getInputs()) {
-                    // TODO fetch file
+                    // TODO RK : fetch file
                     // execution.getDataset(runid).getBlobs()
                     File file = null;
                     tool.setInput(step.getInput(runid).getDataId(), file);
@@ -130,19 +141,28 @@ public class JavaExecutor extends Executor {
             }
 
             // execute
+            if (interrupted) {
+                throw (new FailedException("Thread got interrupted."));
+            }
             tool.execute();
+            if (interrupted) {
+                throw (new FailedException("Thread got interrupted."));
+            }
 
             // get outputs in the case of CyberintegratorTool
             if (tool.getOutputs() != null) {
                 for (String runid : step.getOutputs()) {
                     File file = tool.getOutput(step.getOutput(runid).getDataId());
-                    // TODO save file
+                    // TODO RK : save file
                     // execution.setDataset(runid, dataset);
                 }
             }
 
         } catch (AbortException e) {
             logger.info("Step aborted.", e);
+            throw (e);
+        } catch (FailedException e) {
+            logger.info("Step failed.", e);
             throw (e);
         } catch (Throwable e) {
             logger.info("Step failed.", e);
