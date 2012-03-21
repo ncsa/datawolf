@@ -31,6 +31,7 @@
  ******************************************************************************/
 package edu.illinois.ncsa.domain;
 
+import java.net.URI;
 import java.util.UUID;
 
 public abstract class Minter {
@@ -39,13 +40,13 @@ public abstract class Minter {
     static {
         minter = new Minter() {
             @Override
-            protected String mint(String prefix) {
-                return String.format("tag://ncsa.illinois.edu,2012:/%s/%s", prefix, UUID.randomUUID().toString());
+            protected URI mint(String prefix) {
+                return URI.create(String.format("tag://ncsa.illinois.edu,2012:/%s/%s", prefix, UUID.randomUUID().toString()));
             }
         };
     }
 
-    public static String createID(String prefix) {
+    public static URI createURI(String prefix) {
         return minter.mint(prefix);
     }
 
@@ -53,5 +54,5 @@ public abstract class Minter {
         Minter.minter = minter;
     }
 
-    protected abstract String mint(String prefix);
+    protected abstract URI mint(String prefix);
 }

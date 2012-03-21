@@ -32,6 +32,7 @@
 package edu.illinois.ncsa.domain;
 
 import java.io.Serializable;
+import java.net.URI;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -51,13 +52,13 @@ public class AbstractBean implements Serializable {
     private String            id               = null;
 
     /** Unique identifier for this bean, used for external reference */
-    private String            uri              = null;
+    private URI               uri              = null;
 
     public AbstractBean() {
-        uri = Minter.createID(this.getClass().getName());
+        uri = Minter.createURI(this.getClass().getName());
     }
 
-    public AbstractBean(String uri) {
+    public AbstractBean(URI uri) {
         this.uri = uri;
     }
 
@@ -75,7 +76,7 @@ public class AbstractBean implements Serializable {
      * 
      * @return uri of the bean
      */
-    public String getUri() {
+    public final URI getUri() {
         return uri;
     }
 
@@ -85,7 +86,7 @@ public class AbstractBean implements Serializable {
      * @param uri
      *            sets the uri of the bean.
      */
-    protected final void setUri(String uri) {
+    protected final void setUri(URI uri) {
         this.uri = uri;
     }
 }
