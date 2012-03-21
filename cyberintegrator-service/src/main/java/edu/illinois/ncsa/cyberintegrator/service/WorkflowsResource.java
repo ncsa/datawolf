@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -30,8 +31,10 @@ public class WorkflowsResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Workflow> getWorkflows(@QueryParam("limit") @DefaultValue("100") int limit) {
-
-        return null;
+        List<Workflow> results = new ArrayList<Workflow>();
+        results.add(new Workflow());
+        results.add(new Workflow());
+        return results;
     }
 
     @GET
@@ -98,4 +101,5 @@ public class WorkflowsResource {
     public void cancelExecution(@PathParam("wid") String workflowId, @PathParam("eid") String executionId) {
 
     }
+
 }
