@@ -75,7 +75,8 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private Date                        date             = new Date();
 
     /** implementation, this is executor specific. */
-    private String                      implementation   = "";                                    //$NON-NLS-1$
+    @DBRef
+    private WorkflowToolImplementation  implementation   = null;
 
     /** creator of the workflow tool */
     @DBRef
@@ -184,7 +185,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * 
      * @return implementation of the tool.
      */
-    public String getImplementation() {
+    public WorkflowToolImplementation getImplementation() {
         return implementation;
     }
 
@@ -195,7 +196,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      *            sets the implementation of the tool.
      * 
      */
-    public void setImplementation(String implementation) {
+    public void setImplementation(WorkflowToolImplementation implementation) {
         this.implementation = implementation;
     }
 
