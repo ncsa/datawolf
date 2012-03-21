@@ -39,10 +39,10 @@
 package edu.illinois.ncsa.domain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -79,7 +79,7 @@ public class Dataset extends AbstractBean implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "DatasetContributors")
     @DBRef
-    private Set<Person>       contributors     = null;
+    private List<Person>      contributors     = null;
 
     /** Mime type of the dataset data */
     private String            mimetype         = "";        //$NON-NLS-1$
@@ -91,7 +91,7 @@ public class Dataset extends AbstractBean implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "DatasetBlobs")
     @DBRef
-    private Set<Blob>         blobs            = null;
+    private List<Blob>        blobs            = null;
 
     /**
      * Create a new instance of the artifact.
@@ -186,9 +186,9 @@ public class Dataset extends AbstractBean implements Serializable {
      * @return set of PersonBeans that represents all the users that have
      *         contributes to the artifact.
      */
-    public Set<Person> getContributors() {
+    public List<Person> getContributors() {
         if (contributors == null) {
-            contributors = new HashSet<Person>();
+            contributors = new ArrayList<Person>();
         }
         return contributors;
     }
@@ -296,9 +296,9 @@ public class Dataset extends AbstractBean implements Serializable {
      * 
      * @return set of blob associated with the dataset.
      */
-    public Set<Blob> getBlobs() {
+    public List<Blob> getBlobs() {
         if (blobs == null) {
-            blobs = new HashSet<Blob>();
+            blobs = new ArrayList<Blob>();
         }
         return blobs;
     }
