@@ -33,9 +33,84 @@ package edu.illinois.ncsa.domain;
 
 import javax.persistence.Entity;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 @Entity(name = "Blob")
+@Document(collection = "Blob")
 public class Blob extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
+    /** Original filename */
+    private String            filename         = null;
+
+    /** Mime type of the dataset data */
+    private String            mimetype         = "";  //$NON-NLS-1$
+
+    /** size of the blob associated */
+    private long              size             = -1;
+
+    public Blob() {}
+
+    /**
+     * Return the mime type of the artifact.
+     * 
+     * @return mime type of the artifact
+     */
+    public String getMimeType() {
+        return mimetype;
+    }
+
+    /**
+     * Sets the mime type of the artifact
+     * 
+     * @param mimetype
+     *            sets the mime type of the artifact
+     * 
+     */
+    public void setMimeType(String mimetype) {
+        this.mimetype = mimetype;
+    }
+
+    /**
+     * Returns the size of the blob, this is -2 if there is no blob associated
+     * or the size has not been computed.
+     * 
+     * @return the size
+     */
+    public long getSize() {
+        return size;
+    }
+
+    /**
+     * Sets the size of the blob, this can be set to -2 if there is no blob
+     * associated with this dataset.
+     * 
+     * @param size
+     *            the size to set
+     */
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    /**
+     * If this dataset originated in a filesystem, or is intended to be stored
+     * in a filesystem, what filename is/should be used? If not, set to null.
+     * 
+     * @param filename
+     */
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
+    /**
+     * If this dataset originated in a filesystem, or is intended to be stored
+     * in a filesystem, what filename is/should be used? If not, will return
+     * null.
+     * 
+     * @return the filename
+     */
+    public String getFilename() {
+        return filename;
+    }
 }
