@@ -33,5 +33,10 @@
   		<artifactId>cyberintegrator-domain</artifactId>
   		<version>3.0.0-SNAPSHOT</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.jboss.resteasy</groupId>
+  		<artifactId>tjws</artifactId>
+  		<version>2.3.2.Final</version>
+  	</dependency>
   </dependencies>
 </project>
