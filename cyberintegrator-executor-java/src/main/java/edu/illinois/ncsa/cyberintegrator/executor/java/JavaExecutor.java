@@ -79,8 +79,10 @@ public class JavaExecutor extends Executor {
         }
 
         // parse the implementation
-        String[] impl = step.getTool().getImplementation().split("\n");
-        String classname = impl[impl.length - 1];
+        // String[] impl = step.getTool().getImplementation().split("\n");
+        // String classname = impl[impl.length - 1];
+        JavaToolImplementation impl = (JavaToolImplementation) step.getTool().getImplementation();
+        String classname = impl.getToolClassName();// impl[impl.length - 1];
         logger.debug("Implementation class : " + classname);
 
         // run with the classloader
