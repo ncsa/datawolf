@@ -43,8 +43,11 @@ public class Person extends AbstractBean implements Serializable {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
-    /** Name of the person. */
-    private String            name             = ""; //$NON-NLS-1$
+    /** First Name of the person. */
+    private String            firstName        = ""; //$NON-NLS-1$
+
+    /** First Name of the person. */
+    private String            lastName         = ""; //$NON-NLS-1$
 
     /** email of the person. */
     private String            email            = ""; //$NON-NLS-1$
@@ -55,22 +58,41 @@ public class Person extends AbstractBean implements Serializable {
     public Person() {}
 
     /**
-     * Sets the name of the person.
+     * Sets the first name of the person.
      * 
-     * @param name
-     *            the name of the person
+     * @param firstName
+     *            the first name of the person
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     /**
-     * Gets the name of the person.
+     * Gets the first name of the person.
      * 
-     * @return the name of the person.
+     * @return the first name of the person.
      */
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
+    }
+
+    /**
+     * Sets the last name of the person.
+     * 
+     * @param lastName
+     *            the last name of the person
+     */
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    /**
+     * Gets the last name of the person.
+     * 
+     * @return the last name of the person.
+     */
+    public String getLastName() {
+        return lastName;
     }
 
     /**
@@ -96,7 +118,7 @@ public class Person extends AbstractBean implements Serializable {
     public boolean equals(Object arg0) {
         if (arg0 instanceof Person) {
             Person other = (Person) arg0;
-            return (name + email).equals(other.name + other.email);
+            return (firstName + lastName + email).equals(other.firstName + other.lastName + other.email);
         }
         return false;
     }
