@@ -31,6 +31,7 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -66,7 +67,7 @@ public abstract class Engine {
     private List<ExecutionInfo>   queue      = new ArrayList<Engine.ExecutionInfo>();
 
     @Autowired
-    protected ExecutionDAO        executionDAO;
+    private ExecutionDAO          executionDAO;
 
     /**
      * Create the engine with no properties set.
@@ -153,7 +154,7 @@ public abstract class Engine {
      */
     public void execute(Execution execution) {
         for (WorkflowStep step : execution.getWorkflow().getSteps()) {
-            execute(new ExecutionInfo(execution, step.getUri()));
+            execute(new ExecutionInfo(execution, step));
         }
     }
 
@@ -168,9 +169,9 @@ public abstract class Engine {
      * @param steps
      *            the list of steps to be executed.
      */
-    public void execute(Execution execution, String... steps) {
-        for (String step : steps) {
-            execute(new ExecutionInfo(execution, step));
+    public void execute(Execution execution, URI... steps) {
+        for (URI step : steps) {
+            execute(new ExecutionInfo(execution, execution.getWorkflow().getStep(step)));
         }
     }
 
@@ -214,7 +215,7 @@ public abstract class Engine {
      *            the step to be checked to see if it is in the queue.
      * @return true if the step is in the queue, false otherwise.
      */
-    public boolean isInQueue(String step) {
+    public boolean isInQueue(URI step) {
         synchronized (queue) {
             for (ExecutionInfo ei : queue) {
                 if (ei.getStep().equals(step)) {
@@ -247,7 +248,7 @@ public abstract class Engine {
      *            the step to be checked to see if it is executing..
      * @return true if the step is executing, false otherwise.
      */
-    public boolean isRunning(String step) {
+    public boolean isRunning(URI step) {
         synchronized (queue) {
             for (ExecutionInfo ei : queue) {
                 if (ei.getStep().equals(step)) {
@@ -304,8 +305,8 @@ public abstract class Engine {
      * @param steps
      *            the list of steps to be stopped.
      */
-    public void stop(String... steps) {
-        for (String step : steps) {
+    public void stop(URI... steps) {
+        for (URI step : steps) {
             synchronized (queue) {
                 for (ExecutionInfo ei : queue) {
                     if (ei.getStep().equals(step)) {
@@ -348,7 +349,7 @@ public abstract class Engine {
      * @return the sate of the step in this execution.
      */
     protected State getStepState(ExecutionInfo executionInfo) {
-        return executionDAO.findOne(executionInfo.getExecution()).getStepState(executionInfo.getStep());
+        return executionInfo.getExecution().getStepState(executionInfo.getStep().getUri());
     }
 
     /**
@@ -413,9 +414,8 @@ public abstract class Engine {
      *            the sate of the step in this execution.
      */
     protected void setStepState(ExecutionInfo executionInfo, State state) {
-        Execution exec = executionDAO.findOne(executionInfo.getExecution());
-        exec.setStepState(executionInfo.getStep(), state);
-        executionDAO.save(exec);
+        executionInfo.getExecution().setStepState(executionInfo.getStep().getUri(), state);
+        executionDAO.save(executionInfo.getExecution());
     }
 
     /**
@@ -480,19 +480,19 @@ public abstract class Engine {
      * TODO RK : this should become a bean so it can be saved/loaded
      */
     static public class ExecutionInfo {
-        private final String execution;
-        private final String step;
+        private final Execution    execution;
+        private final WorkflowStep step;
 
-        public ExecutionInfo(Execution execution, String step) {
-            this.execution = execution.getId();
+        public ExecutionInfo(Execution execution, WorkflowStep step) {
+            this.execution = execution;
             this.step = step;
         }
 
-        public String getStep() {
+        public WorkflowStep getStep() {
             return step;
         }
 
-        public String getExecution() {
+        public Execution getExecution() {
             return execution;
         }
     }

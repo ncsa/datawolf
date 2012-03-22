@@ -199,8 +199,8 @@ public class ThreadedEngine extends Engine {
                     }
                     last = curr;
 
-                    Execution exection = executionDAO.findOne(curr.getExecution());
-                    WorkflowStep step = exection.getWorkflow().getStep(curr.getStep());
+                    Execution exection = curr.getExecution();
+                    WorkflowStep step = curr.getStep();
 
                     // check to see if all inputs of the step are ready
                     for (String id : step.getInputs()) {

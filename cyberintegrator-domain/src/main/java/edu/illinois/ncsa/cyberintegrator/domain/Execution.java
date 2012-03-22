@@ -31,6 +31,7 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.domain;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -81,17 +82,17 @@ public class Execution extends AbstractBean {
     /** the state of each step executed */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "ExecutionStepState")
-    private Map<String, State>   stepState        = new HashMap<String, State>();
+    private Map<URI, State>      stepState        = new HashMap<URI, State>();
 
     /** the start date of each step executed */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "ExecutionStepStart")
-    private Map<String, Date>    stepStart        = new HashMap<String, Date>();
+    private Map<URI, Date>       stepStart        = new HashMap<URI, Date>();
 
     /** the end date of each step executed */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "ExecutionStepEnd")
-    private Map<String, Date>    stepEnd          = new HashMap<String, Date>();
+    private Map<URI, Date>       stepEnd          = new HashMap<URI, Date>();
 
     /**
      * Create a new instance of the execution.
@@ -212,7 +213,7 @@ public class Execution extends AbstractBean {
      *            the uri for the step in the workflow
      * @return the state of the step.
      */
-    public State getStepState(String uri) {
+    public State getStepState(URI uri) {
         return this.stepState.get(uri);
     }
 
@@ -224,7 +225,7 @@ public class Execution extends AbstractBean {
      * @param state
      *            the state of the workflow step.
      */
-    public void setStepState(String uri, State state) {
+    public void setStepState(URI uri, State state) {
         this.stepState.put(uri, state);
     }
 }

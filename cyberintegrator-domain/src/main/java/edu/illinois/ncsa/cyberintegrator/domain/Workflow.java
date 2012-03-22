@@ -31,6 +31,7 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.domain;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -229,7 +230,7 @@ public class Workflow extends AbstractBean {
      * 
      * @return the step requested, or null if it is not found.
      */
-    public WorkflowStep getStep(String step) {
+    public WorkflowStep getStep(URI step) {
         for (WorkflowStep ws : this.steps) {
             if (ws.getUri().equals(step)) {
                 return ws;
