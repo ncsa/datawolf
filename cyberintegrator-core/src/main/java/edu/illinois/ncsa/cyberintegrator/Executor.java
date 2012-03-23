@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
-import edu.illinois.ncsa.domain.Blob;
+import edu.illinois.ncsa.domain.FileDescriptor;
 
 /**
  * Abstract class representing an executor. In the case of the Cyberintegrator
@@ -97,7 +97,7 @@ public abstract class Executor {
      *             cleanup (for example files that could not be created).
      */
     public void setup(File cwd, WorkflowStep step) throws Exception {
-        for (Blob blob : step.getTool().getBlobs()) {
+        for (FileDescriptor blob : step.getTool().getBlobs()) {
             // TODO RK : fetch all blobs.
 //            try {
 //                File zipfile = TupeloHelper.getBlob(context, tool);

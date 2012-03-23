@@ -49,7 +49,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
-import edu.illinois.ncsa.domain.Blob;
+import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.Person;
 
 @Entity(name = "WorkflowTool")
@@ -113,7 +113,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "ToolBlobs")
     @DBRef
-    private Set<Blob>                   blobs            = null;
+    private Set<FileDescriptor>                   blobs            = null;
 
     /**
      * Create a new instance of the workflow tool.
@@ -526,9 +526,9 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * 
      * @return set of blob associated with the workflow tool.
      */
-    public Set<Blob> getBlobs() {
+    public Set<FileDescriptor> getBlobs() {
         if (blobs == null) {
-            blobs = new HashSet<Blob>();
+            blobs = new HashSet<FileDescriptor>();
         }
         return blobs;
     }
@@ -539,7 +539,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * @param blobs
      *            the set of blobs to the workflow tool.
      */
-    public void setBlobs(Collection<Blob> blobs) {
+    public void setBlobs(Collection<FileDescriptor> blobs) {
         getBlobs().clear();
         if (blobs != null) {
             getBlobs().addAll(blobs);
@@ -552,7 +552,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * @param blob
      *            the blob to be added.
      */
-    public void addBlob(Blob blob) {
+    public void addBlob(FileDescriptor blob) {
         if (blob != null) {
             getBlobs().add(blob);
         }
@@ -564,7 +564,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * @param blob
      *            the blob to be removed.
      */
-    public void removeBlob(Blob blob) {
+    public void removeBlob(FileDescriptor blob) {
         getBlobs().remove(blob);
     }
 }
