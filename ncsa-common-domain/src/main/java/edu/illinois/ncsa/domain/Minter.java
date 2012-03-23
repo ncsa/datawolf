@@ -40,19 +40,34 @@ public abstract class Minter {
     static {
         minter = new Minter() {
             @Override
-            protected URI mint(String prefix) {
-                return URI.create(String.format("tag://ncsa.illinois.edu,2012:/%s/%s", prefix, UUID.randomUUID().toString()));
+            protected URI mint(String prefix, String id) {
+                if (id == null) {
+                    id = UUID.randomUUID().toString();
+                }
+                if (prefix == null) {
+                    return URI.create(String.format("tag://ncsa.illinois.edu,2012:/%s", id));
+                } else {
+                    return URI.create(String.format("tag://ncsa.illinois.edu,2012:/%s/%s", prefix, id));
+                }
             }
         };
     }
 
-    public static URI createURI(String prefix) {
-        return minter.mint(prefix);
+    public static URI createURI() {
+        return minter.mint(null, null);
+    }
+
+    public static URI createURI(String id) {
+        return minter.mint(null, id);
+    }
+
+    public static URI createURI(String prefix, String id) {
+        return minter.mint(prefix, id);
     }
 
     public static void setMinter(Minter minter) {
         Minter.minter = minter;
     }
 
-    protected abstract URI mint(String prefix);
+    protected abstract URI mint(String prefix, String id);
 }
