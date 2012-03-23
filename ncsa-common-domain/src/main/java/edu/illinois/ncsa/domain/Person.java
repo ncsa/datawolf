@@ -58,6 +58,19 @@ public class Person extends AbstractBean implements Serializable {
     public Person() {}
 
     /**
+     * Single function to set both first and last name of the person.
+     * 
+     * @param firstName
+     *            the first name of the person.
+     * @param lastName
+     *            the last name of the person.
+     */
+    public void setName(String firstName, String lastName) {
+        setFirstName(firstName);
+        setLastName(lastName);
+    }
+
+    /**
      * Sets the first name of the person.
      * 
      * @param firstName
