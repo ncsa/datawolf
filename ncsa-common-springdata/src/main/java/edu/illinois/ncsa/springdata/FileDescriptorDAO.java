@@ -33,7 +33,7 @@ package edu.illinois.ncsa.springdata;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-import edu.illinois.ncsa.domain.Blob;
+import edu.illinois.ncsa.domain.FileDescriptor;
 
-public interface BlobDAO extends PagingAndSortingRepository<Blob, String> {
+public interface FileDescriptorDAO extends PagingAndSortingRepository<FileDescriptor, String> {
 }

@@ -41,6 +41,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -50,32 +52,33 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "Dataset")
 public class Dataset extends AbstractBean implements Serializable {
     /** Used for serialization of object */
-    private static final long serialVersionUID = 1L;
+    private static final long    serialVersionUID = 1L;
 
     /** Title of the artifact */
-    private String            title            = "";        //$NON-NLS-1$
+    private String               title            = "";        //$NON-NLS-1$
 
     /** Description of the artifact */
-    private String            description      = "";        //$NON-NLS-1$
+    private String               description      = "";        //$NON-NLS-1$
 
     /** Date the artifact is created */
-    private Date              date             = new Date();
+    private Date                 date             = new Date();
 
     /** creator of the artifact */
     @DBRef
-    private Person            creator          = null;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    private Person               creator          = null;
 
     /** List of contributors to the artifact. */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "DatasetContributors")
     @DBRef
-    private List<Person>      contributors     = null;
+    private List<Person>         contributors     = null;
 
     /** all blobs associated with this dataset */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "DatasetBlobs")
     @DBRef
-    private List<Blob>        blobs            = null;
+    private List<FileDescriptor> blobs            = null;
 
     /**
      * Create a new instance of the artifact.
@@ -218,9 +221,9 @@ public class Dataset extends AbstractBean implements Serializable {
      * 
      * @return set of blob associated with the dataset.
      */
-    public List<Blob> getBlobs() {
+    public List<FileDescriptor> getBlobs() {
         if (blobs == null) {
-            blobs = new ArrayList<Blob>();
+            blobs = new ArrayList<FileDescriptor>();
         }
         return blobs;
     }
@@ -231,7 +234,7 @@ public class Dataset extends AbstractBean implements Serializable {
      * @param blobs
      *            the set of blobs to the dataset.
      */
-    public void setBlobs(Collection<Blob> blobs) {
+    public void setBlobs(Collection<FileDescriptor> blobs) {
         getBlobs().clear();
         if (blobs != null) {
             getBlobs().addAll(blobs);
@@ -244,7 +247,7 @@ public class Dataset extends AbstractBean implements Serializable {
      * @param blob
      *            the blob to be added.
      */
-    public void addBlob(Blob blob) {
+    public void addBlob(FileDescriptor blob) {
         if (blob != null) {
             getBlobs().add(blob);
         }
@@ -256,7 +259,7 @@ public class Dataset extends AbstractBean implements Serializable {
      * @param blob
      *            the blob to be removed.
      */
-    public void removeBlob(Blob blob) {
+    public void removeBlob(FileDescriptor blob) {
         getBlobs().remove(blob);
     }
 }

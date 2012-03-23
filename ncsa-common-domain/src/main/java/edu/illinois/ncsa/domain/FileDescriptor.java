@@ -35,9 +35,9 @@ import javax.persistence.Entity;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity(name = "Blob")
-@Document(collection = "Blob")
-public class Blob extends AbstractBean {
+@Entity(name = "FileDescriptor")
+@Document(collection = "FileDescriptor")
+public class FileDescriptor extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
@@ -50,7 +50,7 @@ public class Blob extends AbstractBean {
     /** size of the blob associated */
     private long              size             = -1;
 
-    public Blob() {}
+    public FileDescriptor() {}
 
     /**
      * Return the mime type of the artifact.
