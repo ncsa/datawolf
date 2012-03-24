@@ -8,8 +8,6 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>ncsa-common-domain</module>
-		<module>ncsa-common-springdata</module>
 		<module>cyberintegrator-parent</module>
 	</modules>
 </project>

@@ -9,11 +9,6 @@
 	</parent>
 	<artifactId>cyberintegrator-gui</artifactId>
 
-	<properties>
-		<spring.jpa>1.1.0.RC1</spring.jpa>
-		<spring.mongo>1.1.0.M1</spring.mongo>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>

@@ -21,12 +21,5 @@
 			<artifactId>cyberintegrator-springdata</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
-		<!-- LOGGING -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j}</version>
-		</dependency>
 	</dependencies>
 </project>

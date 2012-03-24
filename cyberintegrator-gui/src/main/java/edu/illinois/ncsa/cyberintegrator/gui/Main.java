@@ -16,52 +16,54 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Component;
 
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.DatasetDAO;
+import edu.illinois.ncsa.springdata.SpringData;
 
-@Component
 public class Main extends JFrame {
-    @Autowired
-    private DatasetDAO datasetDAO;
-
     private Person     user;
+    private DatasetDAO datasetDAO;
 
     public Main() {
         super("Cyberintegrator 3.0");
+
+        datasetDAO = SpringData.getDAO(DatasetDAO.class);
 
         user = new Person();
         user.setName("Rob", "Kooper");
 
         final DatasetTableModel datasetTableModel = new DatasetTableModel();
-        final JTable datasetList = new JTable(datasetTableModel);
-        add(BorderLayout.WEST, new JScrollPane(datasetList));
+        final JTable datasetTable = new JTable(datasetTableModel);
+        JScrollPane scrollPane = new JScrollPane(datasetTable);
+        add(BorderLayout.WEST, scrollPane);
 
-        datasetList.setDropTarget(new DropTarget() {
+        scrollPane.setDropTarget(new DropTarget() {
             public synchronized void drop(DropTargetDropEvent evt) {
+
                 try {
                     evt.acceptDrop(DnDConstants.ACTION_COPY);
                     List<File> droppedFiles = (List<File>) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                     for (File file : droppedFiles) {
                         Dataset dataset = new Dataset();
+                        dataset.setTitle(file.getName());
                         dataset.setDate(new Date());
                         dataset.setCreator(user);
 
-                        FileDescriptor blob = new FileDescriptor();
-                        blob.setFilename(file.getName());
-                        blob.setMimeType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
-                        blob.setSize(file.length());
+                        FileDescriptor fd = new FileDescriptor();
+                        fd.setUri(file.toURI());
+                        fd.setFilename(file.getName());
+                        fd.setMimeType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
+                        fd.setSize(file.length());
+                        dataset.addFileDescriptor(fd);
 
                         datasetDAO.save(dataset);
                     }
-
+                    evt.dropComplete(true);
                     datasetTableModel.fireTableDataChanged();
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -114,7 +116,11 @@ public class Main extends JFrame {
             case 1:
                 return dataset.getDate();
             case 2:
-                return dataset.getBlobs().get(0).getSize();
+                if (dataset.getFileDescriptors().size() > 0) {
+                    return dataset.getFileDescriptors().get(0).getSize();
+                } else {
+                    return -1;
+                }
             }
             return "N/A";
         }
@@ -123,9 +129,9 @@ public class Main extends JFrame {
 
     public static void main(String[] args) {
         // get hold of the repo
-        ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
+        SpringData.loadXMLContext("applicationContext.xml");
 
-        Main main = ctx.getBean(Main.class);
+        Main main = new Main();
         main.setPreferredSize(new Dimension(800, 600));
         main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         main.pack();
