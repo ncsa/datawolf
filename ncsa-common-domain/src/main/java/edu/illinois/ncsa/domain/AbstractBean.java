@@ -48,6 +48,7 @@ public class AbstractBean implements Serializable {
 
     /** Unique identifier for this bean, used by persistence layer */
     @Id
+    // TODO RK : fix this to specific size
     private String            id;
 
     /** Unique identifier for this bean, used for external reference */

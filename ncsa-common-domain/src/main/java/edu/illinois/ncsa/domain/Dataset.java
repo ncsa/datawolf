@@ -75,10 +75,10 @@ public class Dataset extends AbstractBean implements Serializable {
     private List<Person>         contributors     = null;
 
     /** all blobs associated with this dataset */
-    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "DatasetBlobs")
+    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
+    @JoinTable(name = "DatasetFileDescriptors")
     @DBRef
-    private List<FileDescriptor> blobs            = null;
+    private List<FileDescriptor> fileDescriptors  = null;
 
     /**
      * Create a new instance of the artifact.
@@ -217,49 +217,49 @@ public class Dataset extends AbstractBean implements Serializable {
     }
 
     /**
-     * Return the set of blobs associated with the dataset.
+     * Return the set of file descriptors associated with the dataset.
      * 
-     * @return set of blob associated with the dataset.
+     * @return set of file descriptors associated with the dataset.
      */
-    public List<FileDescriptor> getBlobs() {
-        if (blobs == null) {
-            blobs = new ArrayList<FileDescriptor>();
+    public List<FileDescriptor> getFileDescriptors() {
+        if (fileDescriptors == null) {
+            fileDescriptors = new ArrayList<FileDescriptor>();
         }
-        return blobs;
+        return fileDescriptors;
     }
 
     /**
-     * Set the set of blobs associated with the dataset.
+     * Set the set of file descriptors associated with the dataset.
      * 
-     * @param blobs
-     *            the set of blobs to the dataset.
+     * @param fileDescriptors
+     *            the set of file descriptors to the dataset.
      */
-    public void setBlobs(Collection<FileDescriptor> blobs) {
-        getBlobs().clear();
-        if (blobs != null) {
-            getBlobs().addAll(blobs);
-        }
-    }
-
-    /**
-     * Add the blob to the set of blobs to the dataset.
-     * 
-     * @param blob
-     *            the blob to be added.
-     */
-    public void addBlob(FileDescriptor blob) {
-        if (blob != null) {
-            getBlobs().add(blob);
+    public void setFileDescriptors(Collection<FileDescriptor> fileDescriptors) {
+        getFileDescriptors().clear();
+        if (fileDescriptors != null) {
+            getFileDescriptors().addAll(fileDescriptors);
         }
     }
 
     /**
-     * Remove the blob from the set of blobs of the dataset.
+     * Add the file descriptor to the set of file descriptors to the dataset.
      * 
-     * @param blob
-     *            the blob to be removed.
+     * @param fileDescriptor
+     *            the file descriptors to be added.
      */
-    public void removeBlob(FileDescriptor blob) {
-        getBlobs().remove(blob);
+    public void addFileDescriptor(FileDescriptor fileDescriptor) {
+        if (fileDescriptor != null) {
+            getFileDescriptors().add(fileDescriptor);
+        }
+    }
+
+    /**
+     * Remove the file descriptor from the set of files of the dataset.
+     * 
+     * @param fileDescriptor
+     *            the file descriptor to be removed.
+     */
+    public void removeFileDescriptor(FileDescriptor fileDescriptor) {
+        getFileDescriptors().remove(fileDescriptor);
     }
 }

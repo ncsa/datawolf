@@ -23,5 +23,17 @@
 			<artifactId>spring-data-commons-core</artifactId>
 			<version>${spring.data}</version>
 		</dependency>
+
+		<!-- SPRING FRAMEWORK -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.framework}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.framework}</version>
+		</dependency>
 	</dependencies>
 </project>
