@@ -74,7 +74,7 @@ public class WorkflowToolParameter extends AbstractBean {
     private boolean           allowNull        = false;
 
     /** Order of the parameter in the list */
-    private int               order            = 0;
+    private int               cliPosition      = 0;
 
     /** List of options */
     @ElementCollection
@@ -256,22 +256,22 @@ public class WorkflowToolParameter extends AbstractBean {
     }
 
     /**
-     * Return the order of the parameters.
+     * Return the position for the cli of the parameters.
      * 
-     * @return the order in which to show this parameter in
+     * @return the position in the cli of this parameter
      */
-    public int getOrder() {
-        return order;
+    public int getCliPosition() {
+        return cliPosition;
     }
 
     /**
-     * Sets the order in which to show the parameters.
+     * Sets the position for the cli in which to show the parameters.
      * 
-     * @param order
-     *            the order to show this parameter in.
+     * @param position
+     *            the position in the cli to show this parameter in.
      */
-    public void setOrder(int order) {
-        this.order = order;
+    public void setCliPosition(int position) {
+        this.cliPosition = position;
     }
 
     /**

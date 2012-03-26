@@ -37,9 +37,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
+import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -52,6 +56,7 @@ import edu.illinois.ncsa.domain.Person;
 @Entity(name = "Execution")
 @Document(collection = "Execution")
 public class Execution extends AbstractBean {
+
     public enum State {
         WAITING, RUNNING, FINISHED, ABORTED, FAILED
     }
@@ -71,6 +76,10 @@ public class Execution extends AbstractBean {
     private Person               creator          = null;
 
     /** maping a parameter to a specific parameter in the workflow */
+    @ElementCollection
+    @MapKeyColumn(name = "uri")
+    @Column(name = "parameter")
+    @CollectionTable(name = "ExecutionParameters")
     private Map<String, String>  parameters       = new HashMap<String, String>();
 
     /** maping a dataset to a specific dataset in the workflow */
@@ -80,18 +89,24 @@ public class Execution extends AbstractBean {
     private Map<String, Dataset> datasets         = new HashMap<String, Dataset>();
 
     /** the state of each step executed */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "ExecutionStepState")
+    @ElementCollection
+    @MapKeyColumn(name = "uri")
+    @Column(name = "state")
+    @CollectionTable(name = "ExecutionStepState")
     private Map<URI, State>      stepState        = new HashMap<URI, State>();
 
     /** the start date of each step executed */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "ExecutionStepStart")
+    @ElementCollection
+    @MapKeyColumn(name = "uri")
+    @Column(name = "date")
+    @CollectionTable(name = "ExecutionStepStart")
     private Map<URI, Date>       stepStart        = new HashMap<URI, Date>();
 
     /** the end date of each step executed */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "ExecutionStepEnd")
+    @ElementCollection
+    @MapKeyColumn(name = "uri")
+    @Column(name = "date")
+    @CollectionTable(name = "ExecutionStepEnd")
     private Map<URI, Date>       stepEnd          = new HashMap<URI, Date>();
 
     /**
