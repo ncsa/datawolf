@@ -38,16 +38,16 @@
 	    	<version>${spring.jpa}</version>
     	</dependency>
     	<dependency>
-    	<groupId>hsqldb</groupId>
-    	<artifactId>hsqldb</artifactId>
-    	<version>1.8.0.10</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.hibernate</groupId>
-    	<artifactId>hibernate-entitymanager</artifactId>
-    	<version>3.5.6-Final</version>
-    	<scope>runtime</scope>
-    </dependency>
+    		<groupId>hsqldb</groupId>
+    		<artifactId>hsqldb</artifactId>
+    		<version>1.8.0.10</version>
+   		</dependency>
+    	<dependency>
+    		<groupId>org.hibernate</groupId>
+    		<artifactId>hibernate-entitymanager</artifactId>
+    		<version>3.5.6-Final</version>
+    		<scope>runtime</scope>
+    	</dependency>
 		<!-- SPRING DATA -->
 		<!-- 
 		<dependency>
