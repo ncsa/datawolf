@@ -11,11 +11,24 @@
 	<artifactId>ncsa-common-domain</artifactId>
 
 	<dependencies>
-		<!-- SPRING DATA ANNOTATIONS -->
+		<!-- SPRING DATA -->
 		<dependency>
-			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>ncsa-springdata-annotations</artifactId>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-commons-core</artifactId>
 			<version>${spring.data}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>junit-dep</artifactId>
+					<groupId>junit</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- MONGO BINDING -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<version>${spring.mongo}</version>
 		</dependency>
 
 		<!-- JPA ANNOTATIONS -->

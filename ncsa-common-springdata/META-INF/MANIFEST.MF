@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ncsa-common-springdata
+Bundle-SymbolicName: ncsa-common-springdata
+Bundle-Version: 1.0.0.qualifier
+Export-Package: edu.illinois.ncsa.springdata
+Require-Bundle: ncsa-common-domain;bundle-version="1.0.0",
+ spring-libraries;bundle-version="1.0.0"
+Eclipse-RegisterBuddy: spring-libraries

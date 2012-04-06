@@ -1,8 +1,12 @@
 package edu.illinois.ncsa.springdata;
 
+import java.io.File;
+
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 
 public class SpringData {
     private static AbstractApplicationContext context = null;
@@ -16,9 +20,12 @@ public class SpringData {
      */
     @SuppressWarnings("unchecked")
     public static <T> T getDAO(Class<T> dao) {
+        long l = System.currentTimeMillis();
         String name = dao.getSimpleName();
         name = name.substring(0, 1).toLowerCase() + name.substring(1);
-        return (T) context.getBean(name);
+        Object instance = context.getBean(name);
+        System.out.println(name + " took " + (System.currentTimeMillis() - l));
+        return (T) instance;
     }
 
     public static void setContext(GenericApplicationContext context) {
@@ -26,6 +33,14 @@ public class SpringData {
     }
 
     public static void loadXMLContext(String configLocation) {
-        SpringData.context = new ClassPathXmlApplicationContext(configLocation);
+        SpringData.context = new GenericXmlApplicationContext(configLocation);
+    }
+
+    public static void loadXMLContext(File file) {
+        SpringData.context = new GenericXmlApplicationContext(new FileSystemResource(file));
+    }
+
+    public static void loadXMLContext(Resource r) {
+        SpringData.context = new GenericXmlApplicationContext(r);
     }
 }
