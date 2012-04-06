@@ -42,6 +42,6 @@
 		<property name="password" value="cyberintegrator" />
 	</bean>
 -->
-    <jpa:repositories base-package="edu.illinois.ncsa.springdata" />
+
 	<jpa:repositories base-package="edu.illinois.ncsa.cyberintegrator.springdata" />
 </beans>
