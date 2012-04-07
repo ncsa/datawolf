@@ -8,6 +8,8 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
+import edu.illinois.ncsa.domain.Person;
+
 public class SpringData {
     private static AbstractApplicationContext context = null;
 
@@ -26,6 +28,15 @@ public class SpringData {
         Object instance = context.getBean(name);
         System.out.println(name + " took " + (System.currentTimeMillis() - l));
         return (T) instance;
+    }
+
+    public static Person getPerson(String email) {
+        PersonDAO dao = getDAO(PersonDAO.class);
+        Person person = dao.findByEmail(email);
+        if (person != null) {
+            return person;
+        }
+        return Person.createPerson(email);
     }
 
     public static void setContext(GenericApplicationContext context) {
