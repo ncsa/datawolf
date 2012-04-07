@@ -15,7 +15,7 @@ public class WorkflowDAOTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("applicationContext.xml");
+        SpringData.loadXMLContext("testContext.xml");
     }
 
     @Test
