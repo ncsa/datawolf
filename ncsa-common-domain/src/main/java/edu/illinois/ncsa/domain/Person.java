@@ -32,6 +32,7 @@
 package edu.illinois.ncsa.domain;
 
 import java.io.Serializable;
+import java.net.URI;
 
 import javax.persistence.Entity;
 
@@ -51,6 +52,20 @@ public class Person extends AbstractBean implements Serializable {
 
     /** email of the person. */
     private String            email            = ""; //$NON-NLS-1$
+
+    public static Person createPerson(String email) {
+        return createPerson("", "", email);
+    }
+
+    public static Person createPerson(String firstName, String lastName, String email) {
+        Person p = new Person();
+        p.setFirstName(firstName);
+        p.setLastName(lastName);
+        p.setEmail(email);
+        p.setUri(URI.create("mailto:" + email));
+
+        return p;
+    }
 
     /**
      * Create a definition of a anonymous user
@@ -128,11 +143,12 @@ public class Person extends AbstractBean implements Serializable {
     }
 
     @Override
+    public String toString() {
+        return firstName + " " + lastName + "<" + email + ">";
+    }
+
+    @Override
     public boolean equals(Object arg0) {
-        if (arg0 instanceof Person) {
-            Person other = (Person) arg0;
-            return (firstName + lastName + email).equals(other.firstName + other.lastName + other.email);
-        }
-        return false;
+        return (arg0 instanceof Person) && this.toString().equals(arg0.toString());
     }
 }
