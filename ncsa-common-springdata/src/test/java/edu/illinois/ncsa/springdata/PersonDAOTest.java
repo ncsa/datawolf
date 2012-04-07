@@ -4,12 +4,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.springdata.PersonDAO;
+import edu.illinois.ncsa.springdata.SpringData;
 
 public class PersonDAOTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("applicationContext.xml");
+        SpringData.loadXMLContext("testContext.xml");
     }
 
     @Test

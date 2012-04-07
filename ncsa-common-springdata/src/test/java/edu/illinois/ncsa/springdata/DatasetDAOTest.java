@@ -9,7 +9,7 @@ public class DatasetDAOTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("applicationContext.xml");
+        SpringData.loadXMLContext("testContext.xml");
     }
 
     @Test
