@@ -59,14 +59,17 @@
 	</distributionManagement>
 
 	<modules>
+		<module>../spring-libraries</module>
 		<module>../ncsa-common-domain</module>
 		<module>../ncsa-common-springdata</module>
 	</modules>
+	
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${junit}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
