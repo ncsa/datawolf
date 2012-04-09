@@ -44,6 +44,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.MapKeyColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -64,6 +65,7 @@ public class Execution extends AbstractBean {
     private static final long    serialVersionUID = 1L;
 
     /** Workflow that is executed */
+    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
     private Workflow             workflow         = null;
 
