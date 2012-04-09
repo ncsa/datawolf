@@ -53,7 +53,7 @@ import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/executions")
-public class ExecutionResource {
+public class ExecutionsResource {
 
     /**
      * Create execution via execution JSON
