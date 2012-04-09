@@ -33,6 +33,9 @@ package edu.illinois.ncsa.cyberintegrator.service;
 
 import org.jboss.resteasy.plugins.server.tjws.TJWSEmbeddedJaxrsServer;
 
+import edu.illinois.ncsa.cyberintegrator.domain.Execution;
+import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
+import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 /**
@@ -46,6 +49,12 @@ public class RestServer {
 
     public static void main(String[] args) {
         SpringData.loadXMLContext("applicationContext.xml");
+
+        Workflow wf = new Workflow();
+        Execution e = new Execution();
+        e.setWorkflow(wf);
+
+        SpringData.getDAO(ExecutionDAO.class).save(e);
 
         TJWSEmbeddedJaxrsServer tjws = new TJWSEmbeddedJaxrsServer();
         tjws.setPort(PORT);
