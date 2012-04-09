@@ -32,7 +32,6 @@
 package edu.illinois.ncsa.domain;
 
 import java.io.Serializable;
-import java.net.URI;
 
 import javax.persistence.Entity;
 
@@ -53,16 +52,27 @@ public class Person extends AbstractBean implements Serializable {
     /** email of the person. */
     private String            email            = ""; //$NON-NLS-1$
 
-    public static Person createPerson(String email) {
-        return createPerson("", "", email);
-    }
-
+    /**
+     * Creates a person given first name, last name and email. This will result
+     * in
+     * a new bean generated, if a person exists with the given email it will
+     * generate two instances of this person. Best is to make sure the DAO is
+     * called first to see if a person with that email exists, if so use that
+     * person object.
+     * 
+     * @param firstName
+     *            first name of the person.
+     * @param lastName
+     *            last name of the person.
+     * @param email
+     *            email address of the person.
+     * @return a newly generated person object.
+     */
     public static Person createPerson(String firstName, String lastName, String email) {
         Person p = new Person();
         p.setFirstName(firstName);
         p.setLastName(lastName);
         p.setEmail(email);
-        p.setUri(URI.create("mailto:" + email));
 
         return p;
     }

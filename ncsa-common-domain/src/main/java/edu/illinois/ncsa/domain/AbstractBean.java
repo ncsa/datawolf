@@ -32,7 +32,6 @@
 package edu.illinois.ncsa.domain;
 
 import java.io.Serializable;
-import java.net.URI;
 import java.util.UUID;
 
 import javax.persistence.Entity;
@@ -51,14 +50,8 @@ public class AbstractBean implements Serializable {
     // TODO RK : fix this to specific size
     private String            id;
 
-    /** Unique identifier for this bean, used for external reference */
-    private transient URI     uri              = null;
-    private String            uriString        = null;
-
     public AbstractBean() {
         id = UUID.randomUUID().toString();
-        uri = Minter.createURI(this.getClass().getSimpleName(), getId());
-        uriString = uri.toString();
     }
 
     /**
@@ -68,28 +61,5 @@ public class AbstractBean implements Serializable {
      */
     public final String getId() {
         return id;
-    }
-
-    /**
-     * Return the uri of the bean.
-     * 
-     * @return uri of the bean
-     */
-    public final URI getUri() {
-        if (uri == null) {
-            uri = URI.create(uriString);
-        }
-        return uri;
-    }
-
-    /**
-     * Sets the uri of the bean
-     * 
-     * @param uri
-     *            sets the uri of the bean.
-     */
-    public final void setUri(URI uri) {
-        this.uri = uri;
-        uriString = uri.toString();
     }
 }
