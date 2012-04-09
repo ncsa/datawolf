@@ -62,4 +62,31 @@ public class AbstractBean implements Serializable {
     public final String getId() {
         return id;
     }
+
+    /**
+     * Compares two objects with each other. If the object is an AbstractBean it
+     * will compare id's, otherwise it will return false.
+     * 
+     * @param obj
+     *            the object that should be compared to this AbstractBean
+     * @return true if the two beans are the same (i.e. the id's are the same),
+     *         false otherwise.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AbstractBean) {
+            return ((AbstractBean) obj).getId().equals(id);
+        }
+        return false;
+    }
+
+    /**
+     * Returns the hashcode of this object, which is the hashcode of the id.
+     * 
+     * @return hashcode based on the id of the bean.
+     */
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }
