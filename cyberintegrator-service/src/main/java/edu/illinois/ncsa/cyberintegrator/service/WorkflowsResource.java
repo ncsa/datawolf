@@ -111,7 +111,6 @@ public class WorkflowsResource {
     @Path("{wid}/executions")
     @Consumes({ MediaType.APPLICATION_JSON })
     public String createExecution(@PathParam("wid") String workflowId, @QueryParam("run") @DefaultValue("true") boolean run) {
-
         return null;
     }
 
@@ -133,9 +132,12 @@ public class WorkflowsResource {
     @Path("{wid}/executions")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Execution> getExecutions(@PathParam("wid") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        ExecutionDAO exeDao = SpringData.getDAO(ExecutionDAO.class);
-        Page<Execution> results = exeDao.findAll(new PageRequest(page, size));
-        return results.getContent();
+        WorkflowDAO wfdao = SpringData.getDAO(WorkflowDAO.class);
+        Workflow wf = wfdao.findByUriString(workflowId);
+
+        ExecutionDAO execDao = SpringData.getDAO(ExecutionDAO.class);
+        List<Execution> execList = execDao.findByWorkflow(wf);
+        return execList;
     }
 
     @GET
