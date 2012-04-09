@@ -41,6 +41,9 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -61,9 +64,11 @@ public class Workflow extends AbstractBean {
     private String             description      = "";                           //$NON-NLS-1$
 
     /** Date the workflow is created */
-    private Date               date             = new Date();
+    @Temporal(TemporalType.DATE)
+    private Date               created          = new Date();
 
     /** creator of the workflow */
+    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
     private Person             creator          = null;
 
@@ -129,8 +134,8 @@ public class Workflow extends AbstractBean {
      * 
      * @return date the workflow was created.
      */
-    public Date getDate() {
-        return date;
+    public Date getCreated() {
+        return created;
     }
 
     /**
@@ -140,8 +145,8 @@ public class Workflow extends AbstractBean {
      *            sets the date when the workflow was created.
      * 
      */
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDate(Date created) {
+        this.created = created;
     }
 
     /**
