@@ -31,6 +31,9 @@
  ******************************************************************************/
 package edu.illinois.ncsa.domain;
 
+import java.math.BigInteger;
+import java.net.URL;
+
 import javax.persistence.Entity;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -49,6 +52,12 @@ public class FileDescriptor extends AbstractBean {
 
     /** size of the blob associated */
     private long              size             = -1;
+
+    /** url where the actual data is stored */
+    private URL               dataURL;
+
+    /** md5 sum of the actual data */
+    private BigInteger        md5sum;
 
     public FileDescriptor() {}
 
@@ -112,5 +121,33 @@ public class FileDescriptor extends AbstractBean {
      */
     public String getFilename() {
         return filename;
+    }
+
+    /**
+     * @return the dataURL
+     */
+    public URL getDataURL() {
+        return dataURL;
+    }
+
+    /**
+     * @param dataURL the dataURL to set
+     */
+    public void setDataURL(URL dataURL) {
+        this.dataURL = dataURL;
+    }
+
+    /**
+     * @return the md5sum
+     */
+    public BigInteger getMd5sum() {
+        return md5sum;
+    }
+
+    /**
+     * @param md5sum the md5sum to set
+     */
+    public void setMd5sum(BigInteger md5sum) {
+        this.md5sum = md5sum;
     }
 }
