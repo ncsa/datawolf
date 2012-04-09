@@ -44,6 +44,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -68,6 +69,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private String                      version          = "1";                                   //$NON-NLS-1$
 
     /** Previous version of the workflow tool */
+    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
     private WorkflowTool                previousVersion  = null;
 
@@ -75,10 +77,12 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private Date                        date             = new Date();
 
     /** implementation, this is executor specific. */
+    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
     private WorkflowToolImplementation  implementation   = null;
 
     /** creator of the workflow tool */
+    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
     private Person                      creator          = null;
 
@@ -113,7 +117,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "ToolBlobs")
     @DBRef
-    private Set<FileDescriptor>                   blobs            = null;
+    private Set<FileDescriptor>         blobs            = null;
 
     /**
      * Create a new instance of the workflow tool.
@@ -566,5 +570,10 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      */
     public void removeBlob(FileDescriptor blob) {
         getBlobs().remove(blob);
+    }
+
+    @Override
+    public String toString() {
+        return getTitle();
     }
 }

@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: cyberintegrator-core
+Bundle-SymbolicName: cyberintegrator-core
+Bundle-Version: 3.0.0.qualifier
+Export-Package: edu.illinois.ncsa.cyberintegrator
+Require-Bundle: spring-libraries;bundle-version="1.0.0",
+ cyberintegrator-domain;bundle-version="1.0.0"
+Eclipse-RegisterBuddy: spring-libraries
