@@ -92,25 +92,35 @@ public class WorkflowsResource {
 
     /**
      * 
-     * Get a workflow by URI
+     * Get a workflow by Id
      * 
      * @param workflowId
-     *            workflow URI
+     *            workflow Id
      * @return
      *         a workflow in JSON
      */
     @GET
-    @Path("{wid}")
+    @Path("{workflow-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Workflow getWorkflow(@PathParam("wid") String workflowId) {
+    public Workflow getWorkflow(@PathParam("workflow-id") String workflowId) {
         WorkflowDAO wfdao = SpringData.getDAO(WorkflowDAO.class);
-        return wfdao.findByUriString(workflowId);
+        return wfdao.findOne(workflowId);
     }
 
+    /**
+     * Create a execution by execution JSON
+     * 
+     * @param workflowId
+     *            workflow id
+     * @param run
+     *            after create an execution, whether run it or not
+     * @return
+     *         execution id
+     */
     @POST
-    @Path("{wid}/executions")
+    @Path("{workflow-id}/executions")
     @Consumes({ MediaType.APPLICATION_JSON })
-    public String createExecution(@PathParam("wid") String workflowId, @QueryParam("run") @DefaultValue("true") boolean run) {
+    public String createExecution(@PathParam("workflow-id") String workflowId, @QueryParam("run") @DefaultValue("true") boolean run) {
         return null;
     }
 
@@ -119,7 +129,7 @@ public class WorkflowsResource {
      * Get all executions by workflow id
      * 
      * @param workflowId
-     *            workflow id (it should be URI)
+     *            workflow id
      * @param size
      *            number of workflows per page
      * @param page
@@ -129,11 +139,11 @@ public class WorkflowsResource {
      *         a execution in JSON
      */
     @GET
-    @Path("{wid}/executions")
+    @Path("{workflow-id}/executions")
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Execution> getExecutions(@PathParam("wid") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
         WorkflowDAO wfdao = SpringData.getDAO(WorkflowDAO.class);
-        Workflow wf = wfdao.findByUriString(workflowId);
+        Workflow wf = wfdao.findOne(workflowId);
 
         ExecutionDAO execDao = SpringData.getDAO(ExecutionDAO.class);
         List<Execution> execList = execDao.findByWorkflow(wf);
@@ -141,43 +151,43 @@ public class WorkflowsResource {
     }
 
     @GET
-    @Path("{wid}/executions/{eid}")
+    @Path("{workflow-id}/executions/{eid}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Execution getExecution(@PathParam("wid") String workflowId, @PathParam("eid") String executionId) {
+    public Execution getExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
 
         return null;
     }
 
     @GET
-    @Path("{wid}/executions/{eid}/steps")
+    @Path("{workflow-id}/executions/{eid}/steps")
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<WorkflowStep> getSteps(@PathParam("wid") String workflowId, @PathParam("eid") String executionId) {
+    public List<WorkflowStep> getSteps(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
         return null;
     }
 
     @GET
-    @Path("{wid}/executions/{eid}/steps/{stid}")
+    @Path("{workflow-id}/executions/{eid}/steps/{stid}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public WorkflowStep getStep(@PathParam("wid") String workflowId, @PathParam("eid") String executionId, @PathParam("stid") String stepId) {
+    public WorkflowStep getStep(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId, @PathParam("stid") String stepId) {
 
         return null;
     }
 
     @PUT
-    @Path("{wid}/executions/{eid}/start")
-    public void startExecution(@PathParam("wid") String workflowId, @PathParam("eid") String executionId) {
+    @Path("{workflow-id}/executions/{eid}/start")
+    public void startExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
 
     }
 
     @PUT
-    @Path("{wid}/executions/{eid}/pause")
-    public void pauseExecution(@PathParam("wid") String workflowId, @PathParam("eid") String executionId) {
+    @Path("{workflow-id}/executions/{eid}/pause")
+    public void pauseExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
 
     }
 
     @PUT
-    @Path("{wid}/executions/{eid}/cancel")
-    public void cancelExecution(@PathParam("wid") String workflowId, @PathParam("eid") String executionId) {
+    @Path("{workflow-id}/executions/{eid}/cancel")
+    public void cancelExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
 
     }
 
