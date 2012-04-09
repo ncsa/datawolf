@@ -34,7 +34,6 @@ package edu.illinois.ncsa.cyberintegrator.domain;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -72,7 +71,7 @@ public class Workflow extends AbstractBean {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowContributors")
     @DBRef
-    private Collection<Person> contributors     = new HashSet<Person>();
+    private List<Person>       contributors     = new ArrayList<Person>();
 
     /** List of steps in the workflow, in order of addition. */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
