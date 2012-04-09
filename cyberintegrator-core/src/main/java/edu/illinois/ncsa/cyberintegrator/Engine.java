@@ -169,8 +169,8 @@ public abstract class Engine {
      * @param steps
      *            the list of steps to be executed.
      */
-    public void execute(Execution execution, URI... steps) {
-        for (URI step : steps) {
+    public void execute(Execution execution, String... steps) {
+        for (String step : steps) {
             execute(new ExecutionInfo(execution, execution.getWorkflow().getStep(step)));
         }
     }
@@ -349,7 +349,7 @@ public abstract class Engine {
      * @return the sate of the step in this execution.
      */
     protected State getStepState(ExecutionInfo executionInfo) {
-        return executionInfo.getExecution().getStepState(executionInfo.getStep().getUri());
+        return executionInfo.getExecution().getStepState(executionInfo.getStep().getId());
     }
 
     /**
@@ -414,7 +414,7 @@ public abstract class Engine {
      *            the sate of the step in this execution.
      */
     protected void setStepState(ExecutionInfo executionInfo, State state) {
-        executionInfo.getExecution().setStepState(executionInfo.getStep().getUri(), state);
+        executionInfo.getExecution().setStepState(executionInfo.getStep().getId(), state);
         executionDAO.save(executionInfo.getExecution());
     }
 

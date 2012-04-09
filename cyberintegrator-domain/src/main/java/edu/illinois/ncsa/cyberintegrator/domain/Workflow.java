@@ -31,7 +31,6 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.domain;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -226,13 +225,14 @@ public class Workflow extends AbstractBean {
     }
 
     /**
-     * Retrieve a specific step from the workflow.
+     * Retrieve a specific step from the workflow. Better to use the DAO and get
+     * the step directly since this will iterate over all steps in the workflow.
      * 
      * @return the step requested, or null if it is not found.
      */
-    public WorkflowStep getStep(URI step) {
+    public WorkflowStep getStep(String step) {
         for (WorkflowStep ws : this.steps) {
-            if (ws.getUri().equals(step)) {
+            if (ws.getId().equals(step)) {
                 return ws;
             }
         }

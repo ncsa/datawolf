@@ -55,7 +55,6 @@ public class Main extends JFrame {
                         dataset.setCreator(user);
 
                         FileDescriptor fd = new FileDescriptor();
-                        fd.setUri(file.toURI());
                         fd.setFilename(file.getName());
                         fd.setMimeType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
                         fd.setSize(file.length());

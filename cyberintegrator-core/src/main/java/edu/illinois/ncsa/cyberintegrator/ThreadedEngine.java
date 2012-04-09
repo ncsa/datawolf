@@ -207,7 +207,7 @@ public class ThreadedEngine extends Engine {
                         if (exection.getDataset(id) == null) {
                             for (WorkflowStep ws : exection.getWorkflow().getSteps()) {
                                 if (ws.getOutputs().contains(id)) {
-                                    switch (exection.getStepState(ws.getUri())) {
+                                    switch (exection.getStepState(ws.getId())) {
                                     case WAITING:
                                     case RUNNING:
                                         processing.remove(curr);

@@ -31,7 +31,6 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.domain;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,24 +89,24 @@ public class Execution extends AbstractBean {
 
     /** the state of each step executed */
     @ElementCollection
-    @MapKeyColumn(name = "uri")
+    @MapKeyColumn(name = "id")
     @Column(name = "state")
     @CollectionTable(name = "ExecutionStepState")
-    private Map<URI, State>      stepState        = new HashMap<URI, State>();
+    private Map<String, State>   stepState        = new HashMap<String, State>();
 
     /** the start date of each step executed */
     @ElementCollection
-    @MapKeyColumn(name = "uri")
+    @MapKeyColumn(name = "id")
     @Column(name = "date")
     @CollectionTable(name = "ExecutionStepStart")
-    private Map<URI, Date>       stepStart        = new HashMap<URI, Date>();
+    private Map<String, Date>    stepStart        = new HashMap<String, Date>();
 
     /** the end date of each step executed */
     @ElementCollection
-    @MapKeyColumn(name = "uri")
+    @MapKeyColumn(name = "id")
     @Column(name = "date")
     @CollectionTable(name = "ExecutionStepEnd")
-    private Map<URI, Date>       stepEnd          = new HashMap<URI, Date>();
+    private Map<String, Date>    stepEnd          = new HashMap<String, Date>();
 
     /**
      * Create a new instance of the execution.
@@ -228,8 +227,8 @@ public class Execution extends AbstractBean {
      *            the uri for the step in the workflow
      * @return the state of the step.
      */
-    public State getStepState(URI uri) {
-        return this.stepState.get(uri);
+    public State getStepState(String id) {
+        return this.stepState.get(id);
     }
 
     /**
@@ -240,7 +239,7 @@ public class Execution extends AbstractBean {
      * @param state
      *            the state of the workflow step.
      */
-    public void setStepState(URI uri, State state) {
-        this.stepState.put(uri, state);
+    public void setStepState(String id, State state) {
+        this.stepState.put(id, state);
     }
 }
