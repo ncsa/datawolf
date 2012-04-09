@@ -61,6 +61,7 @@ public class RestServer {
         tjws.start();
         tjws.setRootResourcePath("/");
         tjws.getDeployment().getRegistry().addSingletonResource(new WorkflowsResource());
+        tjws.getDeployment().getRegistry().addSingletonResource(new ExecutionsResource());
         System.out.println("http://localhost:" + PORT);
     }
 }

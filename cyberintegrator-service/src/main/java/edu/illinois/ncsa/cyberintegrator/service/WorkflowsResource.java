@@ -70,7 +70,8 @@ public class WorkflowsResource {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public String createWorkflow(Workflow workflow) {
-        return null;
+        SpringData.getDAO(WorkflowDAO.class).save(workflow);
+        return workflow.getId();
     }
 
     /**

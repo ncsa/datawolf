@@ -7,9 +7,9 @@ import javax.ws.rs.core.Application;
 
 import edu.illinois.ncsa.springdata.SpringData;
 
-public class WorkflowApplication extends Application {
+public class CyberIntegratorApplication extends Application {
 
-    public WorkflowApplication() {
+    public CyberIntegratorApplication() {
         super();
         SpringData.loadXMLContext("applicationContext.xml");
     }
@@ -18,6 +18,7 @@ public class WorkflowApplication extends Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> rrcs = new HashSet<Class<?>>();
         rrcs.add(WorkflowsResource.class);
+        rrcs.add(ExecutionsResource.class);
         return rrcs;
     }
 
