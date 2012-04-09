@@ -36,7 +36,7 @@ public class SpringData {
         if (person != null) {
             return person;
         }
-        return Person.createPerson(email);
+        return Person.createPerson("", "", email);
     }
 
     public static void setContext(GenericApplicationContext context) {
