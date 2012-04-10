@@ -45,13 +45,13 @@ public class AbstractBean implements Serializable {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
+    // TODO RK : fix this to specific size
     /** Unique identifier for this bean, used by persistence layer */
     @Id
-    // TODO RK : fix this to specific size
     private String            id;
 
     public AbstractBean() {
-        id = UUID.randomUUID().toString();
+        setId(UUID.randomUUID().toString());
     }
 
     /**
@@ -61,6 +61,17 @@ public class AbstractBean implements Serializable {
      */
     public final String getId() {
         return id;
+    }
+
+    /**
+     * Sets the id of the bean. This has to be a unique id since it is used as
+     * the key in the database.
+     * 
+     * @param id
+     *            the id of the object.
+     */
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
@@ -75,7 +86,7 @@ public class AbstractBean implements Serializable {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof AbstractBean) {
-            return ((AbstractBean) obj).getId().equals(id);
+            return ((AbstractBean) obj).getId().equals(getId());
         }
         return false;
     }
@@ -87,6 +98,6 @@ public class AbstractBean implements Serializable {
      */
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return getId().hashCode();
     }
 }
