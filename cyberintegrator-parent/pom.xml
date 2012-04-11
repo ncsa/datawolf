@@ -62,11 +62,6 @@
 		<!-- LOGGING -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>${slf4j}</version>
 		</dependency>
@@ -84,5 +79,6 @@
 		<module>../cyberintegrator-core</module>
 		<module>../cyberintegrator-executor-java-tool</module>
 		<module>../cyberintegrator-executor-java</module>
+		<module>../cyberintegrator-tool-example</module>
 	</modules>
 </project>
