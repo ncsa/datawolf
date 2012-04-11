@@ -14,24 +14,23 @@ public class SpringData {
     private static AbstractApplicationContext context = null;
 
     /**
-     * Create an instance of the bean asked for.
+     * Create an instance of the bean asked for. Most common case is for DAO,
+     * but this could be any bean registerd with Spring.
      * 
-     * @param dao
-     *            the DAO that needs to be created.
-     * @return the instance of the DAO to use.
+     * @param beanclass
+     *            the bean class that needs to be created.
+     * @return the instance of the bean class to use.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T getDAO(Class<T> dao) {
-        long l = System.currentTimeMillis();
-        String name = dao.getSimpleName();
+    public static <T> T getBean(Class<T> beanclass) {
+        String name = beanclass.getSimpleName();
         name = name.substring(0, 1).toLowerCase() + name.substring(1);
         Object instance = context.getBean(name);
-        System.out.println(name + " took " + (System.currentTimeMillis() - l));
         return (T) instance;
     }
 
     public static Person getPerson(String email) {
-        PersonDAO dao = getDAO(PersonDAO.class);
+        PersonDAO dao = getBean(PersonDAO.class);
         Person person = dao.findByEmail(email);
         if (person != null) {
             return person;
