@@ -131,7 +131,8 @@ public class FileDescriptor extends AbstractBean {
     }
 
     /**
-     * @param dataURL the dataURL to set
+     * @param dataURL
+     *            the dataURL to set
      */
     public void setDataURL(URL dataURL) {
         this.dataURL = dataURL;
@@ -145,9 +146,20 @@ public class FileDescriptor extends AbstractBean {
     }
 
     /**
-     * @param md5sum the md5sum to set
+     * @param md5sum
+     *            the md5sum to set
      */
     public void setMd5sum(BigInteger md5sum) {
         this.md5sum = md5sum;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return getFilename();
     }
 }
