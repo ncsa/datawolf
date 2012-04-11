@@ -4,8 +4,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.PersonDAO;
-import edu.illinois.ncsa.springdata.SpringData;
 
 public class PersonDAOTest {
 
@@ -16,7 +14,7 @@ public class PersonDAOTest {
 
     @Test
     public void testCreateAndStore() throws Exception {
-        PersonDAO dao = SpringData.getDAO(PersonDAO.class);
+        PersonDAO dao = SpringData.getBean(PersonDAO.class);
         Person person = new Person();
         dao.save(person);
 

@@ -14,7 +14,7 @@ public class DatasetDAOTest {
 
     @Test
     public void testCreateAndStore() throws Exception {
-        DatasetDAO dao = SpringData.getDAO(DatasetDAO.class);
+        DatasetDAO dao = SpringData.getBean(DatasetDAO.class);
 
         Dataset dataset = new Dataset();
         dao.save(dataset);
