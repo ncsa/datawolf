@@ -54,7 +54,7 @@ public class RestServer {
         Execution e = new Execution();
         e.setWorkflow(wf);
 
-        SpringData.getDAO(ExecutionDAO.class).save(e);
+        SpringData.getBean(ExecutionDAO.class).save(e);
 
         TJWSEmbeddedJaxrsServer tjws = new TJWSEmbeddedJaxrsServer();
         tjws.setPort(PORT);

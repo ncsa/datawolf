@@ -20,7 +20,7 @@ public class WorkflowDAOTest {
 
     @Test
     public void testCreateAndStore() throws Exception {
-        WorkflowDAO dao = SpringData.getDAO(WorkflowDAO.class);
+        WorkflowDAO dao = SpringData.getBean(WorkflowDAO.class);
 
         Workflow workflow = new Workflow();
         dao.save(workflow);

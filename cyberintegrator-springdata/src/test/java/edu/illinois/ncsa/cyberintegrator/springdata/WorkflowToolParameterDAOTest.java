@@ -15,7 +15,7 @@ public class WorkflowToolParameterDAOTest {
 
     @Test
     public void testCreateAndStore() throws Exception {
-        WorkflowToolParameterDAO dao = SpringData.getDAO(WorkflowToolParameterDAO.class);
+        WorkflowToolParameterDAO dao = SpringData.getBean(WorkflowToolParameterDAO.class);
 
         WorkflowToolParameter toolParameter = new WorkflowToolParameter();
         dao.save(toolParameter);

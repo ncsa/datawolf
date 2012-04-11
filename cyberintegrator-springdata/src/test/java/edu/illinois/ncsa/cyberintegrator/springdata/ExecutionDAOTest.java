@@ -20,7 +20,7 @@ public class ExecutionDAOTest {
 
     @Test
     public void testCreateAndStore() throws Exception {
-        ExecutionDAO dao = SpringData.getDAO(ExecutionDAO.class);
+        ExecutionDAO dao = SpringData.getBean(ExecutionDAO.class);
         Execution execution = new Execution();
         dao.save(execution);
 
