@@ -1,16 +1,3 @@
-package edu.illinois.ncsa.springdata;
-
-import java.io.File;
-
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.context.support.GenericXmlApplicationContext;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import edu.illinois.ncsa.domain.Person;
-
 /*******************************************************************************
  * Copyright (c) 2012 University of Illinois/NCSA. All rights reserved.
  * 
@@ -42,8 +29,22 @@ import edu.illinois.ncsa.domain.Person;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
  ******************************************************************************/
-public class SpringData {
-    private static AbstractApplicationContext context = null;
+package edu.illinois.ncsa.springdata;
+
+import java.io.File;
+
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import edu.illinois.ncsa.domain.Person;
+
+public class SpringData implements ApplicationContextAware {
+    private static ApplicationContext context = null;
 
     /**
      * Create an instance of the bean asked for. Most common case is for DAO,
@@ -81,7 +82,7 @@ public class SpringData {
         return Person.createPerson("", "", email);
     }
 
-    public static void setContext(GenericApplicationContext context) {
+    public static void setContext(ApplicationContext context) {
         SpringData.context = context;
     }
 
@@ -95,5 +96,17 @@ public class SpringData {
 
     public static void loadXMLContext(Resource r) {
         SpringData.context = new GenericXmlApplicationContext(r);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.springframework.context.ApplicationContextAware#setApplicationContext
+     * (org.springframework.context.ApplicationContext)
+     */
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        SpringData.context = applicationContext;
     }
 }
