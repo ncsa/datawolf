@@ -33,9 +33,7 @@ package edu.illinois.ncsa.cyberintegrator.domain;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -54,23 +52,23 @@ import edu.illinois.ncsa.domain.Person;
 @Document(collection = "WorkflowStep")
 public class WorkflowStep extends AbstractBean {
     /** Used for serialization of object */
-    private static final long                  serialVersionUID = 1L;
+    private static final long           serialVersionUID = 1L;
 
     /** Title of the workflow step */
-    private String                             title            = "";                                          //$NON-NLS-1$
+    private String                      title            = "";                                    //$NON-NLS-1$
 
     /** creator of the workflow step */
     @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
-    private Person                             creator          = null;
+    private Person                      creator          = null;
 
     /** Date the workflow step is created */
-    private Date                               createDate       = new Date();
+    private Date                        createDate       = new Date();
 
     /** Tool the workflow step is executing */
     @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
-    private WorkflowTool                       tool             = null;
+    private WorkflowTool                tool             = null;
 
     /**
      * List of parameters from the workflow step. This is a map from a specific
@@ -79,7 +77,7 @@ public class WorkflowStep extends AbstractBean {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowStepOutputs")
     @DBRef
-    private Map<String, WorkflowToolParameter> parameters       = new HashMap<String, WorkflowToolParameter>();
+    private List<WorkflowToolParameter> parameters       = new ArrayList<WorkflowToolParameter>();
 
     /**
      * List of inputs to the workflow step. This is a map from a specific UUID
@@ -88,7 +86,7 @@ public class WorkflowStep extends AbstractBean {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowStepInputs")
     @DBRef
-    private List<WorkflowToolData>             inputs           = new ArrayList<WorkflowToolData>();
+    private List<WorkflowToolData>      inputs           = new ArrayList<WorkflowToolData>();
 
     /**
      * List of outputs from the workflow step. This is a map from a specific
@@ -97,7 +95,7 @@ public class WorkflowStep extends AbstractBean {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowStepOutputs")
     @DBRef
-    private List<WorkflowToolData>             outputs          = new ArrayList<WorkflowToolData>();
+    private List<WorkflowToolData>      outputs          = new ArrayList<WorkflowToolData>();
 
     /**
      * Create a new instance of the workflow step.
@@ -250,6 +248,27 @@ public class WorkflowStep extends AbstractBean {
     }
 
     /**
+     * Return the output associated with this id
+     * 
+     * @param id
+     *            the id whose output to return
+     * @return output associated with the id, null if not found
+     */
+    public WorkflowToolData getOutput(String id) {
+        if ((id == null) || id.equals("")) {
+            return null;
+        }
+
+        for (WorkflowToolData output : outputs) {
+            if (id.equals(output.getDataId())) {
+                return output;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Return the collection of id's that are outputs of the step.
      * 
      * @return collection of id's that are mapped to an outputs of the workflow
@@ -259,6 +278,103 @@ public class WorkflowStep extends AbstractBean {
         return this.outputs;
     }
 
+    /**
+     * Set the list of datasets that make up the outputs to the tool
+     * 
+     * @param outputs
+     *            the list of datasets to be used as outputs
+     */
+    public void setOutputs(List<WorkflowToolData> outputs) {
+        this.outputs.clear();
+        if (outputs != null) {
+            this.outputs.addAll(outputs);
+        }
+    }
+
+    /**
+     * Add the data to the list of outputs for the step
+     * 
+     * @param data
+     *            the dataset to be added as output
+     */
+    public void addOutput(WorkflowToolData data) {
+        outputs.add(data);
+    }
+
+    /**
+     * Remove the data from the list of outputs for the step
+     * 
+     * @param data
+     *            the dataset to be removed
+     */
+    public void removeOutput(WorkflowToolData data) {
+        outputs.remove(data);
+    }
+
+    /**
+     * Return the collection of parameters for the step
+     * 
+     * @return collection of WorkToolParameter that represents all the
+     *         parameters for the step
+     * 
+     */
+    public List<WorkflowToolParameter> getParameters() {
+        return this.parameters;
+    }
+
+    /**
+     * Return the parameter associated with this id
+     * 
+     * @param id
+     *            the id whose parameter to return
+     * @return parameter associated with the id, null if not found
+     */
+    public WorkflowToolParameter getParameter(String id) {
+        if ((id == null) || id.equals("")) {
+            return null;
+        }
+
+        for (WorkflowToolParameter parameter : parameters) {
+            if (id.equals(parameter.getParameterId())) {
+                return parameter;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Sets the collection of parameters for the step
+     * 
+     * @param parameters
+     *            collection of WorkflowToolParameters for the step
+     */
+    public void setParameters(List<WorkflowToolParameter> parameters) {
+        this.parameters.clear();
+        if (parameters != null) {
+            this.parameters.addAll(parameters);
+        }
+    }
+
+    /**
+     * Add the parameter to the list of parameters for the step
+     * 
+     * @param parameter
+     *            parameter to be added
+     */
+    public void addParameter(WorkflowToolParameter parameter) {
+        this.parameters.add(parameter);
+    }
+
+    /**
+     * Remove the parameter from the set of parameters for the step
+     * 
+     * @param parameter
+     *            the parameter to be removed
+     */
+    public void removeParameter(WorkflowToolParameter parameter) {
+        this.parameters.remove(parameter);
+    }
     /*
      * public String createOutput(WorkflowToolData data) {
      * String output = UUID.randomUUID().toString();
