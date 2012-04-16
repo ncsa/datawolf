@@ -9,7 +9,17 @@
 		<param-name>resteasy.servlet.mapping.prefix</param-name>
 		<param-value>/rest</param-value>
 	</context-param>
- 
+	
+	<filter>
+        <filter-name>hibernateFilter</filter-name>
+        <filter-class>org.springframework.orm.hibernate4.support.OpenSessionInViewFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+    	<filter-name>hibernateFilter</filter-name>
+		<url-pattern>/rest/*</url-pattern>
+	</filter-mapping>
+	
 	<servlet>
 		<servlet-name>ci-service</servlet-name>
 		<servlet-class>
