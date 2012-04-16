@@ -186,9 +186,9 @@ public class WorkflowStep extends AbstractBean {
     }
 
     /**
-     * Return the collection of id's that are inputs to the step.
+     * Return the collection of datasets that are inputs to the step.
      * 
-     * @return collection of id's that are mapped to an input of the workflow
+     * @return collection of datasets that represent the inputs to the workflow
      *         tool.
      */
     public List<WorkflowToolData> getInputs() {
@@ -196,10 +196,44 @@ public class WorkflowStep extends AbstractBean {
     }
 
     /**
+     * Return the input associated with this id
+     * 
+     * @param id
+     *            the id whose input to return
+     * @return input associated with the id, null if no match found
+     */
+    public WorkflowToolData getInput(String id) {
+        if ((id == null) || id.equals("")) {
+            return null;
+        }
+
+        for (WorkflowToolData input : inputs) {
+            if (id.equals(input.getDataId())) {
+                return input;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Set the list of datasets that make up the inputs to the step
+     * 
+     * @param inputs
+     *            the list of datasets to be used as inputs
+     */
+    public void setInputs(List<WorkflowToolData> inputs) {
+        this.inputs.clear();
+        if (inputs != null) {
+            this.inputs.addAll(inputs);
+        }
+    }
+
+    /**
      * Add the data to the list of inputs for the workflow step
      * 
      * @param data
-     *            Dataset to be added as input
+     *            data to be added as input
      */
     public void addInput(WorkflowToolData data) {
         this.inputs.add(data);
@@ -209,7 +243,7 @@ public class WorkflowStep extends AbstractBean {
      * Remove the data from the list of inputs for the workflow step
      * 
      * @param data
-     *            Dataset to be removed
+     *            data to be removed
      */
     public void removeInput(WorkflowToolData data) {
         this.inputs.remove(data);
