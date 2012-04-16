@@ -58,10 +58,15 @@ public class RestServer {
 
         TJWSEmbeddedJaxrsServer tjws = new TJWSEmbeddedJaxrsServer();
         tjws.setPort(PORT);
-        tjws.start();
         tjws.setRootResourcePath("/");
-        tjws.getDeployment().getRegistry().addSingletonResource(new WorkflowsResource());
-        tjws.getDeployment().getRegistry().addSingletonResource(new ExecutionsResource());
+        tjws.getDeployment().setApplication(new CyberIntegratorApplication());
+
+        tjws.start();
+//        tjws.getDeployment().getRegistry().addPerRequestResource(WorkflowsResource.class);
+//        tjws.getDeployment().getRegistry().addPerRequestResource(ExecutionsResource.class);
+
+//        tjws.getDeployment().getRegistry().addSingletonResource(jsonProvider);
+//        tjws.getDeployment().setProviders(providers);
         System.out.println("http://localhost:" + PORT);
     }
 }

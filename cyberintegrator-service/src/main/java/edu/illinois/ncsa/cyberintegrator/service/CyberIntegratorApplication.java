@@ -5,13 +5,11 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
-import edu.illinois.ncsa.springdata.SpringData;
-
 public class CyberIntegratorApplication extends Application {
 
     public CyberIntegratorApplication() {
         super();
-        SpringData.loadXMLContext("applicationContext.xml");
+//        SpringData.loadXMLContext("applicationContext.xml");
     }
 
     @Override
