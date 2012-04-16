@@ -14,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
 
@@ -21,6 +22,7 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
+@Component
 public class FileStorage {
     private static Logger logger = LoggerFactory.getLogger(FileStorage.class);
 

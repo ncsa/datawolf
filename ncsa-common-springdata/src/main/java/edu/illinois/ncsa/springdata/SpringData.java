@@ -46,20 +46,22 @@ import edu.illinois.ncsa.domain.Person;
 public class SpringData implements ApplicationContextAware {
     private static ApplicationContext context = null;
 
+    /* set the context thanks to context aware */
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        SpringData.context = applicationContext;
+    }
+
     /**
      * Create an instance of the bean asked for. Most common case is for DAO,
-     * but this could be any bean registerd with Spring.
+     * but this could be any bean registered with Spring.
      * 
-     * @param beanclass
+     * @param requiredType
      *            the bean class that needs to be created.
      * @return the instance of the bean class to use.
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T getBean(Class<T> beanclass) {
-        String name = beanclass.getSimpleName();
-        name = name.substring(0, 1).toLowerCase() + name.substring(1);
-        Object instance = context.getBean(name);
-        return (T) instance;
+    public static <T> T getBean(Class<T> requiredType) {
+        return context.getBean(requiredType);
     }
 
     /**
@@ -73,6 +75,18 @@ public class SpringData implements ApplicationContextAware {
         return new Transaction(ptm);
     }
 
+    /**
+     * Returns the filestorage to read and write the actual data to and from
+     * disk. This class is responsible for reading and writing the actual data
+     * of the files to disk. This uses the FiledDescriptor to read and write
+     * the data.
+     * 
+     * @return FileStorage that reads/writes data to disk.
+     */
+    public static FileStorage getFileStorage() {
+        return context.getBean(FileStorage.class);
+    }
+
     public static Person getPerson(String email) {
         PersonDAO dao = getBean(PersonDAO.class);
         Person person = dao.findByEmail(email);
@@ -82,31 +96,67 @@ public class SpringData implements ApplicationContextAware {
         return Person.createPerson("", "", email);
     }
 
+    /**
+     * Create the applicationContext anyway you want, in your
+     * applicationContext.xml file add the following bean to your context.xml:
+     * 
+     * <pre>
+     * &lt;bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" /&gt;
+     * </pre>
+     * 
+     * 
+     * @deprecated
+     */
+    @Deprecated
     public static void setContext(ApplicationContext context) {
         SpringData.context = context;
     }
 
+    /**
+     * Create the applicationContext anyway you want, in your
+     * applicationContext.xml file add the following bean to your context.xml:
+     * 
+     * <pre>
+     * &lt;bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" /&gt;
+     * </pre>
+     * 
+     * 
+     * @deprecated
+     */
+    @Deprecated
     public static void loadXMLContext(String configLocation) {
         SpringData.context = new GenericXmlApplicationContext(configLocation);
     }
 
+    /**
+     * Create the applicationContext anyway you want, in your
+     * applicationContext.xml file add the following bean to your context.xml:
+     * 
+     * <pre>
+     * &lt;bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" /&gt;
+     * </pre>
+     * 
+     * 
+     * @deprecated
+     */
+    @Deprecated
     public static void loadXMLContext(File file) {
         SpringData.context = new GenericXmlApplicationContext(new FileSystemResource(file));
     }
 
+    /**
+     * Create the applicationContext anyway you want, in your
+     * applicationContext.xml file add the following bean to your context.xml:
+     * 
+     * <pre>
+     * &lt;bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" /&gt;
+     * </pre>
+     * 
+     * 
+     * @deprecated
+     */
+    @Deprecated
     public static void loadXMLContext(Resource r) {
         SpringData.context = new GenericXmlApplicationContext(r);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.springframework.context.ApplicationContextAware#setApplicationContext
-     * (org.springframework.context.ApplicationContext)
-     */
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        SpringData.context = applicationContext;
     }
 }

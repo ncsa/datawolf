@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
@@ -21,6 +22,11 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  * 
  */
 public class FileStorageTest {
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+        SpringData.loadXMLContext("testContext.xml");
+    }
 
     @Test
     public void testStore() throws Exception {
@@ -32,9 +38,7 @@ public class FileStorageTest {
         fd.setMd5sum(new BigInteger(MessageDigest.getInstance("MD5").digest(x.getBytes())));
         fd.setSize(x.length());
 
-        FileStorage fs = new FileStorage();
-        fs.setLevels(3);
-
+        FileStorage fs = SpringData.getFileStorage();
         fs.storeFile(fd, new ByteArrayInputStream(x.getBytes()));
 
         assertTrue(fd.getDataURL().toExternalForm().endsWith("/11/22/33/11223344556677/text.txt"));
