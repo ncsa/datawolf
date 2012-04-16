@@ -42,7 +42,7 @@ import edu.illinois.ncsa.cyberintegrator.FailedException;
  * 
  * @author Rob Kooper
  */
-public interface CyberintegratorTool {
+public interface JavaTool {
     /**
      * Return the name of the tool. This is used when displaying the tools in
      * the toolsview.

@@ -83,7 +83,7 @@ public class ExecutionsResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        ExecutionDAO exedao = SpringData.getDAO(ExecutionDAO.class);
+        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
         Page<Execution> results = exedao.findAll(new PageRequest(page, size));
         return results.getContent();
     }
@@ -101,7 +101,7 @@ public class ExecutionsResource {
     @Path("{execution-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Execution getExecution(@PathParam("execution-id") String executionId) {
-        ExecutionDAO exedao = SpringData.getDAO(ExecutionDAO.class);
+        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
         return exedao.findOne(executionId);
     }
 

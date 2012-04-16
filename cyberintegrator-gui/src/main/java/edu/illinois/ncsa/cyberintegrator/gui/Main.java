@@ -32,7 +32,7 @@ public class Main extends JFrame {
     public Main() {
         super("Cyberintegrator 3.0");
 
-        datasetDAO = SpringData.getDAO(DatasetDAO.class);
+        datasetDAO = SpringData.getBean(DatasetDAO.class);
 
         user = new Person();
         user.setName("Rob", "Kooper");

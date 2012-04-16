@@ -44,12 +44,12 @@ import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
-import edu.illinois.ncsa.cyberintegrator.executor.java.tool.CyberintegratorTool;
+import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
 
 /**
- * Executor for Cyberintegrator tools. This is just a little wrapper for calling
- * the functions defined by the CyberintegratorTool interface.
+ * Executor for java tools. This is just a little wrapper for calling
+ * the functions defined by the JavaTool interface.
  * 
  * @author Rob Kooper
  * 
@@ -100,9 +100,9 @@ public class JavaExecutor extends Executor {
         // the real code
         try {
             // create instance of the tool
-            CyberintegratorTool tool;
+            JavaTool tool;
             try {
-                tool = (CyberintegratorTool) dcl.loadClass(classname).newInstance();
+                tool = (JavaTool) dcl.loadClass(classname).newInstance();
             } catch (Exception exc) {
                 throw (new FailedException("Could load class.", exc));
             }

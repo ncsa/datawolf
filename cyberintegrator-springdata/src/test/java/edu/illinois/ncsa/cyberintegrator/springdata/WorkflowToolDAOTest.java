@@ -15,7 +15,7 @@ public class WorkflowToolDAOTest {
 
     @Test
     public void testCreateAndStore() throws Exception {
-        WorkflowToolDAO dao = SpringData.getDAO(WorkflowToolDAO.class);
+        WorkflowToolDAO dao = SpringData.getBean(WorkflowToolDAO.class);
 
         WorkflowTool tool = new WorkflowTool();
         dao.save(tool);

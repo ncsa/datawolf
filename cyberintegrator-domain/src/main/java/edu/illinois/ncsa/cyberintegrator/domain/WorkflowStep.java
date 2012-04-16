@@ -42,6 +42,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -59,6 +60,7 @@ public class WorkflowStep extends AbstractBean {
     private String                             title            = "";                                          //$NON-NLS-1$
 
     /** creator of the workflow step */
+    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
     private Person                             creator          = null;
 
@@ -66,6 +68,7 @@ public class WorkflowStep extends AbstractBean {
     private Date                               createDate       = new Date();
 
     /** Tool the workflow step is executing */
+    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @DBRef
     private WorkflowTool                       tool             = null;
 

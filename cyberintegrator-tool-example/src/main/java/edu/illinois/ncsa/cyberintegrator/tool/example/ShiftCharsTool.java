@@ -51,7 +51,7 @@ import java.util.Map;
 
 import edu.illinois.ncsa.cyberintegrator.AbortException;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
-import edu.illinois.ncsa.cyberintegrator.executor.java.tool.CyberintegratorTool;
+import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Dataset;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter.ParameterType;
@@ -63,7 +63,7 @@ import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter.ParameterT
  * @author Luigi Marini <lmarini@illinois.edu>
  * 
  */
-public class ShiftCharsTool implements CyberintegratorTool {
+public class ShiftCharsTool implements JavaTool {
 
     private Map<String, File>      inputs     = new HashMap<String, File>();
     private Map<String, Parameter> parameters = new HashMap<String, Parameter>();

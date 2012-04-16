@@ -70,7 +70,7 @@ public class WorkflowsResource {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public String createWorkflow(Workflow workflow) {
-        SpringData.getDAO(WorkflowDAO.class).save(workflow);
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
         return workflow.getId();
     }
 
@@ -86,7 +86,7 @@ public class WorkflowsResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Workflow> getWorkflows(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        WorkflowDAO wfdao = SpringData.getDAO(WorkflowDAO.class);
+        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
         Page<Workflow> results = wfdao.findAll(new PageRequest(page, size));
         return results.getContent();
     }
@@ -104,7 +104,7 @@ public class WorkflowsResource {
     @Path("{workflow-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow getWorkflow(@PathParam("workflow-id") String workflowId) {
-        WorkflowDAO wfdao = SpringData.getDAO(WorkflowDAO.class);
+        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
         return wfdao.findOne(workflowId);
     }
 
@@ -143,10 +143,10 @@ public class WorkflowsResource {
     @Path("{workflow-id}/executions")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        WorkflowDAO wfdao = SpringData.getDAO(WorkflowDAO.class);
+        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
         Workflow wf = wfdao.findOne(workflowId);
 
-        ExecutionDAO execDao = SpringData.getDAO(ExecutionDAO.class);
+        ExecutionDAO execDao = SpringData.getBean(ExecutionDAO.class);
         List<Execution> execList = execDao.findByWorkflow(wf);
         return execList;
     }
