@@ -75,7 +75,7 @@ public class WorkflowStep extends AbstractBean {
      * UUID to a specific WorkflowToolParameter.
      */
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowStepOutputs")
+    @JoinTable(name = "WorkflowStepParameters")
     @DBRef
     private List<WorkflowToolParameter> parameters       = new ArrayList<WorkflowToolParameter>();
 
