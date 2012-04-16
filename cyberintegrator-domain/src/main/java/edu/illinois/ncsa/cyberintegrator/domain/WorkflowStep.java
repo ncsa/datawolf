@@ -31,11 +31,11 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.domain;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -88,7 +88,7 @@ public class WorkflowStep extends AbstractBean {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowStepInputs")
     @DBRef
-    private Map<String, WorkflowToolData>      inputs           = new HashMap<String, WorkflowToolData>();
+    private List<WorkflowToolData>             inputs           = new ArrayList<WorkflowToolData>();
 
     /**
      * List of outputs from the workflow step. This is a map from a specific
@@ -97,7 +97,7 @@ public class WorkflowStep extends AbstractBean {
     @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "WorkflowStepOutputs")
     @DBRef
-    private Map<String, WorkflowToolData>      outputs          = new HashMap<String, WorkflowToolData>();
+    private List<WorkflowToolData>             outputs          = new ArrayList<WorkflowToolData>();
 
     /**
      * Create a new instance of the workflow step.
@@ -191,16 +191,28 @@ public class WorkflowStep extends AbstractBean {
      * @return collection of id's that are mapped to an input of the workflow
      *         tool.
      */
-    public Collection<String> getInputs() {
-        return this.inputs.keySet();
+    public List<WorkflowToolData> getInputs() {
+        return this.inputs;
     }
 
-    public WorkflowToolData getInput(String input) {
-        return this.inputs.get(input);
+    /**
+     * Add the data to the list of inputs for the workflow step
+     * 
+     * @param data
+     *            Dataset to be added as input
+     */
+    public void addInput(WorkflowToolData data) {
+        this.inputs.add(data);
     }
 
-    public void setInput(WorkflowToolData data, String input) {
-        this.inputs.put(input, data);
+    /**
+     * Remove the data from the list of inputs for the workflow step
+     * 
+     * @param data
+     *            Dataset to be removed
+     */
+    public void removeInput(WorkflowToolData data) {
+        this.inputs.remove(data);
     }
 
     /**
@@ -209,17 +221,15 @@ public class WorkflowStep extends AbstractBean {
      * @return collection of id's that are mapped to an outputs of the workflow
      *         tool.
      */
-    public Collection<String> getOutputs() {
-        return this.outputs.keySet();
+    public List<WorkflowToolData> getOutputs() {
+        return this.outputs;
     }
 
-    public WorkflowToolData getOutput(String output) {
-        return this.outputs.get(output);
-    }
-
-    public String createOutput(WorkflowToolData data) {
-        String output = UUID.randomUUID().toString();
-        this.outputs.put(output, data);
-        return output;
-    }
+    /*
+     * public String createOutput(WorkflowToolData data) {
+     * String output = UUID.randomUUID().toString();
+     * this.outputs.put(output, data);
+     * return output;
+     * }
+     */
 }

@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 
 public class ThreadedEngine extends Engine {
     private static Logger                    logger     = LoggerFactory.getLogger(ThreadedEngine.class);
@@ -199,36 +200,38 @@ public class ThreadedEngine extends Engine {
                     }
                     last = curr;
 
-                    Execution exection = curr.getExecution();
+                    Execution execution = curr.getExecution();
                     WorkflowStep step = curr.getStep();
 
                     // check to see if all inputs of the step are ready
-                    for (String id : step.getInputs()) {
-                        if (exection.getDataset(id) == null) {
-                            for (WorkflowStep ws : exection.getWorkflow().getSteps()) {
-                                if (ws.getOutputs().contains(id)) {
-                                    switch (exection.getStepState(ws.getId())) {
-                                    case WAITING:
-                                    case RUNNING:
+                    // for (String id : step.getInputs()) {
+                    for (WorkflowToolData input : step.getInputs()) {
+                        // if (exection.getDataset(id) == null) {
+                        for (WorkflowStep ws : execution.getWorkflow().getSteps()) {
+                            // if (ws.getOutputs().contains(id)) {
+                            if (ws.getOutputs().contains(input)) {
+                                switch (execution.getStepState(ws.getId())) {
+                                case WAITING:
+                                case RUNNING:
+                                    processing.remove(curr);
+                                    curr = null;
+                                    break;
+                                case FINISHED:
+                                    logger.error("Step is finished but dataset is missing!");
+                                case ABORTED:
+                                case FAILED:
+                                    logger.debug("One of the inputs is failed, aborted or missing. Aborting step.");
+                                    synchronized (processing) {
                                         processing.remove(curr);
-                                        curr = null;
-                                        break;
-                                    case FINISHED:
-                                        logger.error("Step is finished but dataset is missing!");
-                                    case ABORTED:
-                                    case FAILED:
-                                        logger.debug("One of the inputs is failed, aborted or missing. Aborting step.");
-                                        synchronized (processing) {
-                                            processing.remove(curr);
-                                            stepAborted(curr);
-                                        }
-                                        curr = null;
-                                        break;
+                                        stepAborted(curr);
                                     }
+                                    curr = null;
+                                    break;
                                 }
+                                // }
                             }
                             if (curr != null) {
-                                logger.error(String.format("Could not find any step responsible for this dataset [%s].", id));
+                                logger.error(String.format("Could not find any step responsible for this dataset [%s].", input.getId()));
                                 stepAborted(curr);
                                 processing.remove(curr);
                                 curr = null;
@@ -265,7 +268,7 @@ public class ThreadedEngine extends Engine {
 //                    if (onejvm || executor.useSameJVM() || onejvm) {
                     // execute in same JVM
                     try {
-                        executor.run(exection, step);
+                        executor.run(execution, step);
                     } catch (AbortException exc) {
                         logger.debug("Step is aborted", exc);
                         stepAborted(curr);

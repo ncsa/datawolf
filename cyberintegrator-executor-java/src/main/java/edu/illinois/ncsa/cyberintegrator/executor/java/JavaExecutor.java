@@ -43,6 +43,7 @@ import edu.illinois.ncsa.cyberintegrator.Executor;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
@@ -134,11 +135,13 @@ public class JavaExecutor extends Executor {
 
             // set inputs
             if (tool.getInputs() != null) {
-                for (String runid : step.getInputs()) {
+                for (WorkflowToolData input : step.getInputs()) {
+                    // for (String runid : step.getInputs()) {
                     // TODO RK : fetch file
                     // execution.getDataset(runid).getBlobs()
                     File file = null;
-                    tool.setInput(step.getInput(runid).getDataId(), file);
+                    // tool.setInput(step.getInput(runid).getDataId(), file);
+                    tool.setInput(input.getDataId(), file);
                 }
             }
 
@@ -153,8 +156,10 @@ public class JavaExecutor extends Executor {
 
             // get outputs in the case of CyberintegratorTool
             if (tool.getOutputs() != null) {
-                for (String runid : step.getOutputs()) {
-                    File file = tool.getOutput(step.getOutput(runid).getDataId());
+                for(WorkflowToolData output : step.getOutputs()) {
+                //for (String runid : step.getOutputs()) {
+                    File file = tool.getOutput(output.getDataId());
+                    // File file = tool.getOutput(step.getOutput(runid).getDataId());
                     // TODO RK : save file
                     // execution.setDataset(runid, dataset);
                 }
