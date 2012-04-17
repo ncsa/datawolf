@@ -200,14 +200,22 @@ public class Execution extends AbstractBean {
     }
 
     /**
+     * @param id
+     * @return
+     */
+    public boolean hasDataset(String id) {
+        return this.datasets.containsKey(id);
+    }
+
+    /**
      * Returns the value for a specific dataset.
      * 
      * @param uuid
      *            the uuid for dataset
      * @return the dataset.
      */
-    public Dataset getDataset(String uuid) {
-        return this.datasets.get(uuid);
+    public Dataset getDataset(String id) {
+        return this.datasets.get(id);
     }
 
     /**
@@ -218,8 +226,8 @@ public class Execution extends AbstractBean {
      * @param value
      *            the dataset generated.
      */
-    public void setDataset(String uuid, Dataset dataset) {
-        this.datasets.put(uuid, dataset);
+    public void setDataset(String id, Dataset dataset) {
+        this.datasets.put(id, dataset);
     }
 
     /**
@@ -244,4 +252,5 @@ public class Execution extends AbstractBean {
     public void setStepState(String id, State state) {
         this.stepState.put(id, state);
     }
+
 }

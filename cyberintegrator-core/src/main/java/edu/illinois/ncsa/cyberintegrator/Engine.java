@@ -359,7 +359,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepRunning(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.RUNNING);
+        setStepState(executionInfo, State.RUNNING, false);
     }
 
     /**
@@ -369,11 +369,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepFinished(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.FINISHED);
-        synchronized (queue) {
-            queue.remove(executionInfo);
-            saveQueue();
-        }
+        setStepState(executionInfo, State.FINISHED, true);
     }
 
     /**
@@ -383,11 +379,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepAborted(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.ABORTED);
-        synchronized (queue) {
-            queue.remove(executionInfo);
-            saveQueue();
-        }
+        setStepState(executionInfo, State.ABORTED, true);
     }
 
     /**
@@ -397,11 +389,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepFailed(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.FAILED);
-        synchronized (queue) {
-            queue.remove(executionInfo);
-            saveQueue();
-        }
+        setStepState(executionInfo, State.FAILED, true);
     }
 
     /**
@@ -412,10 +400,30 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      * @param state
      *            the sate of the step in this execution.
+     * @param remove
+     *            remove the step from the queue and mark all missing outputs.
      */
-    protected void setStepState(ExecutionInfo executionInfo, State state) {
+    protected void setStepState(ExecutionInfo executionInfo, State state, boolean remove) {
+        // mark all missing outputs
+        if (remove) {
+            for (String id : executionInfo.getStep().getOutputs().keySet()) {
+                if (!executionInfo.getExecution().hasDataset(id)) {
+                    executionInfo.getExecution().setDataset(id, null);
+                }
+            }
+        }
+
+        // set step state
         executionInfo.getExecution().setStepState(executionInfo.getStep().getId(), state);
         executionDAO.save(executionInfo.getExecution());
+
+        // remove step
+        if (remove) {
+            synchronized (queue) {
+                queue.remove(executionInfo);
+                saveQueue();
+            }
+        }
     }
 
     /**

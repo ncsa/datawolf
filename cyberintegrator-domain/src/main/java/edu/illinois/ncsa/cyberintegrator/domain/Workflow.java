@@ -257,6 +257,16 @@ public class Workflow extends AbstractBean {
         }
     }
 
+    public WorkflowToolData getOutput(String id) {
+        for (WorkflowStep step : steps) {
+            WorkflowToolData data = step.getOutput(id);
+            if (data != null) {
+                return data;
+            }
+        }
+        return null;
+    }
+
     /**
      * Add the step to the list of steps in the workflow. This will add the step
      * to the end of the list of steps associated with the workflow.
