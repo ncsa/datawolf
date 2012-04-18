@@ -45,10 +45,10 @@ public class WorkflowStepDAOTest {
         stepDAO.save(step1);
 
         WorkflowToolData tool1Output = step1.getTool().getOutputs().get(0);
-        String inputId = "";
+        String outputId = "";
         for (Entry<String, WorkflowToolData> entry : step1.getOutputs().entrySet()) {
             if (entry.getValue().equals(tool1Output)) {
-                inputId = entry.getKey();
+                outputId = entry.getKey();
                 break;
             }
         }
@@ -56,7 +56,8 @@ public class WorkflowStepDAOTest {
         WorkflowStep step2 = new WorkflowStep();
         step2.setTool(tool2);
 
-        step2.setInput(inputId, tool1Output);
+        WorkflowToolData tool2Input = tool2.getInputs().get(0);
+        step2.setInput(tool2Input, outputId);
         stepDAO.save(step2);
         t.commit();
     }
