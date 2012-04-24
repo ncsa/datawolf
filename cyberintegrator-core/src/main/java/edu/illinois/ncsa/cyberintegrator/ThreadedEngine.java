@@ -41,15 +41,12 @@ import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
-import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 
 public class ThreadedEngine extends Engine {
     private static Logger                    logger     = LoggerFactory.getLogger(ThreadedEngine.class);
 
     public static final String               WORKERS    = "workers";                                    //$NON-NLS-1$
-    public static final String               ONEJVM     = "onejvm";                                     //$NON-NLS-1$
 
-    private boolean                          onejvm     = false;
     private ArrayList<WorkerThread>          workers    = new ArrayList<WorkerThread>();
     private Map<ExecutionInfo, WorkerThread> processing = new HashMap<ExecutionInfo, WorkerThread>();
 
@@ -65,7 +62,6 @@ public class ThreadedEngine extends Engine {
             procs = 1;
         }
         defaults.put(WORKERS, Integer.toString(procs));
-        defaults.put(ONEJVM, Boolean.toString(false));
         return defaults;
     }
 
@@ -95,12 +91,6 @@ public class ThreadedEngine extends Engine {
      */
     @Override
     protected void initialize() {
-        if (getProperty(ONEJVM) != null) {
-            onejvm = Boolean.parseBoolean(getProperty(ONEJVM));
-        } else {
-            onejvm = false;
-        }
-
         int numworkers = 2;
         if (getProperty(WORKERS) != null) {
             try {
@@ -200,166 +190,72 @@ public class ThreadedEngine extends Engine {
                     }
                     last = curr;
 
-                    Execution execution = curr.getExecution();
-                    WorkflowStep step = curr.getStep();
+                    try {
+                        Execution execution = curr.getExecution();
+                        WorkflowStep step = curr.getStep();
 
-                    // check to see if all inputs of the step are ready
-                    // for (String id : step.getInputs()) {
-                    for (WorkflowToolData input : step.getInputs()) {
-                        // if (exection.getDataset(id) == null) {
-                        for (WorkflowStep ws : execution.getWorkflow().getSteps()) {
-                            // if (ws.getOutputs().contains(id)) {
-                            if (ws.getOutputs().contains(input)) {
-                                switch (execution.getStepState(ws.getId())) {
-                                case WAITING:
-                                case RUNNING:
-                                    processing.remove(curr);
-                                    curr = null;
-                                    break;
-                                case FINISHED:
-                                    logger.error("Step is finished but dataset is missing!");
-                                case ABORTED:
-                                case FAILED:
-                                    logger.debug("One of the inputs is failed, aborted or missing. Aborting step.");
-                                    synchronized (processing) {
-                                        processing.remove(curr);
-                                        stepAborted(curr);
-                                    }
-                                    curr = null;
-                                    break;
-                                }
-                                // }
-                            }
-                            if (curr != null) {
-                                logger.error(String.format("Could not find any step responsible for this dataset [%s].", input.getId()));
-                                stepAborted(curr);
-                                processing.remove(curr);
+                        // check to see if all inputs of the step are ready
+                        for (String id : step.getInputs().values()) {
+                            if (!execution.hasDataset(id)) {
                                 curr = null;
+                                break;
                             }
-                            break;
+                            if (execution.getDataset(id) == null) {
+                                throw (new AbortException("Input is marked as missing."));
+                            }
                         }
-                    }
+                        if (curr == null) {
+                            processing.remove(curr);
+                            continue;
+                        }
 
-                    // can we still run?
-                    if (curr == null) {
-                        continue;
-                    }
+                        // make sure we have an executor
+                        executor = Executor.findExecutor(step.getTool().getExecutor());
+                        if (executor == null) {
+                            logger.error(String.format("Could not find the right executor [%s] for tool [%s].", step.getTool().getExecutor(), step.getTool().getTitle()));
+                            stepAborted(curr);
+                            processing.remove(curr);
+                            continue;
+                        }
 
-                    // make sure we have an executor
-                    executor = Executor.findExecutor(step.getTool().getExecutor());
-                    if (executor == null) {
-                        logger.error(String.format("Could not find the right executor [%s] for tool [%s].", step.getTool().getExecutor(), step.getTool().getTitle()));
+                        // check to make sure the executor can run
+                        if (!executor.canRun()) {
+                            synchronized (processing) {
+                                postponeExecution(curr);
+                                processing.remove(curr);
+                            }
+                            continue;
+                        }
+
+                        // finally step can be launched.
+                        logger.debug(String.format("[%s] launching step %s.", Thread.currentThread().getName(), step.getTitle()));
+                        executor.run(execution, step);
+
+                        // step is finished
+                        logger.debug(String.format("[%s] finished step %s.", Thread.currentThread().getName(), step.getTitle()));
+                        stepFinished(curr);
+                        processing.remove(curr);
+
+                        // fire event
+//                    fireStepFinished(curr.getStep(), exection.getStepState(curr.getStep()));
+                    } catch (AbortException exc) {
+                        logger.debug(String.format("[%s] aborted step %s.", Thread.currentThread().getName(), curr.getStep().getTitle()), exc);
                         stepAborted(curr);
                         processing.remove(curr);
-                        continue;
-                    }
-
-                    // check to make sure the executor can run
-                    if (!executor.canRun()) {
-                        synchronized (processing) {
-                            postponeExecution(curr);
-                            processing.remove(curr);
-                        }
-                        continue;
-                    }
-
-                    // finally step can be launched.
-                    logger.debug(String.format("[%s] launching step %s.", Thread.currentThread().getName(), step.getTitle()));
-//                    if (onejvm || executor.useSameJVM() || onejvm) {
-                    // execute in same JVM
-                    try {
-                        executor.run(execution, step);
-                    } catch (AbortException exc) {
-                        logger.debug("Step is aborted", exc);
-                        stepAborted(curr);
                     } catch (FailedException exc) {
-                        logger.debug("Step is failed", exc);
+                        logger.debug(String.format("[%s] failed step %s.", Thread.currentThread().getName(), curr.getStep().getTitle()), exc);
                         stepFailed(curr);
+                        processing.remove(curr);
                     } catch (Throwable thr) {
-                        logger.debug("Step throws an exception, assume it failed", thr);
+                        logger.debug(String.format("[%s] failed step %s.", Thread.currentThread().getName(), curr.getStep().getTitle()), thr);
                         stepFailed(curr);
+                        processing.remove(curr);
                     }
-//                    } else {
-//                        // serialize the context
-//                        File contextfile = File.createTempFile("context", ".nt"); //$NON-NLS-1$ //$NON-NLS-2$
-//                        PrintStream ps = new PrintStream(contextfile);
-//                        for (Triple t : myjob.execution.getContextDefinition()) {
-//                            ps.println(t);
-//                        }
-//                        ps.println(Triple.create(myjob.execution.getContextId(), Rdf.TYPE, Tupelo.DEFAULT_CONTEXT_TYPE).toString());
-//                        ps.close();
-//
-//                        // create commandline list
-//                        ArrayList<String> list = new ArrayList<String>();
-//                        list.add(System.getProperty("eclipse.launcher")); //$NON-NLS-1$
-//                        list.add("-nosplash"); //$NON-NLS-1$
-//                        for (String x : System.getProperty("eclipse.commands").split("[\n\r]+")) { //$NON-NLS-1$ //$NON-NLS-2$
-//                            list.add(x);
-//                        }
-//                        list.add(contextfile.getAbsolutePath());
-//                        list.add(myjob.execution.getStep().toString());
-//                        String y = ""; //$NON-NLS-1$
-//                        for (String x : list) {
-//                            y += x + " "; //$NON-NLS-1$
-//                        }
-//                        log.debug(y);
-//
-//                        // launch eclipse again but now to run
-//                        ProcessBuilder pb = new ProcessBuilder(list);
-//                        pb.redirectErrorStream(true);
-//                        p = pb.start();
-//                        log.debug("Second process started, waiting.");
-//                        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//                        String line;
-//                        while (!isFinished() && ((line = br.readLine()) != null)) {
-//                            log.debug(line);
-//                        }
-//                        p.waitFor();
-//                        br.close();
-//                        log.debug("Second process done.");
-//
-//                        // cleanup
-//                        contextfile.delete();
-//                    }
-
-                    // step is finished
-                    logger.debug(String.format("[%s] finished step %s.", Thread.currentThread().getName(), step.getTitle()));
-                    processing.remove(curr);
-
-                    // fire event
-//                    fireStepFinished(curr.getStep(), exection.getStepState(curr.getStep()));
 
                 } catch (Throwable thr) {
                     logger.warn("Uncaught exception in worker thread.", thr);
                 }
             }
         }
-
-        private boolean isFinished() {
-            try {
-                process.exitValue();
-                return true;
-            } catch (Throwable thr) {
-                return false;
-            }
-        }
-
-//        public LogListener getWorkerLog() {
-//            return workerlog;
-//        }
-//
-//        class WorkerLog implements LogListener {
-//            /**
-//             * Record any exceptions during the execution of a step.
-//             */
-//            public void log(LogLevel level, String name, String where, Object message, Throwable thr) {
-//                if (Thread.currentThread().equals(this)) {
-//                    if (es != null) {
-//                        es.log("RUNTIME", message.toString(), thr); //$NON-NLS-1$
-//                    }
-//                }
-//            }
-//        }
     }
-
 }

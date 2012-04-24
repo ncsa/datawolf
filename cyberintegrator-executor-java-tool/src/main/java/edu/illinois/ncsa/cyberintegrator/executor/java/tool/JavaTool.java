@@ -32,6 +32,7 @@
 package edu.illinois.ncsa.cyberintegrator.executor.java.tool;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Collection;
 
 import edu.illinois.ncsa.cyberintegrator.AbortException;
@@ -81,14 +82,14 @@ public interface JavaTool {
 
     /**
      * Set a specific input. This function will link the id as specified in the
-     * Dataset returned by getInputs() with a file on disk.
+     * Dataset returned by getInputs() with an inputstream.
      * 
      * @param id
      *            the id of the input.
      * @param input
-     *            the file that is linked with the input.
+     *            the inputstream that is linked with the input.
      */
-    public void setInput(String id, File input);
+    public void setInput(String id, InputStream input);
 
     /**
      * Retrieve list of outputs for the tool. This will return a list of all
@@ -100,13 +101,13 @@ public interface JavaTool {
 
     /**
      * Retrieve a specific output. This will ask for a specific output, the
-     * result should be a file on disk.
+     * result should be a inputstream.
      * 
      * @param id
      *            the id of the output.
-     * @return a file on disk with the output.
+     * @return a inputstream on disk with the output.
      */
-    public File getOutput(String id);
+    public InputStream getOutput(String id);
 
     /**
      * Retrieve list of parameters for the tool. This will return a list of all
@@ -127,6 +128,17 @@ public interface JavaTool {
      *            the value for the parameter.
      */
     public void setParameter(String id, String value);
+
+    /**
+     * Sets the temp folder. Each process has its own folder in the temp folder
+     * that will be deleted after the execution is finished and the outputs are
+     * fetched. One use of this temp folder is to store results that are
+     * retrieved using the getOutput function.
+     * 
+     * @param tempfolder
+     *            the temp folder created for this execution.
+     */
+    public void setTempFolder(File tempfolder);
 
     /**
      * Execute the tool. This function is called when the tool is executed. At

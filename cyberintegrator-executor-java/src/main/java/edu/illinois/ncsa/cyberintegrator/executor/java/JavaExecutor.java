@@ -32,7 +32,9 @@
 package edu.illinois.ncsa.cyberintegrator.executor.java;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -47,6 +49,11 @@ import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
+import edu.illinois.ncsa.domain.Dataset;
+import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.springdata.DatasetDAO;
+import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.springdata.Transaction;
 
 /**
  * Executor for java tools. This is just a little wrapper for calling
@@ -108,6 +115,9 @@ public class JavaExecutor extends Executor {
                 throw (new FailedException("Could load class.", exc));
             }
 
+            // set temp folder
+            tool.setTempFolder(cwd);
+
             // set parameters
             if (tool.getParameters() != null) {
                 for (Parameter parameter : tool.getParameters()) {
@@ -135,13 +145,13 @@ public class JavaExecutor extends Executor {
 
             // set inputs
             if (tool.getInputs() != null) {
-                for (WorkflowToolData input : step.getInputs()) {
-                    // for (String runid : step.getInputs()) {
-                    // TODO RK : fetch file
-                    // execution.getDataset(runid).getBlobs()
-                    File file = null;
-                    // tool.setInput(step.getInput(runid).getDataId(), file);
-                    tool.setInput(input.getDataId(), file);
+                for (Entry<WorkflowToolData, String> entry : step.getInputs().entrySet()) {
+                    Dataset ds = execution.getDataset(entry.getValue());
+                    if (ds == null) {
+                        throw (new AbortException("Dataset is missing."));
+                    }
+                    InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                    tool.setInput(entry.getKey().getDataId(), is);
                 }
             }
 
@@ -156,13 +166,21 @@ public class JavaExecutor extends Executor {
 
             // get outputs in the case of CyberintegratorTool
             if (tool.getOutputs() != null) {
-                for(WorkflowToolData output : step.getOutputs()) {
-                //for (String runid : step.getOutputs()) {
-                    File file = tool.getOutput(output.getDataId());
-                    // File file = tool.getOutput(step.getOutput(runid).getDataId());
-                    // TODO RK : save file
-                    // execution.setDataset(runid, dataset);
+                Transaction t = SpringData.getTransaction();
+                t.start();
+                for (Entry<String, WorkflowToolData> entry : step.getOutputs().entrySet()) {
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(tool.getOutput(entry.getValue().getDataId()));
+                    fd.setMimeType(entry.getValue().getMimeType());
+
+                    Dataset ds = new Dataset();
+                    ds.setTitle(entry.getValue().getTitle());
+                    ds.setDescription(entry.getValue().getDescription());
+                    // TODO RK : add creator
+                    // ds.setCreator(creator)
+                    ds.addFileDescriptor(fd);
+                    SpringData.getBean(DatasetDAO.class).save(ds);
                 }
+                t.commit();
             }
 
         } catch (AbortException e) {

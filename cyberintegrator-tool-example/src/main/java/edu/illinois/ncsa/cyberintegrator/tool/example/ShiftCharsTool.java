@@ -41,18 +41,22 @@ package edu.illinois.ncsa.cyberintegrator.tool.example;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.AbortException;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
-import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Dataset;
+import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter.ParameterType;
 
@@ -64,10 +68,12 @@ import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter.ParameterT
  * 
  */
 public class ShiftCharsTool implements JavaTool {
+    private static Logger logger     = LoggerFactory.getLogger(ShiftCharsTool.class);
 
-    private Map<String, File>      inputs     = new HashMap<String, File>();
-    private Map<String, Parameter> parameters = new HashMap<String, Parameter>();
-    private Map<String, File>      outputs    = new HashMap<String, File>();
+    private File          tempfolder = null;
+    private int           shift      = 0;
+    private InputStream   input;
+    private File          output;
 
     /*
      * (non-Javadoc)
@@ -125,11 +131,13 @@ public class ShiftCharsTool implements JavaTool {
      * 
      * @see
      * edu.illinois.ncsa.cyberintegrator.executor.java.tool.CyberintegratorTool
-     * #setInput(java.lang.String, java.io.File)
+     * #setInput(java.lang.String, java.io.InputStream)
      */
     @Override
-    public void setInput(String id, File input) {
-        inputs.put(id, input);
+    public void setInput(String id, InputStream input) {
+        if ("1".equals(id)) {
+            this.input = input;
+        }
     }
 
     /*
@@ -155,8 +163,16 @@ public class ShiftCharsTool implements JavaTool {
      * #getOutput(java.lang.String)
      */
     @Override
-    public File getOutput(String id) {
-        return outputs.get(id);
+    public InputStream getOutput(String id) {
+        if ("1".equals(id)) {
+            try {
+                return new FileInputStream(output);
+            } catch (FileNotFoundException e) {
+                logger.warn("Could not open output file.", e);
+                return null;
+            }
+        }
+        return null;
     }
 
     /*
@@ -183,9 +199,21 @@ public class ShiftCharsTool implements JavaTool {
      */
     @Override
     public void setParameter(String id, String value) {
-        Parameter parameter = parameters.get(id);
-        parameter.setValue(value);
-        parameters.put(id, parameter);
+        if ("1".equals(id)) {
+            shift = Integer.parseInt(value);
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool#setTempFolder
+     * (java.io.File)
+     */
+    @Override
+    public void setTempFolder(File tempfolder) {
+        this.tempfolder = tempfolder;
     }
 
     /*
@@ -197,31 +225,31 @@ public class ShiftCharsTool implements JavaTool {
      */
     @Override
     public void execute() throws AbortException, FailedException {
-        int shift = Integer.parseInt(parameters.get("1").getValue());
         try {
-            BufferedWriter output = new BufferedWriter(new FileWriter(outputs.get("1")));
+            output = File.createTempFile("test", ".ci", tempfolder);
+            BufferedWriter bw = new BufferedWriter(new FileWriter(output));
             try {
                 try {
-                    BufferedReader input = new BufferedReader(new FileReader(inputs.get("1")));
+                    BufferedReader br = new BufferedReader(new InputStreamReader(input));
                     try {
                         String line = null;
-                        while ((line = input.readLine()) != null) {
+                        while ((line = br.readLine()) != null) {
                             StringBuilder newLine = new StringBuilder();
                             for (int i = 0; i < line.length(); i++) {
                                 char shifted = (char) (line.charAt(i) + shift);
                                 newLine.setCharAt(i, shifted);
                             }
-                            output.write(newLine.toString());
-                            output.newLine();
+                            bw.write(newLine.toString());
+                            bw.newLine();
                         }
                     } finally {
-                        input.close();
+                        br.close();
                     }
                 } catch (IOException ex) {
                     throw new FailedException("Error reading from file", ex);
                 }
             } finally {
-                output.close();
+                bw.close();
             }
         } catch (IOException e) {
             throw new FailedException("Error opening file file", e);

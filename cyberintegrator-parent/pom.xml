@@ -58,20 +58,6 @@
 		</snapshotRepository>
 	</distributionManagement>
 
-	<dependencies>
-		<!-- LOGGING -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>${slf4j}</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 
 	<modules>
 		<module>../cyberintegrator-domain</module>
