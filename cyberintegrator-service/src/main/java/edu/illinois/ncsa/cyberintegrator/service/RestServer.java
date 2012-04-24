@@ -40,14 +40,10 @@ import org.jboss.resteasy.plugins.server.tjws.TJWSEmbeddedJaxrsServer;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.Context;
+import org.mortbay.jetty.webapp.WebAppContext;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.XmlWebApplicationContext;
-
-import edu.illinois.ncsa.cyberintegrator.domain.Execution;
-import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
-import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
-import edu.illinois.ncsa.springdata.SpringData;
 
 /**
  * 
@@ -59,14 +55,15 @@ public class RestServer {
     public static final int PORT = 8088;
 
     public static void main(String[] args) throws Exception {
-        jettyServer();
+//        jettyServer();
+        jettyServerWithWebXml();
 
         // create some dummy workflows
-        Workflow wf = new Workflow();
-        Execution e = new Execution();
-        e.setWorkflow(wf);
-
-        SpringData.getBean(ExecutionDAO.class).save(e);
+//        Workflow wf = new Workflow();
+//        Execution e = new Execution();
+//        e.setWorkflow(wf);
+//
+//        SpringData.getBean(ExecutionDAO.class).save(e);
     }
 
     private static void tjwsServer() throws Exception {
@@ -107,6 +104,22 @@ public class RestServer {
         // spring framework
         root.addEventListener(new ContextLoaderListener(xmlContext));
         root.addFilter(OpenEntityManagerInViewFilter.class, "/*", Handler.DEFAULT);
+
+        // start jetty
+        server.start();
+        System.out.println("http://localhost:" + PORT);
+    }
+
+    private static void jettyServerWithWebXml() throws Exception {
+        Server server = new Server(PORT);
+
+        WebAppContext context = new WebAppContext();
+        context.setDescriptor("src/main/webapp/WEB-INF/web.xml");
+        context.setResourceBase("src/main/webapp");
+        context.setContextPath("/");
+        context.setParentLoaderPriority(true);
+
+        server.setHandler(context);
 
         // start jetty
         server.start();
