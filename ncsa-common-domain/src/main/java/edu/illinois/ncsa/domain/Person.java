@@ -31,15 +31,13 @@
  ******************************************************************************/
 package edu.illinois.ncsa.domain;
 
-import java.io.Serializable;
-
 import javax.persistence.Entity;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Entity(name = "Person")
 @Document(collection = "Person")
-public class Person extends AbstractBean implements Serializable {
+public class Person extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
