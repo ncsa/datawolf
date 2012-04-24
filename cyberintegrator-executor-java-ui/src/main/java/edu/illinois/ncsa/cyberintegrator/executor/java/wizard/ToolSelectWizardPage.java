@@ -41,6 +41,8 @@
  *******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.executor.java.wizard;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,10 +69,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.reflections.ReflectionUtils;
 import org.reflections.Reflections;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableSet;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
@@ -126,15 +131,14 @@ public class ToolSelectWizardPage extends WizardPage {
         }
 
         // Fill the reflections classloader
-        ConfigurationBuilder cb = new ConfigurationBuilder();
-        for (FileDescriptor fd : files) {
-            cb.addUrls(fd.getDataURL());
+        URL[] urls = new URL[files.size()];
+        for (int i = 0; i < urls.length; i++) {
+            urls[i] = files.get(i).getDataURL();
         }
-        Reflections reflections = new Reflections(cb);
 
         // find all the tools
         tools.clear();
-        tools.addAll(reflections.getSubTypesOf(JavaTool.class));
+        tools.addAll(getTools(urls));
         Collections.sort(tools, new Comparator() {
             public int compare(Object o1, Object o2) {
                 return o1.toString().compareTo(o2.toString());
@@ -147,6 +151,17 @@ public class ToolSelectWizardPage extends WizardPage {
             lvTools.setSelection(selection, true);
         }
         validate();
+    }
+
+    private Set<Class<? extends JavaTool>> getTools(URL[] urls) {
+        ConfigurationBuilder cb = new ConfigurationBuilder();
+        cb.addUrls(urls);
+        Reflections reflections = new Reflections(cb);
+
+        // work around issue where reflections does not configration urls
+        // return reflections.getSubTypesOf(JavaTool.class);
+        Set<String> classnames = reflections.getStore().getSubTypesOf(JavaTool.class.getName());
+        return ImmutableSet.copyOf(ReflectionUtils.<JavaTool> forNames(classnames, new URLClassLoader(urls, Thread.currentThread().getContextClassLoader())));
     }
 
     public void createControl(Composite parent) {
@@ -294,7 +309,7 @@ public class ToolSelectWizardPage extends WizardPage {
         if (jt.getInputs() != null) {
             for (Dataset datadef : jt.getInputs()) {
                 WorkflowToolData wtd = new WorkflowToolData();
-                wtd.setId(datadef.getID());
+                wtd.setDataId(datadef.getID());
                 wtd.setTitle(datadef.getName());
                 wtd.setDescription(datadef.getDescription());
                 wtd.setMimeType(datadef.getType());
@@ -306,7 +321,7 @@ public class ToolSelectWizardPage extends WizardPage {
         if (jt.getOutputs() != null) {
             for (Dataset datadef : jt.getOutputs()) {
                 WorkflowToolData wtd = new WorkflowToolData();
-                wtd.setId(datadef.getID());
+                wtd.setDataId(datadef.getID());
                 wtd.setTitle(datadef.getName());
                 wtd.setDescription(datadef.getDescription());
                 wtd.setMimeType(datadef.getType());
@@ -318,7 +333,7 @@ public class ToolSelectWizardPage extends WizardPage {
         if (jt.getParameters() != null) {
             for (Parameter paramdef : jt.getParameters()) {
                 WorkflowToolParameter wp = new WorkflowToolParameter();
-                wp.setId(paramdef.getID());
+                wp.setParameterId(paramdef.getID());
                 wp.setTitle(paramdef.getName());
                 wp.setDescription(paramdef.getDescription());
                 wp.setType(WorkflowToolParameter.ParameterType.valueOf(paramdef.getType().toString().toUpperCase()));

@@ -132,6 +132,7 @@ public class ToolResourceWizardPage extends WizardPage {
         lbl.setText("Files:");
 
         filelist = new ListViewer(top);
+        filelist.getControl().setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, true));
         filelist.setContentProvider(new IStructuredContentProvider() {
             public void dispose() {}
 
@@ -141,6 +142,7 @@ public class ToolResourceWizardPage extends WizardPage {
                 return fileDescriptors.toArray(new FileDescriptor[fileDescriptors.size()]);
             }
         });
+        filelist.setInput(fileDescriptors);
         filelist.setLabelProvider(new LabelProvider());
         filelist.getList().addSelectionListener(new SelectionAdapter() {
             @Override
