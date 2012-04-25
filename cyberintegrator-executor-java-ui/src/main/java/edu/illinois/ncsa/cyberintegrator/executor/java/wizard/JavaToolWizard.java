@@ -41,7 +41,6 @@
  *******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.executor.java.wizard;
 
-import java.io.FileDescriptor;
 import java.util.Set;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -66,7 +65,6 @@ public class JavaToolWizard extends Wizard implements INewWizard, ToolEditor {
     private WorkflowTool           oldtool;
     private ToolResourceWizardPage resourcepage;
     private ToolSelectWizardPage   toolselectpage;
-    private Set<FileDescriptor>    descriptors;
 
     public JavaToolWizard() {}
 
@@ -109,12 +107,10 @@ public class JavaToolWizard extends Wizard implements INewWizard, ToolEditor {
 
             // fire the events.
             if (oldtool != null) {
-                // TODO RK : add events
-//                Workflow.fireChangeTool(oldtool);
+                SpringData.getEventBus().fireUpdateObject(oldtool);
             }
             for (WorkflowTool tool : tools) {
-                // TODO RK : add events
-//                Workflow.fireAddTool(tool);
+                SpringData.getEventBus().fireCreateObject(tool);
             }
 
         } catch (Exception exc) {
