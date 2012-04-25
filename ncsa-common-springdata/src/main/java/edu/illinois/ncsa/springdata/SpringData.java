@@ -87,6 +87,17 @@ public class SpringData implements ApplicationContextAware {
         return context.getBean(FileStorage.class);
     }
 
+    /**
+     * Returns the eventbus to send and receive events about object creation,
+     * deletion and updates. Objects interested in receiving events should
+     * register an event listener with this instance.
+     * 
+     * @return the singleton instance of the eventbus.
+     */
+    public static EventBus getEventBus() {
+        return context.getBean(EventBus.class);
+    }
+
     public static Person getPerson(String email) {
         PersonDAO dao = getBean(PersonDAO.class);
         Person person = dao.findByEmail(email);

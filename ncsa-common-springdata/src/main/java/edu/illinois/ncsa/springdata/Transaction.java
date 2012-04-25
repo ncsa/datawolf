@@ -31,7 +31,14 @@
  ******************************************************************************/
 package edu.illinois.ncsa.springdata;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
@@ -45,9 +52,12 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  */
 public class Transaction {
-    private PlatformTransactionManager transactionManager;
+    private static Logger                      logger       = LoggerFactory.getLogger(Transaction.class);
+    private static Map<Transaction, Exception> transactions = new HashMap<Transaction, Exception>();
 
-    private TransactionStatus          status;
+    private PlatformTransactionManager         transactionManager;
+
+    private TransactionStatus                  status;
 
     /**
      * Create a new instance of the Transaction using the given transaction
@@ -90,6 +100,11 @@ public class Transaction {
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setReadOnly(readonly);
         status = transactionManager.getTransaction(def);
+
+        if (transactions.size() > 0) {
+            logTransactions();
+        }
+        transactions.put(this, new Exception());
     }
 
     /**
@@ -105,6 +120,7 @@ public class Transaction {
             throw (new Exception("No transaction is open."));
         }
         transactionManager.commit(status);
+        transactions.remove(this);
     }
 
     /**
@@ -120,5 +136,22 @@ public class Transaction {
             throw (new Exception("No transaction is open."));
         }
         transactionManager.rollback(status);
+        transactions.remove(this);
+    }
+
+    public static void checkTransactions() {
+        if (logger.isInfoEnabled()) {
+            logTransactions();
+        }
+    }
+
+    private static void logTransactions() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("There are %d open transactions : ", transactions.size()));
+        int i = 1;
+        for (Entry<Transaction, Exception> entry : transactions.entrySet()) {
+            sb.append(String.format("\n\t[%2d] created at %s", i++, entry.getValue().getStackTrace()[1].toString()));
+        }
+        logger.info(sb.toString());
     }
 }
