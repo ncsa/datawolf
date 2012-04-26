@@ -199,6 +199,7 @@ public class WorkflowStep extends AbstractBean {
     public Map<String, WorkflowToolData> getOutputs() {
         Map<String, WorkflowToolData> result = new HashMap<String, WorkflowToolData>();
         for (Entry<String, String> entry : outputs.entrySet()) {
+            // result.put(tool.getInput(entry.getValue()), entry.getKey());
             result.put(entry.getKey(), tool.getOutput(entry.getValue()));
         }
         return result;
@@ -231,7 +232,7 @@ public class WorkflowStep extends AbstractBean {
     public Map<WorkflowToolData, String> getInputs() {
         Map<WorkflowToolData, String> result = new HashMap<WorkflowToolData, String>();
         for (Entry<String, String> entry : inputs.entrySet()) {
-            result.put(tool.getInput(entry.getValue()), entry.getKey());
+            result.put(tool.getInput(entry.getKey()), entry.getValue());
         }
         return result;
     }
