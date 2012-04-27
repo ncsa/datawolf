@@ -2,51 +2,24 @@ package edu.illinois.ncsa.cyberintegrator.springdata;
 
 import static org.junit.Assert.assertEquals;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.orm.hibernate4.SessionFactoryUtils;
-import org.springframework.orm.hibernate4.SessionHolder;
+import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.springdata.Transaction;
 
 @Transactional
 public class WorkflowToolDAOTest {
-    private String        id;
-
-    // the following is necessary for lazy loading
-    static SessionFactory sf     = null;
-
-    // open and bind the session for this test thread.
-    static Session        s      = null;
-
-    // Session holder
-    static SessionHolder  holder = null;
+    private String id;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("testContext.xml");
-
-        sf = SpringData.getBean(SessionFactory.class);
-        s = sf.openSession();
-        TransactionSynchronizationManager.bindResource(sf, new SessionHolder(s));
-    }
-
-    @AfterClass
-    public static void tearDown() throws Exception {
-        // unbind and close the session.
-        holder = (SessionHolder) TransactionSynchronizationManager.getResource(sf);
-        s = holder.getSession();
-        s.flush();
-        TransactionSynchronizationManager.unbindResource(sf);
-        SessionFactoryUtils.closeSession(s);
+        new GenericXmlApplicationContext("testContext.xml");
     }
 
     @Before
@@ -73,10 +46,13 @@ public class WorkflowToolDAOTest {
     @Test
     public void testCheckInputs() throws Exception {
         WorkflowToolDAO dao = SpringData.getBean(WorkflowToolDAO.class);
+        Transaction t = SpringData.getTransaction();
+        t.start();
         WorkflowTool tool1 = dao.findOne(id);
         for (WorkflowToolData data : tool1.getInputs()) {
             System.out.println(data.getId() + " " + data.getTitle());
         }
         assertEquals(4, tool1.getInputs().size());
+        t.commit();
     }
 }

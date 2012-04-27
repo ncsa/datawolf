@@ -4,6 +4,7 @@ import java.util.Map.Entry;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
@@ -15,7 +16,7 @@ public class WorkflowStepDAOTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("testContext.xml");
+        new GenericXmlApplicationContext("testContext.xml");
     }
 
     @Test
@@ -63,7 +64,6 @@ public class WorkflowStepDAOTest {
     }
 
     private WorkflowTool getTool1() {
-        WorkflowToolDAO toolDAO = SpringData.getBean(WorkflowToolDAO.class);
         WorkflowTool tool = new WorkflowTool();
         tool.setTitle("TEST Tool");
         tool.setDescription("This is just a test");
@@ -86,7 +86,6 @@ public class WorkflowStepDAOTest {
     }
 
     private WorkflowTool getTool2() {
-        WorkflowToolDAO toolDAO = SpringData.getBean(WorkflowToolDAO.class);
         WorkflowTool tool = new WorkflowTool();
         tool.setTitle("TEST Tool");
         tool.setDescription("This is just a test");

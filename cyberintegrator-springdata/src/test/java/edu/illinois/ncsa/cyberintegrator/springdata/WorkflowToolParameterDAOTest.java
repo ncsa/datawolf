@@ -2,6 +2,7 @@ package edu.illinois.ncsa.cyberintegrator.springdata;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
 import edu.illinois.ncsa.springdata.SpringData;
@@ -10,7 +11,7 @@ public class WorkflowToolParameterDAOTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("testContext.xml");
+        new GenericXmlApplicationContext("testContext.xml");
     }
 
     @Test
