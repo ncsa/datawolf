@@ -34,6 +34,7 @@ package edu.illinois.ncsa.domain;
 import java.io.Serializable;
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
@@ -45,9 +46,9 @@ public class AbstractBean implements Serializable {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
-    // TODO RK : fix this to specific size
     /** Unique identifier for this bean, used by persistence layer */
     @Id
+    @Column(length = 36)
     private String            id;
 
     public AbstractBean() {
