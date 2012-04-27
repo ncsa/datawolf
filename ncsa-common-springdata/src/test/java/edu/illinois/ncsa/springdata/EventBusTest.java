@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
@@ -22,7 +23,7 @@ import edu.illinois.ncsa.domain.AbstractBean;
 public class EventBusTest {
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("testContext.xml");
+        new GenericXmlApplicationContext("testContext.xml");
     }
 
     public void checkSingleton() {

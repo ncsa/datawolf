@@ -13,6 +13,7 @@ import java.security.MessageDigest;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
 
@@ -24,7 +25,7 @@ public class FileStorageTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("testContext.xml");
+        new GenericXmlApplicationContext("testContext.xml");
     }
 
     @Test

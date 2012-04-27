@@ -2,6 +2,7 @@ package edu.illinois.ncsa.springdata;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.domain.Dataset;
 
@@ -9,7 +10,7 @@ public class DatasetDAOTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        SpringData.loadXMLContext("testContext.xml");
+        new GenericXmlApplicationContext("testContext.xml");
     }
 
     @Test
