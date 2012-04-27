@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -148,7 +147,7 @@ public class FileStorage {
         // TODO RK : add mimetype
         fd.setDataURL(output.toURI().toURL());
         if (md5 != null) {
-            fd.setMd5sum(new BigInteger(md5.digest()));
+            fd.setMd5sum(md5.digest());
         }
         fd.setSize(size);
 

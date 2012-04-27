@@ -143,8 +143,8 @@ public class FileDescriptor extends AbstractBean {
     /**
      * @return the md5sum
      */
-    public BigInteger getMd5sum() {
-        return new BigInteger(md5sum, 16);
+    public String getMd5sum() {
+        return md5sum;
     }
 
     /**
@@ -152,8 +152,28 @@ public class FileDescriptor extends AbstractBean {
      * 
      * @return the md5sum as a 32 char string.
      */
-    public String getMd5sumAsString() {
-        return md5sum;
+    public BigInteger getMd5sumAsBigInteger() {
+        return new BigInteger(md5sum, 16);
+    }
+
+    public byte[] getMd5sumAsBytes() {
+        return new BigInteger(md5sum, 16).toByteArray();
+    }
+
+    /**
+     * @param md5sum
+     *            the md5sum to set
+     */
+    public void setMd5sum(String md5sum) {
+        this.md5sum = md5sum;
+    }
+
+    /**
+     * @param md5sum
+     *            the md5sum to set
+     */
+    public void setMd5sum(byte[] md5sum) {
+        setMd5sum(new BigInteger(1, md5sum));
     }
 
     /**
@@ -161,8 +181,13 @@ public class FileDescriptor extends AbstractBean {
      *            the md5sum to set
      */
     public void setMd5sum(BigInteger md5sum) {
-        String x = md5sum.toString(16);
-        this.md5sum = "00000000000000000000000000000000".substring(x.length()) + x;
+        if (md5sum.signum() < 0) {
+            md5sum = new BigInteger(1, md5sum.toByteArray());
+        }
+        this.md5sum = md5sum.toString(16);
+        if (this.md5sum.length() < 16) {
+            this.md5sum = "00000000000000000000000000000000".substring(this.md5sum.length()) + this.md5sum;
+        }
     }
 
     /*

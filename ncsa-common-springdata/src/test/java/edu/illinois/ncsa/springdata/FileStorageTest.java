@@ -9,7 +9,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.security.MessageDigest;
 
 import org.junit.BeforeClass;
@@ -35,8 +34,11 @@ public class FileStorageTest {
         FileDescriptor fd = new FileDescriptor();
         fd.setFilename("text.txt");
         fd.setId("11223344556677");
-        fd.setMd5sum(new BigInteger(MessageDigest.getInstance("MD5").digest(x.getBytes())));
+        fd.setMd5sum(MessageDigest.getInstance("MD5").digest(x.getBytes("UTF-8")));
         fd.setSize(x.length());
+
+        // silly test echo -n <x> | md5sum
+        assertEquals("9db5682a4d778ca2cb79580bdb67083f", fd.getMd5sum());
 
         FileStorage fs = SpringData.getFileStorage();
         fs.storeFile(fd, new ByteArrayInputStream(x.getBytes()));
