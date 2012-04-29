@@ -9,33 +9,51 @@
 		<relativePath>../ncsa-common-parent</relativePath>
 	</parent>
 	<artifactId>ncsa-common-domain</artifactId>
+	<packaging>bundle</packaging>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>.</directory>
+				<includes>
+					<include>plugin.xml</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<manifestLocation>META-INF</manifestLocation>
+					<instructions>
+						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-Version>$(replace;${project.version};-SNAPSHOT;.qualifier)</Bundle-Version>
+						<Require-Bundle>
+							spring-libraries
+						</Require-Bundle>
+						<Eclipse-RegisterBuddy>spring-libraries</Eclipse-RegisterBuddy>
+						<Eclipse-BuddyPolicy>registered</Eclipse-BuddyPolicy>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
+					</instructions>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
-		<!-- SPRING DATA -->
 		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-commons-core</artifactId>
-			<version>${spring.data}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>junit-dep</artifactId>
-					<groupId>junit</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<!-- MONGO BINDING -->
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-mongodb</artifactId>
-			<version>${spring.mongo}</version>
-		</dependency>
-
-		<!-- JPA ANNOTATIONS -->
-		<dependency>
-			<groupId>org.hibernate.javax.persistence</groupId>
-			<artifactId>hibernate-jpa-2.0-api</artifactId>
-			<version>1.0.1.Final</version>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>spring-libraries</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>

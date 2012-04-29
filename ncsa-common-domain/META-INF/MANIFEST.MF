@@ -1,8 +1,18 @@
 Manifest-Version: 1.0
+Bnd-LastModified: 1335731293794
+Build-Jdk: 1.6.0_31
+Built-By: kooper
 Bundle-ManifestVersion: 2
 Bundle-Name: ncsa-common-domain
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: ncsa-common-domain
-Bundle-Version: 3.0.0.qualifier
-Export-Package: edu.illinois.ncsa.domain
-Require-Bundle: spring-libraries;bundle-version="1.0.0"
+Bundle-Version: 1.0.0.qualifier
+Created-By: Apache Maven Bundle Plugin
+Eclipse-BuddyPolicy: registered
 Eclipse-RegisterBuddy: spring-libraries
+Export-Package: edu.illinois.ncsa.domain;uses:="javax.persistence,org.sp
+ ringframework.data.mongodb.core.mapping";version="1.0.0.qualifier"
+Import-Package: javax.persistence;version="[1.0,2)",org.springframework.
+ data.mongodb.core.mapping;version="[1.1,2)"
+Require-Bundle: spring-libraries
+Tool: Bnd-1.50.0
