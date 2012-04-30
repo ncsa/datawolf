@@ -94,6 +94,25 @@ public class Person extends AbstractBean {
     }
 
     /**
+     * This will return the formatted name. The name will be lastname, firstname.
+     * 
+     * @return Returns a formatted lastname, firstname.
+     */
+    public String getName() {
+        if ((lastName != null) && !lastName.equals("")) {
+            if ((firstName != null) && !firstName.equals("")) {
+                return lastName + ", " + firstName;
+            } else {
+                return lastName;
+            }
+        }
+        if (firstName != null) {
+            return firstName;
+        }
+        return "N/A";
+    }
+
+    /**
      * Sets the first name of the person.
      * 
      * @param firstName
