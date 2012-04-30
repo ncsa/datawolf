@@ -1,6 +1,5 @@
 package edu.illinois.ncsa.file.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -115,7 +114,6 @@ public class FilesResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public FileDescriptor uploadFile(MultipartFormDataInput input) {
         FileStorage fileStorage = SpringData.getFileStorage();
-        fileStorage.setFolder(new File("D:\\"));
 
         FileDescriptor fileDescriptor = null;
         String fileName = "";
