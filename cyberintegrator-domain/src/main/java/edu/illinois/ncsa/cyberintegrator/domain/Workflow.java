@@ -259,10 +259,9 @@ public class Workflow extends AbstractBean {
 
     public WorkflowToolData getOutput(String id) {
         for (WorkflowStep step : steps) {
-            WorkflowToolData data = step.getOutput(id);
-            if (data != null) {
-                return data;
-            }
+            try {
+                return step.getOutput(id);
+            } catch (IllegalArgumentException e) {}
         }
         return null;
     }
