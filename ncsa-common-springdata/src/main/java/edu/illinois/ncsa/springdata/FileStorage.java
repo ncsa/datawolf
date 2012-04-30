@@ -20,15 +20,16 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
+// TODO RK :  Make this an interface and code an implementation
 public class FileStorage {
     private static Logger logger = LoggerFactory.getLogger(FileStorage.class);
 
     private int           levels;
-    private File          folder;
+    private String        folder;
 
     public FileStorage() {
         setLevels(2);
-        setFolder(new File(System.getProperty("java.io.tmpdir")));
+        setFolder(System.getProperty("java.io.tmpdir"));
     }
 
     /**
@@ -49,7 +50,7 @@ public class FileStorage {
     /**
      * @return the folder
      */
-    public File getFolder() {
+    public String getFolder() {
         return folder;
     }
 
@@ -57,7 +58,7 @@ public class FileStorage {
      * @param folder
      *            the folder to set
      */
-    public void setFolder(File folder) {
+    public void setFolder(String folder) {
         this.folder = folder;
     }
 
