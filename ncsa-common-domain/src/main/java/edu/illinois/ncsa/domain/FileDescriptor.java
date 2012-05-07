@@ -37,6 +37,8 @@ import java.net.URL;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Entity(name = "FileDescriptor")
@@ -152,10 +154,12 @@ public class FileDescriptor extends AbstractBean {
      * 
      * @return the md5sum as a 32 char string.
      */
+    @JsonIgnore
     public BigInteger getMd5sumAsBigInteger() {
         return new BigInteger(md5sum, 16);
     }
 
+    @JsonIgnore
     public byte[] getMd5sumAsBytes() {
         return new BigInteger(md5sum, 16).toByteArray();
     }
@@ -164,6 +168,7 @@ public class FileDescriptor extends AbstractBean {
      * @param md5sum
      *            the md5sum to set
      */
+    @JsonProperty("md5sum")
     public void setMd5sum(String md5sum) {
         this.md5sum = md5sum;
     }
@@ -172,6 +177,7 @@ public class FileDescriptor extends AbstractBean {
      * @param md5sum
      *            the md5sum to set
      */
+    @JsonIgnore
     public void setMd5sum(byte[] md5sum) {
         setMd5sum(new BigInteger(1, md5sum));
     }
@@ -180,6 +186,7 @@ public class FileDescriptor extends AbstractBean {
      * @param md5sum
      *            the md5sum to set
      */
+    @JsonIgnore
     public void setMd5sum(BigInteger md5sum) {
         if (md5sum.signum() < 0) {
             md5sum = new BigInteger(1, md5sum.toByteArray());
