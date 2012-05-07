@@ -278,4 +278,9 @@ public class Workflow extends AbstractBean {
             this.steps.add(step);
         }
     }
+
+    @Override
+    public String toString() {
+        return getTitle();
+    }
 }
