@@ -40,12 +40,12 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.springdata.SpringData;
 
 /**
  * Engine that is responsible for executing the steps. This is an abstract class
@@ -65,9 +65,6 @@ public abstract class Engine {
 
     /** List of submitted steps */
     private List<ExecutionInfo>   queue      = new ArrayList<Engine.ExecutionInfo>();
-
-    @Autowired
-    private ExecutionDAO          executionDAO;
 
     /**
      * Create the engine with no properties set.
@@ -189,6 +186,7 @@ public abstract class Engine {
     public void execute(ExecutionInfo executionInfo) {
         synchronized (queue) {
             queue.add(executionInfo);
+            setStepState(executionInfo, State.WAITING, false);
             saveQueue();
         }
     }
@@ -415,7 +413,7 @@ public abstract class Engine {
 
         // set step state
         executionInfo.getExecution().setStepState(executionInfo.getStep().getId(), state);
-        executionDAO.save(executionInfo.getExecution());
+        SpringData.getBean(ExecutionDAO.class).save(executionInfo.getExecution());
 
         // remove step
         if (remove) {
@@ -424,6 +422,8 @@ public abstract class Engine {
                 saveQueue();
             }
         }
+
+        // TODO RK : need to fir an event.
     }
 
     /**
