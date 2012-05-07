@@ -8,10 +8,10 @@
         <dependent-module archiveName="ncsa-common-domain-1.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ncsa-common-domain/ncsa-common-domain">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="ncsa-common-springdata-1.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ncsa-common-springdata/ncsa-common-springdata">
+        <dependent-module archiveName="spring-libraries-1.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/spring-libraries/spring-libraries">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="spring-libraries-1.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/spring-libraries/spring-libraries">
+        <dependent-module archiveName="ncsa-common-springdata-1.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/ncsa-common-springdata/ncsa-common-springdata">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="file-service"/>
