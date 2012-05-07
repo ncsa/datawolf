@@ -152,6 +152,8 @@ public class FileStorage {
         }
         fd.setSize(size);
 
+        SpringData.getBean(FileDescriptorDAO.class).save(fd);
+
         return fd;
     }
 
