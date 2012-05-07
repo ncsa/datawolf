@@ -58,7 +58,7 @@ import edu.illinois.ncsa.domain.Person;
 public class Execution extends AbstractBean {
 
     public enum State {
-        WAITING, RUNNING, FINISHED, ABORTED, FAILED
+        WAITING, QUEUED, RUNNING, FINISHED, ABORTED, FAILED
     }
 
     /** Used for serialization of object */
