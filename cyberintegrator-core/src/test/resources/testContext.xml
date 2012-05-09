@@ -7,6 +7,7 @@
 		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />
@@ -26,7 +27,15 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
- 
+<!--  
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost/cyberintegrator" />
+		<property name="username" value="cyberintegrator" />
+		<property name="password" value="cyberintegrator" />
+	</bean>
+ -->
+
 	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
 		<property name="url" value="jdbc:hsqldb:mem:." />
@@ -34,5 +43,6 @@
 		<property name="password" value="" />
 	</bean>
 
+    <jpa:repositories base-package="edu.illinois.ncsa.springdata" />
     <jpa:repositories base-package="edu.illinois.ncsa.cyberintegrator.springdata" />
 </beans>

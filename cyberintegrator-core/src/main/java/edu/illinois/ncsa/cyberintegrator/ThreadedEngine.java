@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.springdata.Transaction;
 
 public class ThreadedEngine extends Engine {
     private static Logger                    logger     = LoggerFactory.getLogger(ThreadedEngine.class);
@@ -91,19 +93,7 @@ public class ThreadedEngine extends Engine {
      */
     @Override
     protected void initialize() {
-        int numworkers = 2;
-        if (getProperty(WORKERS) != null) {
-            try {
-                numworkers = Integer.parseInt(getProperty(WORKERS));
-                if (numworkers <= 0) {
-                    throw (new NumberFormatException("Number of workers is less than 1."));
-                }
-            } catch (NumberFormatException exc) {
-                numworkers = 2;
-                logger.warn("Could not parse number of workers, defaulting to 2.", exc);
-            }
-        }
-        setWorkers(numworkers);
+        setWorkers(getWorkersProperty());
     }
 
     /**
@@ -116,6 +106,11 @@ public class ThreadedEngine extends Engine {
      */
     synchronized public void setWorkers(int numworkers) {
         logger.info(String.format("Using %d worker threads.", numworkers));
+
+        if (!isStarted()) {
+            getProperties().setProperty(WORKERS, Integer.toString(numworkers));
+            return;
+        }
 
         if (numworkers > workers.size()) {
             for (int i = workers.size(); i < numworkers; i++) {
@@ -139,7 +134,27 @@ public class ThreadedEngine extends Engine {
      * @return number of worker threads.
      */
     public int getWorkers() {
-        return workers.size();
+        if (!isStarted()) {
+            return getWorkersProperty();
+        } else {
+            return workers.size();
+        }
+    }
+
+    private int getWorkersProperty() {
+        int numworkers = 1;
+        if (getProperty(WORKERS) != null) {
+            try {
+                numworkers = Integer.parseInt(getProperty(WORKERS));
+                if (numworkers <= 0) {
+                    throw (new NumberFormatException("Number of workers is less than 1."));
+                }
+            } catch (NumberFormatException exc) {
+                numworkers = 2;
+                logger.warn("Could not parse number of workers, defaulting to 2.", exc);
+            }
+        }
+        return numworkers;
     }
 
     /**
@@ -155,7 +170,7 @@ public class ThreadedEngine extends Engine {
         }
 
         public void kill() throws Exception {
-            if (process == null) {
+            if (process != null) {
                 process.destroy();
             } else {
                 executor.kill();
@@ -190,13 +205,18 @@ public class ThreadedEngine extends Engine {
                     }
                     last = curr;
 
+                    Transaction transaction = null;
                     try {
-                        Execution execution = curr.getExecution();
-                        WorkflowStep step = curr.getStep();
+                        transaction = SpringData.getTransaction();
+                        transaction.start();
+
+                        Execution execution = curr.getExecutionBean();
+                        WorkflowStep step = curr.getStepBean();
 
                         // check to see if all inputs of the step are ready
                         for (String id : step.getInputs().values()) {
                             if (!execution.hasDataset(id)) {
+                                processing.remove(curr);
                                 curr = null;
                                 break;
                             }
@@ -205,7 +225,6 @@ public class ThreadedEngine extends Engine {
                             }
                         }
                         if (curr == null) {
-                            processing.remove(curr);
                             continue;
                         }
 
@@ -228,28 +247,46 @@ public class ThreadedEngine extends Engine {
                         }
 
                         // finally step can be launched.
-                        logger.debug(String.format("[%s] launching step %s.", Thread.currentThread().getName(), step.getTitle()));
+                        logger.debug(String.format("[%s] launching step %s [%s].", Thread.currentThread().getName(), step.getId(), step.getTitle()));
+                        stepRunning(curr);
                         executor.run(execution, step);
 
                         // step is finished
-                        logger.debug(String.format("[%s] finished step %s.", Thread.currentThread().getName(), step.getTitle()));
+                        logger.debug(String.format("[%s] finished step %s [%s].", Thread.currentThread().getName(), step.getId(), step.getTitle()));
                         stepFinished(curr);
                         processing.remove(curr);
-
-                        // fire event
-//                    fireStepFinished(curr.getStep(), exection.getStepState(curr.getStep()));
                     } catch (AbortException exc) {
-                        logger.debug(String.format("[%s] aborted step %s.", Thread.currentThread().getName(), curr.getStep().getTitle()), exc);
-                        stepAborted(curr);
+                        logger.info(String.format("[%s] aborted step %s.", Thread.currentThread().getName(), curr.getStepId()), exc);
+                        try {
+                            stepAborted(curr);
+                        } catch (Throwable bad) {
+                            logger.error("Could not set step state.", bad);
+                        }
                         processing.remove(curr);
                     } catch (FailedException exc) {
-                        logger.debug(String.format("[%s] failed step %s.", Thread.currentThread().getName(), curr.getStep().getTitle()), exc);
-                        stepFailed(curr);
+                        logger.info(String.format("[%s] failed step %s.", Thread.currentThread().getName(), curr.getStepId()), exc);
+                        try {
+                            stepFailed(curr);
+                        } catch (Throwable bad) {
+                            logger.error("Could not set step state.", bad);
+                        }
                         processing.remove(curr);
                     } catch (Throwable thr) {
-                        logger.debug(String.format("[%s] failed step %s.", Thread.currentThread().getName(), curr.getStep().getTitle()), thr);
-                        stepFailed(curr);
+                        logger.warn(String.format("[%s] failed step %s.", Thread.currentThread().getName(), curr.getStepId()), thr);
+                        try {
+                            stepFailed(curr);
+                        } catch (Throwable bad) {
+                            logger.error("Could not set step state.", bad);
+                        }
                         processing.remove(curr);
+                    } finally {
+                        if (transaction != null) {
+                            try {
+                                transaction.commit();
+                            } catch (Exception e) {
+                                logger.error("Could not commit transaction.", e);
+                            }
+                        }
                     }
 
                 } catch (Throwable thr) {

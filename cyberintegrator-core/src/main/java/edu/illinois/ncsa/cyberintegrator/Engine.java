@@ -31,7 +31,6 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -44,8 +43,11 @@ import org.slf4j.LoggerFactory;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.event.StepStateChangedEvent;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.springdata.Transaction;
 
 /**
  * Engine that is responsible for executing the steps. This is an abstract class
@@ -186,7 +188,6 @@ public abstract class Engine {
     public void execute(ExecutionInfo executionInfo) {
         synchronized (queue) {
             queue.add(executionInfo);
-            setStepState(executionInfo, State.WAITING, false);
             saveQueue();
         }
     }
@@ -213,10 +214,10 @@ public abstract class Engine {
      *            the step to be checked to see if it is in the queue.
      * @return true if the step is in the queue, false otherwise.
      */
-    public boolean isInQueue(URI step) {
+    public boolean isInQueue(String step) {
         synchronized (queue) {
             for (ExecutionInfo ei : queue) {
-                if (ei.getStep().equals(step)) {
+                if (ei.getStepId().equals(step)) {
                     return true;
                 }
             }
@@ -246,10 +247,10 @@ public abstract class Engine {
      *            the step to be checked to see if it is executing..
      * @return true if the step is executing, false otherwise.
      */
-    public boolean isRunning(URI step) {
+    public boolean isRunning(String step) {
         synchronized (queue) {
             for (ExecutionInfo ei : queue) {
-                if (ei.getStep().equals(step)) {
+                if (ei.getStepId().equals(step)) {
                     return getStepState(ei) == Execution.State.RUNNING;
                 }
             }
@@ -303,14 +304,15 @@ public abstract class Engine {
      * @param steps
      *            the list of steps to be stopped.
      */
-    public void stop(URI... steps) {
-        for (URI step : steps) {
+    public void stop(String... steps) {
+        for (String step : steps) {
             synchronized (queue) {
                 for (ExecutionInfo ei : queue) {
-                    if (ei.getStep().equals(step)) {
+                    if (ei.getStepId().equals(step)) {
                         stopExecution(ei);
                     }
                 }
+                saveQueue();
             }
         }
     }
@@ -324,6 +326,7 @@ public abstract class Engine {
             while (!queue.isEmpty()) {
                 stopExecution(queue.get(0));
             }
+            saveQueue();
         }
     }
 
@@ -335,7 +338,14 @@ public abstract class Engine {
                 logger.error("Could not kill step.", e);
             }
         }
-        stepAborted(executionInfo);
+        try {
+            Transaction transaction = SpringData.getTransaction();
+            transaction.start();
+            stepAborted(executionInfo);
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("Could not mark step as aborted.", e);
+        }
     }
 
     /**
@@ -347,7 +357,22 @@ public abstract class Engine {
      * @return the sate of the step in this execution.
      */
     protected State getStepState(ExecutionInfo executionInfo) {
-        return executionInfo.getExecution().getStepState(executionInfo.getStep().getId());
+        State state = State.UNKNOWN;
+
+        try {
+            Transaction transaction = SpringData.getTransaction();
+            transaction.start(true);
+            state = executionInfo.getExecutionBean().getStepState(executionInfo.getStepId());
+            transaction.commit();
+
+            if (state == null) {
+                state = State.WAITING;
+            }
+        } catch (Exception e) {
+            logger.error("Could not get step state.", e);
+        }
+
+        return state;
     }
 
     /**
@@ -357,7 +382,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepRunning(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.RUNNING, false);
+        setStepState(executionInfo, State.RUNNING);
     }
 
     /**
@@ -367,7 +392,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepFinished(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.FINISHED, true);
+        setStepState(executionInfo, State.FINISHED);
     }
 
     /**
@@ -377,7 +402,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepAborted(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.ABORTED, true);
+        setStepState(executionInfo, State.ABORTED);
     }
 
     /**
@@ -387,7 +412,7 @@ public abstract class Engine {
      *            the execution and step whose state to set.
      */
     protected void stepFailed(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.FAILED, true);
+        setStepState(executionInfo, State.FAILED);
     }
 
     /**
@@ -401,29 +426,48 @@ public abstract class Engine {
      * @param remove
      *            remove the step from the queue and mark all missing outputs.
      */
-    protected void setStepState(ExecutionInfo executionInfo, State state, boolean remove) {
+    protected void setStepState(ExecutionInfo executionInfo, State state) {
+        Execution execution = executionInfo.getExecutionBean();
+        WorkflowStep step = executionInfo.getStepBean();
+
+        // are we done
+        // done == FINISHED, ABORTED, CANCELLED, FAILED
+        // !done == WAITING, QUEUED, RUNNING
+        boolean done = (state == State.FINISHED) || (state == State.ABORTED) || (state == State.CANCELLED) || (state == State.FAILED);
+
         // mark all missing outputs
-        if (remove) {
-            for (String id : executionInfo.getStep().getOutputs().keySet()) {
-                if (!executionInfo.getExecution().hasDataset(id)) {
-                    executionInfo.getExecution().setDataset(id, null);
+        if (done) {
+            for (String id : step.getOutputs().keySet()) {
+                if (!execution.hasDataset(id)) {
+                    execution.setDataset(id, null);
                 }
             }
         }
 
+        // add time stamps
+        if (state == State.QUEUED) {
+            execution.setStepQueued(step.getId());
+        } else if (state == State.RUNNING) {
+            execution.setStepStart(step.getId());
+        } else if (done) {
+            execution.setStepEnd(step.getId());
+        }
+
         // set step state
-        executionInfo.getExecution().setStepState(executionInfo.getStep().getId(), state);
-        SpringData.getBean(ExecutionDAO.class).save(executionInfo.getExecution());
+        executionInfo.getExecutionBean().setStepState(step.getId(), state);
+        SpringData.getBean(ExecutionDAO.class).save(execution);
 
         // remove step
-        if (remove) {
+        if (done) {
             synchronized (queue) {
                 queue.remove(executionInfo);
                 saveQueue();
             }
         }
 
-        // TODO RK : need to fir an event.
+        // fire an event to inform everybody of the new state
+        StepStateChangedEvent event = new StepStateChangedEvent(step, execution, state);
+        SpringData.getEventBus().fireEvent(event);
     }
 
     /**
@@ -442,8 +486,8 @@ public abstract class Engine {
      * This will mark the engine as started.
      */
     public void startEngine() {
-        initialize();
         started = true;
+        initialize();
     }
 
     /**
@@ -488,20 +532,28 @@ public abstract class Engine {
      * TODO RK : this should become a bean so it can be saved/loaded
      */
     static public class ExecutionInfo {
-        private final Execution    execution;
-        private final WorkflowStep step;
+        private final String execution;
+        private final String step;
 
         public ExecutionInfo(Execution execution, WorkflowStep step) {
-            this.execution = execution;
-            this.step = step;
+            this.execution = execution.getId();
+            this.step = step.getId();
         }
 
-        public WorkflowStep getStep() {
+        public String getStepId() {
             return step;
         }
 
-        public Execution getExecution() {
+        public WorkflowStep getStepBean() {
+            return SpringData.getBean(WorkflowStepDAO.class).findOne(step);
+        }
+
+        public String getExecutionId() {
             return execution;
+        }
+
+        public Execution getExecutionBean() {
+            return SpringData.getBean(ExecutionDAO.class).findOne(execution);
         }
     }
 }
