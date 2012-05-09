@@ -51,12 +51,12 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  */
 public class Transaction {
-    private static Logger                      logger       = LoggerFactory.getLogger(Transaction.class);
-    private static Map<Transaction, Exception> transactions = new HashMap<Transaction, Exception>();
+    private static Logger                                   logger       = LoggerFactory.getLogger(Transaction.class);
+    private static Map<Thread, Map<Transaction, Exception>> transactions = new HashMap<Thread, Map<Transaction, Exception>>();
 
-    private PlatformTransactionManager         transactionManager;
+    private PlatformTransactionManager                      transactionManager;
 
-    private TransactionStatus                  status;
+    private TransactionStatus                               status;
 
     /**
      * Create a new instance of the Transaction using the given transaction
@@ -100,10 +100,16 @@ public class Transaction {
         def.setReadOnly(readonly);
         status = transactionManager.getTransaction(def);
 
-        if (transactions.size() > 0) {
-            logTransactions();
+        Map<Transaction, Exception> localtrans = transactions.get(Thread.currentThread());
+        if (localtrans == null) {
+            localtrans = new HashMap<Transaction, Exception>();
+            transactions.put(Thread.currentThread(), localtrans);
+        } else {
+            if (localtrans.size() > 0) {
+                logger.info(getThreadTransaction());
+            }
         }
-        transactions.put(this, new Exception());
+        localtrans.put(this, new Exception());
     }
 
     /**
@@ -119,7 +125,7 @@ public class Transaction {
             throw (new Exception("No transaction is open."));
         }
         transactionManager.commit(status);
-        transactions.remove(this);
+        transactions.get(Thread.currentThread()).remove(this);
     }
 
     /**
@@ -135,22 +141,58 @@ public class Transaction {
             throw (new Exception("No transaction is open."));
         }
         transactionManager.rollback(status);
-        transactions.remove(this);
+        transactions.get(Thread.currentThread()).remove(this);
     }
 
-    public static void checkTransactions() {
-        if (logger.isInfoEnabled()) {
-            logTransactions();
-        }
-    }
-
-    private static void logTransactions() {
+    public static String getAllTransactions() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("There are %d open transactions : ", transactions.size()));
-        int i = 1;
-        for (Entry<Transaction, Exception> entry : transactions.entrySet()) {
-            sb.append(String.format("\n\t[%2d] created at %s", i++, entry.getValue().getStackTrace()[1].toString()));
+
+        StackTraceElement[] elems = new Exception().getStackTrace();
+        for (int j = 0; j < elems.length; j++) {
+            if (!elems[j].toString().startsWith("edu.illinois.ncsa.springdata.Transaction")) {
+                sb.append(String.format("Called from %s\n", elems[j].toString()));
+                break;
+            }
         }
-        logger.info(sb.toString());
+
+        for (Thread thr : transactions.keySet()) {
+            sb.append(String.format("%s\n", thr.getName()));
+            getTransaction(sb, thr);
+        }
+        return sb.toString();
+    }
+
+    public static String getThreadTransaction() {
+        StringBuilder sb = new StringBuilder();
+
+        StackTraceElement[] elems = new Exception().getStackTrace();
+        for (int j = 0; j < elems.length; j++) {
+            if (!elems[j].toString().startsWith("edu.illinois.ncsa.springdata.Transaction")) {
+                sb.append(String.format("Called from %s\n", elems[j].toString()));
+                break;
+            }
+        }
+
+        getTransaction(sb, Thread.currentThread());
+        return sb.toString();
+    }
+
+    private static void getTransaction(StringBuilder sb, Thread thread) {
+        Map<Transaction, Exception> transmap = transactions.get(thread);
+        if (transmap == null) {
+            sb.append("\tThere are no open transactions.\n");
+        } else {
+            sb.append(String.format("\tThere are %d open transactions : \n", transmap.size()));
+            int i = 1;
+            for (Entry<Transaction, Exception> entry : transmap.entrySet()) {
+                StackTraceElement[] elems = entry.getValue().getStackTrace();
+                for (int j = 0; j < elems.length; j++) {
+                    if (!elems[j].toString().startsWith("edu.illinois.ncsa.springdata.Transaction")) {
+                        sb.append(String.format("\t[%2d] created at %s\n", i++, elems[j].toString()));
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
