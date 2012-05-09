@@ -42,9 +42,11 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -58,7 +60,7 @@ import edu.illinois.ncsa.domain.Person;
 public class Execution extends AbstractBean {
 
     public enum State {
-        WAITING, QUEUED, RUNNING, FINISHED, ABORTED, FAILED
+        WAITING, QUEUED, RUNNING, FINISHED, ABORTED, FAILED, UNKNOWN
     }
 
     /** Used for serialization of object */
@@ -84,7 +86,7 @@ public class Execution extends AbstractBean {
     private Map<String, String>  parameters       = new HashMap<String, String>();
 
     /** maping a dataset to a specific dataset in the workflow */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
     @JoinTable(name = "ExecutionDatasets")
     @DBRef
     private Map<String, Dataset> datasets         = new HashMap<String, Dataset>();
@@ -96,10 +98,19 @@ public class Execution extends AbstractBean {
     @CollectionTable(name = "ExecutionStepState")
     private Map<String, State>   stepState        = new HashMap<String, State>();
 
+    /** the start date of each step queued */
+    @ElementCollection
+    @MapKeyColumn(name = "id")
+    @Column(name = "date")
+    @Temporal(TemporalType.TIMESTAMP)
+    @CollectionTable(name = "ExecutionStepQueued")
+    private Map<String, Date>    stepQueued       = new HashMap<String, Date>();
+
     /** the start date of each step executed */
     @ElementCollection
     @MapKeyColumn(name = "id")
     @Column(name = "date")
+    @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepStart")
     private Map<String, Date>    stepStart        = new HashMap<String, Date>();
 
@@ -107,6 +118,7 @@ public class Execution extends AbstractBean {
     @ElementCollection
     @MapKeyColumn(name = "id")
     @Column(name = "date")
+    @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepEnd")
     private Map<String, Date>    stepEnd          = new HashMap<String, Date>();
 
@@ -253,4 +265,71 @@ public class Execution extends AbstractBean {
         this.stepState.put(id, state);
     }
 
+    /**
+     * Returns the queued time of the step with the given id, or null if the
+     * step has not been queued.
+     * 
+     * @param id
+     *            the id of the step whose time is to be returned.
+     * @return the time the step was queued, or null if the step is not
+     *         queued.
+     */
+    public Date getStepQueued(String id) {
+        return this.stepQueued.get(id);
+    }
+
+    /**
+     * Sets the the the queued time of the given step with the id to now().
+     * 
+     * @param id
+     *            the id of the step that has been queued.
+     */
+    public void setStepQueued(String id) {
+        this.stepQueued.put(id, new Date());
+    }
+
+    /**
+     * Returns the start time of the step with the given id, or null if the step
+     * has not been started.
+     * 
+     * @param id
+     *            the id of the step whose time is to be returned.
+     * @return the time the step was started, or null if the step is not
+     *         started.
+     */
+    public Date getStepStart(String id) {
+        return this.stepStart.get(id);
+    }
+
+    /**
+     * Sets the the the start time of the given step with the id to now().
+     * 
+     * @param id
+     *            the id of the step that has started execution
+     */
+    public void setStepStart(String id) {
+        this.stepStart.put(id, new Date());
+    }
+
+    /**
+     * Returns the end time of the step with the given id, or null if the step
+     * has not ended.
+     * 
+     * @param id
+     *            the id of the step whose time is to be returned.
+     * @return the time the step ended, or null if the step has not ended.
+     */
+    public Date getStepEnd(String id) {
+        return this.stepEnd.get(id);
+    }
+
+    /**
+     * Sets the the the end time of the given step with the id to now().
+     * 
+     * @param id
+     *            the id of the step that has ended execution
+     */
+    public void setStepEnd(String id) {
+        this.stepEnd.put(id, new Date());
+    }
 }
