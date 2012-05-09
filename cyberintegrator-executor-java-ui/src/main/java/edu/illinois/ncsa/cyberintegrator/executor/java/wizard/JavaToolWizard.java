@@ -52,6 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
+import edu.illinois.ncsa.cyberintegrator.domain.event.WorkflowToolChangedEvent;
+import edu.illinois.ncsa.cyberintegrator.domain.event.WorkflowToolCreatedEvent;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
@@ -107,10 +109,10 @@ public class JavaToolWizard extends Wizard implements INewWizard, ToolEditor {
 
             // fire the events.
             if (oldtool != null) {
-                SpringData.getEventBus().fireUpdateObject(oldtool);
+                SpringData.getEventBus().fireEvent(new WorkflowToolChangedEvent(oldtool));
             }
             for (WorkflowTool tool : tools) {
-                SpringData.getEventBus().fireCreateObject(tool);
+                SpringData.getEventBus().fireEvent(new WorkflowToolCreatedEvent(tool));
             }
 
         } catch (Exception exc) {
