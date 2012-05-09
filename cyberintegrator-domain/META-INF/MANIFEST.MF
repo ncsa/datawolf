@@ -3,7 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: cyberintegrator-domain
 Bundle-SymbolicName: cyberintegrator-domain
 Bundle-Version: 3.0.0.qualifier
-Export-Package: edu.illinois.ncsa.cyberintegrator.domain
+Export-Package: edu.illinois.ncsa.cyberintegrator.domain,
+ edu.illinois.ncsa.cyberintegrator.domain.event
 Require-Bundle: spring-libraries;bundle-version="1.0.0",
  ncsa-common-domain;bundle-version="1.0.0"
 Eclipse-RegisterBuddy: spring-libraries
