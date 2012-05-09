@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1335731293794
+Bnd-LastModified: 1336601861773
 Build-Jdk: 1.6.0_31
 Built-By: kooper
 Bundle-ManifestVersion: 2
@@ -11,8 +11,11 @@ Created-By: Apache Maven Bundle Plugin
 Eclipse-BuddyPolicy: registered
 Eclipse-RegisterBuddy: spring-libraries
 Export-Package: edu.illinois.ncsa.domain;uses:="javax.persistence,org.sp
- ringframework.data.mongodb.core.mapping";version="1.0.0.qualifier"
-Import-Package: javax.persistence;version="[1.0,2)",org.springframework.
- data.mongodb.core.mapping;version="[1.1,2)"
+ ringframework.data.mongodb.core.mapping,org.codehaus.jackson.annotate";
+ version="1.0.0.qualifier",edu.illinois.ncsa.domain.event;uses:="edu.ill
+ inois.ncsa.domain";version="1.0.0.qualifier"
+Import-Package: javax.persistence,org.codehaus.jackson.annotate;version=
+ "[1.8,2)",org.springframework.data.mongodb.core.mapping;version="[1.1,2
+ )"
 Require-Bundle: spring-libraries
 Tool: Bnd-1.50.0

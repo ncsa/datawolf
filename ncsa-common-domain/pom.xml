@@ -40,11 +40,6 @@
 						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 					</instructions>
 				</configuration>
-				<executions>
-					<execution>
-						<phase>compile</phase>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

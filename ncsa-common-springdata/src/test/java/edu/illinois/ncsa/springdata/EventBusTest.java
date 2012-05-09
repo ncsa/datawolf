@@ -15,6 +15,8 @@ import org.junit.Test;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.domain.AbstractBean;
+import edu.illinois.ncsa.domain.event.Event;
+import edu.illinois.ncsa.domain.event.EventHandler;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -37,34 +39,78 @@ public class EventBusTest {
         final List<AbstractBean> lst = new ArrayList<AbstractBean>();
         EventBus eb = SpringData.getEventBus();
 
-        eb.addListener(new EventListener() {
+        eb.addHandler(AddTestEvent.type, new AddTestEventHandler() {
             @Override
-            public void updateObject(AbstractBean object) {
-                if (object instanceof AbstractBean) {}
+            public void beanAdded(AddTestEvent event) {
+                lst.add(event.getBean());
             }
-
+        });
+        eb.addHandler(DeleteTestEvent.type, new DeleteTestEventHandler() {
             @Override
-            public void deleteObject(AbstractBean object) {
-                if (object instanceof AbstractBean) {
-                    lst.remove(object);
-                }
-            }
-
-            @Override
-            public void createObject(AbstractBean object) {
-                if (object instanceof AbstractBean) {
-                    lst.add(object);
-                }
+            public void beanRemoved(DeleteTestEvent event) {
+                lst.remove(event.getBean());
             }
         });
 
-        eb.fireCreateObject(obj);
+        eb.fireEvent(new AddTestEvent(obj));
         assertTrue(lst.contains(obj));
 
-        eb.fireUpdateObject(obj);
-        assertTrue(lst.contains(obj));
-
-        eb.fireDeleteObject(obj);
+        eb.fireEvent(new DeleteTestEvent(obj));
         assertFalse(lst.contains(obj));
     }
+
+    static public interface AddTestEventHandler extends EventHandler {
+        public void beanAdded(AddTestEvent event);
+    }
+
+    static public class AddTestEvent implements Event<AddTestEventHandler> {
+        public static Type<AddTestEventHandler> type = new Type<AddTestEventHandler>();
+        private final AbstractBean              bean;
+
+        public AddTestEvent(AbstractBean bean) {
+            this.bean = bean;
+        }
+
+        public AbstractBean getBean() {
+            return bean;
+        }
+
+        @Override
+        public Type<AddTestEventHandler> getEventType() {
+            return type;
+        }
+
+        @Override
+        public void dispatch(AddTestEventHandler handler) {
+            handler.beanAdded(this);
+        }
+    }
+
+    static public interface DeleteTestEventHandler extends EventHandler {
+        public void beanRemoved(DeleteTestEvent event);
+    }
+
+    static public class DeleteTestEvent implements Event<DeleteTestEventHandler> {
+        public static Type<DeleteTestEventHandler> type = new Type<DeleteTestEventHandler>();
+        private final AbstractBean                 bean;
+
+        public DeleteTestEvent(AbstractBean bean) {
+            this.bean = bean;
+        }
+
+        public AbstractBean getBean() {
+            return bean;
+        }
+
+        @Override
+        public Type<DeleteTestEventHandler> getEventType() {
+            return type;
+        }
+
+        @Override
+        public void dispatch(DeleteTestEventHandler handler) {
+            handler.beanRemoved(this);
+        }
+    }
+
 }
