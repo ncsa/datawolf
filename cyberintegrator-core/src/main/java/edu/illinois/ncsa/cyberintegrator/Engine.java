@@ -433,7 +433,7 @@ public abstract class Engine {
         // are we done
         // done == FINISHED, ABORTED, CANCELLED, FAILED
         // !done == WAITING, QUEUED, RUNNING
-        boolean done = (state == State.FINISHED) || (state == State.ABORTED) || (state == State.CANCELLED) || (state == State.FAILED);
+        boolean done = (state == State.FINISHED) || (state == State.ABORTED) || (state == State.FAILED);
 
         // mark all missing outputs
         if (done) {
