@@ -73,9 +73,6 @@ public class WorkflowToolParameter extends AbstractBean {
     /** Can the parameter be null */
     private boolean           allowNull        = false;
 
-    /** Order of the parameter in the list */
-    private int               cliPosition      = 0;
-
     /** List of options */
     @ElementCollection
     private List<String>      options          = new ArrayList<String>();
@@ -253,25 +250,6 @@ public class WorkflowToolParameter extends AbstractBean {
      */
     public void setAllowNull(boolean allowNull) {
         this.allowNull = allowNull;
-    }
-
-    /**
-     * Return the position for the cli of the parameters.
-     * 
-     * @return the position in the cli of this parameter
-     */
-    public int getCliPosition() {
-        return cliPosition;
-    }
-
-    /**
-     * Sets the position for the cli in which to show the parameters.
-     * 
-     * @param position
-     *            the position in the cli to show this parameter in.
-     */
-    public void setCliPosition(int position) {
-        this.cliPosition = position;
     }
 
     /**

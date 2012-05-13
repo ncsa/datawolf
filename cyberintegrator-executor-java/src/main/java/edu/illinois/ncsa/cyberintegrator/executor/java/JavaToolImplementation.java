@@ -37,7 +37,6 @@ import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolImplementation;
 
 @Entity(name = "JavaToolImplementation")
 public class JavaToolImplementation extends WorkflowToolImplementation {
-
     private static final long serialVersionUID = 1L;
 
     /** Class name containing the tool implementation */
@@ -52,5 +51,4 @@ public class JavaToolImplementation extends WorkflowToolImplementation {
     public void setToolClassName(String toolClassName) {
         this.toolClassName = toolClassName;
     }
-
 }

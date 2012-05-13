@@ -359,8 +359,8 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * Return the input associated with this id.
      * 
      * @param id
-     *            the id whose input to return.
-     * @return input associated with the id.
+     *            the dataId whose input to return.
+     * @return input associated with the dataId.
      */
     public WorkflowToolData getInput(String id) {
         if ((id == null) || id.equals("")) { //$NON-NLS-1$

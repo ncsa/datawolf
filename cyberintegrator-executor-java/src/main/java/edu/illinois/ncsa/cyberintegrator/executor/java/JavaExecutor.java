@@ -46,9 +46,8 @@ import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
-import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
-import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
+import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.springdata.DatasetDAO;
@@ -120,38 +119,24 @@ public class JavaExecutor extends Executor {
 
             // set parameters
             if (tool.getParameters() != null) {
-                for (Parameter parameter : tool.getParameters()) {
-                    // check for parameters that are set
-                    String value = execution.getParameter(parameter.getID());
-
-                    // if no parameter check tool
-                    if (value == null) {
-                        for (WorkflowToolParameter wtp : step.getTool().getParameters()) {
-                            if (wtp.getId().equals(parameter.getID())) {
-                                value = wtp.getValue();
-                                break;
-                            }
-                        }
-                    }
-
-                    // empty string is a null parameter
-                    if (value.equals("")) { //$NON-NLS-1$
-                        tool.setParameter(parameter.getID(), null);
-                    } else {
-                        tool.setParameter(parameter.getID(), value);
-                    }
+                for (Entry<String, String> entry : step.getParameters().entrySet()) {
+                    String value = execution.getParameter(entry.getValue());
+                    tool.setParameter(entry.getKey(), value);
                 }
             }
 
             // set inputs
             if (tool.getInputs() != null) {
-                for (Entry<WorkflowToolData, String> entry : step.getInputs().entrySet()) {
+                for (Entry<String, String> entry : step.getInputs().entrySet()) {
                     Dataset ds = execution.getDataset(entry.getValue());
                     if (ds == null) {
                         throw (new AbortException("Dataset is missing."));
                     }
+                    if (ds.getFileDescriptors().size() == 0) {
+                        throw (new FailedException("Dataset does not have any files associated."));
+                    }
                     InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
-                    tool.setInput(entry.getKey().getDataId(), is);
+                    tool.setInput(entry.getKey(), is);
                 }
             }
 
@@ -168,18 +153,22 @@ public class JavaExecutor extends Executor {
             if (tool.getOutputs() != null) {
                 Transaction t = SpringData.getTransaction();
                 t.start();
-                for (Entry<String, WorkflowToolData> entry : step.getOutputs().entrySet()) {
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(tool.getOutput(entry.getValue().getDataId()));
-                    fd.setMimeType(entry.getValue().getMimeType());
+                for (Entry<String, String> entry : step.getOutputs().entrySet()) {
+                    WorkflowToolData data = step.getOutput(entry.getValue());
+
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(tool.getOutput(entry.getKey()));
+                    fd.setMimeType(data.getMimeType());
 
                     Dataset ds = new Dataset();
-                    ds.setTitle(entry.getValue().getTitle());
-                    ds.setDescription(entry.getValue().getDescription());
-                    // TODO RK : add creator
-                    // ds.setCreator(creator)
+                    ds.setTitle(data.getTitle());
+                    ds.setDescription(data.getDescription());
+                    ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
+
+                    execution.setDataset(entry.getValue(), ds);
                 }
+                SpringData.getBean(ExecutionDAO.class).save(execution);
                 t.commit();
             }
 

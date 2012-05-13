@@ -188,6 +188,14 @@ public class Execution extends AbstractBean {
     }
 
     /**
+     * @param id
+     * @return
+     */
+    public boolean hasParameter(String id) {
+        return this.parameters.containsKey(id);
+    }
+
+    /**
      * Returns the value for a specific parameter.
      * TODO RK : this should search the workflow for the default if not found.
      * 
