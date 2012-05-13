@@ -1,7 +1,5 @@
 package edu.illinois.ncsa.cyberintegrator.springdata;
 
-import java.util.Map.Entry;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.support.GenericXmlApplicationContext;
@@ -45,14 +43,8 @@ public class WorkflowStepDAOTest {
 
         stepDAO.save(step1);
 
-        WorkflowToolData tool1Output = step1.getTool().getOutputs().get(0);
-        String outputId = "";
-        for (Entry<String, WorkflowToolData> entry : step1.getOutputs().entrySet()) {
-            if (entry.getValue().equals(tool1Output)) {
-                outputId = entry.getKey();
-                break;
-            }
-        }
+        // get first output
+        String outputId = step1.getOutputs().values().iterator().next();
 
         WorkflowStep step2 = new WorkflowStep();
         step2.setTool(tool2);
