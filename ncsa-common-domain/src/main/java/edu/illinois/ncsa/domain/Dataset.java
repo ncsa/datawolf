@@ -262,4 +262,8 @@ public class Dataset extends AbstractBean implements Serializable {
     public void removeFileDescriptor(FileDescriptor fileDescriptor) {
         getFileDescriptors().remove(fileDescriptor);
     }
+
+    public String toString() {
+        return title;
+    }
 }
