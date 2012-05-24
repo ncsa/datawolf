@@ -30,8 +30,10 @@ import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Dataset;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter.ParameterType;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.springdata.Transaction;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -41,6 +43,40 @@ public class JavaExecutorTest {
     @BeforeClass
     public static void setUp() throws Exception {
         new GenericXmlApplicationContext("testContext.xml");
+    }
+
+    @Test
+    public void testJavaToolImplementation() throws Exception {
+        Transaction t = SpringData.getTransaction();
+        t.start();
+        WorkflowToolDAO dao = SpringData.getBean(WorkflowToolDAO.class);
+
+        DummyJavaTool dummy = new DummyJavaTool();
+
+        WorkflowTool tool = new WorkflowTool();
+        tool.setTitle(dummy.getName());
+        tool.setDescription(dummy.getDescription());
+        tool.setExecutor("java");
+
+        JavaToolImplementation impl = new JavaToolImplementation();
+        impl.setToolClassName(dummy.getClass().getName());
+        tool.setImplementation(impl);
+
+        dao.save(tool);
+
+        String id = tool.getId();
+
+        t.commit();
+
+        Transaction t1 = SpringData.getTransaction();
+        t1.start();
+
+        dao = SpringData.getBean(WorkflowToolDAO.class);
+        WorkflowTool tool2 = dao.findOne(id);
+
+        assertTrue(tool2.getImplementation() instanceof JavaToolImplementation);
+
+        t1.commit();
     }
 
     @Test
