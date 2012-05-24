@@ -7,5 +7,7 @@ Export-Package: edu.illinois.ncsa.cyberintegrator,
  edu.illinois.ncsa.cyberintegrator.event
 Require-Bundle: spring-libraries;bundle-version="1.0.0",
  cyberintegrator-domain;bundle-version="1.0.0",
- ncsa-common-domain;bundle-version="1.0.0"
+ ncsa-common-domain;bundle-version="1.0.0",
+ cyberintegrator-springdata;bundle-version="3.0.0",
+ ncsa-common-springdata;bundle-version="1.0.0"
 Eclipse-RegisterBuddy: spring-libraries
