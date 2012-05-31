@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: cyberintegrator-executor-commandline
+Bundle-SymbolicName: cyberintegrator-executor-commandline
+Bundle-Version: 3.0.0.qualifier
+Export-Package: edu.illinois.ncsa.cyberintegrator.executor.commandline
+Require-Bundle: spring-libraries;bundle-version="1.0.0",
+ cyberintegrator-domain;bundle-version="3.0.0"
+Eclipse-RegisterBuddy: spring-libraries
