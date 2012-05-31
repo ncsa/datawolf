@@ -75,19 +75,18 @@ import edu.illinois.ncsa.springdata.SpringData;
  * 
  */
 public class ToolResourceWizardPage extends WizardPage {
-    static private Logger        logger          = LoggerFactory.getLogger(ToolResourceWizardPage.class);
+    private static final String  UNSAVED_DATA    = "0";
+
+    private static Logger        logger          = LoggerFactory.getLogger(ToolResourceWizardPage.class);
 
     private List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
     private ListViewer           filelist;
     private Button               add;
     private Button               del;
     private final WorkflowTool   oldtool;
-    private File                 tempdir;
     private int                  minfiles;
     private final List<String>   ext;
     private final List<String>   name;
-
-    private File                 zip;
 
     public ToolResourceWizardPage(String pageName, WorkflowTool oldtool) {
         super(pageName);
@@ -178,7 +177,7 @@ public class ToolResourceWizardPage extends WizardPage {
                     for (String filename : fd.getFileNames()) {
                         boolean found = false;
                         for (FileDescriptor desc : fileDescriptors) {
-                            if (desc.getId().equals("0") && desc.getFilename().equals(filename)) {
+                            if (desc.getId().equals(UNSAVED_DATA) && desc.getFilename().equals(filename)) {
                                 found = true;
                                 break;
                             }
@@ -186,7 +185,7 @@ public class ToolResourceWizardPage extends WizardPage {
                         if (!found) {
                             try {
                                 FileDescriptor desc = new FileDescriptor();
-                                desc.setId("0");
+                                desc.setId(UNSAVED_DATA);
                                 desc.setFilename(filename);
                                 desc.setDataURL(new URL("file:" + fd.getFilterPath() + File.separator + filename));
                                 fileDescriptors.add(desc);
@@ -236,7 +235,7 @@ public class ToolResourceWizardPage extends WizardPage {
         // store the blobs
         FileStorage fs = SpringData.getBean(FileStorage.class);
         for (FileDescriptor fd : fileDescriptors) {
-            if (fd.getId().equals("0")) {
+            if (fd.getId().equals(UNSAVED_DATA)) {
                 tool.addBlob(fs.storeFile(fd.getFilename(), fd.getDataURL().openStream()));
             } else {
                 tool.addBlob(fd);
