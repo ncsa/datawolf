@@ -62,10 +62,17 @@ import edu.illinois.ncsa.springdata.Transaction;
  * 
  */
 public class JavaExecutor extends Executor {
-    static private Logger logger      = LoggerFactory.getLogger(JavaExecutor.class);
+    private static Logger logger        = LoggerFactory.getLogger(JavaExecutor.class);
 
-    private Thread        worker      = null;
-    private boolean       interrupted = false;
+    public static String  EXECUTOR_NAME = "java";
+
+    private Thread        worker        = null;
+    private boolean       interrupted   = false;
+
+    @Override
+    public String getExecutorName() {
+        return EXECUTOR_NAME;
+    }
 
     @Override
     public void kill() throws Exception {

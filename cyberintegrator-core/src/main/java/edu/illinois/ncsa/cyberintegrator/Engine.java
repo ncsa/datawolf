@@ -32,8 +32,10 @@
 package edu.illinois.ncsa.cyberintegrator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -67,6 +69,9 @@ public abstract class Engine {
 
     /** List of submitted steps */
     private List<ExecutionInfo>   queue      = new ArrayList<Engine.ExecutionInfo>();
+
+    /** All known executors. */
+    private Map<String, Executor> executors  = new HashMap<String, Executor>();
 
     /**
      * Create the engine with no properties set.
@@ -137,6 +142,46 @@ public abstract class Engine {
             return null;
         }
         return properties.getProperty(name);
+    }
+
+    /**
+     * Find an executor that fits the given name. This will create a new
+     * instance of the executor.
+     * 
+     * @param name
+     *            the name of the executor to find.
+     * @return an instance of the executor.
+     */
+    public Executor findExecutor(String name) {
+        try {
+            return executors.get(name).getClass().newInstance();
+        } catch (Exception e) {
+            logger.error("Could not create an instance of the executor.", e);
+            return null;
+        }
+    }
+
+    /**
+     * Add an executor to the list of known executors.
+     * 
+     * @param executor
+     *            the executor, any executions will be done on a new instance of
+     *            the executor.
+     */
+    public void addExecutor(Executor executor) {
+        logger.info(String.format("Adding executor : %s", executor.getExecutorName()));
+        executors.put(executor.getExecutorName(), executor);
+    }
+
+    public void setExecutors(Set<Executor> executors) {
+        executors.clear();
+        for (Executor executor : executors) {
+            addExecutor(executor);
+        }
+    }
+
+    public Set<Executor> getExecutors() {
+        return new HashSet<Executor>(executors.values());
     }
 
     /**

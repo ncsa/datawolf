@@ -42,13 +42,12 @@ public abstract class AbstractEngineTest {
     @BeforeClass
     public static void setUp() throws Exception {
         new GenericXmlApplicationContext("testContext.xml");
-
-        Executor.addExecutor("dummy", DummyExecutor.class);
     }
 
     @Before
     public void createEngine() {
         engine = getEngineImplementation();
+        engine.addExecutor(new DummyExecutor());
     }
 
     protected abstract Engine getEngineImplementation();
@@ -249,6 +248,16 @@ public abstract class AbstractEngineTest {
         /*
          * (non-Javadoc)
          * 
+         * @see edu.illinois.ncsa.cyberintegrator.Executor#getExecutorName()
+         */
+        @Override
+        public String getExecutorName() {
+            return "dummy";
+        }
+
+        /*
+         * (non-Javadoc)
+         * 
          * @see edu.illinois.ncsa.cyberintegrator.Executor#kill()
          */
         @Override
@@ -287,5 +296,6 @@ public abstract class AbstractEngineTest {
             // dataset = new Dataset();
             execution.setDataset(step.getOutputs().keySet().iterator().next(), dataset);
         }
+
     }
 }

@@ -32,8 +32,6 @@
 package edu.illinois.ncsa.cyberintegrator;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,40 +50,9 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  * @author Rob Kooper
  */
 public abstract class Executor {
-    private static final Logger                           logger    = LoggerFactory.getLogger(Executor.class);
+    private static final Logger logger = LoggerFactory.getLogger(Executor.class);
 
-    /** All known executors. */
-    private static Map<String, Class<? extends Executor>> executors = new HashMap<String, Class<? extends Executor>>();
-
-    /**
-     * Find an executor that fits the given name. This will create a new
-     * instance of the executor.
-     * 
-     * @param name
-     *            the name of the executor to find.
-     * @return an instance of the executor.
-     */
-    public static Executor findExecutor(String name) {
-        try {
-            return executors.get(name).newInstance();
-        } catch (Exception e) {
-            logger.error("Could not create an instance of the executor.", e);
-            return null;
-        }
-    }
-
-    /**
-     * Add an executor to the list of known executors.
-     * 
-     * @param name
-     *            the name of the exector, this is the same name as used in the
-     *            tool.
-     * @param executor
-     *            the executor.
-     */
-    public static void addExecutor(String name, Class<? extends Executor> executor) {
-        executors.put(name, executor);
-    }
+    public abstract String getExecutorName();
 
     /**
      * This will stage any files needed for execution in a temporary directory.

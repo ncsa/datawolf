@@ -229,7 +229,7 @@ public class ThreadedEngine extends Engine {
                         }
 
                         // make sure we have an executor
-                        executor = Executor.findExecutor(step.getTool().getExecutor());
+                        executor = findExecutor(step.getTool().getExecutor());
                         if (executor == null) {
                             logger.error(String.format("Could not find the right executor [%s] for tool [%s].", step.getTool().getExecutor(), step.getTool().getTitle()));
                             stepAborted(curr);
