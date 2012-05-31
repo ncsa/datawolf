@@ -3,14 +3,18 @@
  */
 package edu.illinois.ncsa.cyberintegrator.executor.commandline;
 
-import javax.persistence.Embeddable;
+import javax.persistence.Entity;
+
+import edu.illinois.ncsa.domain.AbstractBean;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
-@Embeddable
-public class CommandLineOption {
+@Entity(name = "CommandLineOption")
+public class CommandLineOption extends AbstractBean {
+    private static final long serialVersionUID = 1L;
+
     public enum Type {
         VALUE, PARAMETER, DATA
     }

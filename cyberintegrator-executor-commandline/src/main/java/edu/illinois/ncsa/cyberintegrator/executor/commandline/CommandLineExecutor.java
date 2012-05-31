@@ -77,16 +77,19 @@ import edu.illinois.ncsa.springdata.SpringData;
  * 
  */
 public class CommandLineExecutor extends Executor {
-    private static Logger       logger  = LoggerFactory.getLogger(CommandLineExecutor.class);
-    private static final String NL      = System.getProperty("line.seperator");
+    private static Logger       logger        = LoggerFactory.getLogger(CommandLineExecutor.class);
+    private static final String NL            = System.getProperty("line.seperator");
 
-    private Process             process = null;
+    public static String        EXECUTOR_NAME = "commandline";
+
+    private Process             process       = null;
 
     public CommandLineExecutor() {}
 
-    // ----------------------------------------------------------------------
-    // Executor
-    // ----------------------------------------------------------------------
+    @Override
+    public String getExecutorName() {
+        return EXECUTOR_NAME;
+    }
 
     @Override
     public boolean useSameJVM() {
