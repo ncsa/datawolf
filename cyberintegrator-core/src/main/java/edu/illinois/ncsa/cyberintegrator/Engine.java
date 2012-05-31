@@ -41,6 +41,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
@@ -173,8 +174,9 @@ public abstract class Engine {
         executors.put(executor.getExecutorName(), executor);
     }
 
+    @Required
     public void setExecutors(Set<Executor> executors) {
-        executors.clear();
+        this.executors.clear();
         for (Executor executor : executors) {
             addExecutor(executor);
         }
