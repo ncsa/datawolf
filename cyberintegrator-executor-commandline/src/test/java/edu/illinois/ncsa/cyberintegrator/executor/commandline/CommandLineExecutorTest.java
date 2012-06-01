@@ -32,20 +32,12 @@ public class CommandLineExecutorTest {
         CommandLineExecutor exec = new CommandLineExecutor();
         assertTrue(exec.canRun());
 
-//        String datasetid = UUID.randomUUID().toString();
-
-        // create dataset
-//        Dataset dataset = new Dataset();
-//        FileDescriptor fd = SpringData.getFileStorage().storeFile(new ByteArrayInputStream("HELLO".getBytes("UTF-8")));
-//        dataset.addFileDescriptor(fd);
-
         // create workflow step
         WorkflowStep step = new WorkflowStep();
         step.setTool(createTool());
         step.setTitle("Jong");
 
         Execution execution = new Execution();
-//        execution.setDataset(datasetid, dataset);
 
         File tmp = File.createTempFile("ciexec", "tmp");
         tmp.delete();
@@ -64,7 +56,7 @@ public class CommandLineExecutorTest {
         is.read(buf);
         is.close();
 
-        assertTrue(new String(buf, "UTF-8").startsWith("Active "));
+        assertTrue(new String(buf, "UTF-8").trim().startsWith("Active "));
     }
 
     private WorkflowTool createTool() {
@@ -91,14 +83,6 @@ public class CommandLineExecutorTest {
         impl.getCommandLineOptions().add(option);
 
         tool.setImplementation(impl);
-
-//        Dataset outputds = dummy.getInputs().iterator().next();
-//        WorkflowToolData output = new WorkflowToolData();
-//        output.setDataId(outputds.getID());
-//        output.setDescription(outputds.getDescription());
-//        output.setTitle(outputds.getName());
-//        output.setMimeType(outputds.getType());
-//        tool.addOutput(output);
 
         return tool;
     }
