@@ -43,6 +43,7 @@ package edu.illinois.ncsa.cyberintegrator.executor.commandline;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -78,7 +79,7 @@ import edu.illinois.ncsa.springdata.SpringData;
  */
 public class CommandLineExecutor extends Executor {
     private static Logger       logger        = LoggerFactory.getLogger(CommandLineExecutor.class);
-    private static final String NL            = System.getProperty("line.seperator");
+    private static final String NL            = System.getProperty("line.separator");
 
     public static String        EXECUTOR_NAME = "commandline";
 
@@ -177,7 +178,7 @@ public class CommandLineExecutor extends Executor {
 
                 if (option.getInputOutput() != InputOutput.INPUT) {
                     // for this to work, with BOTH input and output need to have
-// the same ID
+                    // the same ID
                     outputfiles.put(option.getOptionId(), filename);
                 }
                 break;
@@ -307,9 +308,43 @@ public class CommandLineExecutor extends Executor {
         } while ((stdoutReader != null) || (stderrReader != null));
 
         // collect stdout/stderr
-        // TODO RK : save stdout/stderr
-        if (impl.getCaptureStdOut() != null) {}
-        if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {}
+        boolean saveExecution = false;
+        if (impl.getCaptureStdOut() != null) {
+            try {
+                if (impl.isJoinStdOutStdErr()) {
+                    stdout.append("\n");
+                    stdout.append(stderr);
+                }
+                ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
+                FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+
+                Dataset ds = new Dataset();
+                ds.setCreator(execution.getCreator());
+                ds.addFileDescriptor(fd);
+                SpringData.getBean(DatasetDAO.class).save(ds);
+
+                execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds);
+                saveExecution = true;
+            } catch (IOException exc) {
+                logger.warn("Could not store output.", exc);
+            }
+        }
+        if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
+            try {
+                ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
+                FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+
+                Dataset ds = new Dataset();
+                ds.setCreator(execution.getCreator());
+                ds.addFileDescriptor(fd);
+                SpringData.getBean(DatasetDAO.class).save(ds);
+
+                execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds);
+                saveExecution = true;
+            } catch (IOException exc) {
+                logger.warn("Could not store output.", exc);
+            }
+        }
 
         // collect the output files
         for (Entry<String, String> entry : outputfiles.entrySet()) {
@@ -323,11 +358,12 @@ public class CommandLineExecutor extends Executor {
                 SpringData.getBean(DatasetDAO.class).save(ds);
 
                 execution.setDataset(step.getOutputs().get(entry.getValue()), ds);
+                saveExecution = true;
             } catch (IOException exc) {
                 logger.warn("Could not store output.", exc);
             }
         }
-        if (outputfiles.size() > 0) {
+        if (saveExecution) {
             SpringData.getBean(ExecutionDAO.class).save(execution);
         }
     }

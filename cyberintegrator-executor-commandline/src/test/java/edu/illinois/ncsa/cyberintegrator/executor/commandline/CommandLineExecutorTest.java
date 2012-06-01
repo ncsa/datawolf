@@ -64,9 +64,7 @@ public class CommandLineExecutorTest {
         is.read(buf);
         is.close();
 
-        System.out.println(new String(buf, "UTF-8"));
-//
-//        assertEquals("HELLO WORLD", new String(buf, "UTF-8"));
+        assertTrue(new String(buf, "UTF-8").startsWith("Active "));
     }
 
     private WorkflowTool createTool() {
