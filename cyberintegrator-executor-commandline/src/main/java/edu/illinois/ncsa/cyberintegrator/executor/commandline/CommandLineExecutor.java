@@ -280,7 +280,7 @@ public class CommandLineExecutor extends Executor {
             try {
                 if (stderrReader != null) {
                     if (stderrReader.ready()) {
-                        String line = stdoutReader.readLine();
+                        String line = stderrReader.readLine();
                         if (line == null) {
                             stderrReader.close();
                             stderrReader = null;
@@ -290,8 +290,8 @@ public class CommandLineExecutor extends Executor {
                         stderr.append(NL);
                         wait = false;
                     } else if (!isRunning(process)) {
-                        stdoutReader.close();
-                        stdoutReader = null;
+                        stderrReader.close();
+                        stderrReader = null;
                         wait = false;
                     }
                 }
