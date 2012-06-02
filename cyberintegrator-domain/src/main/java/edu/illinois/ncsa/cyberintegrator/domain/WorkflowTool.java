@@ -77,7 +77,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private Date                        date             = new Date();
 
     /** implementation, this is executor specific. */
-    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @DBRef
     private WorkflowToolImplementation  implementation   = null;
 
