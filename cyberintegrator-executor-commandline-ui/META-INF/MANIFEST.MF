@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: cyberintegrator-executor-commandline-ui
+Bundle-SymbolicName: cyberintegrator-executor-commandline-ui;singleton:=true
+Bundle-Version: 3.0.0.qualifier
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ cyberintegrator-core;bundle-version="3.0.0",
+ ncsa-common-domain;bundle-version="1.0.0",
+ ncsa-common-springdata;bundle-version="1.0.0",
+ cyberintegrator-domain;bundle-version="3.0.0",
+ cyberintegrator-springdata;bundle-version="3.0.0",
+ cyberintegrator-executor-commandline;bundle-version="3.0.0",
+ spring-libraries;bundle-version="1.0.0"
+Export-Package: edu.illinois.ncsa.cyberintegrator.executor.commandline.wizard

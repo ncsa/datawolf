@@ -37,7 +37,7 @@ public class CommandLineOption extends AbstractBean {
     // user specified parameter with a default value
     private String      parameterValue;
 
-    // TYPE=PARAMETER
+    // TYPE=DATA
     // user specified parameter with a default value
     private boolean     commandline;
     private InputOutput inputOutput;
@@ -162,5 +162,4 @@ public class CommandLineOption extends AbstractBean {
     public void setFilename(String filename) {
         this.filename = filename;
     }
-
 }
