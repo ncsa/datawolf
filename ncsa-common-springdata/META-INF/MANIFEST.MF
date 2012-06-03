@@ -16,12 +16,5 @@ Export-Package: edu.illinois.ncsa.springdata;uses:="edu.illinois.ncsa.do
  support,org.springframework.beans,org.springframework.core.io,org.sprin
  gframework.context,org.springframework.transaction.support";version="1.
  0.0.qualifier"
-Import-Package: edu.illinois.ncsa.domain,edu.illinois.ncsa.domain.event,
- org.slf4j;version="[1.6,2)",org.springframework.beans;version="[3.1,4)"
- ,org.springframework.context;version="[3.1,4)",org.springframework.cont
- ext.support;version="[3.1,4)",org.springframework.core.io;version="[3.1
- ,4)",org.springframework.data.repository;version="[1.3,2)",org.springfr
- amework.transaction;version="[3.1,4)",org.springframework.transaction.s
- upport;version="[3.1,4)"
 Require-Bundle: ncsa-common-domain,spring-libraries
 Tool: Bnd-1.50.0
