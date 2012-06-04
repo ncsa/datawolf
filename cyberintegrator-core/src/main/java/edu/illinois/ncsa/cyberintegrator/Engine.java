@@ -341,7 +341,6 @@ public class Engine {
                         Iterator<Executor> iter = queue.iterator();
                         while (iter.hasNext()) {
                             Executor exec = iter.next();
-                            logger.info("HELLO " + exec.getStepId());
 
                             switch (exec.getState()) {
                             case ABORTED:
@@ -384,7 +383,6 @@ public class Engine {
                                 }
 
                                 // check to make sure the executor can run
-                                logger.info("HELLO " + exec.getStepId() + " " + canrun);
                                 if ((canrun == 0) && exec.isExecutorReady()) {
                                     exec.startJob();
                                 } else if (canrun == 2) {
