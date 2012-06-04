@@ -32,8 +32,11 @@
 package edu.illinois.ncsa.cyberintegrator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,7 +49,6 @@ import org.springframework.beans.factory.annotation.Required;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
-import edu.illinois.ncsa.cyberintegrator.event.StepStateChangedEvent;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.springdata.SpringData;
@@ -58,21 +60,20 @@ import edu.illinois.ncsa.springdata.Transaction;
  * 
  * @author Rob Kooper
  */
-public abstract class Engine {
-    final static public String    EXT_PT     = "edu.uiuc.ncsa.cyberintegrator.engine"; //$NON-NLS-1$
+public class Engine {
+    private static final Logger   logger         = LoggerFactory.getLogger(Engine.class);
 
-    final static protected Logger logger     = LoggerFactory.getLogger(Engine.class);
+    /** key in properties file for the number of workers for Engine */
+    private static final String   WORKERS_ENGINE = "workers.engine";
 
-    private Properties            properties = new Properties();
-
-    /** Is the engine up and running */
-    private boolean               started    = false;
-
-    /** List of submitted steps */
-    private List<ExecutionInfo>   queue      = new ArrayList<Engine.ExecutionInfo>();
+    /** key in properties file for the number of workers for LocalExecutor */
+    private static final String   WORKERS_LOCAL  = "workers.local";
 
     /** All known executors. */
-    private Map<String, Executor> executors  = new HashMap<String, Executor>();
+    private Map<String, Executor> executors      = new HashMap<String, Executor>();
+
+    /** List of all workers */
+    private List<WorkerThread>    workers        = new ArrayList<WorkerThread>();
 
     /**
      * Create the engine with no properties set.
@@ -100,49 +101,31 @@ public abstract class Engine {
      *            engine properties
      */
     public void setProperties(Properties properties) {
-        if (properties != null) {
-            this.properties.putAll(properties);
+        if (workers.size() == 0) {
+            int engineThreads = 1;
+            if ((properties != null)) {
+                try {
+                    engineThreads = Integer.parseInt(properties.getProperty(WORKERS_ENGINE, "1"));
+                    if (engineThreads < 1) {
+                        engineThreads = 1;
+                    }
+                } catch (NumberFormatException e) {
+                    logger.warn("Could not parse number of workers for engine.", e);
+                }
+            }
+            for (int i = 0; i < engineThreads; i++) {
+                WorkerThread wt = new WorkerThread();
+                workers.add(wt);
+                wt.start();
+            }
         }
-        if (started) {
-            initialize();
+        if ((properties != null) && properties.containsKey(WORKERS_LOCAL)) {
+            try {
+                LocalExecutor.setWorkers(Integer.parseInt(properties.getProperty(WORKERS_LOCAL)));
+            } catch (NumberFormatException e) {
+                logger.warn("Could not parse number of workers for local executor.", e);
+            }
         }
-    }
-
-    /**
-     * Returns the list of the properties set on the engine.
-     * 
-     * @param properties
-     *            engine properties
-     */
-    public Properties getProperties() {
-        return properties;
-    }
-
-    /**
-     * Returns a list of all keys known to this engine.
-     * 
-     * @return list of all known keys for the properties for this engine.
-     */
-    public Set<String> getPropertyKeys() {
-        Set<String> result = new HashSet<String>();
-        for (Object o : properties.keySet()) {
-            result.add(o.toString());
-        }
-        return result;
-    }
-
-    /**
-     * Return the property with the given name.
-     * 
-     * @param name
-     *            the property to be returned.
-     * @return the value of the property.
-     */
-    public String getProperty(String name) {
-        if (properties == null) {
-            return null;
-        }
-        return properties.getProperty(name);
     }
 
     /**
@@ -200,7 +183,7 @@ public abstract class Engine {
      */
     public void execute(Execution execution) {
         for (WorkflowStep step : execution.getWorkflow().getSteps()) {
-            execute(new ExecutionInfo(execution, step));
+            execute(execution, step);
         }
     }
 
@@ -216,8 +199,15 @@ public abstract class Engine {
      *            the list of steps to be executed.
      */
     public void execute(Execution execution, String... steps) {
-        for (String step : steps) {
-            execute(new ExecutionInfo(execution, execution.getWorkflow().getStep(step)));
+        try {
+            Transaction transaction = SpringData.getTransaction();
+            transaction.start();
+            for (String step : steps) {
+                execute(execution, SpringData.getBean(WorkflowStepDAO.class).findOne(step));
+            }
+            transaction.commit();
+        } catch (Exception e) {
+            logger.error("Could not execute steps.", e);
         }
     }
 
@@ -227,44 +217,29 @@ public abstract class Engine {
      * execution environment. Based on the engine, this could happen
      * immediately, on a remote server or at some time in the future.
      * 
-     * @param executionInfo
-     *            information about the execution that needs to be performed.
-     *            This contains both the steps as well as the execution
-     *            environment.
+     * @param execution
+     *            the execution information
+     * @param steps
+     *            the list of steps to be executed.
      */
-    public void execute(ExecutionInfo executionInfo) {
-        synchronized (queue) {
-            queue.add(executionInfo);
-            saveQueue();
+    public void execute(Execution execution, WorkflowStep... steps) {
+        synchronized (workers) {
+            for (WorkflowStep step : steps) {
+                Executor exec = findExecutor(step.getTool().getExecutor());
+                if (exec == null) {
+                    logger.error(String.format("Could not find an executor [%s] for step %s.", step.getTool().getExecutor(), step.getId()));
+                } else {
+                    exec.setJobInformation(execution, step);
+                    addJob(exec);
+                }
+            }
         }
     }
 
-    /**
-     * Postpone the step, this could be because the executor is not ready.
-     * 
-     * @param executionInfo
-     *            the execution to be placed at the end of the list.
-     */
-    protected void postponeExecution(ExecutionInfo executionInfo) {
-        synchronized (queue) {
-            queue.remove(executionInfo);
-            queue.add(executionInfo);
-            saveQueue();
-        }
-    }
-
-    /**
-     * Checks to see if a step is in the queue. The queue is a list of all steps
-     * both executing and waiting to be exectued.
-     * 
-     * @param step
-     *            the step to be checked to see if it is in the queue.
-     * @return true if the step is in the queue, false otherwise.
-     */
-    public boolean isInQueue(String step) {
-        synchronized (queue) {
-            for (ExecutionInfo ei : queue) {
-                if (ei.getStepId().equals(step)) {
+    public boolean hasStep(String step) {
+        synchronized (workers) {
+            for (Executor exec : getQueue()) {
+                if (exec.getStepId().equals(step)) {
                     return true;
                 }
             }
@@ -272,75 +247,31 @@ public abstract class Engine {
         return false;
     }
 
-    /**
-     * Return a list of all steps the engine knows about. This includes both
-     * steps that are currently executing and waiting to be executed. This list
-     * is ordered, meaning the top items is the list are either executing, or
-     * will be first to be executed.
-     * 
-     * @return ordered list of all steps executing or waiting to be executed.
-     */
-    public List<ExecutionInfo> getQueue() {
-        synchronized (queue) {
-            return new ArrayList<ExecutionInfo>(queue);
-        }
+    public Collection<String> getSteps() {
+        return getSteps(null);
     }
 
-    /**
-     * Checks to see if a step is in running. This will allow to check to see if
-     * the step is currently executing.
-     * 
-     * @param step
-     *            the step to be checked to see if it is executing..
-     * @return true if the step is executing, false otherwise.
-     */
-    public boolean isRunning(String step) {
-        synchronized (queue) {
-            for (ExecutionInfo ei : queue) {
-                if (ei.getStepId().equals(step)) {
-                    return getStepState(ei) == Execution.State.RUNNING;
+    public Collection<String> getSteps(State state) {
+        List<String> steps = new ArrayList<String>();
+        synchronized (workers) {
+            for (Executor exec : getQueue()) {
+                if ((state == null) || (exec.getState() == state)) {
+                    steps.add(exec.getStepId());
                 }
             }
         }
-        return false;
+        return steps;
     }
 
-    /**
-     * Returns a list of all steps that are in the queue, and are currently
-     * being executed.
-     * 
-     * @return list of all steps executing.
-     */
-    public List<ExecutionInfo> getRunning() {
-        List<ExecutionInfo> running = new ArrayList<Engine.ExecutionInfo>();
-
-        synchronized (queue) {
-            for (ExecutionInfo ei : queue) {
-                if (getStepState(ei) == Execution.State.RUNNING) {
-                    running.add(ei);
+    public State getStepState(String step) {
+        synchronized (workers) {
+            for (Executor exec : getQueue()) {
+                if (exec.getStepId().equals(step)) {
+                    return exec.getState();
                 }
             }
         }
-        return running;
-    }
-
-    /**
-     * Returns a list of all steps that are in the queue, and are currently
-     * waiting.
-     * 
-     * @return list of all steps executing.
-     */
-    public List<ExecutionInfo> getWaiting() {
-        List<ExecutionInfo> waiting = new ArrayList<Engine.ExecutionInfo>();
-
-        synchronized (queue) {
-            for (ExecutionInfo ei : queue) {
-                if (getStepState(ei) == Execution.State.WAITING) {
-                    waiting.add(ei);
-                }
-            }
-        }
-        return waiting;
+        return State.UNKNOWN;
     }
 
     /**
@@ -352,14 +283,13 @@ public abstract class Engine {
      *            the list of steps to be stopped.
      */
     public void stop(String... steps) {
-        for (String step : steps) {
-            synchronized (queue) {
-                for (ExecutionInfo ei : queue) {
-                    if (ei.getStepId().equals(step)) {
-                        stopExecution(ei);
-                    }
+        List<String> allsteps = Arrays.asList(steps);
+
+        synchronized (workers) {
+            for (Executor exec : getQueue()) {
+                if (allsteps.contains(exec.getStepId())) {
+                    exec.stopJob();
                 }
-                saveQueue();
             }
         }
     }
@@ -369,196 +299,37 @@ public abstract class Engine {
      * from the queue, and attempt to stop all steps currently executing.
      */
     public void stopAll() {
-        synchronized (queue) {
-            while (!queue.isEmpty()) {
-                stopExecution(queue.get(0));
-            }
-            saveQueue();
-        }
-    }
-
-    private void stopExecution(ExecutionInfo executionInfo) {
-        if (getStepState(executionInfo) == State.RUNNING) {
-            try {
-                kill(executionInfo);
-            } catch (Exception e) {
-                logger.error("Could not kill step.", e);
+        synchronized (workers) {
+            for (Executor exec : getQueue()) {
+                exec.stopJob();
             }
         }
-        try {
-            Transaction transaction = SpringData.getTransaction();
-            transaction.start();
-            stepAborted(executionInfo);
-            transaction.commit();
-        } catch (Exception e) {
-            logger.error("Could not mark step as aborted.", e);
-        }
     }
 
-    /**
-     * Return the state of a specific step for this execution. This will load
-     * the bean and return the state of a specific step in this execution.
-     * 
-     * @param executionInfo
-     *            the execution and step whose state to return.
-     * @return the sate of the step in this execution.
-     */
-    protected State getStepState(ExecutionInfo executionInfo) {
-        State state = State.UNKNOWN;
-
-        try {
-            Transaction transaction = SpringData.getTransaction();
-            transaction.start(true);
-            state = executionInfo.getExecutionBean().getStepState(executionInfo.getStepId());
-            transaction.commit();
-
-            if (state == null) {
-                state = State.WAITING;
+    private List<Executor> getQueue() {
+        List<Executor> queue = new ArrayList<Executor>();
+        synchronized (workers) {
+            for (WorkerThread wt : workers) {
+                queue.addAll(wt.getQueue());
             }
-        } catch (Exception e) {
-            logger.error("Could not get step state.", e);
         }
-
-        return state;
+        return queue;
     }
 
-    /**
-     * Marks the specific step in the execution as running.
-     * 
-     * @param executionInfo
-     *            the execution and step whose state to set.
-     */
-    protected void stepRunning(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.RUNNING);
-    }
-
-    /**
-     * Marks the specific step in the execution as done.
-     * 
-     * @param executionInfo
-     *            the execution and step whose state to set.
-     */
-    protected void stepFinished(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.FINISHED);
-    }
-
-    /**
-     * Marks the specific step in the execution as aborted.
-     * 
-     * @param executionInfo
-     *            the execution and step whose state to set.
-     */
-    protected void stepAborted(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.ABORTED);
-    }
-
-    /**
-     * Marks the specific step in the execution as failed.
-     * 
-     * @param executionInfo
-     *            the execution and step whose state to set.
-     */
-    protected void stepFailed(ExecutionInfo executionInfo) {
-        setStepState(executionInfo, State.FAILED);
-    }
-
-    /**
-     * Sets the state of the step in the execution and save the execution
-     * information.
-     * 
-     * @param executionInfo
-     *            the execution and step whose state to set.
-     * @param state
-     *            the sate of the step in this execution.
-     * @param remove
-     *            remove the step from the queue and mark all missing outputs.
-     */
-    protected void setStepState(ExecutionInfo executionInfo, State state) {
-        Execution execution = executionInfo.getExecutionBean();
-        WorkflowStep step = executionInfo.getStepBean();
-
-        // are we done
-        // done == FINISHED, ABORTED, CANCELLED, FAILED
-        // !done == WAITING, QUEUED, RUNNING
-        boolean done = (state == State.FINISHED) || (state == State.ABORTED) || (state == State.FAILED);
-
-        // mark all missing outputs
-        if (done) {
-            for (String id : step.getOutputs().keySet()) {
-                if (!execution.hasDataset(id)) {
-                    execution.setDataset(id, null);
+    private void addJob(Executor exec) {
+        synchronized (workers) {
+            WorkerThread best = workers.get(0);
+            int bestSize = best.getQueueSize();
+            for (WorkerThread wt : workers) {
+                int qsize = wt.getQueueSize();
+                if (qsize < bestSize) {
+                    bestSize = qsize;
+                    best = wt;
                 }
             }
+            best.addJob(exec);
         }
-
-        // add time stamps
-        if (state == State.QUEUED) {
-            execution.setStepQueued(step.getId());
-        } else if (state == State.RUNNING) {
-            execution.setStepStart(step.getId());
-        } else if (done) {
-            execution.setStepEnd(step.getId());
-        }
-
-        // set step state
-        executionInfo.getExecutionBean().setStepState(step.getId(), state);
-        SpringData.getBean(ExecutionDAO.class).save(execution);
-
-        // remove step
-        if (done) {
-            synchronized (queue) {
-                queue.remove(executionInfo);
-                saveQueue();
-            }
-        }
-
-        // fire an event to inform everybody of the new state
-        StepStateChangedEvent event = new StepStateChangedEvent(step, execution, state);
-        SpringData.getEventBus().fireEvent(event);
     }
-
-    /**
-     * Tells the actual engine to stop the process from running. Some executors
-     * might not be able to stop a step once it has started and can throw an
-     * exception saying so.
-     * 
-     * @param executionInfo
-     *            information about the specific step that needs to be stopped.
-     * @throws Exception
-     *             throws an exception if the step could not be stopped.
-     */
-    protected abstract void kill(ExecutionInfo executionInfo) throws Exception;
-
-    /**
-     * This will mark the engine as started.
-     */
-    public void startEngine() {
-        started = true;
-        initialize();
-    }
-
-    /**
-     * This will stop all steps first, then will shutdown the engine.
-     */
-    public void stopEngine() {
-        started = false;
-        stopAll();
-    }
-
-    /**
-     * Return true if the engine is started.
-     * 
-     * @return true if the engine has been started.
-     */
-    public boolean isStarted() {
-        return started;
-    }
-
-    /**
-     * Called when then engine is started, or when the properties is set. The
-     * default implementation does nothing.
-     */
-    protected abstract void initialize();
 
     /**
      * Save the queue to the underlying persistence layer.
@@ -574,33 +345,98 @@ public abstract class Engine {
         // TODO RK : Enable loading of queue from spring-data
     }
 
-    /**
-     * Class to capture information about steps known to the engine.
-     * TODO RK : this should become a bean so it can be saved/loaded
-     */
-    static public class ExecutionInfo {
-        private final String execution;
-        private final String step;
+    class WorkerThread extends Thread {
+        private List<Executor> queue = new ArrayList<Executor>();
 
-        public ExecutionInfo(Execution execution, WorkflowStep step) {
-            this.execution = execution.getId();
-            this.step = step.getId();
+        public int getQueueSize() {
+            synchronized (queue) {
+                return queue.size();
+            }
         }
 
-        public String getStepId() {
-            return step;
+        public void addJob(Executor exec) {
+            synchronized (queue) {
+                queue.add(exec);
+                saveQueue();
+            }
         }
 
-        public WorkflowStep getStepBean() {
-            return SpringData.getBean(WorkflowStepDAO.class).findOne(step);
+        public List<Executor> getQueue() {
+            synchronized (queue) {
+                return new ArrayList<Executor>(queue);
+            }
         }
 
-        public String getExecutionId() {
-            return execution;
-        }
+        public void run() {
+            for (;;) {
+                try {
+                    synchronized (queue) {
+                        Iterator<Executor> iter = queue.iterator();
+                        while (iter.hasNext()) {
+                            Executor exec = iter.next();
+                            logger.info("HELLO " + exec.getStepId());
 
-        public Execution getExecutionBean() {
-            return SpringData.getBean(ExecutionDAO.class).findOne(execution);
+                            switch (exec.getState()) {
+                            case ABORTED:
+                            case FAILED:
+                            case FINISHED:
+                                iter.remove();
+                                saveQueue();
+                                break;
+
+                            case WAITING:
+                                // 0 = OK, 1 = WAIT, 2 = ERROR
+                                int canrun = 0;
+
+                                Transaction transaction = null;
+                                try {
+                                    transaction = SpringData.getTransaction();
+                                    transaction.start();
+
+                                    Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                    WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+
+                                    // check to see if all inputs of the step
+                                    // are ready
+                                    for (String id : step.getInputs().values()) {
+                                        if (!execution.hasDataset(id)) {
+                                            canrun = 1;
+                                        } else if (execution.getDataset(id) == null) {
+                                            canrun = 2;
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    logger.error("Error getting job information.", e);
+                                } finally {
+                                    try {
+                                        transaction.commit();
+                                    } catch (Exception e) {
+                                        logger.error("Error getting job information.", e);
+                                    }
+
+                                }
+
+                                // check to make sure the executor can run
+                                logger.info("HELLO " + exec.getStepId() + " " + canrun);
+                                if ((canrun == 0) && exec.isExecutorReady()) {
+                                    exec.startJob();
+                                } else if (canrun == 2) {
+                                    exec.stopJob();
+                                    iter.remove();
+                                    saveQueue();
+                                }
+                            }
+                        }
+                    }
+
+                    // little sleep
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {}
+                } catch (Throwable thr) {
+                    logger.error("Runaway exception in engine.", thr);
+                }
+            }
         }
     }
 }

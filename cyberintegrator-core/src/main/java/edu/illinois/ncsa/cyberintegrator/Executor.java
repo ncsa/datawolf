@@ -1,113 +1,43 @@
-/*******************************************************************************
- * Copyright (c) 2012 University of Illinois/NCSA.  All rights reserved.
+/**
  * 
- *   National Center for Supercomputing Applications (NCSA)
- *   http://www.ncsa.illinois.edu/
- * 
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the 
- * "Software"), to deal with the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- * 
- * - Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimers.
- * - Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimers in the
- *   documentation and/or other materials provided with the distribution.
- * - Neither the names of University of Illinois, NCSA, nor the names
- *   of its contributors may be used to endorse or promote products
- *   derived from this Software without specific prior written permission.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR
- * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
- ******************************************************************************/
+ */
 package edu.illinois.ncsa.cyberintegrator;
 
-import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
+import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
-import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.cyberintegrator.event.StepStateChangedEvent;
+import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.springdata.Transaction;
 
 /**
- * Abstract class representing an executor. In the case of the Cyberintegrator
- * the executors implement a specific piece of code that encapsulates the
- * execution of a tool. Example of these executors are command line executor
- * (External), cyberintegrator tool executors (Java) and Matlab executor
- * (Matlab).
+ * @author Rob Kooper <kooper@illinois.edu>
  * 
- * @author Rob Kooper
  */
 public abstract class Executor {
-    private static final Logger logger = LoggerFactory.getLogger(Executor.class);
+    private static Logger logger      = LoggerFactory.getLogger(Executor.class);
 
-    public abstract String getExecutorName();
+    private StringBuilder log         = new StringBuilder();
+    private State         state       = State.UNKNOWN;
+    private String        executionId = null;
+    private String        stepId      = null;
+    private boolean       jobStopped  = false;
 
     /**
-     * This will stage any files needed for execution in a temporary directory.
-     * This function is called before the run function. When overriding this
-     * function make sure you call the super.
+     * Name of the executor. This name is used to find the executor to be used
+     * for a tool.
      * 
-     * @throws Exception
-     *             an exception can be thrown when something goes wrong in the
-     *             cleanup (for example files that could not be created).
+     * @return the name of the executor.
      */
-    public void setup(File cwd, WorkflowStep step) throws Exception {
-        for (FileDescriptor blob : step.getTool().getBlobs()) {
-            // TODO RK : fetch all blobs.
-//            try {
-//                File zipfile = TupeloHelper.getBlob(context, tool);
-//                if (zipfile != null) {
-//                    ZipInputStream zis = new ZipInputStream(new FileInputStream(zipfile));
-//                    if (zis != null) {
-//                        byte[] buf = new byte[10240];
-//                        int len;
-//                        ZipEntry ze;
-//                        while ((ze = zis.getNextEntry()) != null) {
-//                            if (!ze.isDirectory()) {
-//                                File file = new File(cwd, ze.getName());
-//                                file.getParentFile().mkdirs();
-//                                FileOutputStream fos = new FileOutputStream(file);
-//                                while ((len = zis.read(buf)) > 0) {
-//                                    fos.write(buf, 0, len);
-//                                }
-//                                fos.close();
-//                                zis.closeEntry();
-//                            }
-//                        }
-//                        zis.close();
-//                    }
-//                    zipfile.delete();
-//                }
-//            } catch (IOException e) {
-//                log.warn("Could not extract files associated with this tool.", e);
-//            } catch (OperatorException e) {
-//                if ((e instanceof NotFoundException) || (e.getCause() instanceof NotFoundException)) {
-//                    log.debug("No files are associated with this tool.");
-//                } else {
-//                    log.warn("Could not retrieve files associated with this tool.", e);
-//                }
-//            }
-        }
-
-        // if not on windows, chmod on temp directory so that files are
-        // executable
-        if (!System.getProperty("os.name").toLowerCase().contains("windows")) { //$NON-NLS-1$//$NON-NLS-2$
-            Process p = Runtime.getRuntime().exec("chmod -R u+x " + cwd.getAbsolutePath()); //$NON-NLS-1$
-            p.waitFor();
-        }
-    }
+    public abstract String getExecutorName();
 
     /**
      * Before a step is executed this will check to see if the executor is ready
@@ -117,113 +47,239 @@ public abstract class Executor {
      * 
      * @return true if the executor can be run.
      */
-    public boolean canRun() {
+    public boolean isExecutorReady() {
         return true;
     }
 
     /**
-     * The executor can indicate if it is safe to use the same JVM as the
-     * Cyberintegrator. If set to false, the Cyberintegrator will create a
-     * complete new JVM in which this tool will run, the is useful for JAVA code
-     * that calls System.exit() since this could kill the Cyberintegrator JVM as
-     * well. The default is for each step to require their own JVM.
+     * Set the job information for this executor. Each job will have its own
+     * executor. Once all the data for the job is ready the system will call
+     * startJob for the job to be launched.
      * 
-     * @return false if each step requires its own JVM.
-     */
-    public boolean useSameJVM() {
-        return false;
-    }
-
-    /**
-     * The executor should try to kill the execution. The step should be stopped
-     * from executing.
+     * When setJobInformation is called it will be inside a transaction and all
+     * values inside execution and step can be accessed, however once this
+     * function is finished the transaction is committed and accessing data in
+     * the execution and/or step can lead to a lazyloading execution.
      * 
-     * @throws Exception
-     *             if the step could not bet stopped.
-     */
-    abstract public void kill() throws Exception;
-
-    /**
-     * This will run the tool specified. This function is responsible for
-     * setting up the inputs, parameters for the tool, executing the tool and
-     * retrieving the output generated by the tool. This function is called
-     * after the run function.
-     * 
-     * @throws Exception
-     *             an exception can be thrown if anything goes wrong during
-     *             execution, either in the user code or in the executor.
-     */
-    public void run(Execution execution, WorkflowStep step) throws AbortException, FailedException {
-        // create a temp directory
-        File cwd = null;
-        try {
-            cwd = File.createTempFile("cib", ".dir"); //$NON-NLS-1$ //$NON-NLS-2$
-            cwd.delete();
-            if (!cwd.mkdirs()) {
-                throw (new FailedException("Error creating working directory"));
-            }
-        } catch (FailedException e) {
-            throw (e);
-        } catch (Exception e) {
-            throw (new FailedException("Error creating working directory", e));
-        }
-
-        // setup the executor
-        try {
-            setup(cwd, step);
-        } catch (Exception e) {
-            throw (new FailedException("Error setting up executor.", e));
-        }
-
-        // launch the job
-        try {
-            execute(cwd, execution, step);
-        } catch (Throwable thr) {
-            throw (new FailedException("Error running executor.", thr));
-        }
-
-        // do some cleanup
-        if (!deleteDirectory(cwd)) {
-            logger.info(String.format("Could not remove directory [%s].", cwd.getAbsolutePath()));
-        }
-    }
-
-    /**
-     * This will run the tool specified. This function is responsible for
-     * setting up the inputs, parameters for the tool, executing the tool and
-     * retrieving the output generated by the tool. This function is called
-     * after the run function.
-     * 
-     * @param cwd
-     *            the folder created for this specific execution.
      * @param execution
-     *            all the information collected for the execution of the step.
+     *            the execution to be used for job information.
      * @param step
      *            the step that needs to be executed.
-     * @throws Exception
-     *             an exception can be thrown if anything goes wrong during
-     *             execution, either in the user code or in the executor.
+     * @return the new state of the step in the execution.
      */
-    public abstract void execute(File cwd, Execution execution, WorkflowStep step) throws AbortException, FailedException;
+    public void setJobInformation(Execution execution, WorkflowStep step) {
+        this.executionId = execution.getId();
+        this.stepId = step.getId();
+        this.state = State.WAITING;
+    }
 
     /**
-     * Recursively remove a directory and all files in the directory.
-     * 
-     * @param path
-     *            the directory to be removed
-     * @return true if the directory could be deleted.
+     * The job is ready to be executed. This function should submit the job and
+     * return quickly. This should not do the actual computation.
      */
-    private boolean deleteDirectory(File path) {
-        if (path.exists()) {
-            File[] files = path.listFiles();
-            for (File element : files) {
-                if (element.isDirectory()) {
-                    deleteDirectory(element);
-                } else {
-                    element.delete();
+    public abstract void startJob();
+
+    /**
+     * The job should be stopped. If the job is actually running it should be
+     * killed, if it is waiting to be executed it should not be started.
+     */
+    public void stopJob() {
+        jobStopped = true;
+    }
+
+    /**
+     * Returns true if the job is stopped. This will allow the executor to check
+     * to see if the job should be stopped. Any executor should call this
+     * function often to see if the execution was stopped.
+     * 
+     * @return true if the job is stopped and execution should be stopped.
+     */
+    protected boolean isJobStopped() {
+        return jobStopped;
+    }
+
+    /**
+     * Returns the id of the step associated with this executor.
+     * 
+     * @return id of the step associated with this executor.
+     */
+    public String getStepId() {
+        return stepId;
+    }
+
+    /**
+     * Returns the id of the execution associated with this executor.
+     * 
+     * @return id of the execution associated with this executor.
+     */
+    public String getExecutionId() {
+        return executionId;
+    }
+
+    /**
+     * Return any log information. This function will return the current log
+     * information. This function should return quickly. It is probably best to
+     * have a thread running that is responsible for fetching the data and have
+     * this function return the latest information available.
+     * 
+     * @return the current log information.
+     */
+    public String getLog() {
+        return log.toString();
+    }
+
+    /**
+     * Append message to the log.
+     * 
+     * @param msg
+     *            the message to be added to the log.
+     */
+    protected void print(String msg) {
+        synchronized (log) {
+            log.append(msg);
+            logger.debug(msg);
+        }
+    }
+
+    /**
+     * Append formatted message to the log.
+     * 
+     * @param format
+     *            A format string
+     * @param args
+     *            Arguments referenced by the format specifiers in the format
+     *            string.
+     */
+    protected void print(String format, Object... args) {
+        print(String.format(format, args));
+    }
+
+    /**
+     * Append message with newline to the log.
+     * 
+     * @param msg
+     *            the message to be added to the log.
+     */
+    protected void println(String msg) {
+        synchronized (log) {
+            log.append(msg);
+            log.append("\n");
+            logger.debug(msg);
+        }
+    }
+
+    /**
+     * Append formatted message with newline to the log.
+     * 
+     * @param format
+     *            A format string
+     * @param args
+     *            Arguments referenced by the format specifiers in the format
+     *            string.
+     */
+    protected void println(String format, Object... args) {
+        println(String.format(format, args));
+    }
+
+    /**
+     * Append message and stacktrace of throwable to the log.
+     * 
+     * @param msg
+     *            the messsage to be added to the log.
+     * @param thr
+     *            the throwable to be added to the log.
+     */
+    protected void println(String msg, Throwable thr) {
+        synchronized (log) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw, true);
+            thr.printStackTrace(pw);
+
+            log.append(msg);
+            log.append("\n");
+            log.append(sw.toString());
+            logger.debug(msg, thr);
+        }
+    }
+
+    /**
+     * Sets the log to the message. This will erase any previous log messages.
+     * 
+     * @param msg
+     *            the new log message.
+     */
+    protected void setLog(String msg) {
+        synchronized (log) {
+            log = new StringBuilder(msg);
+            logger.debug(msg);
+        }
+    }
+
+    /**
+     * Return current state of the execution. This function will return the
+     * current state of the execution. This function should return quickly. It
+     * is probably best to have a thread running that is responsible for
+     * fetching the data and have this function return the latest information
+     * available.
+     * 
+     * @return the current state of the execution.
+     */
+    public State getState() {
+        return state;
+    }
+
+    /**
+     * Sets the state of the job. This will change the state of the job in the
+     * execution object and save it. This will create its own transaction and
+     * should not be called inside a transaction.
+     */
+    public void setState(State state) {
+        logger.info("Job entered " + state);
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start();
+            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(stepId);
+            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(executionId);
+            execution.setStepState(stepId, state);
+            switch (state) {
+            case UNKNOWN:
+                logger.error("execution entered state UNKNOWN.");
+                break;
+            case WAITING:
+                break;
+            case QUEUED:
+                execution.setStepQueued(stepId);
+                break;
+            case RUNNING:
+                execution.setStepQueued(stepId);
+                break;
+            case FAILED:
+            case ABORTED:
+            case FINISHED:
+                execution.setStepEnd(stepId);
+                for (String id : step.getOutputs().keySet()) {
+                    if (!execution.hasDataset(id)) {
+                        execution.setDataset(id, null);
+                    }
                 }
+                break;
+            default:
+                logger.info("a new state is entered that is not known.");
+            }
+            SpringData.getBean(ExecutionDAO.class).save(execution);
+
+            // fire an event to inform everybody of the new state
+            StepStateChangedEvent event = new StepStateChangedEvent(step, execution, state);
+            SpringData.getEventBus().fireEvent(event);
+        } catch (Exception e) {
+            logger.error("Could not set state of step in execution.", e);
+        } finally {
+            try {
+                t.commit();
+                this.state = state;
+            } catch (Exception e) {
+                logger.error("Could not set state of step in execution.", e);
             }
         }
-        return (path.delete());
     }
 }

@@ -41,13 +41,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.AbortException;
-import edu.illinois.ncsa.cyberintegrator.Executor;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
+import edu.illinois.ncsa.cyberintegrator.LocalExecutor;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.springdata.DatasetDAO;
@@ -61,13 +62,12 @@ import edu.illinois.ncsa.springdata.Transaction;
  * @author Rob Kooper
  * 
  */
-public class JavaExecutor extends Executor {
+public class JavaExecutor extends LocalExecutor {
     private static Logger logger        = LoggerFactory.getLogger(JavaExecutor.class);
 
     public static String  EXECUTOR_NAME = "java";
 
-    private Thread        worker        = null;
-    private boolean       interrupted   = false;
+    private Thread        workerThread  = null;
 
     @Override
     public String getExecutorName() {
@@ -75,29 +75,16 @@ public class JavaExecutor extends Executor {
     }
 
     @Override
-    public void kill() throws Exception {
-        interrupted = true;
-        if (worker != null) {
-            worker.interrupt();
+    public void stopJob() {
+        super.stopJob();
+        if (workerThread != null) {
+            workerThread.interrupt();
         }
     }
 
     @Override
-    public void execute(File cwd, Execution execution, WorkflowStep step) throws AbortException, FailedException {
-        logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
-
-        // store worker so we can get interrupted.
-        worker = Thread.currentThread();
-        if (interrupted) {
-            throw (new FailedException("Thread got interrupted."));
-        }
-
-        // parse the implementation
-        // String[] impl = step.getTool().getImplementation().split("\n");
-        // String classname = impl[impl.length - 1];
-        JavaToolImplementation impl = (JavaToolImplementation) step.getTool().getImplementation();
-        String classname = impl.getToolClassName();// impl[impl.length - 1];
-        logger.debug("Implementation class : " + classname);
+    public void execute(File cwd) throws AbortException, FailedException {
+        workerThread = Thread.currentThread();
 
         // run with the classloader
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -111,85 +98,137 @@ public class JavaExecutor extends Executor {
             dcl.addJarFile(file);
         }
 
-        // the real code
+        // the java tool.
+        JavaTool tool;
+
+        // make sure the classes will get unloaded
         try {
-            // create instance of the tool
-            JavaTool tool;
+
+            Transaction t = SpringData.getTransaction();
             try {
-                tool = (JavaTool) dcl.loadClass(classname).newInstance();
-            } catch (Exception exc) {
-                throw (new FailedException("Could load class.", exc));
-            }
+                t.start();
 
-            // set temp folder
-            tool.setTempFolder(cwd);
+                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
+                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+                JavaToolImplementation impl = (JavaToolImplementation) step.getTool().getImplementation();
 
-            // set parameters
-            if (tool.getParameters() != null) {
-                for (Entry<String, String> entry : step.getParameters().entrySet()) {
-                    String value = execution.getParameter(entry.getValue());
-                    tool.setParameter(entry.getKey(), value);
+                logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
+
+                // parse the implementation
+                String classname = impl.getToolClassName();
+                logger.debug("Implementation class : " + classname);
+
+                // create instance of the tool
+                try {
+                    tool = (JavaTool) dcl.loadClass(classname).newInstance();
+                } catch (Exception exc) {
+                    throw (new FailedException("Could load class.", exc));
+                }
+
+                // set temp folder
+                tool.setTempFolder(cwd);
+
+                // set parameters
+                if (tool.getParameters() != null) {
+                    for (Entry<String, String> entry : step.getParameters().entrySet()) {
+                        String value = execution.getParameter(entry.getValue());
+                        tool.setParameter(entry.getKey(), value);
+                    }
+                }
+
+                // set inputs
+                if (tool.getInputs() != null) {
+                    for (Entry<String, String> entry : step.getInputs().entrySet()) {
+                        Dataset ds = execution.getDataset(entry.getValue());
+                        if (ds == null) {
+                            throw (new AbortException("Dataset is missing."));
+                        }
+                        if (ds.getFileDescriptors().size() == 0) {
+                            throw (new FailedException("Dataset does not have any files associated."));
+                        }
+                        InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                        tool.setInput(entry.getKey(), is);
+                    }
+                }
+            } catch (AbortException e) {
+                throw e;
+            } catch (FailedException e) {
+                throw e;
+            } catch (Throwable e) {
+                throw (new FailedException("Could not run transaction to save information about step.", e));
+            } finally {
+                try {
+                    if (t != null) {
+                        t.commit();
+                    }
+                } catch (Exception e) {
+                    throw (new FailedException("Could not commit transaction to save information about step.", e));
                 }
             }
 
-            // set inputs
-            if (tool.getInputs() != null) {
-                for (Entry<String, String> entry : step.getInputs().entrySet()) {
-                    Dataset ds = execution.getDataset(entry.getValue());
-                    if (ds == null) {
-                        throw (new AbortException("Dataset is missing."));
-                    }
-                    if (ds.getFileDescriptors().size() == 0) {
-                        throw (new FailedException("Dataset does not have any files associated."));
-                    }
-                    InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
-                    tool.setInput(entry.getKey(), is);
-                }
+            // check if job is still alive
+            if (isJobStopped()) {
+                throw (new AbortException("Job is stopped."));
             }
 
-            // execute
-            if (interrupted) {
-                throw (new FailedException("Thread got interrupted."));
-            }
-            tool.execute();
-            if (interrupted) {
-                throw (new FailedException("Thread got interrupted."));
+            // run the actual code.
+            try {
+                workerThread = Thread.currentThread();
+                tool.execute();
+            } catch (Throwable e) {
+                if (isJobStopped()) {
+                    throw (new AbortException("Job is stopped."));
+                }
+            } finally {
+                workerThread = null;
             }
 
             // get outputs in the case of CyberintegratorTool
             if (tool.getOutputs() != null) {
-                Transaction t = SpringData.getTransaction();
-                t.start();
-                for (Entry<String, String> entry : step.getOutputs().entrySet()) {
-                    WorkflowToolData data = step.getOutput(entry.getValue());
+                t = SpringData.getTransaction();
+                try {
+                    t.start();
+                    WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
+                    Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
 
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(tool.getOutput(entry.getKey()));
-                    fd.setMimeType(data.getMimeType());
+                    for (Entry<String, String> entry : step.getOutputs().entrySet()) {
+                        WorkflowToolData data = step.getOutput(entry.getValue());
 
-                    Dataset ds = new Dataset();
-                    ds.setTitle(data.getTitle());
-                    ds.setDescription(data.getDescription());
-                    ds.setCreator(execution.getCreator());
-                    ds.addFileDescriptor(fd);
-                    SpringData.getBean(DatasetDAO.class).save(ds);
+                        FileDescriptor fd = SpringData.getFileStorage().storeFile(tool.getOutput(entry.getKey()));
+                        fd.setMimeType(data.getMimeType());
 
-                    execution.setDataset(entry.getValue(), ds);
+                        Dataset ds = new Dataset();
+                        ds.setTitle(data.getTitle());
+                        ds.setDescription(data.getDescription());
+                        ds.setCreator(execution.getCreator());
+                        ds.addFileDescriptor(fd);
+                        SpringData.getBean(DatasetDAO.class).save(ds);
+
+                        execution.setDataset(entry.getValue(), ds);
+                    }
+
+                    SpringData.getBean(ExecutionDAO.class).save(execution);
+
+                } catch (AbortException e) {
+                    throw e;
+                } catch (FailedException e) {
+                    throw e;
+                } catch (Throwable e) {
+                    throw (new FailedException("Could not run transaction to save information about step.", e));
+                } finally {
+                    try {
+                        if (t != null) {
+                            t.commit();
+                        }
+                    } catch (Exception e) {
+                        throw (new FailedException("Could not commit transaction to save information about step.", e));
+                    }
                 }
-                SpringData.getBean(ExecutionDAO.class).save(execution);
-                t.commit();
             }
 
-        } catch (AbortException e) {
-            logger.info("Step aborted.", e);
-            throw (e);
-        } catch (FailedException e) {
-            logger.info("Step failed.", e);
-            throw (e);
-        } catch (Throwable e) {
-            logger.info("Step failed.", e);
-            throw (new FailedException("Uncaught exception was thrown, step failed.", e));
         } finally {
             // all done
+            tool = null;
             dcl.dispose();
             System.gc();
         }

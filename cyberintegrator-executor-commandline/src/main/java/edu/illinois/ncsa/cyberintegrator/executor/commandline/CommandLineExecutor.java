@@ -60,16 +60,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.AbortException;
-import edu.illinois.ncsa.cyberintegrator.Executor;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
+import edu.illinois.ncsa.cyberintegrator.LocalExecutor;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.InputOutput;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.springdata.Transaction;
 
 /**
  * This executor will allow the user to execute any arbitrary executable.
@@ -77,15 +79,11 @@ import edu.illinois.ncsa.springdata.SpringData;
  * @author kooper
  * 
  */
-public class CommandLineExecutor extends Executor {
+public class CommandLineExecutor extends LocalExecutor {
     private static Logger       logger        = LoggerFactory.getLogger(CommandLineExecutor.class);
     private static final String NL            = System.getProperty("line.separator");
 
     public static String        EXECUTOR_NAME = "commandline";
-
-    private Process             process       = null;
-
-    public CommandLineExecutor() {}
 
     @Override
     public String getExecutorName() {
@@ -93,107 +91,121 @@ public class CommandLineExecutor extends Executor {
     }
 
     @Override
-    public boolean useSameJVM() {
-        return true;
-    }
-
-    @Override
-    public void kill() throws Exception {
-        if (process != null) {
-            process.destroy();
-        }
-    }
-
-    @Override
-    public void execute(File cwd, Execution execution, WorkflowStep step) throws AbortException, FailedException {
-        logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
-
-        // get implementation details
-        CommandLineImplementation impl = (CommandLineImplementation) step.getTool().getImplementation();
-
-        // find the app to execute
+    public void execute(File cwd) throws AbortException, FailedException {
         ArrayList<String> command = new ArrayList<String>();
-        command.add(findApp(impl.getExecutable().trim(), cwd));
-
-        // add the options in order
+        Map<String, String> env = new HashMap<String, String>();
         Map<String, String> outputfiles = new HashMap<String, String>();
-        for (CommandLineOption option : impl.getCommandLineOptions()) {
-            // all have a flag option
-            if (option.getFlag() != null) {
-                command.add(option.getFlag());
+
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start();
+
+            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
+            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+            CommandLineImplementation impl = (CommandLineImplementation) step.getTool().getImplementation();
+
+            logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
+
+            // get implementation details
+            if (impl.getEnv() != null) {
+                env.putAll(impl.getEnv());
             }
 
-            switch (option.getType()) {
-            case VALUE:
-                // fixed value
-                if (option.getValue() != null) {
-                    command.add(option.getValue());
-                }
-                break;
+            // find the app to execute
+            command.add(findApp(impl.getExecutable().trim(), cwd));
 
-            case PARAMETER:
-                // user specified value
-                String value = execution.getParameter(option.getOptionId());
-                if (value == null) {
-                    value = option.getParameterValue();
+            // add the options in order
+            for (CommandLineOption option : impl.getCommandLineOptions()) {
+                // all have a flag option
+                if (option.getFlag() != null) {
+                    command.add(option.getFlag());
                 }
-                if (value != null) {
-                    command.add(value);
-                }
-                break;
 
-            case DATA:
-                // pointer to file on disk
-                String filename = option.getFilename();
-                if (filename == null) {
-                    try {
-                        filename = File.createTempFile("ci", ".tmp", cwd).getAbsolutePath();
-                    } catch (IOException exc) {
-                        throw (new FailedException("Could not create temp file.", exc));
+                switch (option.getType()) {
+                case VALUE:
+                    // fixed value
+                    if (option.getValue() != null) {
+                        command.add(option.getValue());
                     }
-                }
+                    break;
 
-                if (option.isCommandline()) {
-                    if (option.getInputOutput() != InputOutput.OUTPUT) {
-                        Dataset ds = execution.getDataset(option.getOptionId());
-                        if (ds == null) {
-                            throw (new AbortException("Dataset is missing."));
-                        }
+                case PARAMETER:
+                    // user specified value
+                    String value = execution.getParameter(option.getOptionId());
+                    if (value == null) {
+                        value = option.getParameterValue();
+                    }
+                    if (value != null) {
+                        command.add(value);
+                    }
+                    break;
+
+                case DATA:
+                    // pointer to file on disk
+                    String filename = option.getFilename();
+                    if (filename == null) {
                         try {
-                            InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
-                            FileOutputStream fos = new FileOutputStream(filename);
-                            byte[] buf = new byte[10240];
-                            int len = 0;
-                            while ((len = is.read(buf)) > 0) {
-                                fos.write(buf, 0, len);
-                            }
-                            is.close();
-                            fos.close();
-                        } catch (IOException e) {
-                            throw (new FailedException("Could not get input file.", e));
+                            filename = File.createTempFile("ci", ".tmp", cwd).getAbsolutePath();
+                        } catch (IOException exc) {
+                            throw (new FailedException("Could not create temp file.", exc));
                         }
                     }
-                    command.add(filename);
-                }
 
-                if (option.getInputOutput() != InputOutput.INPUT) {
-                    // for this to work, with BOTH input and output need to have
-                    // the same ID
-                    outputfiles.put(option.getOptionId(), filename);
+                    if (option.isCommandline()) {
+                        if (option.getInputOutput() != InputOutput.OUTPUT) {
+                            Dataset ds = execution.getDataset(option.getOptionId());
+                            if (ds == null) {
+                                throw (new AbortException("Dataset is missing."));
+                            }
+                            try {
+                                InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                                FileOutputStream fos = new FileOutputStream(filename);
+                                byte[] buf = new byte[10240];
+                                int len = 0;
+                                while ((len = is.read(buf)) > 0) {
+                                    fos.write(buf, 0, len);
+                                }
+                                is.close();
+                                fos.close();
+                            } catch (IOException e) {
+                                throw (new FailedException("Could not get input file.", e));
+                            }
+                        }
+                        command.add(filename);
+                    }
+
+                    if (option.getInputOutput() != InputOutput.INPUT) {
+                        // for this to work, with BOTH input and output need to
+                        // have the same ID
+                        outputfiles.put(option.getOptionId(), filename);
+                    }
+                    break;
                 }
-                break;
+            }
+
+        } catch (AbortException e) {
+            throw e;
+        } catch (FailedException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw (new FailedException("Could not run transaction to get information about step.", e));
+        } finally {
+            try {
+                if (t != null) {
+                    t.commit();
+                }
+            } catch (Exception e) {
+                throw (new FailedException("Could not commit transaction to retrieve information about step.", e));
             }
         }
 
         // show command that will be executed
-        if (logger.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            for (String s : command) {
-                sb.append(s);
-                sb.append(" ");
-            }
-            logger.debug(String.format("Executing %s in %s.", sb.toString(), cwd)); //$NON-NLS-1$
+        StringBuilder sb = new StringBuilder();
+        for (String s : command) {
+            sb.append(s);
+            sb.append(" ");
         }
+        println("Executing : " + sb.toString());
 
         // create the process builder
         ProcessBuilder pb = new ProcessBuilder(command);
@@ -201,15 +213,18 @@ public class CommandLineExecutor extends Executor {
         pb.redirectErrorStream(true);
 
         // setup env variables
-        if (impl.getEnv() != null) {
-            Map<String, String> pbenv = pb.environment();
-            for (Entry<String, String> var : impl.getEnv().entrySet()) {
-                if (var.getKey().equals("PATH") && pbenv.containsKey(var.getKey())) { //$NON-NLS-1$
-                    pbenv.put(var.getKey(), var.getValue() + File.pathSeparator + pbenv.get(var.getKey()));
-                } else {
-                    pbenv.put(var.getKey(), var.getValue());
-                }
+        Map<String, String> pbenv = pb.environment();
+        for (Entry<String, String> var : env.entrySet()) {
+            if (var.getKey().equals("PATH") && pbenv.containsKey(var.getKey())) { //$NON-NLS-1$
+                pbenv.put(var.getKey(), var.getValue() + File.pathSeparator + pbenv.get(var.getKey()));
+            } else {
+                pbenv.put(var.getKey(), var.getValue());
             }
+        }
+
+        // check if job is still alive
+        if (isJobStopped()) {
+            throw (new AbortException("Job is stopped."));
         }
 
         // Start actual process
@@ -226,35 +241,17 @@ public class CommandLineExecutor extends Executor {
             stdinWriter.close();
         } catch (IOException e) {}
 
-        // create a dialog if the user will indicate if the process is finished
-        // TODO can this use SWT?
-//        if (externalElement.isGuiwait()) {
-//            if (GraphicsEnvironment.isHeadless()) {
-//                throw (new FailedException("Tool requested a dialog, running in headless mode."));
-//            }
-//
-//            JFrame frmWait = new JFrame("Waiting for tool completion...");
-//            String lbl = String.format("<html>Waiting for completion of tool [%s] of step [%s]. Please push 'OK' only when tool has completed.</html>", "tool", "step");
-//            frmWait.add(new JLabel(lbl));
-//
-//            JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER));
-//            frmWait.add(buttons, BorderLayout.SOUTH);
-//            buttons.add(new JButton(new AbstractAction("OK") {
-//                public void actionPerformed(ActionEvent e) {
-//                    frmWait.setVisible(false);
-//                }
-//            }));
-//            frmWait.pack();
-//            frmWait.setLocationRelativeTo(null);
-//            frmWait.setVisible(true);
-//        }
-
         // wait for the process to be done, store output in log
         StringBuilder stdout = new StringBuilder();
         BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         StringBuilder stderr = new StringBuilder();
         BufferedReader stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
         do {
+            // check if job is still alive
+            if (isJobStopped()) {
+                throw (new AbortException("Job is stopped."));
+            }
+
             boolean wait = true;
             try {
                 if (stdoutReader != null) {
@@ -264,7 +261,7 @@ public class CommandLineExecutor extends Executor {
                             stdoutReader.close();
                             stdoutReader = null;
                         }
-                        logger.debug("STDOUT : " + line);
+                        println("STDOUT : " + line);
                         stdout.append(line);
                         stdout.append(NL);
                         wait = false;
@@ -286,7 +283,7 @@ public class CommandLineExecutor extends Executor {
                             stderrReader.close();
                             stderrReader = null;
                         }
-                        logger.debug("STDERR : " + line);
+                        println("STDERR : " + line);
                         stderr.append(line);
                         stderr.append(NL);
                         wait = false;
@@ -307,64 +304,87 @@ public class CommandLineExecutor extends Executor {
             }
         } while ((stdoutReader != null) || (stderrReader != null));
 
-        // collect stdout/stderr
-        boolean saveExecution = false;
-        if (impl.getCaptureStdOut() != null) {
-            try {
-                if (impl.isJoinStdOutStdErr()) {
-                    stdout.append("\n");
-                    stdout.append(stderr);
+        t = SpringData.getTransaction();
+        try {
+            t.start();
+            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
+            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+            CommandLineImplementation impl = (CommandLineImplementation) step.getTool().getImplementation();
+
+            // collect stdout/stderr
+            boolean saveExecution = false;
+            if (impl.getCaptureStdOut() != null) {
+                try {
+                    if (impl.isJoinStdOutStdErr()) {
+                        stdout.append("\n");
+                        stdout.append(stderr);
+                    }
+                    ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+
+                    Dataset ds = new Dataset();
+                    ds.setCreator(execution.getCreator());
+                    ds.addFileDescriptor(fd);
+                    SpringData.getBean(DatasetDAO.class).save(ds);
+
+                    execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds);
+                    saveExecution = true;
+                } catch (IOException exc) {
+                    logger.warn("Could not store output.", exc);
                 }
-                ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
-
-                Dataset ds = new Dataset();
-                ds.setCreator(execution.getCreator());
-                ds.addFileDescriptor(fd);
-                SpringData.getBean(DatasetDAO.class).save(ds);
-
-                execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds);
-                saveExecution = true;
-            } catch (IOException exc) {
-                logger.warn("Could not store output.", exc);
             }
-        }
-        if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
+            if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
+                try {
+                    ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+
+                    Dataset ds = new Dataset();
+                    ds.setCreator(execution.getCreator());
+                    ds.addFileDescriptor(fd);
+                    SpringData.getBean(DatasetDAO.class).save(ds);
+
+                    execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds);
+                    saveExecution = true;
+                } catch (IOException exc) {
+                    logger.warn("Could not store output.", exc);
+                }
+            }
+
+            // collect the output files
+            for (Entry<String, String> entry : outputfiles.entrySet()) {
+                try {
+                    FileInputStream fis = new FileInputStream(entry.getValue());
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(fis);
+
+                    Dataset ds = new Dataset();
+                    ds.setCreator(execution.getCreator());
+                    ds.addFileDescriptor(fd);
+                    SpringData.getBean(DatasetDAO.class).save(ds);
+
+                    execution.setDataset(step.getOutputs().get(entry.getValue()), ds);
+                    saveExecution = true;
+                } catch (IOException exc) {
+                    logger.warn("Could not store output.", exc);
+                }
+            }
+            if (saveExecution) {
+                SpringData.getBean(ExecutionDAO.class).save(execution);
+            }
+
+        } catch (AbortException e) {
+            throw e;
+        } catch (FailedException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw (new FailedException("Could not run transaction to save information about step.", e));
+        } finally {
             try {
-                ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
-
-                Dataset ds = new Dataset();
-                ds.setCreator(execution.getCreator());
-                ds.addFileDescriptor(fd);
-                SpringData.getBean(DatasetDAO.class).save(ds);
-
-                execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds);
-                saveExecution = true;
-            } catch (IOException exc) {
-                logger.warn("Could not store output.", exc);
+                if (t != null) {
+                    t.commit();
+                }
+            } catch (Exception e) {
+                throw (new FailedException("Could not commit transaction to save information about step.", e));
             }
-        }
-
-        // collect the output files
-        for (Entry<String, String> entry : outputfiles.entrySet()) {
-            try {
-                FileInputStream fis = new FileInputStream(entry.getValue());
-                FileDescriptor fd = SpringData.getFileStorage().storeFile(fis);
-
-                Dataset ds = new Dataset();
-                ds.setCreator(execution.getCreator());
-                ds.addFileDescriptor(fd);
-                SpringData.getBean(DatasetDAO.class).save(ds);
-
-                execution.setDataset(step.getOutputs().get(entry.getValue()), ds);
-                saveExecution = true;
-            } catch (IOException exc) {
-                logger.warn("Could not store output.", exc);
-            }
-        }
-        if (saveExecution) {
-            SpringData.getBean(ExecutionDAO.class).save(execution);
         }
     }
 
