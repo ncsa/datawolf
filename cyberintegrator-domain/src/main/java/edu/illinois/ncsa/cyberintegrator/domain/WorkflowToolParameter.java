@@ -38,6 +38,8 @@ import java.util.UUID;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
@@ -156,6 +158,7 @@ public class WorkflowToolParameter extends AbstractBean {
      * @param type
      *            sets the type of the workflow parameter.
      */
+    @JsonProperty("type")
     public void setType(ParameterType type) {
         this.type = type;
     }
@@ -167,6 +170,7 @@ public class WorkflowToolParameter extends AbstractBean {
      *            sets the type of the workflow parameter.
      * @deprecated see setType(ParameterType type)
      */
+    @JsonIgnore
     @Deprecated
     public void setType(String type) {
         try {
