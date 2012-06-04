@@ -44,9 +44,14 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
 @Entity(name = "Dataset")
 @Document(collection = "Dataset")
@@ -61,6 +66,7 @@ public class Dataset extends AbstractBean implements Serializable {
     private String               description      = "";        //$NON-NLS-1$
 
     /** Date the artifact is created */
+    @Temporal(TemporalType.TIMESTAMP)
     private Date                 date             = new Date();
 
     /** creator of the artifact */
@@ -130,6 +136,7 @@ public class Dataset extends AbstractBean implements Serializable {
      * 
      * @return date the artifact was created.
      */
+    @JsonSerialize(using = JsonDateSerializer.class)
     public Date getDate() {
         return date;
     }
