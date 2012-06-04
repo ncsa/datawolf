@@ -45,11 +45,13 @@ import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
 @Entity(name = "Workflow")
 @Document(collection = "Workflow")
@@ -64,7 +66,7 @@ public class Workflow extends AbstractBean {
     private String             description      = "";                           //$NON-NLS-1$
 
     /** Date the workflow is created */
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date               created          = new Date();
 
     /** creator of the workflow */
@@ -134,6 +136,7 @@ public class Workflow extends AbstractBean {
      * 
      * @return date the workflow was created.
      */
+    @JsonSerialize(using = JsonDateSerializer.class)
     public Date getCreated() {
         return created;
     }
