@@ -69,7 +69,7 @@ public class Execution extends AbstractBean {
     private static final long    serialVersionUID = 1L;
 
     /** Workflow that is executed */
-    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @DBRef
     private Workflow             workflow         = null;
 
