@@ -2,21 +2,6 @@
 <?eclipse version="3.2"?>
 <plugin>
    <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="edu.uiuc.ncsa.cyberintegrator.ui.perspective.Cyberintegrator">
-         <newWizardShortcut
-               id="edu.illinois.ncsa.cyberintegrator.executor.commandline.wizard.CommandLineWizard">
-         </newWizardShortcut>
-      </perspectiveExtension>
-      <perspectiveExtension
-            targetID="edu.uiuc.ncsa.cyberintegrator.ui.perspective.WorkflowBuilder">
-         <newWizardShortcut
-               id="edu.illinois.ncsa.cyberintegrator.executor.commandline.wizard.CommandLineWizard">
-         </newWizardShortcut>
-      </perspectiveExtension>
-   </extension>
-   <extension
          point="org.eclipse.ui.newWizards">
       <wizard
             category="edu.illinois.ncsa.cyberintegrator.rcp.cyberintegrator"
