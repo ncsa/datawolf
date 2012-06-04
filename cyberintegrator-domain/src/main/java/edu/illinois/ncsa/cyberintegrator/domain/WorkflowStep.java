@@ -43,12 +43,16 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
 @Entity(name = "WorkflowStep")
 @Document(collection = "WorkflowStep")
@@ -65,6 +69,7 @@ public class WorkflowStep extends AbstractBean {
     private Person              creator          = null;
 
     /** Date the workflow step is created */
+    @Temporal(TemporalType.TIMESTAMP)
     private Date                createDate       = new Date();
 
     /** Tool the workflow step is executing */
@@ -129,6 +134,7 @@ public class WorkflowStep extends AbstractBean {
      * 
      * @return date the workflow step was created.
      */
+    @JsonSerialize(using = JsonDateSerializer.class)
     public Date getCreateDate() {
         return createDate;
     }

@@ -45,13 +45,17 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
 @Entity(name = "WorkflowTool")
 @Document(collection = "WorkflowTool")
@@ -74,6 +78,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private WorkflowTool                previousVersion  = null;
 
     /** Date the workflow tool is created */
+    @Temporal(TemporalType.TIMESTAMP)
     private Date                        date             = new Date();
 
     /** implementation, this is executor specific. */
@@ -169,6 +174,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * 
      * @return date the workflow tool was created.
      */
+    @JsonSerialize(using = JsonDateSerializer.class)
     public Date getDate() {
         return date;
     }
