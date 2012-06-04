@@ -6,6 +6,16 @@
 		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
 		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
+	<bean id="engine" class="edu.illinois.ncsa.cyberintegrator.ThreadedEngine">
+		<property name="executors">
+			<set>
+				<bean class="edu.illinois.ncsa.cyberintegrator.executor.java.JavaExecutor" />
+				<bean
+					class="edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineExecutor" />
+			</set>
+		</property>
+	</bean>
+	
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 
 	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorage" />
