@@ -95,6 +95,34 @@ public class CyberintegratorServiceClient {
         return null;
     }
 
+    public static String getWorkflowJSONById(String id) {
+        String responseStr = null;
+
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/workflows/" + id;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.info("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return responseStr;
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
+
     public static FileDescriptor get(String id) {
         String responseStr = null;
         FileDescriptor fd = null;

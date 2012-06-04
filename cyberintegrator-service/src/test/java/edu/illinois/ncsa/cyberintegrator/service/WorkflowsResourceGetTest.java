@@ -1,9 +1,13 @@
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -19,14 +23,15 @@ import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.SpringData;
 
 public class WorkflowsResourceGetTest {
-    private static Logger   logger   = LoggerFactory.getLogger(WorkflowsResourceGetTest.class);
+    private static Logger   logger       = LoggerFactory.getLogger(WorkflowsResourceGetTest.class);
 
-    private static String   id       = null;
-    private static Workflow workflow = null;
+    private static String   id           = null;
+    private static Workflow workflow     = null;
+    private static String   workflowJson = null;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        logger.debug("Setting up Test for Workflow Resource");
+        logger.info("Setting up Test for Workflow Resource");
 
         new GenericXmlApplicationContext("testContext.xml");
 
@@ -38,15 +43,21 @@ public class WorkflowsResourceGetTest {
         SpringData.getBean(WorkflowDAO.class).save(workflow);
         id = workflow.getId();
 
+        StringWriter sw = new StringWriter();
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(sw, workflow);
+        workflowJson = sw.toString();
+
         CyberintegratorServiceClient.SERVER = "http://localhost:8088";
 
         RestServer.jettyServer("src/test/resources", "testContext.xml");
     }
 
     @Test
-    public void testGetIdForFileDescriptor() throws Exception {
-        Workflow wf = CyberintegratorServiceClient.getWorkflowById(id);
-
+    public void testGetWorkflowById() throws Exception {
+        logger.info("Test get workflow by id");
+        String wfJson = CyberintegratorServiceClient.getWorkflowJSONById(id);
+        assertEquals(workflowJson, wfJson);
     }
 
     public static Workflow createWorkflow(Person creator, int steps) {
