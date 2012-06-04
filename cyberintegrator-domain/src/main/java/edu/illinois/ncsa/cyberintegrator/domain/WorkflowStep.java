@@ -68,7 +68,7 @@ public class WorkflowStep extends AbstractBean {
     private Date                createDate       = new Date();
 
     /** Tool the workflow step is executing */
-    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @DBRef
     private WorkflowTool        tool             = null;
 
