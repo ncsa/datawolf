@@ -66,7 +66,7 @@ public class RestServer {
 //        SpringData.getBean(ExecutionDAO.class).save(e);
     }
 
-    private static void tjwsServer() throws Exception {
+    public static void tjwsServer() throws Exception {
         TJWSEmbeddedJaxrsServer tjws = new TJWSEmbeddedJaxrsServer();
         tjws.setPort(PORT);
         tjws.setRootResourcePath("/");
@@ -81,12 +81,12 @@ public class RestServer {
         System.out.println("http://localhost:" + PORT);
     }
 
-    private static void jettyServer() throws Exception {
+    public static void jettyServer(String resourceBase, String configXml) throws Exception {
         Server server = new Server(PORT);
 
         // create the context, point to location of resources
         Context root = new Context(server, "/", Context.SESSIONS);
-        root.setResourceBase("src/main/resources");
+        root.setResourceBase(resourceBase);
 
         // setup resteasy
         Map<String, String> initParams = new HashMap<String, String>();
@@ -97,7 +97,7 @@ public class RestServer {
 
         // create spring context
         XmlWebApplicationContext xmlContext = new XmlWebApplicationContext();
-        xmlContext.setConfigLocation("applicationContext.xml");
+        xmlContext.setConfigLocation(configXml);
         xmlContext.setServletContext(root.getServletContext());
         xmlContext.refresh();
 
@@ -110,7 +110,7 @@ public class RestServer {
         System.out.println("http://localhost:" + PORT);
     }
 
-    private static void jettyServerWithWebXml() throws Exception {
+    public static void jettyServerWithWebXml() throws Exception {
         Server server = new Server(PORT);
 
         WebAppContext context = new WebAppContext();
