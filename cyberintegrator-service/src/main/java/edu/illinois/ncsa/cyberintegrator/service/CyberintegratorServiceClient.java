@@ -11,6 +11,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -63,6 +64,31 @@ public class CyberintegratorServiceClient {
 //        }
 //        return null;
 //    }
+
+    public static void startExecutionById(String id) {
+        String responseStr = null;
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/executions/" + id + "/start";
+            HttpPut httpPut = new HttpPut(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.info("executing request " + httpPut.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpPut, responseHandler);
+                logger.debug("Response String: " + responseStr);
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+            } catch (Exception ignore) {}
+        }
+    }
 
     public static Workflow getWorkflowById(String id) {
         String responseStr = null;

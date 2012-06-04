@@ -47,6 +47,7 @@ import javax.ws.rs.core.MediaType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
@@ -147,7 +148,11 @@ public class ExecutionsResource {
     @PUT
     @Path("{execution-id}/start")
     public void startExecution(@PathParam("execution-id") String executionId) {
-
+        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
+        Execution execution = exedao.findOne(executionId);
+        Engine engine = SpringData.getBean(Engine.class);
+        engine.execute(execution);
+        execution = exedao.findOne(executionId);
     }
 
     /**
