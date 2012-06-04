@@ -141,11 +141,11 @@ public class Workflow extends AbstractBean {
     /**
      * Sets the date when the workflow was created.
      * 
-     * @param date
+     * @param created
      *            sets the date when the workflow was created.
      * 
      */
-    public void setDate(Date created) {
+    public void setCreated(Date created) {
         this.created = created;
     }
 
