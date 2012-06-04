@@ -68,7 +68,7 @@ public class Workflow extends AbstractBean {
     private Date               created          = new Date();
 
     /** creator of the workflow */
-    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @DBRef
     private Person             creator          = null;
 
