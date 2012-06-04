@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -61,71 +60,39 @@ import edu.illinois.ncsa.springdata.Transaction;
  * @author Rob Kooper
  */
 public class Engine {
-    private static final Logger   logger         = LoggerFactory.getLogger(Engine.class);
-
-    /** key in properties file for the number of workers for Engine */
-    private static final String   WORKERS_ENGINE = "workers.engine";
-
-    /** key in properties file for the number of workers for LocalExecutor */
-    private static final String   WORKERS_LOCAL  = "workers.local";
+    private static final Logger   logger    = LoggerFactory.getLogger(Engine.class);
 
     /** All known executors. */
-    private Map<String, Executor> executors      = new HashMap<String, Executor>();
+    private Map<String, Executor> executors = new HashMap<String, Executor>();
 
     /** List of all workers */
-    private List<WorkerThread>    workers        = new ArrayList<WorkerThread>();
+    private List<WorkerThread>    workers   = new ArrayList<WorkerThread>();
 
     /**
-     * Create the engine with no properties set.
+     * Create the engine with a single worker.
      */
     public Engine() {
-        this(null);
+        this(1);
     }
 
     /**
      * Create the engine with a default set of properties.
      * 
-     * @param properties
-     *            the default properties to use.
+     * @param threads
+     *            the number of workers to use for the engine
      */
-    public Engine(Properties properties) {
-        setProperties(properties);
+    public Engine(int threads) {
+        for (int i = 0; i < threads; i++) {
+            WorkerThread wt = new WorkerThread();
+            workers.add(wt);
+            wt.start();
+        }
+
         loadQueue();
     }
 
-    /**
-     * Saves the properties passed in. If the engine is already running it will
-     * call initialize.
-     * 
-     * @param properties
-     *            engine properties
-     */
-    public void setProperties(Properties properties) {
-        if (workers.size() == 0) {
-            int engineThreads = 1;
-            if ((properties != null)) {
-                try {
-                    engineThreads = Integer.parseInt(properties.getProperty(WORKERS_ENGINE, "1"));
-                    if (engineThreads < 1) {
-                        engineThreads = 1;
-                    }
-                } catch (NumberFormatException e) {
-                    logger.warn("Could not parse number of workers for engine.", e);
-                }
-            }
-            for (int i = 0; i < engineThreads; i++) {
-                WorkerThread wt = new WorkerThread();
-                workers.add(wt);
-                wt.start();
-            }
-        }
-        if ((properties != null) && properties.containsKey(WORKERS_LOCAL)) {
-            try {
-                LocalExecutor.setWorkers(Integer.parseInt(properties.getProperty(WORKERS_LOCAL)));
-            } catch (NumberFormatException e) {
-                logger.warn("Could not parse number of workers for local executor.", e);
-            }
-        }
+    public void setLocalExecutorThreads(int threads) {
+        LocalExecutor.setWorkers(threads);
     }
 
     /**
