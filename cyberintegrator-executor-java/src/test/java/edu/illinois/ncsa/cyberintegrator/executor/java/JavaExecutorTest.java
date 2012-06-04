@@ -5,6 +5,7 @@ package edu.illinois.ncsa.cyberintegrator.executor.java;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -22,6 +23,7 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import edu.illinois.ncsa.cyberintegrator.AbortException;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
+import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
@@ -30,6 +32,8 @@ import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Dataset;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter.ParameterType;
+import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.springdata.SpringData;
@@ -81,9 +85,6 @@ public class JavaExecutorTest {
 
     @Test
     public void testExecutor() throws Exception {
-        JavaExecutor exec = new JavaExecutor();
-        assertTrue(exec.canRun());
-
         String datasetid = UUID.randomUUID().toString();
 
         edu.illinois.ncsa.domain.Dataset dataset = new edu.illinois.ncsa.domain.Dataset();
@@ -93,16 +94,40 @@ public class JavaExecutorTest {
         WorkflowStep step = new WorkflowStep();
         step.setTool(createTool());
         step.setInput("1", datasetid);
+        SpringData.getBean(WorkflowStepDAO.class).save(step);
 
         Execution execution = new Execution();
         execution.setDataset(datasetid, dataset);
         execution.setParameter(step.getParameters().values().iterator().next(), "WORLD");
+        SpringData.getBean(ExecutionDAO.class).save(execution);
 
-        File tmp = File.createTempFile("ciexec", "tmp");
-        tmp.delete();
-        tmp.mkdirs();
+        JavaExecutor exec = new JavaExecutor();
+        assertTrue(exec.isExecutorReady());
+        exec.setJobInformation(execution, step);
+        exec.startJob();
 
-        exec.execute(tmp, execution, step);
+        int loop = 0;
+        while ((exec.getState() != State.FINISHED) && (loop < 100)) {
+            if (exec.getState() == State.FAILED) {
+                System.out.println(exec.getLog());
+                fail("Execution FAILED");
+            }
+            if (exec.getState() == State.ABORTED) {
+                System.out.println(exec.getLog());
+                fail("Execution ABORTED");
+            }
+            Thread.sleep(100);
+            loop++;
+        }
+        if (exec.getState() != State.FINISHED) {
+            System.out.println(exec.getLog());
+            fail("Execution NEVER FINISHED");
+        }
+
+        Transaction t = SpringData.getTransaction();
+        t.start(true);
+
+        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
 
         String outputid = step.getOutputs().values().iterator().next();
         assertTrue(execution.hasDataset(outputid));
@@ -115,6 +140,8 @@ public class JavaExecutorTest {
         is.read(buf);
 
         assertEquals("HELLO WORLD", new String(buf, "UTF-8"));
+
+        t.commit();
     }
 
     private WorkflowTool createTool() {
