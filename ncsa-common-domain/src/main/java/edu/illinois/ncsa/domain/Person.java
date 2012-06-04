@@ -33,6 +33,7 @@ package edu.illinois.ncsa.domain;
 
 import javax.persistence.Entity;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Entity(name = "Person")
@@ -88,16 +89,19 @@ public class Person extends AbstractBean {
      * @param lastName
      *            the last name of the person.
      */
+    @JsonIgnore
     public void setName(String firstName, String lastName) {
         setFirstName(firstName);
         setLastName(lastName);
     }
 
     /**
-     * This will return the formatted name. The name will be lastname, firstname.
+     * This will return the formatted name. The name will be lastname,
+     * firstname.
      * 
      * @return Returns a formatted lastname, firstname.
      */
+    @JsonIgnore
     public String getName() {
         if ((lastName != null) && !lastName.equals("")) {
             if ((firstName != null) && !firstName.equals("")) {
