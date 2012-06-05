@@ -237,7 +237,7 @@ public class ShiftCharsTool implements JavaTool {
                             StringBuilder newLine = new StringBuilder();
                             for (int i = 0; i < line.length(); i++) {
                                 char shifted = (char) (line.charAt(i) + shift);
-                                newLine.setCharAt(i, shifted);
+                                newLine.append(shifted);
                             }
                             bw.write(newLine.toString());
                             bw.newLine();
