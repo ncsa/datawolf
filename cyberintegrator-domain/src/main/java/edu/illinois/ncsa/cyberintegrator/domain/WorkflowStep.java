@@ -306,7 +306,7 @@ public class WorkflowStep extends AbstractBean {
      * @return the mapping from tool parameter to unique id's.
      */
     public Map<String, String> getParameters() {
-        return inputs;
+        return parameters;
     }
 
     /**
