@@ -51,11 +51,11 @@ import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DisposeClassLoader extends URLClassLoader {
-    private static Log               log                     = LogFactory.getLog(DisposeClassLoader.class);
+    private static Logger            log                     = LoggerFactory.getLogger(DisposeClassLoader.class);
 
     private static final boolean     ENABLE_CLEAR_REFERENCES = true;
 
@@ -68,6 +68,8 @@ public class DisposeClassLoader extends URLClassLoader {
     static {
         addTriggerPackage("org.tupeloproject");
         addTriggerPackage("edu.uiuc.ncsa.cyberintegrator.executor.cyberintegrator.tool");
+        addTriggerPackage("edu.illinois.ncsa.cyberintegrator.executor.java.tool");
+
     }
 
     public static void addTriggerPackage(String pkg) {
