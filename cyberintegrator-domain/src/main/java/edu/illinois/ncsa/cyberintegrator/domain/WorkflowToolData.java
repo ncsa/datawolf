@@ -145,6 +145,6 @@ public class WorkflowToolData extends AbstractBean implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s [%s]", title, mimeType);
+        return title + " [" + mimeType + "]";
     }
 }

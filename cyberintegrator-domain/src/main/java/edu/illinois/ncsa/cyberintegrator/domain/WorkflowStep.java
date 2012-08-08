@@ -232,7 +232,7 @@ public class WorkflowStep extends AbstractBean {
                 return tool.getOutput(entry.getKey());
             }
         }
-        throw (new IllegalArgumentException(String.format("No output with [%s] known to tool.", id)));
+        throw (new IllegalArgumentException("No output with [" + id + "] known to tool."));
     }
 
     /**
@@ -266,7 +266,7 @@ public class WorkflowStep extends AbstractBean {
                 return tool.getInput(entry.getKey());
             }
         }
-        throw (new IllegalArgumentException(String.format("No input with [%s] known to tool.", id)));
+        throw (new IllegalArgumentException("No input with [" + id + "] known to tool."));
     }
 
     /**
@@ -293,7 +293,7 @@ public class WorkflowStep extends AbstractBean {
      */
     public void setInput(String inputid, String outputid) {
         if (tool.getInput(inputid) == null) {
-            throw (new IllegalArgumentException(String.format("No input with [%s] known to tool.", inputid)));
+            throw (new IllegalArgumentException("No input with [" + inputid + "] known to tool."));
         }
         inputs.put(inputid, outputid);
     }
@@ -327,6 +327,6 @@ public class WorkflowStep extends AbstractBean {
                 return tool.getParameter(entry.getKey());
             }
         }
-        throw (new IllegalArgumentException(String.format("No parameter with [%s] known to tool.", id)));
+        throw (new IllegalArgumentException("No parameter with [" + id + "] known to tool."));
     }
 }
