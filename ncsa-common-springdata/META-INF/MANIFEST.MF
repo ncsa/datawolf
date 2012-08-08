@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1336586735454
-Build-Jdk: 1.6.0_31
-Built-By: kooper
+Bnd-LastModified: 1344374776638
+Build-Jdk: 1.6.0_33
+Built-By: lmarini
 Bundle-ManifestVersion: 2
 Bundle-Name: ncsa-common-springdata
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -16,5 +16,12 @@ Export-Package: edu.illinois.ncsa.springdata;uses:="edu.illinois.ncsa.do
  support,org.springframework.beans,org.springframework.core.io,org.sprin
  gframework.context,org.springframework.transaction.support";version="1.
  0.0.qualifier"
+Import-Package: edu.illinois.ncsa.domain;version="[1.0,2)",edu.illinois.
+ ncsa.domain.event;version="[1.0,2)",org.slf4j;version="[1.6,2)",org.spr
+ ingframework.beans;version="[1.0,2)",org.springframework.context;versio
+ n="[3.1,4)",org.springframework.context.support;version="[3.1,4)",org.s
+ pringframework.core.io;version="[3.1,4)",org.springframework.data.repos
+ itory;version="[1.3,2)",org.springframework.transaction;version="[3.1,4
+ )",org.springframework.transaction.support;version="[3.1,4)"
 Require-Bundle: ncsa-common-domain,spring-libraries
 Tool: Bnd-1.50.0

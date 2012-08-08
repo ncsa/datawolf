@@ -84,7 +84,7 @@ public class FileStorage {
         // set the url to the new url
         fd.setDataURL(check.getDataURL());
 
-        return check.getDataURL();
+        return new URL(check.getDataURL());
     }
 
     private FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
@@ -146,7 +146,7 @@ public class FileStorage {
 
         // create the fd fields
         // TODO RK : add mimetype
-        fd.setDataURL(output.toURI().toURL());
+        fd.setDataURL(output.toURI().toURL().toString());
         if (md5 != null) {
             fd.setMd5sum(md5.digest());
         }
@@ -159,6 +159,6 @@ public class FileStorage {
 
     public InputStream readFile(FileDescriptor fd) throws IOException {
         // TODO RK : add some caching
-        return fd.getDataURL().openStream();
+        return new URL(fd.getDataURL()).openStream();
     }
 }

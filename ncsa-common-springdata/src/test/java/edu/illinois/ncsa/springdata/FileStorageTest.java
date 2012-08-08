@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.security.MessageDigest;
 
 import org.junit.BeforeClass;
@@ -44,7 +45,7 @@ public class FileStorageTest {
         FileStorage fs = SpringData.getFileStorage();
         fs.storeFile(fd, new ByteArrayInputStream(x.getBytes()));
 
-        assertTrue(fd.getDataURL().toExternalForm().endsWith("/11/22/33/11223344556677/text.txt"));
+        assertTrue(new URL(fd.getDataURL()).toExternalForm().endsWith("/11/22/33/11223344556677/text.txt"));
 
         BufferedReader br = new BufferedReader(new InputStreamReader(fs.readFile(fd)));
         String line = br.readLine();

@@ -31,9 +31,15 @@
  ******************************************************************************/
 package edu.illinois.ncsa.springdata;
 
+import java.util.List;
+
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import edu.illinois.ncsa.domain.Dataset;
 
 public interface DatasetDAO extends PagingAndSortingRepository<Dataset, String> {
+
+    List<Dataset> ﬁndByCreatorByEmailLike(String email);
+
+    Dataset findById(String id);
 }
