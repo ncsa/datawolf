@@ -32,7 +32,6 @@
 package edu.illinois.ncsa.domain;
 
 import java.math.BigInteger;
-import java.net.URL;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -57,7 +56,7 @@ public class FileDescriptor extends AbstractBean {
     private long              size             = -1;
 
     /** url where the actual data is stored */
-    private URL               dataURL;
+    private String            dataURL;
 
     /** md5 sum of the actual data */
     @Column(length = 32)
@@ -130,7 +129,7 @@ public class FileDescriptor extends AbstractBean {
     /**
      * @return the dataURL
      */
-    public URL getDataURL() {
+    public String getDataURL() {
         return dataURL;
     }
 
@@ -138,7 +137,7 @@ public class FileDescriptor extends AbstractBean {
      * @param dataURL
      *            the dataURL to set
      */
-    public void setDataURL(URL dataURL) {
+    public void setDataURL(String dataURL) {
         this.dataURL = dataURL;
     }
 
