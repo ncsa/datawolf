@@ -39,7 +39,7 @@ import edu.illinois.ncsa.domain.Dataset;
 
 public interface DatasetDAO extends PagingAndSortingRepository<Dataset, String> {
 
-    List<Dataset> ﬁndByCreatorByEmailLike(String email);
+    List<Dataset> findByCreatorByEmailLike(String email);
 
     Dataset findById(String id);
 }
