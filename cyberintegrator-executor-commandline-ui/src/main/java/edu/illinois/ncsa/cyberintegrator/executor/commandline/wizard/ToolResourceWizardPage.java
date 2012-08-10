@@ -43,7 +43,6 @@ package edu.illinois.ncsa.cyberintegrator.executor.commandline.wizard;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -183,15 +182,11 @@ public class ToolResourceWizardPage extends WizardPage {
                             }
                         }
                         if (!found) {
-                            try {
-                                FileDescriptor desc = new FileDescriptor();
-                                desc.setId(UNSAVED_DATA);
-                                desc.setFilename(filename);
-                                desc.setDataURL(new URL("file:" + fd.getFilterPath() + File.separator + filename));
-                                fileDescriptors.add(desc);
-                            } catch (MalformedURLException e1) {
-                                logger.error("Could not add requested file : " + fd.getFilterPath() + File.separator + filename);
-                            }
+                            FileDescriptor desc = new FileDescriptor();
+                            desc.setId(UNSAVED_DATA);
+                            desc.setFilename(filename);
+                            desc.setDataURL("file:" + fd.getFilterPath() + File.separator + filename);
+                            fileDescriptors.add(desc);
                         }
                     }
                 }
@@ -236,7 +231,7 @@ public class ToolResourceWizardPage extends WizardPage {
         FileStorage fs = SpringData.getBean(FileStorage.class);
         for (FileDescriptor fd : fileDescriptors) {
             if (fd.getId().equals(UNSAVED_DATA)) {
-                tool.addBlob(fs.storeFile(fd.getFilename(), fd.getDataURL().openStream()));
+                tool.addBlob(fs.storeFile(fd.getFilename(), new URL(fd.getDataURL()).openStream()));
             } else {
                 tool.addBlob(fd);
             }

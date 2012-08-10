@@ -41,6 +41,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.executor.java.wizard;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -133,7 +134,11 @@ public class ToolSelectWizardPage extends WizardPage {
         // Fill the reflections classloader
         URL[] urls = new URL[files.size()];
         for (int i = 0; i < urls.length; i++) {
-            urls[i] = files.get(i).getDataURL();
+            try {
+                urls[i] = new URL(files.get(i).getDataURL());
+            } catch (MalformedURLException e) {
+                logger.error("file is not a valid url " + files.get(i).getDataURL(), e);
+            }
         }
 
         // find all the tools

@@ -58,7 +58,7 @@ public class Main extends JFrame {
                         fd.setFilename(file.getName());
                         fd.setMimeType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file));
                         fd.setSize(file.length());
-                        fd.setDataURL(file.toURI().toURL());
+                        fd.setDataURL(file.toURI().toString());
                         dataset.addFileDescriptor(fd);
 
                         datasetDAO.save(dataset);
