@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.StringWriter;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -45,6 +46,11 @@ public class WorkflowsResourceGetTest {
         CyberintegratorServiceClient.SERVER = "http://localhost:8088";
 
         RestServer.jettyServer("src/test/resources", "testContext.xml");
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        RestServer.stop();
     }
 
     @Test

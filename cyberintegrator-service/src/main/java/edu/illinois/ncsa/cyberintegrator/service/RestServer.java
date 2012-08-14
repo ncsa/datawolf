@@ -53,6 +53,7 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
 
 public class RestServer {
     public static final int PORT = 8088;
+    private static Server   server;
 
     public static void main(String[] args) throws Exception {
 //        jettyServer();
@@ -82,7 +83,7 @@ public class RestServer {
     }
 
     public static void jettyServer(String resourceBase, String configXml) throws Exception {
-        Server server = new Server(PORT);
+        server = new Server(PORT);
 
         // create the context, point to location of resources
         Context root = new Context(server, "/", Context.SESSIONS);
@@ -111,7 +112,7 @@ public class RestServer {
     }
 
     public static void jettyServerWithWebXml() throws Exception {
-        Server server = new Server(PORT);
+        server = new Server(PORT);
 
         WebAppContext context = new WebAppContext();
         context.setDescriptor("src/main/webapp/WEB-INF/web.xml");
@@ -124,5 +125,14 @@ public class RestServer {
         // start jetty
         server.start();
         System.out.println("http://localhost:" + PORT);
+    }
+
+    public static void stop() {
+        try {
+            server.stop();
+        } catch (Exception e) {
+            System.err.println("Error shutting down jetty server: " + e);
+        }
+        System.out.println("Jetty server stopped");
     }
 }

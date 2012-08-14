@@ -2,6 +2,7 @@ package edu.illinois.ncsa.cyberintegrator.service;
 
 import java.util.List;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -44,6 +45,11 @@ public class ExecutionsResourceGetTest {
         CyberintegratorServiceClient.SERVER = "http://localhost:8088";
 
         RestServer.jettyServer("src/test/resources", "testContext.xml");
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        RestServer.stop();
     }
 
     @Test
