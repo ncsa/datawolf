@@ -215,6 +215,19 @@ public class WorkflowStep extends AbstractBean {
     }
 
     /**
+     * Returns a map of id of step's output to the tool's data definition.
+     * 
+     * @return map of id of step's output to the tool's data definition.
+     */
+    public Map<String, WorkflowToolData> getOutputsToolData() {
+        Map<String, WorkflowToolData> result = new HashMap<String, WorkflowToolData>();
+        for (Entry<String, String> entry : outputs.entrySet()) {
+            result.put(entry.getKey(), tool.getOutput(entry.getValue()));
+        }
+        return result;
+    }
+
+    /**
      * Returns a specific output. The output returned is based on the unique id
      * generated for the outputs of the tool for this step.
      * 
@@ -246,6 +259,19 @@ public class WorkflowStep extends AbstractBean {
      */
     public Map<String, String> getInputs() {
         return inputs;
+    }
+
+    /**
+     * Returns a map of id of step's input to the tool's data definition.
+     * 
+     * @return map of id of step's input to the tool's data definition.
+     */
+    public Map<String, WorkflowToolData> getInputsToolData() {
+        Map<String, WorkflowToolData> result = new HashMap<String, WorkflowToolData>();
+        for (Entry<String, String> entry : inputs.entrySet()) {
+            result.put(entry.getKey(), tool.getOutput(entry.getValue()));
+        }
+        return result;
     }
 
     /**
