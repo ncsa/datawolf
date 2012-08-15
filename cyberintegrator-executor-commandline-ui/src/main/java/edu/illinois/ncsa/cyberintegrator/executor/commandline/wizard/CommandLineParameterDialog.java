@@ -39,6 +39,7 @@ public class CommandLineParameterDialog extends Dialog {
     private Text                  txtValue;
     private Button                btnHidden;
     private Button                btnAllowNull;
+    private Button                btnIsCommandLine;
 
     public CommandLineParameterDialog(Shell shell, CommandLineOption option, WorkflowToolParameter param) {
         super(shell);
@@ -118,6 +119,11 @@ public class CommandLineParameterDialog extends Dialog {
         btnAllowNull.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
         btnAllowNull.setSelection(param.isAllowNull());
 
+        btnIsCommandLine = new Button(composite, SWT.CHECK);
+        btnIsCommandLine.setText("Commandline?");
+        btnIsCommandLine.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+        btnIsCommandLine.setSelection(option.isCommandline());
+
         applyDialogFont(composite);
         return composite;
     }
@@ -149,6 +155,7 @@ public class CommandLineParameterDialog extends Dialog {
         option.setType(Type.PARAMETER);
         option.setFlag(txtFlag.getText().trim());
         option.setParameterValue(param.getParameterId());
+        option.setCommandline(btnIsCommandLine.getSelection());
 
         param.setTitle(txtName.getText().trim());
         param.setDescription(txtDescription.getText().trim());

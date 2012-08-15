@@ -130,7 +130,10 @@ public class CommandLineDataDialog extends Dialog {
         lbl.setText("Filename:");
         txtFilename = new Text(composite, SWT.BORDER | SWT.SINGLE);
         txtFilename.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
-        txtFilename.setText(option.getFilename());
+
+        if (option.getFilename() != null) {
+            txtFilename.setText(option.getFilename());
+        }
         txtFilename.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
