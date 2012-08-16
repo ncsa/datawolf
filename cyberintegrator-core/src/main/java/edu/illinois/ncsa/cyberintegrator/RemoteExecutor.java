@@ -39,6 +39,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
      */
     @Override
     public void startJob() {
+        setState(State.QUEUED);
         remoteThread = new Thread(this);
         remoteThread.start();
     }
@@ -58,12 +59,6 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
      * is and fetch any remote information.
      */
     public void run() {
-        setState(State.QUEUED);
-
-        // CMN : I had an issue with
-        // setState(State.RUNNING);
-        System.out.println("CALLING RUN");
-
         // setup anything local required for the job
         File cwd = null;
 

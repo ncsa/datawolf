@@ -397,7 +397,7 @@ public class Engine {
                     // little sleep
                     try {
                         // CMN : hpc executor was launching 2 jobs at 10ms sleep
-                        Thread.sleep(100);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {}
                 } catch (Throwable thr) {
                     logger.error("Runaway exception in engine.", thr);
