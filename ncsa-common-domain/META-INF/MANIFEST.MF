@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1345130681737
-Build-Jdk: 1.6.0_33
-Built-By: lmarini
+Bnd-LastModified: 1345217085105
+Build-Jdk: 1.6.0_24
+Built-By: kooper
 Bundle-ManifestVersion: 2
 Bundle-Name: ncsa-common-domain
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -10,13 +10,13 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: Apache Maven Bundle Plugin
 Eclipse-BuddyPolicy: registered
 Eclipse-RegisterBuddy: spring-libraries
-Export-Package: edu.illinois.ncsa.domain;uses:="javax.persistence,org.sp
- ringframework.data.mongodb.core.mapping,edu.illinois.ncsa.domain.jackso
- n,org.codehaus.jackson.map.annotate,org.codehaus.jackson.annotate";vers
- ion="1.0.0.qualifier",edu.illinois.ncsa.domain.event;uses:="edu.illinoi
- s.ncsa.domain";version="1.0.0.qualifier",edu.illinois.ncsa.domain.jacks
- on;uses:="org.codehaus.jackson.map,org.codehaus.jackson";version="1.0.0
- .qualifier",java.util;version="1.0.0.qualifier"
+Export-Package: edu.illinois.ncsa.domain.jackson;uses:="org.codehaus.jac
+ kson.map,org.codehaus.jackson";version="1.0.0.qualifier",edu.illinois.n
+ csa.domain;uses:="javax.persistence,org.springframework.data.mongodb.co
+ re.mapping,edu.illinois.ncsa.domain.jackson,org.codehaus.jackson.map.an
+ notate,org.codehaus.jackson.annotate";version="1.0.0.qualifier",edu.ill
+ inois.ncsa.domain.event;uses:="edu.illinois.ncsa.domain";version="1.0.0
+ .qualifier"
 Import-Package: javax.persistence;version="[1.0,2)",org.codehaus.jackson
  ;version="[1.8,2)",org.codehaus.jackson.annotate;version="[1.8,2)",org.
  codehaus.jackson.map;version="[1.8,2)",org.codehaus.jackson.map.annotat

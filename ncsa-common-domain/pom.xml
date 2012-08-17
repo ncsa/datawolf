@@ -32,6 +32,8 @@
 					<instructions>
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Version>$(replace;${project.version};-SNAPSHOT;.qualifier)</Bundle-Version>
+						<Export-Package>edu.illinois.ncsa.*</Export-Package>
+						<Private-Package>java.util</Private-Package>
 						<Require-Bundle>
 							spring-libraries
 						</Require-Bundle>
