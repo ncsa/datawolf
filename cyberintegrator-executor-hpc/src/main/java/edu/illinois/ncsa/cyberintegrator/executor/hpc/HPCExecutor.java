@@ -146,7 +146,7 @@ public class HPCExecutor extends RemoteExecutor {
                             throw (new FailedException("Could not create temp file.", exc));
                         }
                     }
-                    stagedFiles = filename;
+                    stagedFiles = cwd.getAbsolutePath() + NonNLSConstants.PATH_SEP + filename;
                     if (option.getInputOutput() != InputOutput.OUTPUT) {
 
                         String optionId = option.getOptionId();
