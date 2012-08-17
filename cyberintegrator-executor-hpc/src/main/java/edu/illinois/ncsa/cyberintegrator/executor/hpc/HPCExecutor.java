@@ -50,6 +50,18 @@ import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
 
+/**
+ * The HPCExecutor will launch remote jobs based on machine information provided
+ * in the XML template. The executable will be passed an arbitrary set of
+ * parameters at the command line based on what the user specified when creating
+ * the tool. Limitation: file staging currently needs to happen in a separate
+ * tool.
+ * 
+ * TODO CMN : add file staging capability
+ * 
+ * @author "Chris Navarro <cmnavarr@illinois.edu>"
+ * 
+ */
 public class HPCExecutor extends RemoteExecutor {
     private static Logger       logger         = LoggerFactory.getLogger(HPCExecutor.class);
     private static final String NL             = System.getProperty("line.separator");
@@ -82,7 +94,7 @@ public class HPCExecutor extends RemoteExecutor {
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
 
         // contains logging information from job run
-        log = new File(cwd, "log");
+        log = new File(cwd, NonNLSConstants.LOG);
 
         // This is where we'll look for .ssh keys
         String home = System.getProperty("user.home");
@@ -112,7 +124,7 @@ public class HPCExecutor extends RemoteExecutor {
                         command.add(value);
                         // parameters.add(option);
                     } else {
-                        // add special parameters
+                        // add special parameters that are expected
                         WorkflowToolParameter param = step.getParameter(key);
 
                         if (param.getTitle().equals("Target Username")) {
@@ -159,7 +171,6 @@ public class HPCExecutor extends RemoteExecutor {
                         }
                     }
                     break;
-
                 }
             }
 
@@ -199,6 +210,7 @@ public class HPCExecutor extends RemoteExecutor {
 
             job = createJob(workflow, command, jc);
             jobParser = new JobInfoParser(job.getStatusHandler().getParser());
+
             // Generate job script locally
             File tmpScript = writeLocalScript(job.getScript(), stagingDir, normUuid, targetLineSep);
 
@@ -206,7 +218,7 @@ public class HPCExecutor extends RemoteExecutor {
             String scriptPath = stageFile(tmpScript, stagingDir, session, NonNLSConstants.SCRIPT);
 
             // path to remote log file
-            remoteLogFile = stagingDir + "log";
+            remoteLogFile = stagingDir + NonNLSConstants.LOG;
 
             String jobId = submit(job, scriptPath, session, targetLineSep);
 
@@ -315,7 +327,7 @@ public class HPCExecutor extends RemoteExecutor {
         // Create executable line from the user specified exe and inputs
         LineType executionLine = new LineType();
         Iterator<String> iterator = fileMap.keySet().iterator();
-        String content = "sh " + executablePath;// line.getContent();
+        String content = "sh" + NonNLSConstants.SP + executablePath;// line.getContent();
 
         // Add parameters to command line
         StringBuilder sb = new StringBuilder();
@@ -329,14 +341,14 @@ public class HPCExecutor extends RemoteExecutor {
         while (iterator.hasNext()) {
             String key = iterator.next();
             String fileLocation = fileMap.get(key);
-            content = content.concat(" -" + key + " " + fileLocation);
+            content = content.concat(NonNLSConstants.SP + "-" + key + NonNLSConstants.SP + fileLocation);
         }
 
         executionLine.setContent(content);
         script.getLine().add(executionLine);
 
         LineType done = new LineType();
-        done.setContent("echo DONE");
+        done.setContent("echo" + NonNLSConstants.SP + NonNLSConstants.DONE);
         done.setLog(true);
         script.getLine().add(done);
     }
@@ -453,12 +465,10 @@ public class HPCExecutor extends RemoteExecutor {
                 String key = step.getOutputs().get(logId);
                 execution.setDataset(key, ds);
             } finally {
-                System.out.println("Commit dataset");
                 t.commit();
             }
         } catch (Throwable e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.error("Error retrieving log file from remote system and writing it to a dataset.", e);
         }
         // At this point qstat didn't return anything so we assume finished and
         // need to check the log to see if we have a failure or success
