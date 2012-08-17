@@ -62,7 +62,6 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
         // setup anything local required for the job
         File cwd = null;
 
-        // submit job first
         try {
             cwd = File.createTempFile("cib", ".dir"); //$NON-NLS-1$ //$NON-NLS-2$
             cwd.delete();
@@ -73,6 +72,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
             // setup the executor
             setup(cwd);
 
+            // submit job first
             State state = submitRemoteJob(cwd);
             setState(state);
 

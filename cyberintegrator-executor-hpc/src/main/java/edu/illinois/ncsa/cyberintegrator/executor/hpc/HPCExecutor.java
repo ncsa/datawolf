@@ -425,9 +425,7 @@ public class HPCExecutor extends RemoteExecutor {
             out.setLength(0);
         }
 
-        // if we get here, job is neither queued nor running
-        System.out.println("job finished, get log");
-
+        // if we get here, job is neither queued nor running, get log
         try {
             SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
             // Capture log as stdout
