@@ -31,6 +31,8 @@ public class Main extends JFrame {
 
     public Main() {
         super("Cyberintegrator 3.0");
+        setPreferredSize(new Dimension(800, 600));
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         datasetDAO = SpringData.getBean(DatasetDAO.class);
 
@@ -70,6 +72,9 @@ public class Main extends JFrame {
                 }
             }
         });
+
+        pack();
+        setVisible(true);
     }
 
     class DatasetTableModel extends AbstractTableModel {
@@ -131,10 +136,6 @@ public class Main extends JFrame {
         // get hold of the repo
         SpringData.loadXMLContext("applicationContext.xml");
 
-        Main main = new Main();
-        main.setPreferredSize(new Dimension(800, 600));
-        main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        main.pack();
-        main.setVisible(true);
+        new Main();
     }
 }
