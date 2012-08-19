@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ******************************************************************************* -->
+<!-- * Copyright (c) 2011 University of Illinois All rights reserved. -->
+<!-- * Contributors: -->
+<!-- * Albert L. Rossi - design and implementation -->
+<!-- ****************************************************************************** -->
+<xs:schema targetNamespace="http://edu.illinois.ncsa.gondola/service" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:service="http://edu.illinois.ncsa.gondola/service"
+	elementFormDefault="qualified">
+	<xs:element name="service-config" type="service:service-type" />
+	<xs:element name="jdbc-access" type="service:access-type" />
+	<xs:complexType name="service-type">
+		<xs:sequence>
+			<xs:element name="worker-pool" type="xs:int" default="50" />
+			<xs:element name="initialize-queue" type="xs:int" default="10" />
+			<xs:element name="submit-queue" type="xs:int" default="10" />
+			<xs:element name="update-queue" type="xs:int" default="10" />
+			<xs:element name="cancel-queue" type="xs:int" default="10" />
+			<xs:element name="queue-refresh-in-secs" type="xs:int" default="60" />
+			<xs:element name="status-refresh-in-secs" type="xs:int" default="60" />
+			<xs:element name="jdbc-access" type="service:access-type" />
+			<xs:element name="myproxy-settings" type="service:my-proxy-type" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="access-type">
+		<xs:sequence>
+			<xs:element name="jdbc-connection" type="service:connection-type" />
+			<xs:element name="jdbc-dbcp" minOccurs="0" type="service:dbcp-type" />
+			<xs:element name="initialize" minOccurs="0" type="service:initialize-type" />
+			<xs:element name="drop" minOccurs="0" type="service:drop-type" />
+			<xs:element name="max-batch-insert" minOccurs="0" type="xs:int" default="128" />
+			<xs:element name="supports-relational-constraints" minOccurs="0" type="xs:boolean" default="false" />
+		</xs:sequence>
+		<xs:attribute name="type" type="xs:string" />
+	</xs:complexType>
+	<xs:complexType name="connection-type" mixed="true">
+		<xs:attribute name="user" type="xs:string" />
+		<xs:attribute name="password" type="xs:string" />
+		<xs:attribute name="driverClass" type="xs:string" />
+	</xs:complexType>
+	<xs:complexType name="dbcp-type">
+		<xs:sequence>
+			<xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+				<xs:complexType mixed="true">
+					<xs:attribute name="name" type="xs:string" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" />
+	</xs:complexType>
+	<xs:complexType name="initialize-type">
+		<xs:sequence>
+			<xs:element name="execute" maxOccurs="unbounded" type="xs:string" />
+		</xs:sequence>
+		<xs:attribute name="always" type="xs:boolean" default="false" />
+	</xs:complexType>
+	<xs:complexType name="drop-type">
+		<xs:attribute name="onExit" type="xs:boolean" default="false" />
+	</xs:complexType>
+	<xs:complexType name="my-proxy-type">
+      <xs:sequence>
+         <xs:element name="server-uri" type="xs:string"/>
+         <xs:element name="host-cert-dir" type="xs:string" minOccurs="0"/>
+         <xs:element name="proxy-refresh-in-mins" type="xs:int" default="60"/>
+         <xs:element name="proxy-margin-in-mins" type="xs:int" default="120"/>
+      </xs:sequence>
+   </xs:complexType>
+</xs:schema>

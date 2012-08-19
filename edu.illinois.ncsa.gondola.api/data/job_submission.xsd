@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ******************************************************************************* -->
+<!-- * Copyright (c) 2011 University of Illinois All rights reserved. -->
+<!-- * Contributors: -->
+<!-- * Albert L. Rossi - design and implementation -->
+<!-- ****************************************************************************** -->
+<xs:schema targetNamespace="http://edu.illinois.ncsa.gondola/submission" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:subm="http://edu.illinois.ncsa.gondola/submission"
+	elementFormDefault="qualified">
+	<xs:element name="job-submission" type="subm:job-submission-type" />
+	<xs:element name="job-status-parser" type="subm:parser-type" />
+	<xs:element name="job-error-handler" type="subm:error-handler-type" />
+	<xs:element name="job-script" type="subm:script-type" />
+	<xs:element name="job-status-list" type="subm:job-status-list-type" />
+	<xs:element name="job-status" type="subm:job-status-type" />
+	<xs:element name="id-list" type="subm:id-list-type" />
+	<xs:complexType name="job-status-list-type">
+		<xs:sequence>
+			<xs:element name="job-status" minOccurs="0" maxOccurs="unbounded" type="subm:job-status-type" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="id-list-type">
+		<xs:sequence>
+			<xs:element name="id" minOccurs="0" maxOccurs="unbounded" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="job-submission-type">
+		<xs:sequence>
+			<xs:element minOccurs="0" name="instance-id" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>service is agnostic of the structure of this id; it just needs to be globally unique</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element minOccurs="0" name="myproxy-user" type="xs:string" />
+			<xs:element minOccurs="0" name="target-user" type="xs:string" />
+			<xs:element minOccurs="0" name="target-uri" type="xs:string" />
+			<xs:element minOccurs="0" name="service-user-home" type="xs:string" />
+			<xs:element minOccurs="0" name="target-user-home" type="xs:string" />
+			<xs:element minOccurs="0" name="submit-path" type="xs:string" />
+			<xs:element minOccurs="0" name="terminate-path" type="xs:string" />
+			<xs:element minOccurs="0" name="submit-error-handler" type="subm:error-handler-type" />
+			<xs:element minOccurs="0" name="job-id-parser" type="subm:parser-type" />
+			<xs:element minOccurs="0" name="status-handler" type="subm:status-handler-type" />
+			<xs:element minOccurs="0" name="script" type="subm:script-type" />
+			<xs:element minOccurs="0" name="x509-certificate" type="xs:string" />
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" />
+	</xs:complexType>
+	<xs:complexType name="status-handler-type">
+		<xs:sequence>
+			<xs:element name="command-path" type="xs:string" />
+			<xs:element name="command-args" type="xs:string" minOccurs="0" />
+			<xs:element name="parser" type="subm:parser-type" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="error-handler-type">
+		<xs:sequence>
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="stderr-warn" type="subm:regex-type" />
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="stderr-error" type="subm:regex-type" />
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="stdout-warn" type="subm:regex-type" />
+			<xs:element minOccurs="0" maxOccurs="unbounded" name="stdout-error" type="subm:regex-type" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="parser-type">
+		<xs:sequence>
+			<xs:element name="expression" type="subm:regex-type"/>
+			<xs:element name="job-id-group" type="xs:int" default="0" />
+			<xs:element name="translator" type="subm:expression-group-translator-type" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="stderr" type="xs:boolean" default="false" />
+	</xs:complexType>
+	<xs:complexType name="regex-type" mixed="true">
+		<xs:attribute name="flags" type="xs:string" />
+		<xs:attribute name="split" type="xs:boolean" default="false" />
+	</xs:complexType>
+	<xs:complexType name="expression-group-translator-type">
+		<xs:attribute name="group" type="xs:int" />
+		<xs:attribute name="op" default="EQUALS">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="EQUALS" />
+					<xs:enumeration value="EQUALS_IGNORE_CASE" />
+					<xs:enumeration value="STARTS_WITH" />
+					<xs:enumeration value="ENDS_WITH" />
+					<xs:enumeration value="CONTAINS" />
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="from" type="xs:string" />
+		<xs:attribute name="to" type="subm:job-state-type" />
+	</xs:complexType>
+	<xs:complexType name="script-type">
+		<xs:sequence>
+			<xs:element name="line" type="subm:line-type" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="deleteAfterSubmit" type="xs:boolean" default="true" />
+	</xs:complexType>
+	<xs:complexType mixed="true" name="line-type">
+		<xs:attribute name="log" type="xs:boolean" default="false" />
+	</xs:complexType>
+	<xs:complexType name="job-status-type">
+		<xs:sequence>
+			<xs:element name="instance-id" minOccurs="0" type="xs:string" />
+			<xs:element name="job-id" minOccurs="0" type="xs:string" />
+			<xs:element name="working-directory" minOccurs="0" type="xs:string" />
+		</xs:sequence>
+		<xs:attribute name="state" type="subm:job-state-type" />
+	</xs:complexType>
+	<xs:simpleType name="job-state-type">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="JOB_UNINITIALIZED" />
+			<xs:enumeration value="JOB_INIT_PENDING" />
+			<xs:enumeration value="JOB_INITIALIZED" />
+			<xs:enumeration value="JOB_SUBMIT_PENDING" />
+			<xs:enumeration value="JOB_SUBMITTED" />
+			<xs:enumeration value="JOB_QUEUED" />
+			<xs:enumeration value="JOB_RUNNING" />
+			<xs:enumeration value="JOB_SUSPENDED" />
+			<xs:enumeration value="JOB_CANCEL_REQUESTED" />
+			<xs:enumeration value="JOB_CANCEL_PENDING" />
+			<xs:enumeration value="JOB_CANCEL_FAILED" />
+			<xs:enumeration value="JOB_CANCELED" />
+			<xs:enumeration value="JOB_COMPLETED" />
+			<xs:enumeration value="JOB_INIT_FAILED" />
+			<xs:enumeration value="JOB_SUBMIT_FAILED" />
+			<xs:enumeration value="JOB_SUCCESS" />
+			<xs:enumeration value="JOB_FAILURE" />
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
