@@ -212,7 +212,7 @@ public class HPCExecutor extends RemoteExecutor {
             jobParser = new JobInfoParser(job.getStatusHandler().getParser());
 
             // Generate job script locally
-            File tmpScript = writeLocalScript(job.getScript(), stagingDir, normUuid, targetLineSep);
+            File tmpScript = writeLocalScript(cwd, job.getScript(), stagingDir, normUuid, targetLineSep);
 
             // copy job script to target machine
             String scriptPath = stageFile(tmpScript, stagingDir, session, NonNLSConstants.SCRIPT);
@@ -353,7 +353,7 @@ public class HPCExecutor extends RemoteExecutor {
         script.getLine().add(done);
     }
 
-    private File writeLocalScript(ScriptType script, String stagingDir, String normUuid, String lineSep) throws Exception {
+    private File writeLocalScript(File cwd, ScriptType script, String stagingDir, String normUuid, String lineSep) throws Exception {
         String logPath = stagingDir + NonNLSConstants.LOG;
         // status.setLogFile(logPath);
         StringBuffer sb = new StringBuffer();
@@ -363,7 +363,8 @@ public class HPCExecutor extends RemoteExecutor {
                 sb.append(NonNLSConstants.GTGT).append(logPath);
             sb.append(lineSep);
         }
-        File tmp = new File(System.getProperty(NonNLSConstants.TMP_DIR), normUuid);
+        
+        File tmp = new File(cwd, normUuid);
         FileUtils.writeBytes(tmp, sb.toString().getBytes(), false);
 
         return tmp;
