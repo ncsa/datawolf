@@ -140,7 +140,8 @@ public class Execution extends AbstractBean {
     }
 
     /**
-     * Sets the workflow that is executed.
+     * Sets the workflow that is executed. This will reset all steps to be in
+     * WAITING state, and thus all times will be erased.
      * 
      * @param workflow
      *            sets the workflow this execution is for.
@@ -148,6 +149,13 @@ public class Execution extends AbstractBean {
      */
     public void setWorkflow(Workflow workflow) {
         this.workflow = workflow;
+        this.stepState.clear();
+        this.stepQueued.clear();
+        this.stepStart.clear();
+        this.stepEnd.clear();
+        for (WorkflowStep step : workflow.getSteps()) {
+            setStepState(step.getId(), State.WAITING);
+        }
     }
 
     /**

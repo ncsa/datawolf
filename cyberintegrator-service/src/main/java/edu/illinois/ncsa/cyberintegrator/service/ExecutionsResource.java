@@ -32,6 +32,7 @@
 package edu.illinois.ncsa.cyberintegrator.service;
 
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -49,8 +50,12 @@ import org.springframework.data.domain.PageRequest;
 
 import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
+import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
+import edu.illinois.ncsa.springdata.DatasetDAO;
+import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/executions")
@@ -59,16 +64,28 @@ public class ExecutionsResource {
     /**
      * Create execution via execution JSON
      * 
-     * @param execution
-     *            a execution JSON
+     * @param submission
+     *            a submission JSON object
      * @return
      *         execution Id
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String createExecution(Execution execution) {
-        return null;
+    public String createExecution(Submission submission) {
+        Execution execution = new Execution();
+        execution.setWorkflow(SpringData.getBean(WorkflowDAO.class).findOne(submission.getWorkflowId()));
+        execution.setCreator(SpringData.getBean(PersonDAO.class).findOne(submission.getCreatorId()));
+        for (Entry<String, String> param : submission.getParameters().entrySet()) {
+            execution.setParameter(param.getKey(), param.getValue());
+        }
+        DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
+        for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
+            execution.setDataset(dataset.getKey(), datasetDAO.findOne(dataset.getValue()));
+        }
+
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+        return execution.getId();
     }
 
     /**
