@@ -15,13 +15,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 import org.osgi.framework.Bundle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ncsa.rcp.exceptions.UnknownExtensionException;
 
@@ -31,7 +32,7 @@ public class BaseDescriptorHelper {
 		String extensionPt;
 	}
 
-	private final static Logger logger = Logger.getLogger(BaseDescriptorHelper.class);
+	private final static Logger logger = LoggerFactory.getLogger(BaseDescriptorHelper.class);
 	private static Map cachedDescriptorMap = new HashMap();
 	private static Map map = new HashMap();
 

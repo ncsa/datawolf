@@ -7,11 +7,12 @@
  ******************************************************************************/
 package ncsa.rcp.descriptors;
 
-import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BaseDescriptor {
-	protected final static Logger logger = Logger.getLogger(BaseDescriptor.class);
+	protected final static Logger logger = LoggerFactory.getLogger(BaseDescriptor.class);
 
 	public final static String TAG_ID = "id";
 	public final static String TAG_NAME = "name";

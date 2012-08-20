@@ -27,7 +27,8 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -54,7 +55,7 @@ import ncsa.NonNLSConstants;
 public class JAXBUtils
 {
 
-    private static final Logger logger = Logger.getLogger( JAXBUtils.class );
+    private static final Logger logger = LoggerFactory.getLogger( JAXBUtils.class );
 
     private static edu.illinois.ncsa.gondola.types.submission.ObjectFactory submissionFactory;
     private static edu.illinois.ncsa.gondola.types.service.ObjectFactory serviceFactory;

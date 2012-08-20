@@ -8,7 +8,7 @@ Require-Bundle: org.eclipse.core.runtime,
  javax.xml;bundle-version="1.3.4",
  javax.xml.bind;bundle-version="2.1.9",
  javax.xml.stream;bundle-version="1.0.1",
- org.apache.log4j;bundle-version="1.2.12"
+ org.slf4j.api;bundle-version="1.6.4"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Export-Package: edu.illinois.ncsa.gondola,
@@ -16,6 +16,5 @@ Export-Package: edu.illinois.ncsa.gondola,
  edu.illinois.ncsa.gondola.types.submission,
  edu.illinois.ncsa.gondola.utils,
  ncsa,
- ncsa.logging.log4j,
  ncsa.rcp.descriptors,
  ncsa.rcp.exceptions
