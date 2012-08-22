@@ -32,8 +32,8 @@
 package edu.illinois.ncsa.cyberintegrator.service;
 
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -51,8 +51,8 @@ import org.springframework.data.domain.PageRequest;
 
 import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
-import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
+import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
@@ -74,7 +74,7 @@ public class ExecutionsResource {
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String createExecution(Submission submission) {
+    public Execution createExecution(Submission submission) {
         Execution execution = new Execution();
         execution.setWorkflow(SpringData.getBean(WorkflowDAO.class).findOne(submission.getWorkflowId()));
         execution.setCreator(SpringData.getBean(PersonDAO.class).findOne(submission.getCreatorId()));
@@ -85,9 +85,12 @@ public class ExecutionsResource {
         for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
             execution.setDataset(dataset.getKey(), datasetDAO.findOne(dataset.getValue()));
         }
-
         SpringData.getBean(ExecutionDAO.class).save(execution);
-        return execution.getId();
+
+        // start execution
+        SpringData.getBean(Engine.class).execute(execution);
+
+        return execution;
     }
 
     /**

@@ -44,7 +44,6 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -69,9 +68,7 @@ public class Execution extends AbstractBean {
     private static final long    serialVersionUID = 1L;
 
     /** Workflow that is executed */
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
-    @DBRef
-    private Workflow             workflow         = null;
+    private String               workflowId       = null;
 
     /** Date the execution is created */
     @Temporal(TemporalType.TIMESTAMP)
@@ -135,8 +132,8 @@ public class Execution extends AbstractBean {
      * 
      * @return workflow that was executed.
      */
-    public Workflow getWorkflow() {
-        return workflow;
+    public String getWorkflowId() {
+        return workflowId;
     }
 
     /**
@@ -148,7 +145,7 @@ public class Execution extends AbstractBean {
      * 
      */
     public void setWorkflow(Workflow workflow) {
-        this.workflow = workflow;
+        this.workflowId = workflow.getId();
         this.stepState.clear();
         this.stepQueued.clear();
         this.stepStart.clear();

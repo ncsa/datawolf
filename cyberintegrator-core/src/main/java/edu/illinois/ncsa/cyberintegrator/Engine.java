@@ -49,6 +49,7 @@ import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
@@ -149,7 +150,8 @@ public class Engine {
      *             if the step could not be added to the list.
      */
     public void execute(Execution execution) {
-        for (WorkflowStep step : execution.getWorkflow().getSteps()) {
+        List<WorkflowStep> steps = SpringData.getBean(WorkflowDAO.class).findOne(execution.getWorkflowId()).getSteps();
+        for (WorkflowStep step : steps) {
             execute(execution, step);
         }
     }
