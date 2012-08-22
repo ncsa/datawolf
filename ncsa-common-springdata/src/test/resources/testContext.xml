@@ -9,18 +9,18 @@
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 
 	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorage">
-		<property name="levels" value="3"/>
+		<property name="levels" value="3" />
 	</bean>
 
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus">
 	</bean>
 
-	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-		<property name="dataSource" ref="dataSource" />
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="hsqldbDataSource" />
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="generateDdl" value="true" />
-				<!-- <property name="database" value="MYSQL" /> -->
 			</bean>
 		</property>
 		<property name="packagesToScan">
@@ -34,13 +34,29 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
- 
-	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	<!-- datasource pooling=YES database=HSQL -->
+	<bean id="hsqldbDataSourcePool" class="com.jolbox.bonecp.BoneCPDataSource">
+		<property name="driverClass" value="org.hsqldb.jdbcDriver" />
+		<property name="jdbcUrl" value="jdbc:hsqldb:mem:." />
+		<property name="username" value="sa" />
+		<property name="password" value="" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="idleMaxAge" value="240" />
+		<property name="maxConnectionsPerPartition" value="30" />
+		<property name="minConnectionsPerPartition" value="10" />
+		<property name="partitionCount" value="3" />
+		<property name="acquireIncrement" value="5" />
+		<property name="statementsCacheSize" value="100" />
+		<property name="releaseHelperThreads" value="3" />
+	</bean>
+
+	<!-- datasource pooling=NO database=HSQL -->
+	<bean id="hsqldbDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
 		<property name="url" value="jdbc:hsqldb:mem:." />
 		<property name="username" value="sa" />
 		<property name="password" value="" />
 	</bean>
 
-    <jpa:repositories base-package="edu.illinois.ncsa.springdata" />
+	<jpa:repositories base-package="edu.illinois.ncsa.springdata" />
 </beans>
