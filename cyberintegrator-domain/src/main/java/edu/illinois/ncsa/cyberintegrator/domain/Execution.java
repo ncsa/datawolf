@@ -273,6 +273,10 @@ public class Execution extends AbstractBean {
         return this.stepState.get(id);
     }
 
+    public Map<String, State> getStepStates() {
+        return this.stepState;
+    }
+
     /**
      * Sets the state of the specific step in the workflow.
      * 
