@@ -36,8 +36,7 @@ import java.util.List;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
-import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 
 public interface ExecutionDAO extends PagingAndSortingRepository<Execution, String> {
-    List<Execution> findByWorkflow(Workflow workflow);
+    List<Execution> findByWorkflowId(String workflowId);
 }

@@ -143,11 +143,8 @@ public class WorkflowsResource {
     @Path("{workflow-id}/executions")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        Workflow wf = wfdao.findOne(workflowId);
-
         ExecutionDAO execDao = SpringData.getBean(ExecutionDAO.class);
-        List<Execution> execList = execDao.findByWorkflow(wf);
+        List<Execution> execList = execDao.findByWorkflowId(workflowId);
         return execList;
     }
 
