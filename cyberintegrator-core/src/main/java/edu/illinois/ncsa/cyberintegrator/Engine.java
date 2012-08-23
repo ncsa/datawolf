@@ -150,9 +150,18 @@ public class Engine {
      *             if the step could not be added to the list.
      */
     public void execute(Execution execution) {
-        List<WorkflowStep> steps = SpringData.getBean(WorkflowDAO.class).findOne(execution.getWorkflowId()).getSteps();
-        for (WorkflowStep step : steps) {
-            execute(execution, step);
+        try {
+            Transaction t = SpringData.getTransaction();
+            try {
+                t.start();
+                for (WorkflowStep step : SpringData.getBean(WorkflowDAO.class).findOne(execution.getWorkflowId()).getSteps()) {
+                    execute(execution, step);
+                }
+            } finally {
+                t.commit();
+            }
+        } catch (Exception e) {
+            logger.error("Could not get transaction to get steps.", e);
         }
     }
 
