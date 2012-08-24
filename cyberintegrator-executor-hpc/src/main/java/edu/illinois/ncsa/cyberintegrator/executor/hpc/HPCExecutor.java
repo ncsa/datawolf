@@ -191,7 +191,13 @@ public class HPCExecutor extends RemoteExecutor {
             String targetPathSep = NonNLSConstants.REMOTE_PATH_SEP;
             String targetLineSep = NonNLSConstants.REMOTE_LINE_SEP;
 
-            String stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid + targetPathSep;
+            String stagingDir = null;
+            if(targetUserHome.endsWith(targetPathSep)) {
+            	stagingDir = targetUserHome + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid + targetPathSep;
+            } else {
+            	stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid + targetPathSep;
+            }
+            //String stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid + targetPathSep;
 
             JAXBContext jc;
             try {
