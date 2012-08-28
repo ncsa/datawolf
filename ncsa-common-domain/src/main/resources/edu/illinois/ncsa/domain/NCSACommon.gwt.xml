@@ -38,6 +38,7 @@
  -->
 <module>
 	<source path="">
+		<exclude name="**/jackson/*"/>
 	</source>
 	
 	<!-- Missing JRE classes -->
