@@ -58,6 +58,15 @@ public class Transaction {
 
     private TransactionStatus                               status;
 
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                logger.debug(getAllTransactions());
+            }
+        });
+    }
+
     /**
      * Create a new instance of the Transaction using the given transaction
      * manger. This class should be created using SpringData.getTransaction.
