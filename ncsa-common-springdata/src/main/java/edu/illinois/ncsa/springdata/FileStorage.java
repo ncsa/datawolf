@@ -87,7 +87,7 @@ public class FileStorage {
         return new URL(check.getDataURL());
     }
 
-    private FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
+    public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
         FileDescriptor fd = new FileDescriptor();
         fd.setId(id);
         fd.setFilename(filename);
