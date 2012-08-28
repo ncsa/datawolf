@@ -33,6 +33,8 @@ package edu.illinois.ncsa.cyberintegrator.domain;
 
 import javax.persistence.Entity;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import edu.illinois.ncsa.domain.AbstractBean;
 
 /**
@@ -43,6 +45,7 @@ import edu.illinois.ncsa.domain.AbstractBean;
  * 
  */
 @Entity(name = "WorkflowToolImplementation")
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public class WorkflowToolImplementation extends AbstractBean {
     private static final long serialVersionUID = 1L;
 

@@ -38,9 +38,10 @@ import java.util.UUID;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
@@ -204,15 +205,6 @@ public class WorkflowToolParameter extends AbstractBean {
      * 
      * @return true if the workflow parameter should not be shown.
      */
-    public boolean getHidden() {
-        return hidden;
-    }
-
-    /**
-     * Returns true if the workflow parameter should not be shown to the user.
-     * 
-     * @return true if the workflow parameter should not be shown.
-     */
     public boolean isHidden() {
         return hidden;
     }
@@ -234,15 +226,6 @@ public class WorkflowToolParameter extends AbstractBean {
      * @return the true if the parameter can be empty.
      */
     public boolean isAllowNull() {
-        return allowNull;
-    }
-
-    /**
-     * Return true if the parameter is allowed to be empty.
-     * 
-     * @return the true if the parameter can be empty.
-     */
-    public boolean getAllowNull() {
         return allowNull;
     }
 
