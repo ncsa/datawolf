@@ -36,9 +36,10 @@ import java.math.BigInteger;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity(name = "FileDescriptor")
 @Document(collection = "FileDescriptor")

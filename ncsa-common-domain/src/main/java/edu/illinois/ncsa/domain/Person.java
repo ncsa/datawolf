@@ -33,8 +33,9 @@ package edu.illinois.ncsa.domain;
 
 import javax.persistence.Entity;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity(name = "Person")
 @Document(collection = "Person")
