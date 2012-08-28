@@ -15,6 +15,11 @@
 		</property>
 	</bean>
 
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorage">
+		<property name="levels" value="3" />
+		<property name="folder" value="data/files" />
+	</bean>
+
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">

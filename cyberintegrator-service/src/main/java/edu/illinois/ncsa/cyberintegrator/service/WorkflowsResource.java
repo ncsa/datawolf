@@ -31,7 +31,14 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -43,10 +50,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import edu.illinois.ncsa.cyberintegrator.ImportExport;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
@@ -59,7 +71,12 @@ public class WorkflowsResource {
 
     /**
      * 
-     * Create workflow via workflow JSON
+     * Create workflow via workflow JSON. Expects the following form:
+     * <form action="rest/workflows" method="post"
+     * enctype="multipart/form-data">
+     * <input type="file" name="uploadedFile" />
+     * <input type="submit" value="Upload It" />
+     * </form>
      * 
      * @param workflow
      *            a workflow created from JSON
@@ -67,10 +84,38 @@ public class WorkflowsResource {
      *         workflow URI
      */
     @POST
-    @Consumes({ MediaType.APPLICATION_JSON })
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String createWorkflow(Workflow workflow) {
-        SpringData.getBean(WorkflowDAO.class).save(workflow);
+    public String createWorkflow(MultipartFormDataInput input) {
+        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+        List<InputPart> inputParts = uploadForm.get("uploadedFile");
+        Workflow workflow = null;
+
+        for (InputPart inputPart : inputParts) {
+            try {
+                // convert the uploaded file to zipfile
+                InputStream inputStream = inputPart.getBody(InputStream.class, null);
+                File tempfile = File.createTempFile("workflow", ".zip");
+                OutputStream outputStream = new FileOutputStream(tempfile);
+                byte[] buf = new byte[10240];
+                int len = 0;
+                while ((len = inputStream.read(buf)) > 0) {
+                    outputStream.write(buf, 0, len);
+                }
+                outputStream.close();
+                inputStream.close();
+
+                workflow = ImportExport.importWorkflow(tempfile);
+                tempfile.delete();
+                SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+
+        }
+
         return workflow.getId();
     }
 
@@ -106,6 +151,38 @@ public class WorkflowsResource {
     public Workflow getWorkflow(@PathParam("workflow-id") String workflowId) {
         WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
         return wfdao.findOne(workflowId);
+    }
+
+    /**
+     * 
+     * Get a workflow by Id
+     * 
+     * @param workflowId
+     *            workflow Id
+     * @return
+     *         a workflow in JSON
+     */
+    @GET
+    @Path("{workflow-id}/zip")
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response getWorkflowZip(@PathParam("workflow-id") String workflowId) {
+        try {
+            final File tempfile = File.createTempFile("workflow", ".zip");
+            ImportExport.exportWorkflow(tempfile, workflowId);
+            ResponseBuilder response = Response.ok(new FileInputStream(tempfile) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    tempfile.delete();
+                }
+            });
+            response.type("application/zip");
+            response.header("Content-Disposition", "attachment; filename=\"workflow.zip\"");
+            return response.build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
