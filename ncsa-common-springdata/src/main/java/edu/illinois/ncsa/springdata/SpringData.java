@@ -31,7 +31,9 @@
  ******************************************************************************/
 package edu.illinois.ncsa.springdata;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -40,6 +42,8 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.illinois.ncsa.domain.Person;
 
@@ -96,6 +100,29 @@ public class SpringData implements ApplicationContextAware {
      */
     public static EventBus getEventBus() {
         return context.getBean(EventBus.class);
+    }
+
+    /**
+     * This will clone the given object and return a complete copy. This is
+     * especially useful to eagerly load all the elements in a collection when
+     * the object is fetched from hibernate. The transaction that was used to
+     * fetch the original object will need to be open to fetch any additional
+     * fields.
+     * 
+     * @param object
+     *            the object that needs to be cloned
+     * @return the cloned object with all fields filled in
+     * @throws IOException
+     *             throws an IOException if the object could not be cloned.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T cloneObject(T object) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        mapper.writeValue(baos, object);
+
+        return (T) mapper.readValue(baos.toByteArray(), object.getClass());
     }
 
     public static Person getPerson(String email) {
