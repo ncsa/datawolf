@@ -11,6 +11,7 @@
 			<set>
 				<bean class="edu.illinois.ncsa.cyberintegrator.executor.java.JavaExecutor" />
  				<bean class="edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineExecutor" />
+ 				<bean class="edu.illinois.ncsa.cyberintegrator.executor.hpc.HPCExecutor" />
 			</set>
 		</property>
 	</bean>
