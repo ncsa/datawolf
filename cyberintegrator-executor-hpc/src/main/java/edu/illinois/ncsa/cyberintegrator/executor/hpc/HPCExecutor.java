@@ -40,8 +40,10 @@ import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SshUtils;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SystemUtils;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.event.ObjectCreatedEvent;
 import edu.illinois.ncsa.gondola.types.submission.JobStateType;
 import edu.illinois.ncsa.gondola.types.submission.JobSubmissionType;
 import edu.illinois.ncsa.gondola.types.submission.LineType;
@@ -451,6 +453,8 @@ public class HPCExecutor extends RemoteExecutor {
                 }
             }
             Transaction t = null;
+            // List of created datasets
+            List<AbstractBean> datasets = new ArrayList<AbstractBean>();
             try {
                 // TODO make this more generic
                 t = SpringData.getTransaction();
@@ -469,8 +473,10 @@ public class HPCExecutor extends RemoteExecutor {
 
                 String key = step.getOutputs().get(logId);
                 execution.setDataset(key, ds);
+                datasets.add(ds);
             } finally {
                 t.commit();
+                SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
             }
         } catch (Throwable e) {
             logger.error("Error retrieving log file from remote system and writing it to a dataset.", e);

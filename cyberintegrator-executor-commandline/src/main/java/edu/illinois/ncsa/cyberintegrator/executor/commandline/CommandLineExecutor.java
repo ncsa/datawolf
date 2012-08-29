@@ -53,6 +53,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -67,8 +68,10 @@ import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.InputOutput;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.event.ObjectCreatedEvent;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
@@ -305,6 +308,8 @@ public class CommandLineExecutor extends LocalExecutor {
         } while ((stdoutReader != null) || (stderrReader != null));
 
         t = SpringData.getTransaction();
+        // List of created datasets
+        List<AbstractBean> datasets = new ArrayList<AbstractBean>();
         try {
             t.start();
             WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
@@ -328,6 +333,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     SpringData.getBean(DatasetDAO.class).save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds);
+                    datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
                     logger.warn("Could not store output.", exc);
@@ -344,6 +350,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     SpringData.getBean(DatasetDAO.class).save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds);
+                    datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
                     logger.warn("Could not store output.", exc);
@@ -362,6 +369,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     SpringData.getBean(DatasetDAO.class).save(ds);
 
                     execution.setDataset(step.getOutputs().get(entry.getValue()), ds);
+                    datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
                     logger.warn("Could not store output.", exc);
@@ -381,6 +389,7 @@ public class CommandLineExecutor extends LocalExecutor {
             try {
                 if (t != null) {
                     t.commit();
+                    SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
                 }
             } catch (Exception e) {
                 throw (new FailedException("Could not commit transaction to save information about step.", e));

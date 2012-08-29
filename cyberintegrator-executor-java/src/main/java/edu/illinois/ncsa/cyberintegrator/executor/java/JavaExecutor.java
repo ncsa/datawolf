@@ -33,7 +33,9 @@ package edu.illinois.ncsa.cyberintegrator.executor.java;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -49,8 +51,10 @@ import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.event.ObjectCreatedEvent;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
@@ -186,6 +190,8 @@ public class JavaExecutor extends LocalExecutor {
             // get outputs in the case of CyberintegratorTool
             if (tool.getOutputs() != null) {
                 t = SpringData.getTransaction();
+                // List of created datasets
+                List<AbstractBean> datasets = new ArrayList<AbstractBean>();
                 try {
                     t.start();
                     WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
@@ -205,6 +211,7 @@ public class JavaExecutor extends LocalExecutor {
                         SpringData.getBean(DatasetDAO.class).save(ds);
 
                         execution.setDataset(entry.getValue(), ds);
+                        datasets.add(ds);
                     }
 
                     SpringData.getBean(ExecutionDAO.class).save(execution);
@@ -219,6 +226,7 @@ public class JavaExecutor extends LocalExecutor {
                     try {
                         if (t != null) {
                             t.commit();
+                            SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
                         }
                     } catch (Exception e) {
                         throw (new FailedException("Could not commit transaction to save information about step.", e));
