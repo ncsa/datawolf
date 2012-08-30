@@ -420,7 +420,14 @@ public class HPCExecutor extends RemoteExecutor {
             for (String line : lines) {
                 String[] data = jobParser.parseJobState(line);
                 if (data != null) {
-                    return getJobState(data[1]);
+                	State jobState = getJobState(data[1]);
+                	if(jobState.equals(State.FINISHED)) {
+                		getLogFile();
+                		return jobState;
+                	} else {
+                		return jobState;
+                	}
+                    
                     // if (data[1].equals(JobStateType.JOB_QUEUED.toString())) {
                     // return State.QUEUED;
                     // } else if (data[1].equals(JobStateType.JOB_RUNNING)) {
@@ -434,7 +441,36 @@ public class HPCExecutor extends RemoteExecutor {
             out.setLength(0);
         }
 
-        // if we get here, job is neither queued nor running, get log
+        
+        // At this point qstat didn't return anything so we assume finished and
+        // need to check the log to see if we have a failure or success
+        // Getting here might be a bug in Ranger's gondola template because KISTI's machine actually returns "Finished"
+        getLogFile();
+        
+        return State.FINISHED;
+    }
+
+    private State getJobState(String state) {
+        if (state.equals(JobStateType.JOB_QUEUED.toString())) {
+            return State.QUEUED;
+        } else if (state.equals(JobStateType.JOB_RUNNING.toString())) {
+            return State.RUNNING;
+        } else if (state.equals(JobStateType.JOB_SUSPENDED.toString())) {
+            return State.QUEUED;
+        } else if (state.equals(JobStateType.JOB_COMPLETED.toString())) {
+            return State.FINISHED;
+        }
+
+        // TODO CMN : how do we know if a failure occurred?
+        // qstat will not report failure, we'll have to parse that
+        // from the log
+        logger.warn("Unknown job state message returned from qstat");
+        return State.UNKNOWN;
+
+    }
+    
+    public void getLogFile() {
+    	// if we get here, job is neither queued nor running, get log
         try {
             SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
             // Capture log as stdout
@@ -481,28 +517,6 @@ public class HPCExecutor extends RemoteExecutor {
         } catch (Throwable e) {
             logger.error("Error retrieving log file from remote system and writing it to a dataset.", e);
         }
-        // At this point qstat didn't return anything so we assume finished and
-        // need to check the log to see if we have a failure or success
-        return State.FINISHED;
-    }
-
-    private State getJobState(String state) {
-        if (state.equals(JobStateType.JOB_QUEUED.toString())) {
-            return State.QUEUED;
-        } else if (state.equals(JobStateType.JOB_RUNNING.toString())) {
-            return State.RUNNING;
-        } else if (state.equals(JobStateType.JOB_SUSPENDED.toString())) {
-            return State.QUEUED;
-        } else if (state.equals(JobStateType.JOB_COMPLETED.toString())) {
-            return State.FINISHED;
-        }
-
-        // TODO CMN : how do we know if a failure occurred?
-        // qstat will not report failure, we'll have to parse that
-        // from the log
-        logger.warn("Unknown job state message returned from qstat");
-        return State.UNKNOWN;
-
     }
 
     @Override
