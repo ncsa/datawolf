@@ -7,7 +7,71 @@
 	<artifactId>cyberintegrator</artifactId>
 	<packaging>pom</packaging>
 
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<spring.framework>3.1.1.RELEASE</spring.framework>
+		<spring.data>1.3.0.M1</spring.data>
+		<spring.jpa>1.1.0.RC1</spring.jpa>
+		<spring.mongo>1.1.0.M1</spring.mongo>
+		<slf4j>1.6.4</slf4j>
+		<hibernate>4.1.1.Final</hibernate>
+		<hsql>1.8.0.10</hsql>
+		<junit>4.10</junit>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>spring-milestone</id>
+			<name>Spring Maven MILESTONE Repository</name>
+			<url>http://repo.springsource.org/libs-milestone</url>
+		</repository>
+	</repositories>
+
+	<scm>
+		<connection>https://opensource.ncsa.illinois.edu/fisheye/git/cyberintegrator.git</connection>
+		<url>https://opensource.ncsa.illinois.edu/fisheye/browse/cyberintegrator</url>
+	</scm>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>ncsa.releases</id>
+			<name>NCSA Nexus Releases</name>
+			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>ncsa.snapshots</id>
+			<name>NCSA Nexus Snapshots</name>
+			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 	<modules>
-		<module>cyberintegrator-parent</module>
+		<module>cyberintegrator-domain</module>
+		<module>cyberintegrator-springdata</module>
+		<module>cyberintegrator-core</module>
+		<module>cyberintegrator-executor-java-tool</module>
+		<module>cyberintegrator-executor-java</module>
+                <!-- <module>cyberintegrator-executor-java-ui</module> -->
+		<module>cyberintegrator-tool-example</module>
+		<module>cyberintegrator-executor-commandline</module>
+                <!-- <module>cyberintegrator-executor-commandline-ui</module> -->
+                <!-- <module>edu.illinois.ncsa.gondola.api</module> -->
+		<!-- <module>cyberintegrator-executor-hpc</module> -->
+                <!-- <module>cyberintegrator-executor-hpc-ui</module> -->
+		<!-- <module>cyberintegrator-service</module> -->
 	</modules>
 </project>

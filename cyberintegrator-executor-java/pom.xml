@@ -3,10 +3,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<artifactId>cyberintegrator-parent</artifactId>
+		<artifactId>cyberintegrator</artifactId>
 		<groupId>edu.illinois.ncsa</groupId>
 		<version>3.0.0-SNAPSHOT</version>
-		<relativePath>../cyberintegrator-parent</relativePath>
 	</parent>
 	<artifactId>cyberintegrator-executor-java</artifactId>
 
