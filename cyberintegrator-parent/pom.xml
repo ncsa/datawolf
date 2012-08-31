@@ -48,16 +48,16 @@
 
 	<distributionManagement>
 		<repository>
-			<id>releases</id>
+			<id>ncsa.releases</id>
+			<name>NCSA Nexus Releases</name>
 			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/releases</url>
 		</repository>
 		<snapshotRepository>
-			<id>snapshots</id>
-			<name>Internal Snapshots</name>
+			<id>ncsa.snapshots</id>
+			<name>NCSA Nexus Snapshots</name>
 			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
-
 
 	<modules>
 		<module>../cyberintegrator-domain</module>
