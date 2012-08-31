@@ -6,11 +6,8 @@
 		<groupId>edu.illinois.ncsa</groupId>
 		<artifactId>ncsa-common-parent</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../ncsa-common-parent</relativePath>
 	</parent>
 	<artifactId>ncsa-common-springdata</artifactId>
-
-	<packaging>bundle</packaging>
 
 	<build>
 		<resources>
