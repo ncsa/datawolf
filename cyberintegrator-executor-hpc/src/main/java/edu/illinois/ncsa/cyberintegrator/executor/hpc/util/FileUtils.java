@@ -25,8 +25,6 @@ import java.util.ListIterator;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import ncsa.NonNLSConstants;
-
 /**
  * Wrapper static methods for doing reads and writes using RandomAccessFile
  * object.
