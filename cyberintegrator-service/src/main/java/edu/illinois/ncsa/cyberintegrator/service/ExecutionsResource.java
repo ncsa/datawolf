@@ -73,8 +73,8 @@ public class ExecutionsResource {
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Execution createExecution(Submission submission) {
+    @Produces({ MediaType.TEXT_PLAIN })
+    public String createExecution(Submission submission) {
         Execution execution = new Execution();
         execution.setWorkflow(SpringData.getBean(WorkflowDAO.class).findOne(submission.getWorkflowId()));
         execution.setCreator(SpringData.getBean(PersonDAO.class).findOne(submission.getCreatorId()));
@@ -90,7 +90,7 @@ public class ExecutionsResource {
         // start execution
         SpringData.getBean(Engine.class).execute(execution);
 
-        return execution;
+        return execution.getId();
     }
 
     /**
