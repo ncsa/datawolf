@@ -64,7 +64,7 @@ import edu.illinois.ncsa.springdata.SpringData;
 public class ExecutionsResource {
 
     /**
-     * Create execution via execution JSON
+     * Create execution via Submission JSON
      * 
      * @param submission
      *            a submission JSON object
