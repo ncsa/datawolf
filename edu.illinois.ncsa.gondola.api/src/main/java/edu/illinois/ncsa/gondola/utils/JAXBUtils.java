@@ -32,8 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import edu.illinois.ncsa.gondola.GondolaApiPlugin;
-import edu.illinois.ncsa.gondola.messages.Messages;
+import edu.illinois.ncsa.gondola.NonNLSConstants;
 import edu.illinois.ncsa.gondola.types.service.AccessType;
 import edu.illinois.ncsa.gondola.types.service.ServiceType;
 import edu.illinois.ncsa.gondola.types.submission.ErrorHandlerType;
@@ -44,7 +43,6 @@ import edu.illinois.ncsa.gondola.types.submission.JobSubmissionType;
 import edu.illinois.ncsa.gondola.types.submission.ParserType;
 import edu.illinois.ncsa.gondola.types.submission.ScriptType;
 
-import ncsa.NonNLSConstants;
 
 /**
  * Convenience methods for handling XML using JAXB.
@@ -588,7 +586,7 @@ public class JAXBUtils
      */
     private static Validator getValidator( String xsd ) throws IOException, SAXException
     {
-        URL url = GondolaApiPlugin.getResource( xsd );
+        URL url = JAXBUtils.class.getClassLoader().getResource( xsd );
         SchemaFactory factory = SchemaFactory.newInstance( NonNLSConstants.XMLSchema );
         Schema schema = factory.newSchema( url );
         return schema.newValidator();
@@ -633,11 +631,11 @@ public class JAXBUtils
     private static String printInfo( SAXParseException e )
     {
         StringBuffer sb = new StringBuffer();
-        sb.append( Messages.PublicId + e.getPublicId() ).append( NonNLSConstants.LINE_SEP );
-        sb.append( Messages.SystemId + e.getSystemId() ).append( NonNLSConstants.LINE_SEP );
-        sb.append( Messages.LineNumber + e.getLineNumber() ).append( NonNLSConstants.LINE_SEP );
-        sb.append( Messages.ColumnNumber + e.getColumnNumber() ).append( NonNLSConstants.LINE_SEP );
-        sb.append( Messages.Message + e.getMessage() ).append( NonNLSConstants.LINE_SEP );
+        sb.append( "Public ID:" + e.getPublicId() ).append( NonNLSConstants.LINE_SEP );
+        sb.append( "System ID:" + e.getSystemId() ).append( NonNLSConstants.LINE_SEP );
+        sb.append( "Line number:" + e.getLineNumber() ).append( NonNLSConstants.LINE_SEP );
+        sb.append( "Column number:" + e.getColumnNumber() ).append( NonNLSConstants.LINE_SEP );
+        sb.append( "Message:" + e.getMessage() ).append( NonNLSConstants.LINE_SEP );
         return sb.toString();
     }
 

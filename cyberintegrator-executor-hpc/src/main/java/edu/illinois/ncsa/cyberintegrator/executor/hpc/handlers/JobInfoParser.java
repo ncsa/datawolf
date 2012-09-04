@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ncsa.NonNLSConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.illinois.ncsa.gondola.NonNLSConstants;
 import edu.illinois.ncsa.gondola.types.submission.ExpressionGroupTranslatorType;
 import edu.illinois.ncsa.gondola.types.submission.JobStateType;
 import edu.illinois.ncsa.gondola.types.submission.ParserType;

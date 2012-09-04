@@ -5,7 +5,7 @@
  * Contributors:
  *    Albert L. Rossi:  original design and implementation
  ******************************************************************************/
-package ncsa;
+package edu.illinois.ncsa.gondola;
 
 /**
  * Gathers all internal, unmodifiable string constants into a single place for

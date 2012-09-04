@@ -12,7 +12,6 @@ import edu.illinois.ncsa.gondola.types.submission.JobStatusListType;
 import edu.illinois.ncsa.gondola.types.submission.JobStatusType;
 import edu.illinois.ncsa.gondola.types.submission.JobSubmissionType;
 
-import ncsa.IStoppable;
 
 public interface ISubmissionEngineImpl extends Runnable, IStoppable {
 	void cancel(String key) throws Throwable;

@@ -5,7 +5,7 @@
  * Contributors:
  *    Albert L. Rossi:  API
  ******************************************************************************/
-package ncsa;
+package edu.illinois.ncsa.gondola;
 
 /**
  * Threaded object which needs to be, or can be, shut down.
