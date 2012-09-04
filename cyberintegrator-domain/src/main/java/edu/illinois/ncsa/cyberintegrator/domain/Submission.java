@@ -80,7 +80,7 @@ public class Submission extends AbstractBean {
      *            sets the workflow this execution is for.
      * 
      */
-    public void setWorkflow(String workflowId) {
+    public void setWorkflowId(String workflowId) {
         this.workflowId = workflowId;
     }
 
@@ -100,7 +100,7 @@ public class Submission extends AbstractBean {
      *            sets the the id of the PersonBean that represents the creator
      *            of the execution.
      */
-    public void setCreator(String creatorId) {
+    public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
     }
 
