@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>edu.illinois.ncsa</groupId>
-		<artifactId>ncsa-common-parent</artifactId>
+		<artifactId>ncsa-common</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>file-service</artifactId>
