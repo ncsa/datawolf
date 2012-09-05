@@ -63,6 +63,9 @@ public class ExecutionsResourceGetTest {
             Thread.sleep(1000);
             Execution execution = executionDAO.findOne(id);
             logger.info("Status of the job:" + execution.getStepState(stepId));
+            if (execution.getStepState(stepId) == Execution.State.FINISHED) {
+                break;
+            }
         }
         transaction.commit();
 //        assertEquals(workflowJson, wfJson);

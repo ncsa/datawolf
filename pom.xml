@@ -65,13 +65,16 @@
 		<module>cyberintegrator-core</module>
 		<module>cyberintegrator-executor-java-tool</module>
 		<module>cyberintegrator-executor-java</module>
-                <!-- <module>cyberintegrator-executor-java-ui</module> -->
 		<module>cyberintegrator-tool-example</module>
 		<module>cyberintegrator-executor-commandline</module>
-                <!-- <module>cyberintegrator-executor-commandline-ui</module> -->
-                <!-- <module>edu.illinois.ncsa.gondola.api</module> -->
-		<!-- <module>cyberintegrator-executor-hpc</module> -->
-                <!-- <module>cyberintegrator-executor-hpc-ui</module> -->
-		<!-- <module>cyberintegrator-service</module> -->
+                <module>edu.illinois.ncsa.gondola.api</module>
+		<module>cyberintegrator-executor-hpc</module>
+		<module>cyberintegrator-service</module>
+<!--
+		<module>cyberintegrator-executor-java-ui</module>
+                <module>cyberintegrator-executor-commandline-ui</module>
+                <module>cyberintegrator-executor-hpc-ui</module>
+                <module>cyberintegrator-rpc</module>
+-->
 	</modules>
 </project>
