@@ -43,14 +43,14 @@ public class WorkflowsResourceGetTest {
         mapper.writeValue(sw, workflow);
         workflowJson = sw.toString();
 
-        CyberintegratorServiceClient.SERVER = "http://localhost:8088";
+        CyberintegratorServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
 
-        RestServer.jettyServer("src/test/resources", "testContext.xml");
+        EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
     }
 
     @AfterClass
     public static void tearDown() {
-        RestServer.stop();
+        EmbededJetty.stop();
     }
 
     @Test

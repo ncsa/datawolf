@@ -37,14 +37,14 @@ public class SubmissionTest {
 
         id = workflow.getId();
 
-        CyberintegratorServiceClient.SERVER = "http://localhost:8088";
+        CyberintegratorServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
 
-        RestServer.jettyServer("src/test/resources", "testContext.xml");
+        EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
     }
 
     @AfterClass
     public static void tearDown() {
-        RestServer.stop();
+        EmbededJetty.stop();
     }
 
     @Test
