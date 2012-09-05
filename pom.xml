@@ -67,7 +67,7 @@
 		<module>cyberintegrator-executor-java</module>
 		<module>cyberintegrator-tool-example</module>
 		<module>cyberintegrator-executor-commandline</module>
-                <module>edu.illinois.ncsa.gondola.api</module>
+                <module>gondola</module>
 		<module>cyberintegrator-executor-hpc</module>
 		<module>cyberintegrator-service</module>
 <!--
