@@ -22,9 +22,11 @@
 	</bean>
 
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
+	
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-		<property name="dataSource" ref="dataSource" />
+		<property name="dataSource" ref="edisonMysql" />
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="generateDdl" value="true" />
@@ -55,6 +57,13 @@
 		<property name="password" value="cyberintegrator" />
 	</bean>
  -->
+  	<bean id="edisonMysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost/edison" />
+		<property name="username" value="edison" />
+		<property name="password" value="edison" />
+	</bean>
+ 
 	<jpa:repositories base-package="edu.illinois.ncsa.springdata" />
 	<jpa:repositories base-package="edu.illinois.ncsa.cyberintegrator.springdata" />
 </beans>
