@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
+import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.FileDescriptorDAO;
 import edu.illinois.ncsa.springdata.FileStorage;
 import edu.illinois.ncsa.springdata.SpringData;
@@ -32,6 +34,8 @@ public class ImportExport {
 
     private static final String WORKFLOW_FILE = "workflow.json";
     private static final String BLOBS_FOLDER  = "blobs";
+
+    private static final String DATASET_FILE  = "dataset.json";
 
     /**
      * Exports the given workflow to a zip file. The complete workflow will be
@@ -187,4 +191,151 @@ public class ImportExport {
         }
 
     }
+
+    /**
+     * Exports the given dataset to a zip file. The complete dataset will be
+     * exported as a JSON object, including blobs.
+     * 
+     * @param file
+     *            the zipfile where the dataset will be saved, this file will
+     *            be overwritten.
+     * @param datasetId
+     *            the id of the workflow to export.
+     * @throws Exception
+     *             an exception is thrown if the workflow could not be saved.
+     */
+    public static void exportDataset(File file, String datasetId) throws Exception {
+        // create zipfile
+        ZipOutputStream zipfile = null;
+
+        // create transaction
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start();
+            Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(datasetId);
+
+            zipfile = new ZipOutputStream(new FileOutputStream(file));
+
+            // export dataset
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // this will close the outputstream, hence the byte array
+            ObjectMapper mapper = new ObjectMapper();
+            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
+            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+            mapper.writeValue(jsonGenerator, dataset);
+
+            zipfile.putNextEntry(new ZipEntry(DATASET_FILE));
+            zipfile.write(baos.toByteArray());
+            zipfile.closeEntry();
+
+            // export blobs
+            Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
+            FileStorage fs = SpringData.getFileStorage();
+            byte[] buf = new byte[10240];
+            int len = 0;
+            for (FileDescriptor fd : dataset.getFileDescriptors()) {
+                if (!blobs.contains(fd)) {
+                    blobs.add(fd);
+
+                    zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
+                    InputStream is = fs.readFile(fd);
+                    while ((len = is.read(buf)) > 0) {
+                        zipfile.write(buf, 0, len);
+                    }
+                    is.close();
+                    zipfile.closeEntry();
+                }
+            }
+
+        } finally {
+            if (zipfile != null) {
+                zipfile.close();
+            }
+            t.commit();
+        }
+    }
+
+    /**
+     * Imports the dataset from the zipfile. The blobs associated with the
+     * dataset will be imported. This will return the dataset imported after it
+     * is persisted.
+     * 
+     * @param file
+     *            the zipfile where the dataset (json) will be saved, this file
+     *            will be overwritten.
+     * @return the persisted dataset.
+     * @throws Exception
+     *             an exception is thrown if the dataset could not be saved.
+     */
+    public static Dataset importDataset(File file) throws Exception {
+        // create zipfile
+        ZipFile zipfile = null;
+
+        // create transaction
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start();
+
+            zipfile = new ZipFile(file);
+
+            // get workflow
+            Dataset dataset = new ObjectMapper().readValue(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
+            DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
+            if (datasetDAO.exists(dataset.getId())) {
+                throw (new Exception("Dataset already imported."));
+            }
+
+            // import blobs
+            FileStorage fs = SpringData.getFileStorage();
+            FileDescriptorDAO fdDAO = SpringData.getBean(FileDescriptorDAO.class);
+            Enumeration<? extends ZipEntry> entries = zipfile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.isDirectory() || !entry.getName().startsWith(BLOBS_FOLDER)) {
+                    continue;
+                }
+
+                String[] pieces = entry.getName().split("/");
+                if (fdDAO.exists(pieces[1])) {
+                    logger.info("Already have blob with id : " + pieces[1]);
+                    continue;
+                }
+
+                // save blob
+                InputStream is = zipfile.getInputStream(entry);
+                FileDescriptor blob = fs.storeFile(pieces[1], pieces[2], is);
+                is.close();
+
+                // fix workflow
+                for (FileDescriptor fd : dataset.getFileDescriptors()) {
+                    if (fd.getId().equals(pieces[1])) {
+                        fd.setDataURL(blob.getDataURL());
+                    }
+                }
+            }
+
+            // done with zipfile
+            zipfile.close();
+            zipfile = null;
+
+            // save dataset
+            dataset = datasetDAO.save(dataset);
+            t.commit();
+
+            return dataset;
+        } catch (Exception exc) {
+            try {
+                if (zipfile != null) {
+                    zipfile.close();
+                }
+                t.rollback();
+            } catch (Exception e1) {
+                logger.error("Could not rollback transaction.", e1);
+            }
+            throw exc;
+        }
+
+    }
+
 }
