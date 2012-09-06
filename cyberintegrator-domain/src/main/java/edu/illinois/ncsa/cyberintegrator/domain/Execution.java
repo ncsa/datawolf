@@ -207,13 +207,14 @@ public class Execution extends AbstractBean {
 
     /**
      * Returns the value for a specific parameter.
-     * TODO RK : this should search the workflow for the default if not found.
      * 
      * @param uuid
      *            the uuid for parameter
      * @return the value of the parameter.
      */
     public String getParameter(String uuid) {
+        // note if the parameter is not specified the executor should use the
+        // default value from the tool.
         return this.parameters.get(uuid);
     }
 

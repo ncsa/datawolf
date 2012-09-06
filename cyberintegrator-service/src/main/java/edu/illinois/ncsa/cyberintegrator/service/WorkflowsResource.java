@@ -88,7 +88,7 @@ public class WorkflowsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public String createWorkflow(MultipartFormDataInput input) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
-        List<InputPart> inputParts = uploadForm.get("uploadedFile");
+        List<InputPart> inputParts = uploadForm.get("workflow");
         Workflow workflow = null;
 
         for (InputPart inputPart : inputParts) {
@@ -107,7 +107,6 @@ public class WorkflowsResource {
 
                 workflow = ImportExport.importWorkflow(tempfile);
                 tempfile.delete();
-                SpringData.getBean(WorkflowDAO.class).save(workflow);
 
             } catch (Exception e) {
                 e.printStackTrace();
