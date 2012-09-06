@@ -94,7 +94,7 @@ public class HPCToolWizardPage extends WizardPage {
         lbl.setText("Executable:");
 
         exec = new Text(top, SWT.SINGLE | SWT.BORDER);
-        exec.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false));
+        exec.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
         exec.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -102,6 +102,7 @@ public class HPCToolWizardPage extends WizardPage {
             }
         });
 
+        /*
         Button btn = new Button(top, SWT.NONE);
         btn.setText("...");
         btn.setLayoutData(new GridData(GridData.FILL, GridData.FILL, false, false));
@@ -131,7 +132,7 @@ public class HPCToolWizardPage extends WizardPage {
                 }
             }
         });
-
+		*/
         // Browse for the gondola template
         lbl = new Label(top, SWT.NONE);
         lbl.setLayoutData(new GridData(GridData.BEGINNING, GridData.BEGINNING, false, false));
@@ -146,7 +147,7 @@ public class HPCToolWizardPage extends WizardPage {
             }
         });
 
-        btn = new Button(top, SWT.NONE);
+        Button btn = new Button(top, SWT.NONE);
         btn.setText("...");
         btn.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
         btn.addSelectionListener(new SelectionAdapter() {

@@ -212,9 +212,9 @@ public class HPCExecutor extends RemoteExecutor {
             }
 
             File workflow = new File(cwd, impl.getTemplate());
-            File executable = new File(cwd, impl.getExecutable());
+            //File executable = new File(cwd, impl.getExecutable());
 
-            executablePath = stageFile(executable, stagingDir, session, impl.getExecutable());
+            executablePath = impl.getExecutable(); //stageFile(executable, stagingDir, session, impl.getExecutable());
 
             job = createJob(workflow, command, jc);
             jobParser = new JobInfoParser(job.getStatusHandler().getParser());
