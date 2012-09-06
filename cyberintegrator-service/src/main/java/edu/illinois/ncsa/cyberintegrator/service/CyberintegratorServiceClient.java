@@ -17,6 +17,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.JsonGenerationException;
@@ -36,6 +39,41 @@ public class CyberintegratorServiceClient {
     private static Logger logger = LoggerFactory.getLogger(CyberintegratorServiceClient.class);
 
     public static String  SERVER = "";
+
+    public static String createWorkflow(File workflowZip) {
+        String workflowId = null;
+
+        HttpClient httpclient = new DefaultHttpClient();
+
+        try {
+            String requestUrl = SERVER + "/workflow";
+            HttpPost httppost = new HttpPost(requestUrl);
+
+            FileBody bin = new FileBody(workflowZip);
+
+            MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+            reqEntity.addPart("uploadedFile", bin);
+
+            httppost.setEntity(reqEntity);
+
+            logger.info("executing request " + httppost.getRequestLine());
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            try {
+                workflowId = httpclient.execute(httppost, responseHandler);
+                logger.debug("response string" + workflowId);
+            } catch (Exception e) {
+                logger.error("HTTP post failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return workflowId;
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
 
     public static String submit(Submission submission) {
         String executionId = null;
@@ -318,4 +356,5 @@ public class CyberintegratorServiceClient {
         }
         return null;
     }
+
 }
