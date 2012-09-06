@@ -40,7 +40,7 @@
 					<instructions>
 						<Bundle-SymbolicName>edu.illinois.ncsa.gondola</Bundle-SymbolicName>
 						<Bundle-Version>$(replace;${project.version};-SNAPSHOT;.qualifier)</Bundle-Version>
-						<Export-Package>edu.illinois.ncsa.gondola</Export-Package>
+						<Export-Package>*</Export-Package>
 						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
 					</instructions>
 				</configuration>
