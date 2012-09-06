@@ -134,8 +134,10 @@ public class CommandLineExecutor extends LocalExecutor {
 
                 case PARAMETER:
                     // user specified value
-                    String value = execution.getParameter(option.getOptionId());
-                    if (value == null) {
+                    String value = null;
+                    if (execution.hasParameter(option.getOptionId())) {
+                        value = execution.getParameter(option.getOptionId());
+                    } else {
                         value = option.getParameterValue();
                     }
                     if (value != null) {
