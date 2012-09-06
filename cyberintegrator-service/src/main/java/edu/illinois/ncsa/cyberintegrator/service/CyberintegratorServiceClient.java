@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -96,7 +100,7 @@ public class CyberintegratorServiceClient {
                 responseStr = httpclient.execute(httpGet, responseHandler);
                 logger.debug("Response String: " + responseStr);
                 ObjectMapper mapper = new ObjectMapper();
-                states = mapper.readValue(responseStr, new TypeReference<Map<String, Object>>() {});
+                states = mapper.readValue(responseStr, new TypeReference<Map<String, State>>() {});
             } catch (Exception e) {
                 logger.error("HTTP get failed", e);
             }
@@ -222,6 +226,22 @@ public class CyberintegratorServiceClient {
             } catch (Exception ignore) {}
         }
         return null;
+    }
+
+    public static String postWorkflow(File zipfile) throws IOException {
+        org.apache.commons.httpclient.HttpClient httpclient = new org.apache.commons.httpclient.HttpClient();
+        String requestUrl = SERVER + "/workflows";
+        PostMethod httpPost = new PostMethod(requestUrl);
+
+        Part[] parts = { new FilePart("workflow", zipfile) };
+        httpPost.setRequestEntity(new MultipartRequestEntity(parts, httpPost.getParams()));
+        int status = httpclient.executeMethod(httpPost);
+        String response = httpPost.getResponseBodyAsString();
+        if (status == 200) {
+            return response;
+        } else {
+            throw (new IOException("Error uploading workflow. Status code=" + status + ", message=" + response));
+        }
     }
 
     public static String getWorkflowJSONById(String id) {

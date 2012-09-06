@@ -85,7 +85,7 @@ public class ExecutionsResource {
         for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
             execution.setDataset(dataset.getKey(), datasetDAO.findOne(dataset.getValue()));
         }
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+        execution = SpringData.getBean(ExecutionDAO.class).save(execution);
 
         // start execution
         SpringData.getBean(Engine.class).execute(execution);
