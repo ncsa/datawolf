@@ -34,8 +34,7 @@ package edu.illinois.ncsa.springdata;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import edu.illinois.ncsa.domain.Account;
-import edu.illinois.ncsa.domain.Person;
 
 public interface AccountDAO extends PagingAndSortingRepository<Account, String> {
-    Person findByUserid(String userid);
+    Account findByUserid(String userid);
 }
