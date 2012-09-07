@@ -2,7 +2,7 @@ This is what is needed for a simple cyberintegrator service.
 
 SETUP
 ----
-copy cyberintegrator-service-3.0.0-SNAPSHOT.war, log4j.properties, jetty.xml  and
+copy jetty-runner.jar, cyberintegrator-service-3.0.0-SNAPSHOT.war, log4j.properties, jetty.xml  and
 applicationContext.xml to /home/cyberintegrator
 
 jetty.xml contains the path to the war and applicationContext.xml file.
