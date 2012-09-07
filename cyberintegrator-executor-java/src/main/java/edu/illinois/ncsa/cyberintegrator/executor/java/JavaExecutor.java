@@ -135,7 +135,12 @@ public class JavaExecutor extends LocalExecutor {
                 // set parameters
                 if (tool.getParameters() != null) {
                     for (Entry<String, String> entry : step.getParameters().entrySet()) {
-                        String value = execution.getParameter(entry.getValue());
+                        String value = null;
+                        if (execution.hasParameter(entry.getValue())) {
+                            value = execution.getParameter(entry.getValue());
+                        } else {
+                            value = step.getTool().getParameter(entry.getKey()).getValue();
+                        }
                         tool.setParameter(entry.getKey(), value);
                     }
                 }
@@ -181,7 +186,7 @@ public class JavaExecutor extends LocalExecutor {
                 tool.execute();
             } catch (Throwable e) {
                 if (isJobStopped()) {
-                    throw (new AbortException("Job is stopped."));
+                    throw (new AbortException("Job is stopped.", e));
                 }
             } finally {
                 workerThread = null;

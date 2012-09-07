@@ -44,7 +44,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -59,37 +58,36 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import edu.illinois.ncsa.cyberintegrator.ImportExport;
-import edu.illinois.ncsa.cyberintegrator.domain.Execution;
-import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
-import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
-import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
-import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
+import edu.illinois.ncsa.domain.Dataset;
+import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.springdata.DatasetDAO;
+import edu.illinois.ncsa.springdata.FileStorage;
 import edu.illinois.ncsa.springdata.SpringData;
 
-@Path("/workflows")
-public class WorkflowsResource {
+@Path("/datasets")
+public class DatasetsResource {
 
     /**
      * 
-     * Create workflow via workflow JSON. Expects the following form:
+     * Create dataset from zip file. It expects the following form:
      * <form action="rest/workflows" method="post"
      * enctype="multipart/form-data">
      * <input type="file" name="uploadedFile" />
      * <input type="submit" value="Upload It" />
      * </form>
      * 
-     * @param workflow
+     * @param input
      *            a workflow created from JSON
      * @return
-     *         workflow URI
+     *         datasetId
      */
     @POST
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
-    public String createWorkflow(MultipartFormDataInput input) {
+    public String createDataset(MultipartFormDataInput input) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
-        List<InputPart> inputParts = uploadForm.get("workflow");
-        Workflow workflow = null;
+        List<InputPart> inputParts = uploadForm.get("uploadedFile");
+        Dataset dataset = null;
 
         for (InputPart inputPart : inputParts) {
             try {
@@ -105,8 +103,9 @@ public class WorkflowsResource {
                 outputStream.close();
                 inputStream.close();
 
-                workflow = ImportExport.importWorkflow(tempfile);
+                dataset = ImportExport.importDataset(tempfile);
                 tempfile.delete();
+                SpringData.getBean(DatasetDAO.class).save(dataset);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -115,59 +114,59 @@ public class WorkflowsResource {
 
         }
 
-        return workflow.getId();
+        return dataset.getId();
     }
 
     /**
-     * Get all workflows
+     * Get all datasets
      * 
      * @param size
-     *            number of workflows per page
+     *            number of datasets per page
      * @param page
      *            page number starting 0
      * @return
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Workflow> getWorkflows(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        Page<Workflow> results = wfdao.findAll(new PageRequest(page, size));
+    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+        Page<Dataset> results = datasetDao.findAll(new PageRequest(page, size));
         return results.getContent();
     }
 
     /**
      * 
-     * Get a workflow by Id
+     * Get a dataset by Id
      * 
-     * @param workflowId
-     *            workflow Id
+     * @param datasetId
+     *            dataset Id
      * @return
-     *         a workflow in JSON
+     *         a dataset in JSON
      */
     @GET
-    @Path("{workflow-id}")
+    @Path("{dataset-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Workflow getWorkflow(@PathParam("workflow-id") String workflowId) {
-        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        return wfdao.findOne(workflowId);
+    public Dataset getDataset(@PathParam("dataset-id") String datasetId) {
+        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+        return datasetDao.findOne(datasetId);
     }
 
     /**
      * 
-     * Get a workflow by Id
+     * Get a dataset in zip with all other files by Id
      * 
-     * @param workflowId
-     *            workflow Id
+     * @param datasetId
+     *            dataset Id
      * @return
-     *         a workflow in JSON
+     *         a dataset in zip
      */
     @GET
-    @Path("{workflow-id}/zip")
+    @Path("{dataset-id}/zip")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
-    public Response getWorkflowZip(@PathParam("workflow-id") String workflowId) {
+    public Response getDatasetZip(@PathParam("dataset-id") String datasetId) {
         try {
-            final File tempfile = File.createTempFile("workflow", ".zip");
-            ImportExport.exportWorkflow(tempfile, workflowId);
+            final File tempfile = File.createTempFile("dataset", ".zip");
+            ImportExport.exportDataset(tempfile, datasetId);
             ResponseBuilder response = Response.ok(new FileInputStream(tempfile) {
                 @Override
                 public void close() throws IOException {
@@ -176,7 +175,7 @@ public class WorkflowsResource {
                 }
             });
             response.type("application/zip");
-            response.header("Content-Disposition", "attachment; filename=\"workflow.zip\"");
+            response.header("Content-Disposition", "attachment; filename=\"dataset.zip\"");
             return response.build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -185,84 +184,72 @@ public class WorkflowsResource {
     }
 
     /**
-     * Create a execution by execution JSON
      * 
-     * @param workflowId
-     *            workflow id
-     * @param run
-     *            after create an execution, whether run it or not
+     * Get a FileDescriptor by dataset-Id and filedescriptor-id
+     * 
+     * @param datasetId
+     *            dataset Id
+     * @param fileDescriptorId
+     *            filedescriptor Id
      * @return
-     *         execution id
+     *         a FileDescriptor in JSON
      */
-    @POST
-    @Path("{workflow-id}/executions")
-    @Consumes({ MediaType.APPLICATION_JSON })
-    public String createExecution(@PathParam("workflow-id") String workflowId, @QueryParam("run") @DefaultValue("true") boolean run) {
+    @GET
+    @Path("{dataset-id}/{filedescriptor-id}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public FileDescriptor getFileDescriptor(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+        Dataset dataset = datasetDao.findOne(datasetId);
+        List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
+        for (FileDescriptor fd : fileDescriptors) {
+            if (fd.getId().equals(fileDescriptorId))
+                return fd;
+        }
         return null;
     }
 
     /**
+     * get the file with given id
      * 
-     * Get all executions by workflow id
-     * 
-     * @param workflowId
-     *            workflow id
-     * @param size
-     *            number of workflows per page
-     * @param page
-     *            page number starting 0
-     * 
+     * @param id
+     *            file-descriptor id
      * @return
-     *         a execution in JSON
+     *         file
      */
     @GET
-    @Path("{workflow-id}/executions")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        ExecutionDAO execDao = SpringData.getBean(ExecutionDAO.class);
-        List<Execution> execList = execDao.findByWorkflowId(workflowId);
-        return execList;
+    @Path("{dataset-id}/{filedescriptor-id}/file")
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response getFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+        Dataset dataset = datasetDao.findOne(datasetId);
+        List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
+        FileDescriptor fileDescriptor = null;
+        for (FileDescriptor fd : fileDescriptors) {
+            if (fd.getId().equals(fileDescriptorId)) {
+                fileDescriptor = fd;
+                break;
+            }
+        }
+
+        if (fileDescriptor == null)
+            return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
+
+        FileStorage fileStorage = SpringData.getFileStorage();
+        try {
+            InputStream is = fileStorage.readFile(fileDescriptor);
+            ResponseBuilder response = Response.ok(is);
+            if (fileDescriptor.getMimeType().equals("")) {
+                response.type("application/unknown");
+            } else {
+                response.type(fileDescriptor.getMimeType());
+            }
+            response.header("Content-Disposition", "attachment; filename=\"" + fileDescriptor.getFilename() + "\"");
+            // logger.debug("Downloading dataset " + decoded);
+            return response.build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
     }
-
-    @GET
-    @Path("{workflow-id}/executions/{eid}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Execution getExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-
-        return null;
-    }
-
-    @GET
-    @Path("{workflow-id}/executions/{eid}/steps")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public List<WorkflowStep> getSteps(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-        return null;
-    }
-
-    @GET
-    @Path("{workflow-id}/executions/{eid}/steps/{stid}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public WorkflowStep getStep(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId, @PathParam("stid") String stepId) {
-
-        return null;
-    }
-
-    @PUT
-    @Path("{workflow-id}/executions/{eid}/start")
-    public void startExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-
-    }
-
-    @PUT
-    @Path("{workflow-id}/executions/{eid}/pause")
-    public void pauseExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-
-    }
-
-    @PUT
-    @Path("{workflow-id}/executions/{eid}/cancel")
-    public void cancelExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-
-    }
-
 }

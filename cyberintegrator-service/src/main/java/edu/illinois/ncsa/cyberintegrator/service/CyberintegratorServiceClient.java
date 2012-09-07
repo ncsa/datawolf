@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -17,6 +21,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.JsonGenerationException;
@@ -36,6 +43,41 @@ public class CyberintegratorServiceClient {
     private static Logger logger = LoggerFactory.getLogger(CyberintegratorServiceClient.class);
 
     public static String  SERVER = "";
+
+    public static String createWorkflow(File workflowZip) {
+        String workflowId = null;
+
+        HttpClient httpclient = new DefaultHttpClient();
+
+        try {
+            String requestUrl = SERVER + "/workflow";
+            HttpPost httppost = new HttpPost(requestUrl);
+
+            FileBody bin = new FileBody(workflowZip);
+
+            MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+            reqEntity.addPart("uploadedFile", bin);
+
+            httppost.setEntity(reqEntity);
+
+            logger.info("executing request " + httppost.getRequestLine());
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            try {
+                workflowId = httpclient.execute(httppost, responseHandler);
+                logger.debug("response string" + workflowId);
+            } catch (Exception e) {
+                logger.error("HTTP post failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return workflowId;
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
 
     public static String submit(Submission submission) {
         String executionId = null;
@@ -96,7 +138,7 @@ public class CyberintegratorServiceClient {
                 responseStr = httpclient.execute(httpGet, responseHandler);
                 logger.debug("Response String: " + responseStr);
                 ObjectMapper mapper = new ObjectMapper();
-                states = mapper.readValue(responseStr, new TypeReference<Map<String, Object>>() {});
+                states = mapper.readValue(responseStr, new TypeReference<Map<String, State>>() {});
             } catch (Exception e) {
                 logger.error("HTTP get failed", e);
             }
@@ -224,6 +266,22 @@ public class CyberintegratorServiceClient {
         return null;
     }
 
+    public static String postWorkflow(File zipfile) throws IOException {
+        org.apache.commons.httpclient.HttpClient httpclient = new org.apache.commons.httpclient.HttpClient();
+        String requestUrl = SERVER + "/workflows";
+        PostMethod httpPost = new PostMethod(requestUrl);
+
+        Part[] parts = { new FilePart("workflow", zipfile) };
+        httpPost.setRequestEntity(new MultipartRequestEntity(parts, httpPost.getParams()));
+        int status = httpclient.executeMethod(httpPost);
+        String response = httpPost.getResponseBodyAsString();
+        if (status == 200) {
+            return response;
+        } else {
+            throw (new IOException("Error uploading workflow. Status code=" + status + ", message=" + response));
+        }
+    }
+
     public static String getWorkflowJSONById(String id) {
         String responseStr = null;
 
@@ -318,4 +376,5 @@ public class CyberintegratorServiceClient {
         }
         return null;
     }
+
 }

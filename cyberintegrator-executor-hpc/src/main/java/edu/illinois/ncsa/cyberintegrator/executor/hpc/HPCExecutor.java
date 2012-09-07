@@ -115,7 +115,12 @@ public class HPCExecutor extends RemoteExecutor {
                 case PARAMETER:
                     String id = option.getParameterValue();
                     String key = step.getParameters().get(id);
-                    String value = execution.getParameter(key);
+                    String value = null;
+                    if (execution.hasParameter(key)) {
+                    	value = execution.getParameter(key);
+                    } else {
+                    	value = step.getTool().getParameter(key).getValue();
+                    }
                     if (option.isCommandline()) {
                         // add the parameters
                         if (option.getFlag() != null) {

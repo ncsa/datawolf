@@ -10,8 +10,9 @@
 		<property name="executors">
 			<set>
 				<bean class="edu.illinois.ncsa.cyberintegrator.executor.java.JavaExecutor" />
- 				<bean class="edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineExecutor" />
- 				<bean class="edu.illinois.ncsa.cyberintegrator.executor.hpc.HPCExecutor" />
+				<bean
+					class="edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineExecutor" />
+				<bean class="edu.illinois.ncsa.cyberintegrator.executor.hpc.HPCExecutor" />
 			</set>
 		</property>
 	</bean>
@@ -21,12 +22,15 @@
 		<property name="folder" value="data/files" />
 	</bean>
 
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
+
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 	
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="edisonMysql" />
+
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="generateDdl" value="true" />
@@ -43,20 +47,21 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	<bean id="hsqldb"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
 		<property name="url" value="jdbc:hsqldb:mem:." />
 		<property name="username" value="sa" />
 		<property name="password" value="" />
 	</bean>
-<!-- 
-	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+
+	<bean id="cyberintegratorMysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		<property name="url" value="jdbc:mysql://localhost/cyberintegrator" />
 		<property name="username" value="cyberintegrator" />
 		<property name="password" value="cyberintegrator" />
 	</bean>
- -->
+ 
   	<bean id="edisonMysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		<property name="url" value="jdbc:mysql://localhost/edison" />

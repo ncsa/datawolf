@@ -17,6 +17,7 @@ public class CyberIntegratorApplication extends Application {
         Set<Class<?>> rrcs = new HashSet<Class<?>>();
         rrcs.add(WorkflowsResource.class);
         rrcs.add(ExecutionsResource.class);
+        rrcs.add(DatasetsResource.class);
         return rrcs;
     }
 
