@@ -50,13 +50,13 @@ public class CyberintegratorServiceClient {
         HttpClient httpclient = new DefaultHttpClient();
 
         try {
-            String requestUrl = SERVER + "/workflow";
+            String requestUrl = SERVER + "/workflows";
             HttpPost httppost = new HttpPost(requestUrl);
 
             FileBody bin = new FileBody(workflowZip);
 
             MultipartEntity reqEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-            reqEntity.addPart("uploadedFile", bin);
+            reqEntity.addPart("workflow", bin);
 
             httppost.setEntity(reqEntity);
 
