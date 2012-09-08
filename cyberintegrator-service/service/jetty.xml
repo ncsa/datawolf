@@ -4,6 +4,6 @@
 
   <Call name="setInitParameter">
     <Arg>contextConfigLocation</Arg>
-    <Arg>file://home/cyberintegrator/applicationContext.xml</Arg>
+    <Arg>file:///home/cyberintegrator/applicationContext.xml</Arg>
   </Call>
 </Configure>
