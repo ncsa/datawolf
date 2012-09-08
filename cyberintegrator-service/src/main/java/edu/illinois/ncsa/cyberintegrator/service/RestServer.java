@@ -31,9 +31,6 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
-
 /**
  * 
  * @author Jong Lee <jonglee1@illinois.edu>
@@ -41,22 +38,8 @@ import org.mortbay.jetty.webapp.WebAppContext;
  */
 
 public class RestServer {
-    public static final int PORT = 8088;
-    private static Server   server;
 
     public static void main(String[] args) throws Exception {
-        server = new Server(PORT);
-
-        WebAppContext context = new WebAppContext();
-        context.setDescriptor("src/main/webapp/WEB-INF/web.xml");
-        context.setResourceBase("src/main/webapp");
-        context.setContextPath("/");
-        context.setParentLoaderPriority(true);
-
-        server.setHandler(context);
-
-        // start jetty
-        server.start();
-        System.out.println("http://localhost:" + PORT);
+        EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
     }
 }
