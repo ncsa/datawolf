@@ -21,6 +21,8 @@
 		<property name="folder" value="data/files" />
 	</bean>
 
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
+
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
@@ -60,7 +62,7 @@
 	<!-- mysql setting -->
 	<!-- 
 	<bean id="dataSourcePool" class="com.jolbox.bonecp.BoneCPDataSource">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
 		<property name="jdbcUrl" value="jdbc:mysql://localhost/cyberintegrator" />
 		<property name="username" value="cyberintegrator" />
 		<property name="password" value="cyberintegrator" />
