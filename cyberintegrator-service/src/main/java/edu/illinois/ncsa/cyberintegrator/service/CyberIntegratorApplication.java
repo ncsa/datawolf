@@ -5,6 +5,8 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
+import edu.illinois.ncsa.file.service.FilesResource;
+
 public class CyberIntegratorApplication extends Application {
 
     public CyberIntegratorApplication() {
@@ -18,6 +20,8 @@ public class CyberIntegratorApplication extends Application {
         rrcs.add(WorkflowsResource.class);
         rrcs.add(ExecutionsResource.class);
         rrcs.add(DatasetsResource.class);
+        rrcs.add(PersonsResource.class);
+        rrcs.add(FilesResource.class);
         return rrcs;
     }
 
