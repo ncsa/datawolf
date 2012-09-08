@@ -1,8 +1,7 @@
 #! /bin/sh
 
 start() {
-  NOW=$(date +"%Y-%m-%d")
-  su -c "/usr/bin/java -Dlog4j.configuration=file:///home/cyberintegrator/log4j.properties -jar /home/cyberintegrator/jetty-runner.jar --port 9093 --out /home/cyberintegrator/cyberintegrator-$NOW.log /home/cyberintegrator/jetty.xml" cyberintegrator &
+  su -c "/usr/bin/java -Dlog4j.configuration=file:///home/cyberintegrator/log4j.properties -jar /home/cyberintegrator/jetty-runner.jar --port 9093 --out /home/cyberintegrator/cyberintegrator-yyyy_mm_dd.log /home/cyberintegrator/jetty.xml" cyberintegrator &
   echo $! > /var/run/cyberintegrator.pid
 }
 
