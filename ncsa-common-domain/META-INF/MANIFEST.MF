@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1346164825022
-Build-Jdk: 1.6.0_24
-Built-By: kooper
+Bnd-LastModified: 1346337937662
+Build-Jdk: 1.6.0_33
+Built-By: lmarini
 Bundle-ManifestVersion: 2
 Bundle-Name: ncsa-common-domain
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -16,7 +16,8 @@ Export-Package: edu.illinois.ncsa.domain.jackson;uses:="com.fasterxml.ja
  rsistence,org.springframework.data.mongodb.core.mapping,edu.illinois.nc
  sa.domain.jackson,com.fasterxml.jackson.databind.annotation";version="1
  .0.0.qualifier",edu.illinois.ncsa.domain.event;uses:="edu.illinois.ncsa
- .domain";version="1.0.0.qualifier"
+ .domain";version="1.0.0.qualifier",edu.illinois.ncsa.domain.jre.java.ut
+ il;version="1.0.0.qualifier"
 Import-Package: com.fasterxml.jackson.annotation;version="[2.0,3)",com.f
  asterxml.jackson.core;version="[2.0,3)",com.fasterxml.jackson.databind;
  version="[2.0,3)",com.fasterxml.jackson.databind.annotation;version="[2
