@@ -5,6 +5,8 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
+
 import edu.illinois.ncsa.file.service.FilesResource;
 
 public class CyberIntegratorApplication extends Application {
@@ -25,4 +27,10 @@ public class CyberIntegratorApplication extends Application {
         return rrcs;
     }
 
+    @Override
+    public Set<Object> getSingletons() {
+        Set<Object> rrcs = new HashSet<Object>();
+        rrcs.add(new JacksonJaxbJsonProvider());
+        return rrcs;
+    }
 }

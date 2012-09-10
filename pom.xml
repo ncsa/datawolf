@@ -17,6 +17,8 @@
 		<hibernate>4.1.1.Final</hibernate>
 		<hsql>1.8.0.10</hsql>
 		<junit>4.10</junit>
+                <jackson>2.0.5</jackson>
+                <resteasy>2.3.4.Final</resteasy>
 	</properties>
 
 	<repositories>

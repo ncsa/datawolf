@@ -25,6 +25,7 @@ public class EmbededJetty {
 
         // setup resteasy
         Map<String, String> initParams = new HashMap<String, String>();
+        initParams.put("resteasy.scan.providers", "true");
         initParams.put("javax.ws.rs.Application", CyberIntegratorApplication.class.getName());
         root.setInitParams(initParams);
         root.addEventListener(new ResteasyBootstrap());
