@@ -380,6 +380,8 @@ public class Engine {
                                             canrun = 1;
                                         } else if (execution.getDataset(id) == null) {
                                             canrun = 2;
+                                        } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                            canrun = 2;
                                         }
                                     }
                                 } catch (Exception e) {

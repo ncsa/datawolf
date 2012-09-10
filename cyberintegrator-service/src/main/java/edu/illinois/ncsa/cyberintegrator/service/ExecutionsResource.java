@@ -56,7 +56,6 @@ import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
-import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
@@ -81,9 +80,8 @@ public class ExecutionsResource {
         for (Entry<String, String> param : submission.getParameters().entrySet()) {
             execution.setParameter(param.getKey(), param.getValue());
         }
-        DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
         for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
-            execution.setDataset(dataset.getKey(), datasetDAO.findOne(dataset.getValue()));
+            execution.setDataset(dataset.getKey(), dataset.getValue());
         }
         execution = SpringData.getBean(ExecutionDAO.class).save(execution);
 

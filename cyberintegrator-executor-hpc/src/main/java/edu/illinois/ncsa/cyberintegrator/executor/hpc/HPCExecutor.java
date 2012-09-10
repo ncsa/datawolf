@@ -159,7 +159,7 @@ public class HPCExecutor extends RemoteExecutor {
                         String optionId = option.getOptionId();
                         Map<String, String> inputs = step.getInputs();
                         key = inputs.get(optionId);
-                        Dataset ds = execution.getDataset(key);
+                        Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(key));
                         if (ds == null) {
                             throw (new AbortException("Dataset is missing."));
                         }
@@ -513,7 +513,7 @@ public class HPCExecutor extends RemoteExecutor {
                 SpringData.getBean(DatasetDAO.class).save(ds);
 
                 String key = step.getOutputs().get(logId);
-                execution.setDataset(key, ds);
+                execution.setDataset(key, ds.getId());
                 datasets.add(ds);
             } finally {
                 t.commit();

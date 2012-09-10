@@ -259,7 +259,7 @@ public abstract class Executor {
                 execution.setStepEnd(stepId);
                 for (String id : step.getOutputs().keySet()) {
                     if (!execution.hasDataset(id)) {
-                        execution.setDataset(id, null);
+                        execution.setDataset(id, Execution.EMPTY_DATASET);
                     }
                 }
                 break;

@@ -119,7 +119,7 @@ public class EngineTest {
         // add a dataset
         Dataset dataset = createDataset(person);
         SpringData.getBean(DatasetDAO.class).save(dataset);
-        execution.setDataset("input", dataset);
+        execution.setDataset("input", dataset.getId());
         SpringData.getBean(ExecutionDAO.class).save(execution);
 
         // check to see if all workflows are done
@@ -239,14 +239,14 @@ public class EngineTest {
                     Thread.sleep(200);
                 } catch (InterruptedException e) {}
 
-                Dataset dataset = execution.getDataset(step.getInputs().values().iterator().next());
+                Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(step.getInputs().values().iterator().next()));
                 if (dataset == null) {
                     throw (new FailedException("Dataset is not found."));
                 }
 
                 // why do we need a new dataset?
                 // dataset = new Dataset();
-                execution.setDataset(step.getOutputs().keySet().iterator().next(), dataset);
+                execution.setDataset(step.getOutputs().keySet().iterator().next(), dataset.getId());
 
                 t.commit();
             } catch (Exception e) {

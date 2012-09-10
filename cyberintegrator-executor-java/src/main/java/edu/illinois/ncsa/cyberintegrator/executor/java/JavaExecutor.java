@@ -148,7 +148,7 @@ public class JavaExecutor extends LocalExecutor {
                 // set inputs
                 if (tool.getInputs() != null) {
                     for (Entry<String, String> entry : step.getInputs().entrySet()) {
-                        Dataset ds = execution.getDataset(entry.getValue());
+                        Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(entry.getValue()));
                         if (ds == null) {
                             throw (new AbortException("Dataset is missing."));
                         }
@@ -215,7 +215,7 @@ public class JavaExecutor extends LocalExecutor {
                         ds.addFileDescriptor(fd);
                         SpringData.getBean(DatasetDAO.class).save(ds);
 
-                        execution.setDataset(entry.getValue(), ds);
+                        execution.setDataset(entry.getValue(), ds.getId());
                         datasets.add(ds);
                     }
 
