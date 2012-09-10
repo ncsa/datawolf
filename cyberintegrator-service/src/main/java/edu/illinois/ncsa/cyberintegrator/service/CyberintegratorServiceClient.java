@@ -26,13 +26,15 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
@@ -305,6 +307,38 @@ public class CyberintegratorServiceClient {
             try {
                 httpclient.getConnectionManager().shutdown();
                 return responseStr;
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
+
+    public static Execution getExecution(String id) {
+        String responseStr = null;
+        Execution fd = null;
+
+        HttpClient httpclient = new DefaultHttpClient();
+
+        try {
+            String requestUrl = SERVER + "/executions/" + id;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.info("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+                ObjectMapper mapper = new ObjectMapper();
+                fd = mapper.readValue(responseStr, Execution.class);
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return fd;
             } catch (Exception ignore) {}
         }
         return null;

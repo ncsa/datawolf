@@ -4,13 +4,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringWriter;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.GenericXmlApplicationContext;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
