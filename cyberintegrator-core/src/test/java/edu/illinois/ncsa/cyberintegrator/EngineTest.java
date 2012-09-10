@@ -96,8 +96,8 @@ public class EngineTest {
         engine.execute(execution);
 
         // make sure the step is there and not running
-        assertEquals(workflow.getSteps().size(), engine.getSteps().size());
-        assertEquals(workflow.getSteps().size(), engine.getSteps(State.WAITING).size());
+        assertEquals(workflow.getSteps().size(), engine.getSteps(execution.getId()).size());
+        assertEquals(workflow.getSteps().size(), engine.getSteps(execution.getId(), State.WAITING).size());
 
         // add a listener
         final List<WorkflowStep> running = new ArrayList<WorkflowStep>();
@@ -124,13 +124,13 @@ public class EngineTest {
 
         // check to see if all workflows are done
         int loop = 0;
-        while ((loop < 1000) && engine.getSteps().size() > 0) {
+        while ((loop < 1000) && engine.getSteps(execution.getId()).size() > 0) {
             Thread.sleep(100);
             loop++;
         }
 
         // make sure everything is done
-        assertEquals(0, engine.getSteps().size());
+        assertEquals(0, engine.getSteps(execution.getId()).size());
 
         Transaction t = SpringData.getTransaction();
         t.start(false);
