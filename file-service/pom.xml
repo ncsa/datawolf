@@ -73,7 +73,7 @@
 
 	<build>
 		<plugins>
-		<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.12.3</version>
@@ -104,71 +104,14 @@
 					</execution>
 				</executions>
 			</plugin>
+			
+			<!-- create both jar and war file -->
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12.3</version>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.2</version>
 				<configuration>
-					<skipTests>true</skipTests>
+					<attachClasses>true</attachClasses>
 				</configuration>
-			</plugin>
-			<!-- Publish both jar and war when installing -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>make-a-jar</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>install</phase>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<packaging>jar</packaging>
-							<artifactId>${project.artifactId}</artifactId>
-							<groupId>${project.groupId}</groupId>
-							<version>${project.version}</version>
-							<file>
-								${project.build.directory}/${project.artifactId}-${project.version}.jar
-							</file>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>deploy</phase>
-						<goals>
-							<goal>deploy-file</goal>
-						</goals>
-						<configuration>
-							<packaging>jar</packaging>
-							<generatePom>true</generatePom>
-							<url>${project.distributionManagement.repository.url}</url>
-							<artifactId>${project.artifactId}</artifactId>
-							<groupId>${project.groupId}</groupId>
-							<version>${project.version}</version>
-							<file>${project.build.directory}/${project.artifactId}-${project.version}.jar</file>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
