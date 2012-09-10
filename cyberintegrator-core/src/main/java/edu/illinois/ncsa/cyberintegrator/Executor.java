@@ -257,7 +257,7 @@ public abstract class Executor {
             case ABORTED:
             case FINISHED:
                 execution.setStepEnd(stepId);
-                for (String id : step.getOutputs().keySet()) {
+                for (String id : step.getOutputs().values()) {
                     if (!execution.hasDataset(id)) {
                         execution.setDataset(id, Execution.EMPTY_DATASET);
                     }
