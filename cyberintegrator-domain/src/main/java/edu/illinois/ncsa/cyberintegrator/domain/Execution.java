@@ -230,6 +230,10 @@ public class Execution extends AbstractBean {
         this.parameters.put(uuid, value);
     }
 
+    public Map<String, String> getParameters() {
+        return this.parameters;
+    }
+
     /**
      * @param id
      * @return
@@ -259,6 +263,10 @@ public class Execution extends AbstractBean {
      */
     public void setDataset(String id, Dataset dataset) {
         this.datasets.put(id, dataset);
+    }
+
+    public Map<String, Dataset> getDatasets() {
+        return this.datasets;
     }
 
     /**
