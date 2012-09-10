@@ -9,6 +9,24 @@
 	<artifactId>cyberintegrator-service</artifactId>
 	<packaging>war</packaging>
 
+	<!-- magic to make war/jar to work in eclipse -->
+	<properties>
+		<webClassifier>classes</webClassifier>
+	</properties>
+	<profiles>
+		<profile>
+			<id>m2e</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<properties>
+				<webClassifier></webClassifier>
+			</properties>
+		</profile>
+	</profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
@@ -30,12 +48,9 @@
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson}</version>
 		</dependency>
-<!-- 		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-jackson-provider</artifactId>
-			<version>${resteasy}</version>
-		</dependency>
- -->		<dependency>
+		<!-- <dependency> <groupId>org.jboss.resteasy</groupId> <artifactId>resteasy-jackson-provider</artifactId> 
+			<version>${resteasy}</version> </dependency> -->
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
 			<version>${spring.framework}</version>
@@ -85,7 +100,7 @@
 			<artifactId>cyberintegrator-executor-hpc</artifactId>
 			<version>3.0.0-SNAPSHOT</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
@@ -95,10 +110,10 @@
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>file-service</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
-			<classifier>classes</classifier>
+			<classifier>${webClassifier}</classifier>
 		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<!-- create both jar and war file -->
