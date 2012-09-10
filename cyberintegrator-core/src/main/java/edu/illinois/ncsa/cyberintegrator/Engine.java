@@ -214,10 +214,10 @@ public class Engine {
         }
     }
 
-    public boolean hasStep(String step) {
+    public boolean hasStep(String executionId, String stepId) {
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if (exec.getStepId().equals(step)) {
+                if (exec.getExecutionId().equals(executionId) && exec.getStepId().equals(stepId)) {
                     return true;
                 }
             }
@@ -225,15 +225,15 @@ public class Engine {
         return false;
     }
 
-    public Collection<String> getSteps() {
-        return getSteps(null);
+    public Collection<String> getSteps(String executionId) {
+        return getSteps(executionId, null);
     }
 
-    public Collection<String> getSteps(State state) {
+    public Collection<String> getSteps(String executionId, State state) {
         List<String> steps = new ArrayList<String>();
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if ((state == null) || (exec.getState() == state)) {
+                if (exec.getExecutionId().equals(executionId) && ((state == null) || (exec.getState() == state))) {
                     steps.add(exec.getStepId());
                 }
             }
@@ -241,10 +241,10 @@ public class Engine {
         return steps;
     }
 
-    public State getStepState(String step) {
+    public State getStepState(String executionId, String stepId) {
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if (exec.getStepId().equals(step)) {
+                if (exec.getExecutionId().equals(executionId) && exec.getStepId().equals(stepId)) {
                     return exec.getState();
                 }
             }
@@ -257,15 +257,37 @@ public class Engine {
      * list. If the step is already executing attempts will be made to stop the
      * step from executing.
      * 
+     * @param executionId
+     *            the execution Id
+     * 
      * @param steps
      *            the list of steps to be stopped.
      */
-    public void stop(String... steps) {
+    public void stop(String executionId, String... steps) {
         List<String> allsteps = Arrays.asList(steps);
 
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if (allsteps.contains(exec.getStepId())) {
+                if (exec.getExecutionId().equals(executionId) && allsteps.contains(exec.getStepId())) {
+                    exec.stopJob();
+                }
+            }
+        }
+    }
+
+    /**
+     * Stops all steps in a execution from being executed, and removes it from
+     * the
+     * list. If the step is already executing attempts will be made to stop the
+     * step from executing.
+     * 
+     * @param executionId
+     *            the execution Id
+     */
+    public void stop(String executionId) {
+        synchronized (workers) {
+            for (Executor exec : getQueue()) {
+                if (exec.getExecutionId().equals(executionId)) {
                     exec.stopJob();
                 }
             }
