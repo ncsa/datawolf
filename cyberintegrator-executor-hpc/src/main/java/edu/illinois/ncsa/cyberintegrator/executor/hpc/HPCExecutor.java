@@ -91,6 +91,7 @@ public class HPCExecutor extends RemoteExecutor {
 
     // Dataset id to store log file as tool output
     private String              logId          = null;
+    private String jobId = null;
 
     @Override
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
@@ -233,7 +234,7 @@ public class HPCExecutor extends RemoteExecutor {
             // path to remote log file
             remoteLogFile = stagingDir + NonNLSConstants.LOG;
 
-            String jobId = submit(job, scriptPath, session, targetLineSep);
+            jobId = submit(job, scriptPath, session, targetLineSep);
 
         } catch (AbortException e) {
             throw e;
@@ -397,7 +398,18 @@ public class HPCExecutor extends RemoteExecutor {
 
     @Override
     public void cancelRemoteJob() {
-        // TODO : CMN : implement this
+    	// TODO : CMN : implement this
+    	if(session != null) {
+    		String command = job.getTerminatePath() + NonNLSConstants.SP + jobId;
+    		try {
+				SshUtils.exec(session, command);
+				setState(State.ABORTED);
+			} catch (IllegalArgumentException e) {
+				logger.error("Could not cancel job "+jobId, e);
+			} catch (Exception e) {
+				logger.error("Could not cancel job "+jobId, e);
+			}
+    	}
     }
 
     @Override
