@@ -399,6 +399,7 @@ public class HPCExecutor extends RemoteExecutor {
     @Override
     public void cancelRemoteJob() {
     	// TODO : CMN : implement this
+    	logger.info(String.format("Stopping RemoteJob : %s", jobId));
     	if(session != null) {
     		String command = job.getTerminatePath() + NonNLSConstants.SP + jobId;
     		try {
