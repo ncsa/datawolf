@@ -226,7 +226,7 @@ public class JavaExecutor extends LocalExecutor {
                 } catch (FailedException e) {
                     throw e;
                 } catch (Throwable e) {
-                    throw (new FailedException("Could not run transaction to save information about step.", e));
+                    throw (new FailedException("Error saving output from step.", e));
                 } finally {
                     try {
                         if (t != null) {
