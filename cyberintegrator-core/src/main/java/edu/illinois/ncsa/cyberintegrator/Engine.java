@@ -376,6 +376,11 @@ public class Engine {
                             Executor exec = iter.next();
 
                             switch (exec.getState()) {
+                            case UNKNOWN:
+                            case QUEUED:
+                            case RUNNING:
+                                break;
+
                             case ABORTED:
                             case FAILED:
                             case FINISHED:
@@ -421,6 +426,7 @@ public class Engine {
                                 if ((canrun == 0) && exec.isExecutorReady()) {
                                     exec.startJob();
                                 } else if (canrun == 2) {
+                                    exec.setState(edu.illinois.ncsa.cyberintegrator.domain.Execution.State.ABORTED);
                                     exec.stopJob();
                                     iter.remove();
                                     saveQueue();
