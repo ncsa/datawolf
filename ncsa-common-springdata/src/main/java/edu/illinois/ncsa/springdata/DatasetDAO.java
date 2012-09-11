@@ -33,10 +33,14 @@ package edu.illinois.ncsa.springdata;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import edu.illinois.ncsa.domain.Dataset;
 
 public interface DatasetDAO extends PagingAndSortingRepository<Dataset, String> {
     List<Dataset> findByCreatorEmail(String email);
+
+    Page<Dataset> findByCreatorEmail(String email, PageRequest page);
 }
