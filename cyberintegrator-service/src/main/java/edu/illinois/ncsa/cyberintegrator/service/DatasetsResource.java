@@ -37,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -204,14 +205,39 @@ public class DatasetsResource {
      *            number of datasets per page
      * @param page
      *            page number starting 0
+     * @param email
+     *            email of creator
      * @return
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email) {
         DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
-        Page<Dataset> results = datasetDao.findAll(new PageRequest(page, size));
-        return results.getContent();
+
+        // without paging
+        if (size < 1) {
+            Iterable<Dataset> results = null;
+            if (email.equals("")) {
+                results = datasetDao.findAll();
+            } else {
+                results = datasetDao.findByCreatorEmail(email);
+            }
+
+            ArrayList<Dataset> list = new ArrayList<Dataset>();
+            for (Dataset d : results) {
+                list.add(d);
+            }
+            return list;
+        } else { // with paging
+
+            Page<Dataset> results = null;
+            if (email.equals("")) {
+                results = datasetDao.findAll(new PageRequest(page, size));
+            } else {
+                results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size));
+            }
+            return results.getContent();
+        }
     }
 
     /**

@@ -33,10 +33,18 @@ package edu.illinois.ncsa.cyberintegrator.springdata;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 
 public interface ExecutionDAO extends PagingAndSortingRepository<Execution, String> {
     List<Execution> findByWorkflowId(String workflowId);
+
+    Page<Execution> findByWorkflowId(String workflowId, PageRequest page);
+
+    List<Execution> findByCreatorEmail(String email);
+
+    Page<Execution> findByCreatorEmail(String email, PageRequest page);
 }

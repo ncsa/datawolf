@@ -31,6 +31,7 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -95,18 +96,43 @@ public class ExecutionsResource {
      * Get all executions
      * 
      * @param size
-     *            number of workflows per page (default: 100)
+     *            number of workflows per page (default: -1)
      * @param page
      *            page number starting 0
+     * @param email
+     *            email of creator
      * @return
      *         list of executions
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email) {
         ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
-        Page<Execution> results = exedao.findAll(new PageRequest(page, size));
-        return results.getContent();
+
+        // without paging
+        if (size < 1) {
+            if (email.equals("")) {
+                Iterable<Execution> tmp = exedao.findAll();
+                ArrayList<Execution> list = new ArrayList<Execution>();
+                for (Execution d : tmp) {
+                    list.add(d);
+                }
+                return list;
+            } else {
+                return exedao.findByCreatorEmail(email);
+            }
+
+        } else { // with paging
+
+            Page<Execution> results = null;
+            if (email.equals("")) {
+                results = exedao.findAll(new PageRequest(page, size));
+            } else {
+                results = exedao.findByCreatorEmail(email, new PageRequest(page, size));
+            }
+            return results.getContent();
+        }
+
     }
 
     /**
