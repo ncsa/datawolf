@@ -205,7 +205,7 @@ public class JavaExecutor extends LocalExecutor {
                     for (Entry<String, String> entry : step.getOutputs().entrySet()) {
                         WorkflowToolData data = step.getOutput(entry.getValue());
 
-                        FileDescriptor fd = SpringData.getFileStorage().storeFile(tool.getOutput(entry.getKey()));
+                        FileDescriptor fd = SpringData.getFileStorage().storeFile(data.getTitle(), tool.getOutput(entry.getKey()));
                         fd.setMimeType(data.getMimeType());
 
                         Dataset ds = new Dataset();
