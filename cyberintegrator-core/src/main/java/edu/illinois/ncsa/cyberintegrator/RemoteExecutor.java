@@ -78,7 +78,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
             State state = submitRemoteJob(cwd);
             setState(state);
 
-            while ((remoteThread == Thread.currentThread()) && (state != State.ABORTED) && (state != State.FAILED) && (state != State.FINISHED)) {
+            while ((state != State.ABORTED) && (state != State.FAILED) && (state != State.FINISHED)) {
                 State newstate = checkRemoteJob();
                 if ((newstate != null) && (newstate != state)) {
                     setState(newstate);
