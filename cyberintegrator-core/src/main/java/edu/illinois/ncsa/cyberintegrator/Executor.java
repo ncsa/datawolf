@@ -251,7 +251,7 @@ public abstract class Executor {
                 execution.setStepQueued(stepId);
                 break;
             case RUNNING:
-                execution.setStepQueued(stepId);
+                execution.setStepStart(stepId);
                 break;
             case FAILED:
             case ABORTED:
