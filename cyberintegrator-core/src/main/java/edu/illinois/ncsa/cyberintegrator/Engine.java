@@ -392,34 +392,39 @@ public class Engine {
                                 // 0 = OK, 1 = WAIT, 2 = ERROR
                                 int canrun = 0;
 
-                                Transaction transaction = null;
-                                try {
-                                    transaction = SpringData.getTransaction();
-                                    transaction.start();
-
-                                    Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
-                                    WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
-
-                                    // check to see if all inputs of the step
-                                    // are ready
-                                    for (String id : step.getInputs().values()) {
-                                        if (!execution.hasDataset(id)) {
-                                            canrun = 1;
-                                        } else if (execution.getDataset(id) == null) {
-                                            canrun = 2;
-                                        } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
-                                            canrun = 2;
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    logger.error("Error getting job information.", e);
-                                } finally {
+                                // if job is stopped mark as aborted
+                                if (exec.isJobStopped()) {
+                                    canrun = 2;
+                                } else {
+                                    Transaction transaction = null;
                                     try {
-                                        transaction.commit();
+                                        transaction = SpringData.getTransaction();
+                                        transaction.start();
+
+                                        Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                        WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+
+                                        // check to see if all inputs of the
+                                        // step are ready
+                                        for (String id : step.getInputs().values()) {
+                                            if (!execution.hasDataset(id)) {
+                                                canrun = 1;
+                                            } else if (execution.getDataset(id) == null) {
+                                                canrun = 2;
+                                            } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                canrun = 2;
+                                            }
+                                        }
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
-                                    }
+                                    } finally {
+                                        try {
+                                            transaction.commit();
+                                        } catch (Exception e) {
+                                            logger.error("Error getting job information.", e);
+                                        }
 
+                                    }
                                 }
 
                                 // check to make sure the executor can run

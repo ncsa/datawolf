@@ -122,6 +122,42 @@ public class EngineTest {
     }
 
     @Test
+    public void testWorkflowCancel() throws Exception {
+        Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
+
+        // create a workflow with a step
+        Workflow workflow = createWorkflow(person, 2, false);
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        // create the execution
+        Execution execution = createExecution(person, workflow);
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // submit a single step
+        engine.execute(execution);
+
+        // cancel execution
+        engine.stop(execution.getId());
+
+        // check to see if all workflows are done
+        int loop = 0;
+        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+            Thread.sleep(100);
+            loop++;
+        }
+
+        // make sure everything is done
+        assertEquals(0, engine.getSteps(execution.getId()).size());
+
+        Transaction t = SpringData.getTransaction();
+        t.start();
+        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        t.commit();
+    }
+
+    @Test
     public void testRunAllSteps() throws Exception {
         Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
 
