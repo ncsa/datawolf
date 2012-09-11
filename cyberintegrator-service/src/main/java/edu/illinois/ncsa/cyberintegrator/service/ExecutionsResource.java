@@ -206,4 +206,11 @@ public class ExecutionsResource {
         Engine engine = SpringData.getBean(Engine.class);
         engine.stop(executionId);
     }
+
+    @PUT
+    @Path("{execution-id}/delete")
+    public void deleteExecution(@PathParam("execution-id") String executionId) {
+        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
+        exedao.delete(executionId);
+    }
 }
