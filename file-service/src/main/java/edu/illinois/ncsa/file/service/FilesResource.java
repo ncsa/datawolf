@@ -86,7 +86,9 @@ public class FilesResource {
             } else {
                 response.type(file.getMimeType());
             }
-            response.header("Content-Disposition", "attachment; filename=\"" + file.getFilename() + "\"");
+            if (file.getFilename() != null) {
+                response.header("Content-Disposition", "attachment; filename=\"" + file.getFilename() + "\"");
+            }
             // logger.debug("Downloading dataset " + decoded);
             return response.build();
         } catch (IOException e) {
