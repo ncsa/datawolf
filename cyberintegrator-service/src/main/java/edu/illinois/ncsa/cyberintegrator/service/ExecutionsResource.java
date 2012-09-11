@@ -203,7 +203,7 @@ public class ExecutionsResource {
     @PUT
     @Path("{execution-id}/cancel")
     public void cancelExecution(@PathParam("execution-id") String executionId) {
-
+        Engine engine = SpringData.getBean(Engine.class);
+        engine.stop(executionId);
     }
-
 }
