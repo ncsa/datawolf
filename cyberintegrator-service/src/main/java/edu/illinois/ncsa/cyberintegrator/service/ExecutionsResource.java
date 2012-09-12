@@ -47,6 +47,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -54,14 +56,18 @@ import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
+import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
+import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/executions")
 public class ExecutionsResource {
+
+    Logger log = LoggerFactory.getLogger(ExecutionsResource.class);
 
     /**
      * Create execution via Submission JSON
@@ -75,21 +81,33 @@ public class ExecutionsResource {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.TEXT_PLAIN })
     public String createExecution(Submission submission) {
+
+        log.trace("POST /executions received");
         Execution execution = new Execution();
-        execution.setWorkflow(SpringData.getBean(WorkflowDAO.class).findOne(submission.getWorkflowId()));
-        execution.setCreator(SpringData.getBean(PersonDAO.class).findOne(submission.getCreatorId()));
-        for (Entry<String, String> param : submission.getParameters().entrySet()) {
-            execution.setParameter(param.getKey(), param.getValue());
-        }
-        for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
-            execution.setDataset(dataset.getKey(), dataset.getValue());
-        }
-        execution = SpringData.getBean(ExecutionDAO.class).save(execution);
+        // find workflow
+        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
+        Workflow workflow = workflowDAO.findOne(submission.getWorkflowId());
+        if (workflow != null) {
+            execution.setWorkflow(workflow);
+            execution.setCreator(SpringData.getBean(PersonDAO.class).findOne(submission.getCreatorId()));
+            for (Entry<String, String> param : submission.getParameters().entrySet()) {
+                execution.setParameter(param.getKey(), param.getValue());
+            }
+            DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
+            for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
+                execution.setDataset(dataset.getKey(), dataset.getValue());
+            }
+            SpringData.getBean(ExecutionDAO.class).save(execution);
 
-        // start execution
-        SpringData.getBean(Engine.class).execute(execution);
+            // start execution
+            SpringData.getBean(Engine.class).execute(execution);
 
-        return execution.getId();
+            return execution.getId();
+        } else {
+            String error = "Workflow " + submission.getWorkflowId() + " not found.";
+            log.error(error);
+            return error;
+        }
     }
 
     /**

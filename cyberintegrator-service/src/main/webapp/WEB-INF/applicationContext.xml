@@ -24,9 +24,11 @@
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
 
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
+	
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-		<property name="dataSource" ref="dataSourcePool" />
+		<property name="dataSource" ref="edisonMysql" />
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="generateDdl" value="true" />
@@ -57,6 +59,20 @@
 		<property name="acquireIncrement" value="5" />
 		<property name="statementsCacheSize" value="100" />
 		<property name="releaseHelperThreads" value="3" />
+	</bean>
+
+	<bean id="cyberintegratorMysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost/cyberintegrator" />
+		<property name="username" value="cyberintegrator" />
+		<property name="password" value="cyberintegrator" />
+	</bean>
+ 
+  	<bean id="edisonMysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost/edison" />
+		<property name="username" value="edison" />
+		<property name="password" value="edison" />
 	</bean>
 	
 	<!-- mysql setting -->
