@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,9 +30,14 @@ public class FileServicePostTest {
         EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
     }
 
+    @AfterClass
+    public static void tearDown() throws Exception {
+        EmbededJetty.stop();
+    }
+
     @Test
     public void testPost() throws Exception {
-        FileServiceClient.SERVER = "http://localhost:8088";
+        FileServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
 
         File postfile = new File("src/test/resources/test.txt");
         InputStream o = new FileInputStream(postfile);

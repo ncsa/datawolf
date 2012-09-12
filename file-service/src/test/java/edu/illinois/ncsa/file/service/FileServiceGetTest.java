@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.IOUtil;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,8 +35,10 @@ public class FileServiceGetTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        FileServiceClient.SERVER = "http://localhost:8088";
         EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
+
+        FileServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
+
         FileStorage fs = SpringData.getFileStorage();
 
         // store file via FileStorage
@@ -51,6 +54,11 @@ public class FileServiceGetTest {
 
         id = fd.getId();
         logger.debug(id);
+    }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        EmbededJetty.stop();
     }
 
     @Test
