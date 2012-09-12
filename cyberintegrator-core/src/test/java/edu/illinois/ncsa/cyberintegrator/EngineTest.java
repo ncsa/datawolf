@@ -226,7 +226,7 @@ public class EngineTest {
         }
     }
 
-    protected Dataset createDataset(Person creator) {
+    protected static Dataset createDataset(Person creator) {
         Dataset dataset = new Dataset();
         dataset.setCreator(creator);
         dataset.setTitle("TEST DATASET");
@@ -234,7 +234,7 @@ public class EngineTest {
         return dataset;
     }
 
-    protected Execution createExecution(Person creator, Workflow workflow) {
+    protected static Execution createExecution(Person creator, Workflow workflow) {
         Execution execution = new Execution();
         execution.setCreator(creator);
         execution.setWorkflow(workflow);
@@ -242,7 +242,7 @@ public class EngineTest {
         return execution;
     }
 
-    protected Workflow createWorkflow(Person creator, int steps, boolean errorStep) {
+    protected static Workflow createWorkflow(Person creator, int steps, boolean errorStep) {
         Workflow workflow = new Workflow();
         workflow.setCreator(creator);
         workflow.setTitle("TEST WORKFLOW");
@@ -266,7 +266,7 @@ public class EngineTest {
         return workflow;
     }
 
-    protected WorkflowStep createWorkflowStep(Person creator) {
+    protected static WorkflowStep createWorkflowStep(Person creator) {
         WorkflowStep step = new WorkflowStep();
         step.setCreator(creator);
         step.setTool(createWorkflowTool(creator));
@@ -274,7 +274,7 @@ public class EngineTest {
         return step;
     }
 
-    protected WorkflowTool createWorkflowTool(Person creator) {
+    protected static WorkflowTool createWorkflowTool(Person creator) {
         WorkflowTool tool = new WorkflowTool();
         tool.setCreator(creator);
 
@@ -295,7 +295,7 @@ public class EngineTest {
         return tool;
     }
 
-    static class DummyExecutor extends LocalExecutor {
+    protected static class DummyExecutor extends LocalExecutor {
         @Override
         public String getExecutorName() {
             return "dummy";
