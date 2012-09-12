@@ -404,7 +404,7 @@ public class HPCExecutor extends RemoteExecutor {
     		String command = job.getTerminatePath() + NonNLSConstants.SP + jobId;
     		try {
 				SshUtils.exec(session, command);
-				setState(State.ABORTED);
+				//setState(State.ABORTED);
 			} catch (IllegalArgumentException e) {
 				logger.error("Could not cancel job "+jobId, e);
 			} catch (Exception e) {
