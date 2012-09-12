@@ -71,6 +71,7 @@
 		<module>cyberintegrator-executor-commandline</module>
                 <module>gondola</module>
 		<module>cyberintegrator-executor-hpc</module>
+		<module>cyberintegrator-serivce-client</module>
 		<module>cyberintegrator-service</module>
 <!--
 		<module>cyberintegrator-executor-java-ui</module>
