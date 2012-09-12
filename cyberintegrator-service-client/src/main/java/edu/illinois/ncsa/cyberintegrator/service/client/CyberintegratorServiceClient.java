@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -264,6 +266,23 @@ public class CyberintegratorServiceClient {
             try {
                 httpclient.getConnectionManager().shutdown();
             } catch (Exception ignore) {}
+        }
+    }
+
+    public static String postWorkflow(File zipfile) throws IOException {
+        HttpClient httpclient = new DefaultHttpClient();
+        String requestUrl = SERVER + "/workflows";
+        HttpPost httpPost = new HttpPost(requestUrl);
+ 
+        MultipartEntity entity = new MultipartEntity();
+        entity.addPart("workflow", new FileBody(zipfile));
+        httpPost.setEntity(entity);
+        
+        try {
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            return httpclient.execute(httpPost, responseHandler);
+        } finally {
+            httpclient.getConnectionManager().shutdown();
         }
     }
 
