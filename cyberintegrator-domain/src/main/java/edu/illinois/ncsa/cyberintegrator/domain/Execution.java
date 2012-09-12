@@ -35,11 +35,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -74,6 +77,7 @@ public class Execution extends AbstractBean {
     private Date                date             = new Date();
 
     /** creator of the execution */
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @DBRef
     private Person              creator          = null;
 
@@ -244,7 +248,7 @@ public class Execution extends AbstractBean {
     /**
      * Returns the value for a specific dataset.
      * 
-     * @param uuid
+     * @param id
      *            the uuid for dataset
      * @return the id of the dataset.
      */
@@ -271,8 +275,8 @@ public class Execution extends AbstractBean {
     /**
      * Returns the state for a specific step.
      * 
-     * @param uri
-     *            the uri for the step in the workflow
+     * @param id
+     *            the id for the step in the workflow
      * @return the state of the step.
      */
     public State getStepState(String id) {
@@ -286,8 +290,8 @@ public class Execution extends AbstractBean {
     /**
      * Sets the state of the specific step in the workflow.
      * 
-     * @param uri
-     *            the uri of the workflow step.
+     * @param id
+     *            the id of the workflow step.
      * @param state
      *            the state of the workflow step.
      */
