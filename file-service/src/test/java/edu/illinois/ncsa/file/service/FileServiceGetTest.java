@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.file.service.client.FileServiceClient;
 import edu.illinois.ncsa.springdata.FileStorage;
 import edu.illinois.ncsa.springdata.SpringData;
 
@@ -34,7 +35,7 @@ public class FileServiceGetTest {
     @BeforeClass
     public static void setUp() throws Exception {
         FileServiceClient.SERVER = "http://localhost:8088";
-        RestServer.jettyServer("src/test/resources", "testContext.xml");
+        EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
         FileStorage fs = SpringData.getFileStorage();
 
         // store file via FileStorage
@@ -55,7 +56,7 @@ public class FileServiceGetTest {
     @Test
     public void testGetIdForFileDescriptor() throws Exception {
 
-        FileDescriptor tfd = FileServiceClient.get(id);
+        FileDescriptor tfd = FileServiceClient.getFileDescriptor(id);
         assertEquals(fd, tfd);
     }
 

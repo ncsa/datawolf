@@ -14,6 +14,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.file.service.client.FileServiceClient;
 import edu.illinois.ncsa.springdata.FileStorage;
 import edu.illinois.ncsa.springdata.SpringData;
 
@@ -25,7 +26,7 @@ public class FileServicePostTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        RestServer.jettyServer("src/test/resources", "testContext.xml");
+        EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
     }
 
     @Test
@@ -35,7 +36,7 @@ public class FileServicePostTest {
         File postfile = new File("src/test/resources/test.txt");
         InputStream o = new FileInputStream(postfile);
         byte[] oba = IOUtil.toByteArray(o);
-        FileDescriptor fd = FileServiceClient.post(postfile);
+        FileDescriptor fd = FileServiceClient.createFileDescriptor(postfile);
 
         FileStorage fs = SpringData.getFileStorage();
         InputStream r = fs.readFile(fd);
