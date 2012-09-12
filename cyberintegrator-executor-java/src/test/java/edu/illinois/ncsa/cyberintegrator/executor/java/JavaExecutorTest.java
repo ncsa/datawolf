@@ -36,6 +36,7 @@ import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
 
@@ -90,6 +91,7 @@ public class JavaExecutorTest {
         edu.illinois.ncsa.domain.Dataset dataset = new edu.illinois.ncsa.domain.Dataset();
         FileDescriptor fd = SpringData.getFileStorage().storeFile(new ByteArrayInputStream("HELLO".getBytes("UTF-8")));
         dataset.addFileDescriptor(fd);
+        SpringData.getBean(DatasetDAO.class).save(dataset);
 
         WorkflowStep step = new WorkflowStep();
         step.setTool(createTool());
@@ -97,7 +99,7 @@ public class JavaExecutorTest {
         SpringData.getBean(WorkflowStepDAO.class).save(step);
 
         Execution execution = new Execution();
-        execution.setDataset(datasetid, dataset);
+        execution.setDataset(datasetid, dataset.getId());
         execution.setParameter(step.getParameters().values().iterator().next(), "WORLD");
         SpringData.getBean(ExecutionDAO.class).save(execution);
 
@@ -132,7 +134,7 @@ public class JavaExecutorTest {
         String outputid = step.getOutputs().values().iterator().next();
         assertTrue(execution.hasDataset(outputid));
 
-        dataset = execution.getDataset(outputid);
+        dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(outputid));
         assertEquals(1, dataset.getFileDescriptors().size());
 
         InputStream is = SpringData.getFileStorage().readFile(dataset.getFileDescriptors().get(0));

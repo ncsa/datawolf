@@ -7,17 +7,24 @@
 	<artifactId>cyberintegrator</artifactId>
 	<packaging>pom</packaging>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.framework>3.1.1.RELEASE</spring.framework>
-		<spring.data>1.3.0.M1</spring.data>
-		<spring.jpa>1.1.0.RC1</spring.jpa>
-		<spring.mongo>1.1.0.M1</spring.mongo>
-		<slf4j>1.6.4</slf4j>
-		<hibernate>4.1.1.Final</hibernate>
-		<hsql>1.8.0.10</hsql>
-		<junit>4.10</junit>
-	</properties>
+        <properties>
+                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+                <spring.framework.version>3.2.0.BUILD</spring.framework.version>
+                <spring.data.version>1.4.0.RC1</spring.data.version>
+                <spring.jpa.version>1.2.0.RC1</spring.jpa.version>
+                <spring.mongo.version>1.1.0.RC1</spring.mongo.version>
+
+		<ncsa.common.version>1.0.0-SNAPSHOT</ncsa.common.version>
+
+		<apache.http.version>4.2.1</apache.http.version>
+
+                <slf4j.version>1.7.0</slf4j.version>
+                <junit.version>4.10</junit.version>
+
+                <jackson.version>2.0.5</jackson.version>
+                <resteasy.version>2.3.4.Final</resteasy.version>
+        </properties>
 
 	<repositories>
 		<repository>
@@ -69,6 +76,7 @@
 		<module>cyberintegrator-executor-commandline</module>
                 <module>gondola</module>
 		<module>cyberintegrator-executor-hpc</module>
+		<module>cyberintegrator-service-client</module>
 		<module>cyberintegrator-service</module>
 <!--
 		<module>cyberintegrator-executor-java-ui</module>
@@ -77,4 +85,14 @@
                 <module>cyberintegrator-rpc</module>
 -->
 	</modules>
+
+
+        <dependencies>
+                <dependency>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>${junit.version}</version>
+                        <scope>test</scope>
+                </dependency>
+        </dependencies>
 </project>

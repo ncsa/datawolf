@@ -9,46 +9,64 @@
 	<artifactId>cyberintegrator-service</artifactId>
 	<packaging>war</packaging>
 
+	<!-- magic to make war/jar to work in eclipse -->
+	<properties>
+		<webClassifier>classes</webClassifier>
+	</properties>
+	<profiles>
+		<profile>
+			<id>m2e</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<properties>
+				<webClassifier></webClassifier>
+			</properties>
+		</profile>
+	</profiles>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jaxrs</artifactId>
-			<version>2.3.2.Final</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jaxb-provider</artifactId>
-			<version>2.3.2.Final</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-multipart-provider</artifactId>
-			<version>2.3.2.Final</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-jackson-provider</artifactId>
-			<version>2.3.2.Final</version>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-			<version>${spring.framework}</version>
+			<version>${spring.framework.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-domain</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>tjws</artifactId>
-			<version>2.3.2.Final</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>ncsa-common-springdata</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>${ncsa.common.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
@@ -58,36 +76,59 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j}</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-springdata</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-executor-commandline</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-executor-java</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-executor-hpc</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
-			<version>4.1.2</version>
+			<version>${apache.http.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>file-service</artifactId>
+			<version>${ncsa.common.version}</version>
+			<classifier>${webClassifier}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>cyberintegrator-service-client</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
+
 	<build>
 		<plugins>
+			<!-- create both jar and war file -->
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<attachClasses>true</attachClasses>
+				</configuration>
+			</plugin>
+
+			<!-- copy the jetty runer -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>

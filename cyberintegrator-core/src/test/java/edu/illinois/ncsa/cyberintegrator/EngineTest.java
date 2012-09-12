@@ -39,7 +39,8 @@ import edu.illinois.ncsa.springdata.Transaction;
  * 
  */
 public class EngineTest {
-    protected Engine engine;
+    private static final String STEP_WITH_ERROR = "STEP WITH ERROR";
+    protected Engine            engine;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -79,13 +80,89 @@ public class EngineTest {
 //        engine.setWorkers(3);
 //        assertEquals(3, engine.getWorkers());
 //    }
+    @Test
+    public void testStepWithError() throws Exception {
+        Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
+
+        // create a workflow with a step
+        Workflow workflow = createWorkflow(person, 2, true);
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        // create the execution
+        Execution execution = createExecution(person, workflow);
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // add a dataset
+        Dataset dataset = createDataset(person);
+        SpringData.getBean(DatasetDAO.class).save(dataset);
+        execution.setDataset("dataset", dataset.getId());
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // submit a single step
+        engine.execute(execution);
+
+        // check to see if all workflows are done
+        int loop = 0;
+        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+            Thread.sleep(100);
+            loop++;
+        }
+
+        // make sure everything is done
+        assertEquals(0, engine.getSteps(execution.getId()).size());
+
+        Transaction t = SpringData.getTransaction();
+        t.start();
+        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+
+        assertEquals(State.FAILED, execution.getStepState(workflow.getSteps().get(0).getId()));
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+
+        t.commit();
+    }
+
+    @Test
+    public void testWorkflowCancel() throws Exception {
+        Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
+
+        // create a workflow with a step
+        Workflow workflow = createWorkflow(person, 2, false);
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        // create the execution
+        Execution execution = createExecution(person, workflow);
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // submit a single step
+        engine.execute(execution);
+
+        // cancel execution
+        engine.stop(execution.getId());
+
+        // check to see if all workflows are done
+        int loop = 0;
+        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+            Thread.sleep(100);
+            loop++;
+        }
+
+        // make sure everything is done
+        assertEquals(0, engine.getSteps(execution.getId()).size());
+
+        Transaction t = SpringData.getTransaction();
+        t.start();
+        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        t.commit();
+    }
 
     @Test
     public void testRunAllSteps() throws Exception {
         Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
 
         // create a workflow with a step
-        Workflow workflow = createWorkflow(person, 20);
+        Workflow workflow = createWorkflow(person, 20, false);
         SpringData.getBean(WorkflowDAO.class).save(workflow);
 
         // create the execution
@@ -96,8 +173,8 @@ public class EngineTest {
         engine.execute(execution);
 
         // make sure the step is there and not running
-        assertEquals(workflow.getSteps().size(), engine.getSteps().size());
-        assertEquals(workflow.getSteps().size(), engine.getSteps(State.WAITING).size());
+        assertEquals(workflow.getSteps().size(), engine.getSteps(execution.getId()).size());
+        assertEquals(workflow.getSteps().size(), engine.getSteps(execution.getId(), State.WAITING).size());
 
         // add a listener
         final List<WorkflowStep> running = new ArrayList<WorkflowStep>();
@@ -119,18 +196,18 @@ public class EngineTest {
         // add a dataset
         Dataset dataset = createDataset(person);
         SpringData.getBean(DatasetDAO.class).save(dataset);
-        execution.setDataset("input", dataset);
+        execution.setDataset("dataset", dataset.getId());
         SpringData.getBean(ExecutionDAO.class).save(execution);
 
         // check to see if all workflows are done
         int loop = 0;
-        while ((loop < 1000) && engine.getSteps().size() > 0) {
+        while ((loop < 1000) && engine.getSteps(execution.getId()).size() > 0) {
             Thread.sleep(100);
             loop++;
         }
 
         // make sure everything is done
-        assertEquals(0, engine.getSteps().size());
+        assertEquals(0, engine.getSteps(execution.getId()).size());
 
         Transaction t = SpringData.getTransaction();
         t.start(false);
@@ -165,18 +242,25 @@ public class EngineTest {
         return execution;
     }
 
-    protected Workflow createWorkflow(Person creator, int steps) {
+    protected Workflow createWorkflow(Person creator, int steps, boolean errorStep) {
         Workflow workflow = new Workflow();
         workflow.setCreator(creator);
         workflow.setTitle("TEST WORKFLOW");
 
         List<String> ids = new ArrayList<String>();
-        ids.add("input");
+        ids.add("dataset");
         for (int i = 0; i < steps; i++) {
             WorkflowStep step = createWorkflowStep(creator);
-            step.setInput(step.getTool().getInputs().get(0), ids.get(new Random().nextInt(ids.size())));
+            if (errorStep && (i == 0)) {
+                step.setTitle(STEP_WITH_ERROR);
+                step.setInput(step.getTool().getInputs().get(0), "dataset");
+            } else if (errorStep && (i == 1)) {
+                step.setInput(step.getTool().getInputs().get(0), ids.get(1));
+            } else {
+                step.setInput(step.getTool().getInputs().get(0), ids.get(new Random().nextInt(ids.size())));
+            }
             workflow.addStep(step);
-            ids.add(step.getOutputs().keySet().iterator().next());
+            ids.add(step.getOutputs().values().iterator().next());
         }
 
         return workflow;
@@ -219,8 +303,8 @@ public class EngineTest {
 
         @Override
         public void execute(File cwd) throws AbortException, FailedException {
+            Transaction t = SpringData.getTransaction();
             try {
-                Transaction t = SpringData.getTransaction();
                 t.start();
                 WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
                 Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
@@ -234,25 +318,37 @@ public class EngineTest {
                     throw (new FailedException("Tool needs 1 inputs or outpus"));
                 }
 
+                // throw failed exception in case of error
+                if (STEP_WITH_ERROR.equals(step.getTitle())) {
+                    throw (new FailedException("Some Error"));
+                }
+
                 // Do some computation
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException e) {}
 
-                Dataset dataset = execution.getDataset(step.getInputs().values().iterator().next());
+                String firstinput = step.getInputs().values().iterator().next();
+                Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(firstinput));
                 if (dataset == null) {
                     throw (new FailedException("Dataset is not found."));
                 }
 
                 // why do we need a new dataset?
                 // dataset = new Dataset();
-                execution.setDataset(step.getOutputs().keySet().iterator().next(), dataset);
+                String firstoutput = step.getOutputs().values().iterator().next();
+                execution.setDataset(firstoutput, dataset.getId());
 
                 t.commit();
             } catch (Exception e) {
+                try {
+                    t.rollback();
+                } catch (Exception e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
                 throw (new FailedException("job failed.", e));
             }
         }
-
     }
 }

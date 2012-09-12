@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.StringWriter;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -12,7 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
+import edu.illinois.ncsa.cyberintegrator.service.client.CyberintegratorServiceClient;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.SpringData;
@@ -56,7 +58,7 @@ public class WorkflowsResourceGetTest {
     @Test
     public void testGetWorkflowById() throws Exception {
         logger.info("Test get workflow by id");
-        String wfJson = CyberintegratorServiceClient.getWorkflowJSONById(id);
+        String wfJson = CyberintegratorServiceClient.getWorkflowJson(id);
         assertEquals(workflowJson, wfJson);
     }
 

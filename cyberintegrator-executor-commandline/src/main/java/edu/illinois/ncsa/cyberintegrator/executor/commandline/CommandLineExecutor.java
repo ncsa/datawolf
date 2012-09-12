@@ -158,7 +158,7 @@ public class CommandLineExecutor extends LocalExecutor {
 
                     if (option.isCommandline()) {
                         if (option.getInputOutput() != InputOutput.OUTPUT) {
-                            Dataset ds = execution.getDataset(option.getOptionId());
+                            Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(option.getOptionId()));
                             if (ds == null) {
                                 throw (new AbortException("Dataset is missing."));
                             }
@@ -334,7 +334,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
 
-                    execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds);
+                    execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
                     datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
@@ -351,7 +351,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
 
-                    execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds);
+                    execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds.getId());
                     datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
@@ -370,7 +370,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
 
-                    execution.setDataset(step.getOutputs().get(entry.getValue()), ds);
+                    execution.setDataset(step.getOutputs().get(entry.getValue()), ds.getId());
                     datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {

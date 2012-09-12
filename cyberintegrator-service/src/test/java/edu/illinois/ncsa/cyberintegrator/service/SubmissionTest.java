@@ -12,6 +12,7 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
+import edu.illinois.ncsa.cyberintegrator.service.client.CyberintegratorServiceClient;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.SpringData;

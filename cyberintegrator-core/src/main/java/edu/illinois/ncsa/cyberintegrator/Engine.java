@@ -214,10 +214,10 @@ public class Engine {
         }
     }
 
-    public boolean hasStep(String step) {
+    public boolean hasStep(String executionId, String stepId) {
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if (exec.getStepId().equals(step)) {
+                if (exec.getExecutionId().equals(executionId) && exec.getStepId().equals(stepId)) {
                     return true;
                 }
             }
@@ -225,15 +225,15 @@ public class Engine {
         return false;
     }
 
-    public Collection<String> getSteps() {
-        return getSteps(null);
+    public Collection<String> getSteps(String executionId) {
+        return getSteps(executionId, null);
     }
 
-    public Collection<String> getSteps(State state) {
+    public Collection<String> getSteps(String executionId, State state) {
         List<String> steps = new ArrayList<String>();
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if ((state == null) || (exec.getState() == state)) {
+                if (exec.getExecutionId().equals(executionId) && ((state == null) || (exec.getState() == state))) {
                     steps.add(exec.getStepId());
                 }
             }
@@ -241,10 +241,10 @@ public class Engine {
         return steps;
     }
 
-    public State getStepState(String step) {
+    public State getStepState(String executionId, String stepId) {
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if (exec.getStepId().equals(step)) {
+                if (exec.getExecutionId().equals(executionId) && exec.getStepId().equals(stepId)) {
                     return exec.getState();
                 }
             }
@@ -257,15 +257,37 @@ public class Engine {
      * list. If the step is already executing attempts will be made to stop the
      * step from executing.
      * 
+     * @param executionId
+     *            the execution Id
+     * 
      * @param steps
      *            the list of steps to be stopped.
      */
-    public void stop(String... steps) {
+    public void stop(String executionId, String... steps) {
         List<String> allsteps = Arrays.asList(steps);
 
         synchronized (workers) {
             for (Executor exec : getQueue()) {
-                if (allsteps.contains(exec.getStepId())) {
+                if (exec.getExecutionId().equals(executionId) && allsteps.contains(exec.getStepId())) {
+                    exec.stopJob();
+                }
+            }
+        }
+    }
+
+    /**
+     * Stops all steps in a execution from being executed, and removes it from
+     * the
+     * list. If the step is already executing attempts will be made to stop the
+     * step from executing.
+     * 
+     * @param executionId
+     *            the execution Id
+     */
+    public void stop(String executionId) {
+        synchronized (workers) {
+            for (Executor exec : getQueue()) {
+                if (exec.getExecutionId().equals(executionId)) {
                     exec.stopJob();
                 }
             }
@@ -354,6 +376,11 @@ public class Engine {
                             Executor exec = iter.next();
 
                             switch (exec.getState()) {
+                            case UNKNOWN:
+                            case QUEUED:
+                            case RUNNING:
+                                break;
+
                             case ABORTED:
                             case FAILED:
                             case FINISHED:
@@ -365,38 +392,46 @@ public class Engine {
                                 // 0 = OK, 1 = WAIT, 2 = ERROR
                                 int canrun = 0;
 
-                                Transaction transaction = null;
-                                try {
-                                    transaction = SpringData.getTransaction();
-                                    transaction.start();
-
-                                    Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
-                                    WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
-
-                                    // check to see if all inputs of the step
-                                    // are ready
-                                    for (String id : step.getInputs().values()) {
-                                        if (!execution.hasDataset(id)) {
-                                            canrun = 1;
-                                        } else if (execution.getDataset(id) == null) {
-                                            canrun = 2;
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    logger.error("Error getting job information.", e);
-                                } finally {
+                                // if job is stopped mark as aborted
+                                if (exec.isJobStopped()) {
+                                    canrun = 2;
+                                } else {
+                                    Transaction transaction = null;
                                     try {
-                                        transaction.commit();
+                                        transaction = SpringData.getTransaction();
+                                        transaction.start();
+
+                                        Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                        WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+
+                                        // check to see if all inputs of the
+                                        // step are ready
+                                        for (String id : step.getInputs().values()) {
+                                            if (!execution.hasDataset(id)) {
+                                                canrun = 1;
+                                            } else if (execution.getDataset(id) == null) {
+                                                canrun = 2;
+                                            } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                canrun = 2;
+                                            }
+                                        }
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
-                                    }
+                                    } finally {
+                                        try {
+                                            transaction.commit();
+                                        } catch (Exception e) {
+                                            logger.error("Error getting job information.", e);
+                                        }
 
+                                    }
                                 }
 
                                 // check to make sure the executor can run
                                 if ((canrun == 0) && exec.isExecutorReady()) {
                                     exec.startJob();
                                 } else if (canrun == 2) {
+                                    exec.setState(edu.illinois.ncsa.cyberintegrator.domain.Execution.State.ABORTED);
                                     exec.stopJob();
                                     iter.remove();
                                     saveQueue();

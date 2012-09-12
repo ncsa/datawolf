@@ -148,7 +148,7 @@ public class JavaExecutor extends LocalExecutor {
                 // set inputs
                 if (tool.getInputs() != null) {
                     for (Entry<String, String> entry : step.getInputs().entrySet()) {
-                        Dataset ds = execution.getDataset(entry.getValue());
+                        Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(entry.getValue()));
                         if (ds == null) {
                             throw (new AbortException("Dataset is missing."));
                         }
@@ -205,7 +205,7 @@ public class JavaExecutor extends LocalExecutor {
                     for (Entry<String, String> entry : step.getOutputs().entrySet()) {
                         WorkflowToolData data = step.getOutput(entry.getValue());
 
-                        FileDescriptor fd = SpringData.getFileStorage().storeFile(tool.getOutput(entry.getKey()));
+                        FileDescriptor fd = SpringData.getFileStorage().storeFile(data.getTitle(), tool.getOutput(entry.getKey()));
                         fd.setMimeType(data.getMimeType());
 
                         Dataset ds = new Dataset();
@@ -215,7 +215,7 @@ public class JavaExecutor extends LocalExecutor {
                         ds.addFileDescriptor(fd);
                         SpringData.getBean(DatasetDAO.class).save(ds);
 
-                        execution.setDataset(entry.getValue(), ds);
+                        execution.setDataset(entry.getValue(), ds.getId());
                         datasets.add(ds);
                     }
 
@@ -226,7 +226,7 @@ public class JavaExecutor extends LocalExecutor {
                 } catch (FailedException e) {
                     throw e;
                 } catch (Throwable e) {
-                    throw (new FailedException("Could not run transaction to save information about step.", e));
+                    throw (new FailedException("Error saving output from step.", e));
                 } finally {
                     try {
                         if (t != null) {

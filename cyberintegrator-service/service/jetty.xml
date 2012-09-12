@@ -1,0 +1,9 @@
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">/</Set>
+  <Set name="war">/home/cyberintegrator/cyberintegrator-service-3.0.0-SNAPSHOT.war</Set>
+
+  <Call name="setInitParameter">
+    <Arg>contextConfigLocation</Arg>
+    <Arg>file:///home/cyberintegrator/applicationContext.xml</Arg>
+  </Call>
+</Configure>

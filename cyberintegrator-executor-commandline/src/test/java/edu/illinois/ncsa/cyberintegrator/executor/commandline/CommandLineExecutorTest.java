@@ -20,6 +20,7 @@ import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.Dataset;
+import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
 
@@ -74,7 +75,7 @@ public class CommandLineExecutorTest {
         logger.info(outputid);
         assertTrue(execution.hasDataset(outputid));
 
-        Dataset dataset = execution.getDataset(outputid);
+        Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(outputid));
 
         InputStream is = SpringData.getFileStorage().readFile(dataset.getFileDescriptors().get(0));
         byte[] buf = new byte[is.available()];

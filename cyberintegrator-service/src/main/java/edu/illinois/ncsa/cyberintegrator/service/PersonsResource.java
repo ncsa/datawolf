@@ -31,32 +31,58 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
+import java.util.List;
 
-/**
- * 
- * @author Jong Lee <jonglee1@illinois.edu>
- * 
- */
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
-public class RestServer {
-    public static final int PORT = 8088;
-    private static Server   server;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
-    public static void main(String[] args) throws Exception {
-        server = new Server(PORT);
+import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.springdata.PersonDAO;
+import edu.illinois.ncsa.springdata.SpringData;
 
-        WebAppContext context = new WebAppContext();
-        context.setDescriptor("src/main/webapp/WEB-INF/web.xml");
-        context.setResourceBase("src/main/webapp");
-        context.setContextPath("/");
-        context.setParentLoaderPriority(true);
+@Path("/persons")
+public class PersonsResource {
 
-        server.setHandler(context);
-
-        // start jetty
-        server.start();
-        System.out.println("http://localhost:" + PORT);
+    /**
+     * Get all datasets
+     * 
+     * @param size
+     *            number of datasets per page
+     * @param page
+     *            page number starting 0
+     * @return
+     */
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON })
+    public List<Person> getPersons(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
+        Page<Person> results = personDao.findAll(new PageRequest(page, size));
+        return results.getContent();
     }
+
+    /**
+     * 
+     * Get a dataset by Id
+     * 
+     * @param personId
+     *            dataset Id
+     * @return
+     *         a dataset in JSON
+     */
+    @GET
+    @Path("{person-id}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Person getPerson(@PathParam("person-id") String personId) {
+        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
+        return personDao.findOne(personId);
+    }
+
 }

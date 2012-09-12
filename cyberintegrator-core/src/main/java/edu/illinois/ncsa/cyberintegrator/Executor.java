@@ -251,15 +251,15 @@ public abstract class Executor {
                 execution.setStepQueued(stepId);
                 break;
             case RUNNING:
-                execution.setStepQueued(stepId);
+                execution.setStepStart(stepId);
                 break;
             case FAILED:
             case ABORTED:
             case FINISHED:
                 execution.setStepEnd(stepId);
-                for (String id : step.getOutputs().keySet()) {
+                for (String id : step.getOutputs().values()) {
                     if (!execution.hasDataset(id)) {
-                        execution.setDataset(id, null);
+                        execution.setDataset(id, Execution.EMPTY_DATASET);
                     }
                 }
                 break;

@@ -37,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
@@ -60,8 +62,10 @@ import org.springframework.data.domain.PageRequest;
 import edu.illinois.ncsa.cyberintegrator.ImportExport;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.FileStorage;
+import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/datasets")
@@ -77,7 +81,7 @@ public class DatasetsResource {
      * </form>
      * 
      * @param input
-     *            a workflow created from JSON
+     *            a dataset created from Zip or from a file
      * @return
      *         datasetId
      */
@@ -86,35 +90,112 @@ public class DatasetsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public String createDataset(MultipartFormDataInput input) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
-        List<InputPart> inputParts = uploadForm.get("uploadedFile");
+        List<InputPart> datasetZipInputParts = uploadForm.get("dataset");
+        List<InputPart> fileInputParts = uploadForm.get("uploadedFile");
         Dataset dataset = null;
 
-        for (InputPart inputPart : inputParts) {
-            try {
-                // convert the uploaded file to zipfile
-                InputStream inputStream = inputPart.getBody(InputStream.class, null);
-                File tempfile = File.createTempFile("workflow", ".zip");
-                OutputStream outputStream = new FileOutputStream(tempfile);
-                byte[] buf = new byte[10240];
-                int len = 0;
-                while ((len = inputStream.read(buf)) > 0) {
-                    outputStream.write(buf, 0, len);
+        if (datasetZipInputParts != null) {
+            for (InputPart inputPart : datasetZipInputParts) {
+                try {
+                    // convert the uploaded file to zipfile
+                    InputStream inputStream = inputPart.getBody(InputStream.class, null);
+                    File tempfile = File.createTempFile("dataset", ".zip");
+                    OutputStream outputStream = new FileOutputStream(tempfile);
+                    byte[] buf = new byte[10240];
+                    int len = 0;
+                    while ((len = inputStream.read(buf)) > 0) {
+                        outputStream.write(buf, 0, len);
+                    }
+                    outputStream.close();
+                    inputStream.close();
+
+                    dataset = ImportExport.importDataset(tempfile);
+                    tempfile.delete();
+//                    SpringData.getBean(DatasetDAO.class).save(dataset);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
                 }
-                outputStream.close();
-                inputStream.close();
 
-                dataset = ImportExport.importDataset(tempfile);
-                tempfile.delete();
-                SpringData.getBean(DatasetDAO.class).save(dataset);
+            }
+            return dataset.getId();
+        }
+        if (fileInputParts != null) {
+            List<InputPart> userInputParts = uploadForm.get("useremail");
 
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (userInputParts == null)
                 return null;
+
+            PersonDAO personDao = SpringData.getBean(PersonDAO.class);
+            DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+            Person creator = null;
+            for (InputPart inputPart : userInputParts) {
+                try {
+                    String useremail = inputPart.getBody(String.class, null);
+                    creator = personDao.findByEmail(useremail);
+                    if (creator == null) {
+                        // TODO: need to remove; it's testing purpose
+                        Person person = Person.createPerson("Jong", "Lee", "jonglee1@illinois.edu");
+                        creator = personDao.save(person);
+//                            return null;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
 
+            FileStorage fileStorage = SpringData.getFileStorage();
+
+            FileDescriptor fileDescriptor = null;
+            for (InputPart inputPart : fileInputParts) {
+                try {
+                    MultivaluedMap<String, String> header = inputPart.getHeaders();
+                    String fileName = getFileName(header);
+
+                    // convert the uploaded file to inputstream
+                    InputStream inputStream = inputPart.getBody(InputStream.class, null);
+
+                    // Store the file
+                    fileDescriptor = fileStorage.storeFile(fileName, inputStream);
+                    if (fileDescriptor == null)
+                        return null;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+
+            }
+
+            dataset = new Dataset();
+            dataset.setCreator(creator);
+            dataset.addFileDescriptor(fileDescriptor);
+            dataset.setTitle(fileDescriptor.getFilename());
+
+            Dataset savedDataset = datasetDao.save(dataset);
+
+            return savedDataset.getId();
         }
 
-        return dataset.getId();
+        return null;
+
+    }
+
+    private String getFileName(MultivaluedMap<String, String> header) {
+
+        String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
+
+        for (String filename : contentDisposition) {
+            if ((filename.trim().startsWith("filename"))) {
+
+                String[] name = filename.split("=");
+
+                String finalFileName = name[1].trim().replaceAll("\"", "");
+                return finalFileName;
+            }
+        }
+        return "unknown";
     }
 
     /**
@@ -124,14 +205,39 @@ public class DatasetsResource {
      *            number of datasets per page
      * @param page
      *            page number starting 0
+     * @param email
+     *            email of creator
      * @return
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email) {
         DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
-        Page<Dataset> results = datasetDao.findAll(new PageRequest(page, size));
-        return results.getContent();
+
+        // without paging
+        if (size < 1) {
+            Iterable<Dataset> results = null;
+            if (email.equals("")) {
+                results = datasetDao.findAll();
+            } else {
+                results = datasetDao.findByCreatorEmail(email);
+            }
+
+            ArrayList<Dataset> list = new ArrayList<Dataset>();
+            for (Dataset d : results) {
+                list.add(d);
+            }
+            return list;
+        } else { // with paging
+
+            Page<Dataset> results = null;
+            if (email.equals("")) {
+                results = datasetDao.findAll(new PageRequest(page, size));
+            } else {
+                results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size));
+            }
+            return results.getContent();
+        }
     }
 
     /**
@@ -148,7 +254,9 @@ public class DatasetsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Dataset getDataset(@PathParam("dataset-id") String datasetId) {
         DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
-        return datasetDao.findOne(datasetId);
+        Dataset findOne = datasetDao.findOne(datasetId);
+
+        return findOne;
     }
 
     /**

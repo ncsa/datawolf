@@ -13,8 +13,8 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
 public class EmbededJetty {
-    public static final int PORT = 9977;
-    private static Server   server;
+    public static int     PORT = 9977;
+    private static Server server;
 
     public static void jettyServer(String resourceBase, String configXml) throws Exception {
         server = new Server(PORT);
@@ -25,6 +25,7 @@ public class EmbededJetty {
 
         // setup resteasy
         Map<String, String> initParams = new HashMap<String, String>();
+        initParams.put("resteasy.scan.providers", "true");
         initParams.put("javax.ws.rs.Application", CyberIntegratorApplication.class.getName());
         root.setInitParams(initParams);
         root.addEventListener(new ResteasyBootstrap());
@@ -52,5 +53,10 @@ public class EmbededJetty {
             System.err.println("Error shutting down jetty server: " + e);
         }
         System.out.println("Jetty server stopped");
+    }
+
+    public static void main(String[] args) throws Exception {
+        EmbededJetty.PORT = 9999;
+        jettyServer("src/test/resources", "testContext.xml");
     }
 }

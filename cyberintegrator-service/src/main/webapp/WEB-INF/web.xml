@@ -10,12 +10,19 @@
 		<param-name>contextConfigLocation</param-name>
 		<param-value>/WEB-INF/applicationContext.xml</param-value>
 	</context-param>
- -->	
+ -->
+ 	<context-param>
+        <param-name>resteasy.scan</param-name>
+        <param-value>true</param-value>
+    </context-param>
+
+<!-- 
 	<context-param>
         <param-name>javax.ws.rs.Application</param-name>
         <param-value>edu.illinois.ncsa.cyberintegrator.service.CyberIntegratorApplication</param-value>
     </context-param>
-
+ -->
+ 
 	<listener>
     	<listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
     </listener>

@@ -41,9 +41,8 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.MapKeyColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -53,7 +52,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import edu.illinois.ncsa.domain.AbstractBean;
-import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
@@ -66,38 +64,43 @@ public class Execution extends AbstractBean {
     }
 
     /** Used for serialization of object */
-    private static final long    serialVersionUID = 1L;
+    private static final long   serialVersionUID = 1L;
+
+    /** Marker for non existing dataset due to errrors. */
+    public static final String  EMPTY_DATASET    = "ERROR";
 
     /** Workflow that is executed */
-    private String               workflowId       = null;
+    private String              workflowId       = null;
 
     /** Date the execution is created */
     @Temporal(TemporalType.TIMESTAMP)
-    private Date                 date             = new Date();
+    private Date                date             = new Date();
 
     /** creator of the execution */
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @DBRef
-    private Person               creator          = null;
+    private Person              creator          = null;
 
     /** maping a parameter to a specific parameter in the workflow */
     @ElementCollection
     @MapKeyColumn(name = "uri")
     @Column(name = "parameter")
     @CollectionTable(name = "ExecutionParameters")
-    private Map<String, String>  parameters       = new HashMap<String, String>();
+    private Map<String, String> parameters       = new HashMap<String, String>();
 
-    /** maping a dataset to a specific dataset in the workflow */
-    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "ExecutionDatasets")
-    @DBRef
-    private Map<String, Dataset> datasets         = new HashMap<String, Dataset>();
+    /** maping a dataset to a specific id of a dataset in the workflow */
+    @ElementCollection
+    @MapKeyColumn(name = "uri")
+    @Column(name = "dataset")
+    @CollectionTable(name = "ExecutionDatasets")
+    private Map<String, String> datasets         = new HashMap<String, String>();
 
     /** the state of each step executed */
     @ElementCollection
     @MapKeyColumn(name = "id")
     @Column(name = "state")
     @CollectionTable(name = "ExecutionStepState")
-    private Map<String, State>   stepState        = new HashMap<String, State>();
+    private Map<String, State>  stepState        = new HashMap<String, State>();
 
     /** the start date of each step queued */
     @ElementCollection
@@ -105,7 +108,7 @@ public class Execution extends AbstractBean {
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepQueued")
-    private Map<String, Date>    stepQueued       = new HashMap<String, Date>();
+    private Map<String, Date>   stepQueued       = new HashMap<String, Date>();
 
     /** the start date of each step executed */
     @ElementCollection
@@ -113,7 +116,7 @@ public class Execution extends AbstractBean {
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepStart")
-    private Map<String, Date>    stepStart        = new HashMap<String, Date>();
+    private Map<String, Date>   stepStart        = new HashMap<String, Date>();
 
     /** the end date of each step executed */
     @ElementCollection
@@ -121,7 +124,7 @@ public class Execution extends AbstractBean {
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepEnd")
-    private Map<String, Date>    stepEnd          = new HashMap<String, Date>();
+    private Map<String, Date>   stepEnd          = new HashMap<String, Date>();
 
     /**
      * Create a new instance of the execution.
@@ -230,6 +233,10 @@ public class Execution extends AbstractBean {
         this.parameters.put(uuid, value);
     }
 
+    public Map<String, String> getParameters() {
+        return this.parameters;
+    }
+
     /**
      * @param id
      * @return
@@ -241,31 +248,35 @@ public class Execution extends AbstractBean {
     /**
      * Returns the value for a specific dataset.
      * 
-     * @param uuid
+     * @param id
      *            the uuid for dataset
-     * @return the dataset.
+     * @return the id of the dataset.
      */
-    public Dataset getDataset(String id) {
+    public String getDataset(String id) {
         return this.datasets.get(id);
     }
 
     /**
      * Sets the dataset associated with that specific uuid.
      * 
-     * @param uuid
-     *            the uuid of the output to set.
-     * @param value
-     *            the dataset generated.
+     * @param id
+     *            the uuid of the dataset to set.
+     * @param datasetid
+     *            the id of the dataset to be set.
      */
-    public void setDataset(String id, Dataset dataset) {
-        this.datasets.put(id, dataset);
+    public void setDataset(String id, String datasetid) {
+        this.datasets.put(id, datasetid);
+    }
+
+    public Map<String, String> getDatasets() {
+        return this.datasets;
     }
 
     /**
      * Returns the state for a specific step.
      * 
-     * @param uri
-     *            the uri for the step in the workflow
+     * @param id
+     *            the id for the step in the workflow
      * @return the state of the step.
      */
     public State getStepState(String id) {
@@ -279,8 +290,8 @@ public class Execution extends AbstractBean {
     /**
      * Sets the state of the specific step in the workflow.
      * 
-     * @param uri
-     *            the uri of the workflow step.
+     * @param id
+     *            the id of the workflow step.
      * @param state
      *            the state of the workflow step.
      */
