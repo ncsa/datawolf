@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
-			<version>${slf4j}</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.pietschy</groupId>
@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-gui</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>

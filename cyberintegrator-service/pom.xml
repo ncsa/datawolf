@@ -31,44 +31,42 @@
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jaxrs</artifactId>
-			<version>${resteasy}</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-jaxb-provider</artifactId>
-			<version>${resteasy}</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>resteasy-multipart-provider</artifactId>
-			<version>${resteasy}</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.jaxrs</groupId>
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
-			<version>${jackson}</version>
+			<version>${jackson.version}</version>
 		</dependency>
-		<!-- <dependency> <groupId>org.jboss.resteasy</groupId> <artifactId>resteasy-jackson-provider</artifactId> 
-			<version>${resteasy}</version> </dependency> -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
-			<version>${spring.framework}</version>
+			<version>${spring.framework.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-domain</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
 			<artifactId>tjws</artifactId>
-			<version>${resteasy}</version>
+			<version>${resteasy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>ncsa-common-springdata</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>${ncsa.common.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.mortbay.jetty</groupId>
@@ -78,44 +76,44 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j}</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-springdata</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-executor-commandline</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-executor-java</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-executor-hpc</artifactId>
-			<version>3.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>
-			<version>4.1.2</version>
+			<version>${apache.http.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>file-service</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>${ncsa.common.version}</version>
 			<classifier>${webClassifier}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>cyberintegrator-serivce-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<artifactId>cyberintegrator-service-client</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 
