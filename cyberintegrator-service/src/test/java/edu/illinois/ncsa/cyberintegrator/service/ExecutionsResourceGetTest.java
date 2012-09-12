@@ -12,6 +12,7 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.service.client.CyberintegratorServiceClient;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.domain.Person;
@@ -55,7 +56,7 @@ public class ExecutionsResourceGetTest {
     @Test
     public void testStartExecutionById() throws Exception {
         logger.info("Test get workflow by id");
-        CyberintegratorServiceClient.startExecutionById(id);
+        CyberintegratorServiceClient.startExecution(id);
         Transaction transaction = SpringData.getTransaction();
         transaction.start();
         ExecutionDAO executionDAO = SpringData.getBean(ExecutionDAO.class);
