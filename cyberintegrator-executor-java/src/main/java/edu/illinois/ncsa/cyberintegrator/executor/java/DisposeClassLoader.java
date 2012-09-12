@@ -66,10 +66,8 @@ public class DisposeClassLoader extends URLClassLoader {
     private static final Set<String> packageTriggers         = new HashSet<String>();
 
     static {
-        addTriggerPackage("org.tupeloproject");
-        addTriggerPackage("edu.uiuc.ncsa.cyberintegrator.executor.cyberintegrator.tool");
-        addTriggerPackage("edu.illinois.ncsa.cyberintegrator.executor.java.tool");
-
+        addTriggerPackage("edu.illinois.ncsa.cyberintegrator.executor.hpc");
+        addTriggerPackage("edu.illinois.ncsa.cyberintegrator.executor.java");
     }
 
     public static void addTriggerPackage(String pkg) {
