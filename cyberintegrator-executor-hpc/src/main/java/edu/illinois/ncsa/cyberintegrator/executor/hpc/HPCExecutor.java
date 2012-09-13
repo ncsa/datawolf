@@ -531,6 +531,7 @@ public class HPCExecutor extends RemoteExecutor {
             } finally {
                 t.commit();
                 SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
+                session.close();
             }
         } catch (Throwable e) {
             logger.error("Error retrieving log file from remote system and writing it to a dataset.", e);
