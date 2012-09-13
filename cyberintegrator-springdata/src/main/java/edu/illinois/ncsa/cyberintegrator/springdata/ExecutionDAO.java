@@ -46,5 +46,8 @@ public interface ExecutionDAO extends PagingAndSortingRepository<Execution, Stri
 
     List<Execution> findByCreatorEmail(String email);
 
+    List<Execution> findByCreatorEmailOrderByDateDesc(String email);
+
     Page<Execution> findByCreatorEmail(String email, Pageable pageable);
+
 }
