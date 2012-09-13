@@ -234,7 +234,7 @@ public abstract class Executor {
      * should not be called inside a transaction.
      */
     public void setState(State state) {
-        logger.info("Job entered " + state);
+        logger.debug("Job " + executionId + ":" + stepId + " entered " + state);
         Transaction t = SpringData.getTransaction();
         try {
             t.start();
