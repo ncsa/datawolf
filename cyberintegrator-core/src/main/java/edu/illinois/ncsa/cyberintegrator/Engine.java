@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
-import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
@@ -61,34 +59,23 @@ import edu.illinois.ncsa.springdata.Transaction;
  * @author Rob Kooper
  */
 public class Engine {
-    private static final Logger   logger    = LoggerFactory.getLogger(Engine.class);
+    private static final Logger   logger       = LoggerFactory.getLogger(Engine.class);
 
     /** All known executors. */
-    private Map<String, Executor> executors = new HashMap<String, Executor>();
+    private Map<String, Executor> executors    = new HashMap<String, Executor>();
 
     /** List of all workers */
-    private List<WorkerThread>    workers   = new ArrayList<WorkerThread>();
+    private WorkerThread          engineThread = new WorkerThread();
+
+    /** List of steps */
+    private List<Executor>        queue        = new ArrayList<Executor>();
 
     /**
      * Create the engine with a single worker.
      */
     public Engine() {
-        this(1);
-    }
-
-    /**
-     * Create the engine with a default set of properties.
-     * 
-     * @param threads
-     *            the number of workers to use for the engine
-     */
-    public Engine(int threads) {
-        for (int i = 0; i < threads; i++) {
-            WorkerThread wt = new WorkerThread();
-            workers.add(wt);
-            wt.start();
-        }
-
+        engineThread.setName("EngineThread");
+        engineThread.start();
         loadQueue();
     }
 
@@ -201,22 +188,20 @@ public class Engine {
      *            the list of steps to be executed.
      */
     public void execute(Execution execution, WorkflowStep... steps) {
-        synchronized (workers) {
-            for (WorkflowStep step : steps) {
-                Executor exec = findExecutor(step.getTool().getExecutor());
-                if (exec == null) {
-                    logger.error(String.format("Could not find an executor [%s] for step %s.", step.getTool().getExecutor(), step.getId()));
-                } else {
-                    exec.setJobInformation(execution, step);
-                    addJob(exec);
-                }
+        for (WorkflowStep step : steps) {
+            Executor exec = findExecutor(step.getTool().getExecutor());
+            if (exec == null) {
+                logger.error(String.format("Could not find an executor [%s] for step %s.", step.getTool().getExecutor(), step.getId()));
+            } else {
+                exec.setJobInformation(execution, step);
+                addJob(exec);
             }
         }
     }
 
     public boolean hasStep(String executionId, String stepId) {
-        synchronized (workers) {
-            for (Executor exec : getQueue()) {
+        synchronized (queue) {
+            for (Executor exec : queue) {
                 if (exec.getExecutionId().equals(executionId) && exec.getStepId().equals(stepId)) {
                     return true;
                 }
@@ -226,30 +211,15 @@ public class Engine {
     }
 
     public Collection<String> getSteps(String executionId) {
-        return getSteps(executionId, null);
-    }
-
-    public Collection<String> getSteps(String executionId, State state) {
         List<String> steps = new ArrayList<String>();
-        synchronized (workers) {
-            for (Executor exec : getQueue()) {
-                if (exec.getExecutionId().equals(executionId) && ((state == null) || (exec.getState() == state))) {
+        synchronized (queue) {
+            for (Executor exec : queue) {
+                if (exec.getExecutionId().equals(executionId)) {
                     steps.add(exec.getStepId());
                 }
             }
         }
         return steps;
-    }
-
-    public State getStepState(String executionId, String stepId) {
-        synchronized (workers) {
-            for (Executor exec : getQueue()) {
-                if (exec.getExecutionId().equals(executionId) && exec.getStepId().equals(stepId)) {
-                    return exec.getState();
-                }
-            }
-        }
-        return State.UNKNOWN;
     }
 
     /**
@@ -266,8 +236,8 @@ public class Engine {
     public void stop(String executionId, String... steps) {
         List<String> allsteps = Arrays.asList(steps);
 
-        synchronized (workers) {
-            for (Executor exec : getQueue()) {
+        synchronized (queue) {
+            for (Executor exec : queue) {
                 if (exec.getExecutionId().equals(executionId) && allsteps.contains(exec.getStepId())) {
                     exec.stopJob();
                 }
@@ -285,8 +255,8 @@ public class Engine {
      *            the execution Id
      */
     public void stop(String executionId) {
-        synchronized (workers) {
-            for (Executor exec : getQueue()) {
+        synchronized (queue) {
+            for (Executor exec : queue) {
                 if (exec.getExecutionId().equals(executionId)) {
                     exec.stopJob();
                 }
@@ -299,35 +269,17 @@ public class Engine {
      * from the queue, and attempt to stop all steps currently executing.
      */
     public void stopAll() {
-        synchronized (workers) {
-            for (Executor exec : getQueue()) {
+        synchronized (queue) {
+            for (Executor exec : queue) {
                 exec.stopJob();
             }
         }
     }
 
-    private List<Executor> getQueue() {
-        List<Executor> queue = new ArrayList<Executor>();
-        synchronized (workers) {
-            for (WorkerThread wt : workers) {
-                queue.addAll(wt.getQueue());
-            }
-        }
-        return queue;
-    }
-
     private void addJob(Executor exec) {
-        synchronized (workers) {
-            WorkerThread best = workers.get(0);
-            int bestSize = best.getQueueSize();
-            for (WorkerThread wt : workers) {
-                int qsize = wt.getQueueSize();
-                if (qsize < bestSize) {
-                    bestSize = qsize;
-                    best = wt;
-                }
-            }
-            best.addJob(exec);
+        synchronized (queue) {
+            queue.add(exec);
+            saveQueue();
         }
     }
 
@@ -346,97 +298,96 @@ public class Engine {
     }
 
     class WorkerThread extends Thread {
-        private List<Executor> queue = new ArrayList<Executor>();
-
-        public int getQueueSize() {
-            synchronized (queue) {
-                return queue.size();
-            }
-        }
-
-        public void addJob(Executor exec) {
-            synchronized (queue) {
-                queue.add(exec);
-                saveQueue();
-            }
-        }
-
-        public List<Executor> getQueue() {
-            synchronized (queue) {
-                return new ArrayList<Executor>(queue);
-            }
-        }
-
         public void run() {
+            int idx = 0;
             for (;;) {
                 try {
-                    synchronized (queue) {
-                        Iterator<Executor> iter = queue.iterator();
-                        while (iter.hasNext()) {
-                            Executor exec = iter.next();
+                    if (queue.size() > 0) {
+                        if (idx >= queue.size()) {
+                            idx = 0;
+                        }
+                        Executor exec = queue.get(idx);
 
-                            switch (exec.getState()) {
-                            case UNKNOWN:
-                            case QUEUED:
-                            case RUNNING:
-                                break;
+                        switch (exec.getState()) {
+                        case UNKNOWN:
+                        case QUEUED:
+                        case RUNNING:
+                            idx++;
+                            break;
 
-                            case ABORTED:
-                            case FAILED:
-                            case FINISHED:
-                                iter.remove();
-                                saveQueue();
-                                break;
+                        case ABORTED:
+                        case FAILED:
+                        case FINISHED:
+                            synchronized (queue) {
+                                queue.remove(idx);
+                            }
+                            saveQueue();
+                            idx = 0;
+                            break;
 
-                            case WAITING:
-                                // 0 = OK, 1 = WAIT, 2 = ERROR
-                                int canrun = 0;
+                        case WAITING:
+                            // 0 = OK, 1 = WAIT, 2 = ERROR
+                            int canrun = 0;
 
-                                // if job is stopped mark as aborted
-                                if (exec.isJobStopped()) {
-                                    canrun = 2;
-                                } else {
-                                    Transaction transaction = null;
-                                    try {
-                                        transaction = SpringData.getTransaction();
-                                        transaction.start();
+                            // if job is stopped mark as aborted
+                            if (exec.isJobStopped()) {
+                                canrun = 2;
+                            } else {
+                                Transaction transaction = null;
+                                try {
+                                    transaction = SpringData.getTransaction();
+                                    transaction.start();
 
-                                        Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
-                                        WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+                                    Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                    WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
 
-                                        // check to see if all inputs of the
-                                        // step are ready
-                                        for (String id : step.getInputs().values()) {
-                                            if (!execution.hasDataset(id)) {
-                                                canrun = 1;
-                                            } else if (execution.getDataset(id) == null) {
-                                                canrun = 2;
-                                            } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
-                                                canrun = 2;
-                                            }
+                                    // check to see if all inputs of the
+                                    // step are ready
+                                    for (String id : step.getInputs().values()) {
+                                        if (!execution.hasDataset(id)) {
+                                            canrun = 1;
+                                        } else if (execution.getDataset(id) == null) {
+                                            canrun = 2;
+                                        } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                            canrun = 2;
                                         }
+                                    }
+                                } catch (Exception e) {
+                                    logger.error("Error getting job information.", e);
+                                } finally {
+                                    try {
+                                        transaction.commit();
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
-                                    } finally {
-                                        try {
-                                            transaction.commit();
-                                        } catch (Exception e) {
-                                            logger.error("Error getting job information.", e);
-                                        }
-
                                     }
-                                }
 
-                                // check to make sure the executor can run
-                                if ((canrun == 0) && exec.isExecutorReady()) {
-                                    exec.startJob();
-                                } else if (canrun == 2) {
-                                    exec.setState(edu.illinois.ncsa.cyberintegrator.domain.Execution.State.ABORTED);
-                                    exec.stopJob();
-                                    iter.remove();
-                                    saveQueue();
                                 }
                             }
+
+                            // check to make sure the executor can run
+                            switch (canrun) {
+                            case 0:
+                                if (exec.isExecutorReady()) {
+                                    exec.startJob();
+                                    idx = 0;
+                                } else {
+                                    idx++;
+                                }
+                                break;
+                            case 1:
+                                idx++;
+                                break;
+                            case 2:
+                                exec.setState(edu.illinois.ncsa.cyberintegrator.domain.Execution.State.ABORTED);
+                                exec.stopJob();
+                                synchronized (queue) {
+                                    queue.remove(idx);
+                                }
+                                saveQueue();
+                                idx = 0;
+                                break;
+                            }
+                            break;
                         }
                     }
 
