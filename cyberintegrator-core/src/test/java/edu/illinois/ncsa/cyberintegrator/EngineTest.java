@@ -326,10 +326,7 @@ public class EngineTest {
                 }
 
                 // Do some computation
-                for (int x = 0; x < 1e6; x++) {
-                    long y = x * x;
-                    y = (int) Math.pow(x, 2) + (int) Math.pow(y, 3);
-                }
+                Thread.sleep(200);
 
                 String firstinput = step.getInputs().values().iterator().next();
                 Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(firstinput));

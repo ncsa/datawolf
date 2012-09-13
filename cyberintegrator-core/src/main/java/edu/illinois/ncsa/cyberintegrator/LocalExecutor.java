@@ -79,6 +79,10 @@ public abstract class LocalExecutor extends Executor implements Runnable {
         return threadpool.getMaximumPoolSize();
     }
 
+    public static boolean isBusy() {
+        return threadpool.getActiveCount() >= threadpool.getMaximumPoolSize();
+    }
+
     // ----------------------------------------------------------------------
     // EXECUTOR IMPLEMENTATION
     // ----------------------------------------------------------------------

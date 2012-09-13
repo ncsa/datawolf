@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -300,8 +301,29 @@ public class Engine {
     class WorkerThread extends Thread {
         public void run() {
             int idx = 0;
+            List<Executor> running = new ArrayList<Executor>();
             for (;;) {
                 try {
+                    // look at the currently running jobs
+                    for (Iterator<Executor> iter = running.iterator(); iter.hasNext();) {
+                        Executor exec = iter.next();
+                        switch (exec.getState()) {
+                        case ABORTED:
+                        case FAILED:
+                        case FINISHED:
+                            synchronized (queue) {
+                                iter.remove();
+                                queue.remove(exec);
+                            }
+                            saveQueue();
+                            idx = 0;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+
+                    // run any new steps
                     if (queue.size() > 0) {
                         if (idx >= queue.size()) {
                             idx = 0;
@@ -313,16 +335,6 @@ public class Engine {
                         case QUEUED:
                         case RUNNING:
                             idx++;
-                            break;
-
-                        case ABORTED:
-                        case FAILED:
-                        case FINISHED:
-                            synchronized (queue) {
-                                queue.remove(idx);
-                            }
-                            saveQueue();
-                            idx = 0;
                             break;
 
                         case WAITING:
@@ -367,15 +379,12 @@ public class Engine {
                             // check to make sure the executor can run
                             switch (canrun) {
                             case 0:
-                                if (exec.isExecutorReady()) {
+                                if (exec.isExecutorReady() && (!(exec instanceof LocalExecutor) || !LocalExecutor.isBusy())) {
+                                    running.add(exec);
                                     exec.startJob();
-                                    idx = 0;
-                                } else {
-                                    idx++;
                                 }
                                 break;
                             case 1:
-                                idx++;
                                 break;
                             case 2:
                                 exec.setState(edu.illinois.ncsa.cyberintegrator.domain.Execution.State.ABORTED);
@@ -384,17 +393,14 @@ public class Engine {
                                     queue.remove(idx);
                                 }
                                 saveQueue();
-                                idx = 0;
                                 break;
                             }
                             break;
+
+                        default:
+                            break;
                         }
                     }
-
-                    // little sleep
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {}
                 } catch (Throwable thr) {
                     logger.error("Runaway exception in engine.", thr);
                 }

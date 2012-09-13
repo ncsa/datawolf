@@ -28,8 +28,8 @@ public class BigWorkflow implements Runnable {
     private static Engine   engine;
     private static Workflow workflow;
 
-    private static int      CLIENTS = 10;
-    private static int      JOBS    = 20;
+    private static int      CLIENTS = 20;
+    private static int      JOBS    = 5;
 
     public static void main(String[] args) throws Exception {
         // setup spring data
