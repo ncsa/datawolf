@@ -31,6 +31,9 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +49,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +61,12 @@ import org.springframework.data.domain.Sort;
 import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
+import edu.illinois.ncsa.cyberintegrator.domain.HPCJobInfo;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.HPCJobInfoDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.PersonDAO;
@@ -169,6 +176,41 @@ public class ExecutionsResource {
     public Execution getExecution(@PathParam("execution-id") String executionId) {
         ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
         return exedao.findOne(executionId);
+    }
+
+    @GET
+    @Path("{execution-id}/hpcfile")
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response getHpcFile(@PathParam("execution-id") String executionId, @QueryParam("file") @DefaultValue("error.rlt") String file) {
+        try {
+            // getting HPCJobInfo Bean
+            HPCJobInfoDAO hDao = SpringData.getBean(HPCJobInfoDAO.class);
+            List<HPCJobInfo> hpcJobInfoList = hDao.findByExecutionId(executionId);
+
+            HPCJobInfo hpcJobInfo = hpcJobInfoList.get(0);
+            String workingDir = hpcJobInfo.getWorkingDir();
+
+            String fileFullPath = workingDir + "/" + file;
+
+            // sftp to get the file by using fileFullPath
+            // TODO: CHRIS implement this
+            final File tempfile = null;
+
+            // sending the file stream
+            ResponseBuilder response = Response.ok(new FileInputStream(tempfile) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    tempfile.delete();
+                }
+            });
+            response.type("application/unknown");
+            response.header("Content-Disposition", "attachment; filename=\"" + file + "\"");
+            return response.build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
