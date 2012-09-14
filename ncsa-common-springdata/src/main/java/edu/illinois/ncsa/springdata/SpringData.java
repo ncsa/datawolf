@@ -125,6 +125,41 @@ public class SpringData implements ApplicationContextAware {
         return (T) mapper.readValue(baos.toByteArray(), object.getClass());
     }
 
+    /**
+     * Convert the object to JSON.
+     * 
+     * @param object
+     *            the object to be converted
+     * @return a string with the encoded json.
+     * @throws IOException
+     *             throws an IOException if the object could not be converted.
+     */
+    public static String objectToJSON(Object object) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        mapper.writeValue(baos, object);
+        return new String(baos.toString("UTF-8"));
+    }
+
+    /**
+     * Converts a JSON string to an actual object. This will convert the string
+     * to an object specified by classname.
+     * 
+     * @param json
+     *            the json encoded object.
+     * @param classname
+     *            the classname to which the json object should be converted.
+     * @return an object of the same type as the classname.
+     * @throws IOException
+     *             throws an IOException if the string could not be converted to
+     *             an actual object.
+     */
+    public static <T> T JSONToObject(String json, Class<T> classname) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return (T) mapper.readValue(json.getBytes("UTF-8"), classname);
+    }
+
     public static Person getPerson(String email) {
         PersonDAO dao = getBean(PersonDAO.class);
         Person person = dao.findByEmail(email);
