@@ -28,6 +28,7 @@ import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.RemoteExecutor;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
+import edu.illinois.ncsa.cyberintegrator.domain.HPCJobInfo;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption;
@@ -39,6 +40,7 @@ import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.NonNLSConstants;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SshUtils;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SystemUtils;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.HPCJobInfoDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
@@ -92,6 +94,8 @@ public class HPCExecutor extends RemoteExecutor {
     // Dataset id to store log file as tool output
     private String              logId          = null;
     private String jobId = null;
+    
+    private boolean storedJobInfo = false;
 
     @Override
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
@@ -442,6 +446,8 @@ public class HPCExecutor extends RemoteExecutor {
                 	if(jobState.equals(State.FINISHED)) {
                 		getLogFile();
                 		return jobState;
+                	} else if(jobState.equals(State.RUNNING) && !storedJobInfo) {
+                		createJobInfo();
                 	} else {
                 		return jobState;
                 	}
@@ -490,7 +496,11 @@ public class HPCExecutor extends RemoteExecutor {
     public void getLogFile() {
     	// if we get here, job is neither queued nor running, get log
         try {
-            SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
+        	if(!storedJobInfo) {
+        		createJobInfo();
+        	} else {
+        		SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
+        	}
             // Capture log as stdout
             StringBuilder stdout = new StringBuilder();
             BufferedReader stdoutReader = new BufferedReader(new FileReader(log));
@@ -504,6 +514,8 @@ public class HPCExecutor extends RemoteExecutor {
                     // println(line);
                     stdout.append(line);
                     stdout.append(NL);
+                    
+                    stdoutReader.close();
                 }
             }
             Transaction t = null;
@@ -537,6 +549,48 @@ public class HPCExecutor extends RemoteExecutor {
             logger.error("Error retrieving log file from remote system and writing it to a dataset.", e);
         }
     }
+    
+    private void createJobInfo() {
+		try {
+			storedJobInfo = true;
+			SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
+			String workingDir = null;
+			BufferedReader stdoutReader = new BufferedReader(
+					new FileReader(log));
+			if (stdoutReader != null) {
+				if (stdoutReader.ready()) {
+					String line = stdoutReader.readLine();
+					if (line == null) {
+						stdoutReader.close();
+						stdoutReader = null;
+					}
+					workingDir = line;
+					// println(line);
+					// stdout.append(line);
+					// stdout.append(NL);
+
+					Transaction t = null;
+					try {
+
+						t = SpringData.getTransaction();
+						t.start();
+						HPCJobInfo info = new HPCJobInfo();
+						info.setExecutionId(this.getExecutionId());
+						info.setWorkingDir(workingDir);
+	
+						SpringData.getBean(HPCJobInfoDAO.class).save(info);
+					} finally {
+						stdoutReader.close();
+						t.commit();
+					}		
+				}
+			}
+
+		} catch (Throwable e) {
+			logger.error("Error getting log file from remote machine and storing as bean", e);
+		}
+
+	}
 
     @Override
     public String getRemoteLog() {
