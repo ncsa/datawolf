@@ -32,6 +32,7 @@
 package edu.illinois.ncsa.cyberintegrator.executor.java;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -105,6 +106,9 @@ public class JavaExecutor extends LocalExecutor {
         // the java tool.
         JavaTool tool;
 
+        // list of inputstreams we opened.
+        Set<InputStream> inputs = new HashSet<InputStream>();
+
         // make sure the classes will get unloaded
         try {
 
@@ -156,6 +160,7 @@ public class JavaExecutor extends LocalExecutor {
                             throw (new FailedException("Dataset does not have any files associated."));
                         }
                         InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                        inputs.add(is);
                         tool.setInput(entry.getKey(), is);
                     }
                 }
@@ -190,6 +195,15 @@ public class JavaExecutor extends LocalExecutor {
                 }
             } finally {
                 workerThread = null;
+            }
+
+            // close inputs
+            for (InputStream is : inputs) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    logger.error("Error closing inputstream.", e);
+                }
             }
 
             // get outputs in the case of CyberintegratorTool
