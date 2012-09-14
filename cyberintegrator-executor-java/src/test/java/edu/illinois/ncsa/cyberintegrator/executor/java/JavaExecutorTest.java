@@ -140,6 +140,7 @@ public class JavaExecutorTest {
         InputStream is = SpringData.getFileStorage().readFile(dataset.getFileDescriptors().get(0));
         byte[] buf = new byte[is.available()];
         is.read(buf);
+        is.close();
 
         assertEquals("HELLO WORLD", new String(buf, "UTF-8"));
 
