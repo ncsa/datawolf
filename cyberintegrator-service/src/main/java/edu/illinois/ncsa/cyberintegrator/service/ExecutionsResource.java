@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
@@ -130,23 +131,23 @@ public class ExecutionsResource {
         // without paging
         if (size < 1) {
             if (email.equals("")) {
-                Iterable<Execution> tmp = exedao.findAll();
+                Iterable<Execution> tmp = exedao.findAll(new Sort(Sort.Direction.DESC, "date"));
                 ArrayList<Execution> list = new ArrayList<Execution>();
                 for (Execution d : tmp) {
                     list.add(d);
                 }
                 return list;
             } else {
-                return exedao.findByCreatorEmail(email);
+                return exedao.findByCreatorEmailOrderByDateDesc(email);
             }
 
         } else { // with paging
 
             Page<Execution> results = null;
             if (email.equals("")) {
-                results = exedao.findAll(new PageRequest(page, size));
+                results = exedao.findAll(new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
             } else {
-                results = exedao.findByCreatorEmail(email, new PageRequest(page, size));
+                results = exedao.findByCreatorEmail(email, new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
             }
             return results.getContent();
         }
