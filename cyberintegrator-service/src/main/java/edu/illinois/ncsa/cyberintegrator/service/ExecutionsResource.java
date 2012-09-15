@@ -31,8 +31,11 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.awt.Color;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.data.xy.XYDataItem;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -196,21 +209,116 @@ public class ExecutionsResource {
             // TODO: CHRIS implement this
             final File tempfile = null;
 
-            // sending the file stream
-            ResponseBuilder response = Response.ok(new FileInputStream(tempfile) {
-                @Override
-                public void close() throws IOException {
-                    super.close();
-                    tempfile.delete();
-                }
-            });
-            response.type("application/unknown");
-            response.header("Content-Disposition", "attachment; filename=\"" + file + "\"");
-            return response.build();
+            // Create chart image
+
+            File dataDir = new File("/tmp/", executionId);
+            dataDir.mkdirs();
+
+            File imageFilename = new File(dataDir, executionId + ".jpg");
+
+            boolean created = createChartImage(tempfile, imageFilename);
+
+            final File tmp = imageFilename;
+            if (created) {
+                // sending the file stream
+                ResponseBuilder response = Response.ok(new FileInputStream(tmp) {
+                    @Override
+                    public void close() throws IOException {
+                        super.close();
+                        tmp.delete();
+                    }
+                });
+                response.type("image/jpeg");
+                return response.build();
+            } else {
+                return Response.status(500).entity("Can't create image (id:" + executionId + ")").build();
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return Response.status(500).entity("Can't create image (id:" + executionId + ")").build();
+
         }
+    }
+
+    public boolean createChartImage(File dataFilePath, File imageFilePath) {
+        try {
+            JFreeChart chart = createLineGraph(dataFilePath);
+            ChartUtilities.saveChartAsJPEG(imageFilePath, chart, 800, 600);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private JFreeChart createLineGraph(File f) throws Exception {
+
+        BufferedReader reader = new BufferedReader(new FileReader(f));
+        String line = null;
+
+        String variableLine = reader.readLine();
+        String[] parseVariables = variableLine.split(",");
+        String xVariable = parseVariables[0].substring(12, parseVariables[0].length());
+        String yVariable = parseVariables[1].trim();
+
+        // unnecessary data
+        reader.readLine();
+        reader.readLine();
+
+        // read point data
+        List<String> xValues = new ArrayList<String>();
+        List<String> yValues = new ArrayList<String>();
+        while ((line = reader.readLine()) != null) {
+            String[] parts = line.split(",");
+            String x = parts[0].trim();
+            String y = parts[1].trim();
+
+            xValues.add(x);
+            yValues.add(y);
+            // System.out.println("iteration = "+x + " value = "+y);
+        }
+        reader.close();
+
+        XYDataset dataset = createDataset(xValues, yValues);
+        JFreeChart chart = createChart(xVariable, yVariable, dataset);
+        return chart;
+
+    }
+
+    private JFreeChart createChart(String xVariable, String yVariable, XYDataset dataset) {
+        final JFreeChart chart = ChartFactory.createXYLineChart("Convergence Graph", xVariable, yVariable, dataset, PlotOrientation.VERTICAL, true, true, false);
+        chart.setBackgroundPaint(Color.WHITE);
+        final XYPlot plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.LIGHT_GRAY);
+        plot.setDomainGridlinePaint(Color.WHITE);
+        plot.setRangeGridlinePaint(Color.WHITE);
+
+        final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+        rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+
+        return chart;
+    }
+
+    private XYDataset createDataset(List<String> xValues, List<String> yValues) {
+
+        XYSeries series = new XYSeries("error");
+        for (int i = 0; i < xValues.size(); i++) {
+            String x = xValues.get(i);
+            String y = yValues.get(i);
+            try {
+                Double.parseDouble(y);
+                series.add(new XYDataItem(Double.parseDouble(x), Double.parseDouble(y)));
+            } catch (NumberFormatException nfe) {
+                // received ******** as the number, ignore it
+            }
+
+        }
+
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(series);
+        return dataset;
     }
 
     /**
