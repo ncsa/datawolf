@@ -31,7 +31,10 @@
  ******************************************************************************/
 package edu.illinois.ncsa.domain;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToOne;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -48,6 +51,7 @@ public class Account extends AbstractBean {
     private String            password         = "";  //$NON-NLS-1$
 
     /** email of the person. */
+    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     private Person            person           = null;
 
     /**
