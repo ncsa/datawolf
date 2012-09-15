@@ -108,12 +108,17 @@
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>file-service</artifactId>
 			<version>${ncsa.common.version}</version>
-			<classifier>${webClassifier}</classifier>
+			<classifier>classes</classifier>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>cyberintegrator-service-client</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>jfree</groupId>
+			<artifactId>jfreechart</artifactId>
+			<version>1.0.13</version>
 		</dependency>
 	</dependencies>
 
