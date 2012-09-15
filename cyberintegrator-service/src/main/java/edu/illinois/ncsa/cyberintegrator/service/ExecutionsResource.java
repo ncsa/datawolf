@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,10 @@ import edu.illinois.ncsa.cyberintegrator.domain.HPCJobInfo;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.executor.hpc.ssh.SSHInfo;
+import edu.illinois.ncsa.cyberintegrator.executor.hpc.ssh.SSHSession;
+import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.NonNLSConstants;
+import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SshUtils;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.HPCJobInfoDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
@@ -195,6 +200,7 @@ public class ExecutionsResource {
     @Path("{execution-id}/hpcfile")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
     public Response getHpcFile(@PathParam("execution-id") String executionId, @QueryParam("file") @DefaultValue("error.rlt") String file) {
+        SSHSession session = null;
         try {
             // getting HPCJobInfo Bean
             HPCJobInfoDAO hDao = SpringData.getBean(HPCJobInfoDAO.class);
@@ -206,8 +212,13 @@ public class ExecutionsResource {
             String fileFullPath = workingDir + "/" + file;
 
             // sftp to get the file by using fileFullPath
-            // TODO: CHRIS implement this
-            final File tempfile = null;
+            final File tempfile = File.createTempFile("error", ".rlt");
+            String contactURI = "ssh://150.183.146.121:22002";
+            String user = "pdynam";
+            String userHome = System.getProperty("user.home");
+
+            session = maybeGetSession(new URI(contactURI), user, userHome);
+            SshUtils.copyFrom(fileFullPath, tempfile.getAbsolutePath(), session);
 
             // Create chart image
 
@@ -237,7 +248,26 @@ public class ExecutionsResource {
             e.printStackTrace();
             return Response.status(500).entity("Can't create image (id:" + executionId + ")").build();
 
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return Response.status(500).entity("Can't sftp file from remote machine").build();
+        } finally {
+            // This makes sure the session gets closed if exception thrown
+            if (session != null) {
+                session.close();
+            }
         }
+    }
+
+    protected SSHSession maybeGetSession(URI contact, String user, String userHome) throws Exception {
+        String scheme = contact.getScheme();
+        if (scheme != null && scheme.indexOf(NonNLSConstants.SSH) >= 0) {
+            SSHInfo info = new SSHInfo();
+            info.setUser(user);
+            info.setSshHome(new File(userHome, NonNLSConstants.DOT_SSH));
+            return new SSHSession(contact, info);
+        }
+        return null;
     }
 
     public boolean createChartImage(File dataFilePath, File imageFilePath) {
