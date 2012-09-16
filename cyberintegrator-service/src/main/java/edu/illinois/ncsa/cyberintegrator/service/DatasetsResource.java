@@ -56,6 +56,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -70,6 +72,8 @@ import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/datasets")
 public class DatasetsResource {
+
+    Logger log = LoggerFactory.getLogger(DatasetsResource.class);
 
     /**
      * 
@@ -89,6 +93,9 @@ public class DatasetsResource {
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
     public String createDataset(MultipartFormDataInput input) {
+
+        log.trace("POST /datasets received");
+
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
         List<InputPart> datasetZipInputParts = uploadForm.get("dataset");
         List<InputPart> fileInputParts = uploadForm.get("uploadedFile");
@@ -111,6 +118,9 @@ public class DatasetsResource {
 
                     dataset = ImportExport.importDataset(tempfile);
                     tempfile.delete();
+
+                    log.debug("Zipped dataset uploaded");
+
 //                    SpringData.getBean(DatasetDAO.class).save(dataset);
 
                 } catch (Exception e) {
@@ -174,6 +184,8 @@ public class DatasetsResource {
             dataset.setTitle(fileDescriptor.getFilename());
 
             Dataset savedDataset = datasetDao.save(dataset);
+
+            log.debug("Dataset uploaded");
 
             return savedDataset.getId();
         }

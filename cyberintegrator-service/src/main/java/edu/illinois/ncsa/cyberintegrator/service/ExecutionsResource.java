@@ -213,7 +213,8 @@ public class ExecutionsResource {
 
             // sftp to get the file by using fileFullPath
             final File tempfile = File.createTempFile("error", ".rlt");
-            String contactURI = "ssh://150.183.146.121:22002";
+
+            String contactURI = "ssh://cyber.kisti.re.kr:22002";
             String user = "pdynam";
             String userHome = System.getProperty("user.home");
 
