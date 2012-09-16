@@ -5,15 +5,18 @@ package edu.illinois.ncsa.cyberintegrator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
+import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.event.StepStateChangedEvent;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
@@ -26,6 +29,7 @@ public abstract class Executor {
     private static Logger logger      = LoggerFactory.getLogger(Executor.class);
 
     private StringBuilder log         = new StringBuilder();
+    private LogFile       logfile     = new LogFile();
     private State         state       = State.UNKNOWN;
     private String        executionId = null;
     private String        stepId      = null;
@@ -138,6 +142,7 @@ public abstract class Executor {
         synchronized (log) {
             log.append(msg);
             logger.debug(msg);
+            saveLog();
         }
     }
 
@@ -165,6 +170,7 @@ public abstract class Executor {
             log.append(msg);
             log.append("\n");
             logger.debug(msg);
+            saveLog();
         }
     }
 
@@ -199,6 +205,7 @@ public abstract class Executor {
             log.append("\n");
             log.append(sw.toString());
             logger.debug(msg, thr);
+            saveLog();
         }
     }
 
@@ -212,7 +219,16 @@ public abstract class Executor {
         synchronized (log) {
             log = new StringBuilder(msg);
             logger.debug(msg);
+            saveLog();
         }
+    }
+
+    private void saveLog() {
+        logfile.setExecutionId(executionId);
+        logfile.setStepId(stepId);
+        logfile.setDate(new Date());
+        logfile.setLog(log.toString());
+        logfile = SpringData.getBean(LogFileDAO.class).save(logfile);
     }
 
     /**

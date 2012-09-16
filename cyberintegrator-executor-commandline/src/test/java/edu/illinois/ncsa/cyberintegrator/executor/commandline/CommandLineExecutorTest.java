@@ -13,11 +13,13 @@ import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
+import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.springdata.DatasetDAO;
@@ -83,6 +85,14 @@ public class CommandLineExecutorTest {
         is.close();
 
         assertTrue(new String(buf, "UTF-8").trim().startsWith("Active "));
+
+        for (LogFile lf : SpringData.getBean(LogFileDAO.class).findAll()) {
+            System.out.println("ID            = " + lf.getId());
+            System.out.println("Execution ID  = " + lf.getExecutionId());
+            System.out.println("Step ID       = " + lf.getStepId());
+            System.out.println("Date          = " + lf.getDate());
+            System.out.println("LOG           = " + lf.getLog().split("\n").length);
+        }
 
         t.commit();
     }

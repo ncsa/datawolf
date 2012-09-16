@@ -24,6 +24,7 @@ public class CyberIntegratorApplication extends Application {
         rrcs.add(DatasetsResource.class);
         rrcs.add(PersonsResource.class);
         rrcs.add(FilesResource.class);
+        rrcs.add(LogFilesResource.class);
         return rrcs;
     }
 
