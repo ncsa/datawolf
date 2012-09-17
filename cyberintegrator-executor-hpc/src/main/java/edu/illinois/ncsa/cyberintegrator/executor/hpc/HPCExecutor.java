@@ -535,8 +535,8 @@ public class HPCExecutor extends RemoteExecutor {
                 }
             }
             // TODO RK : replace code above with the following code.
-            //String log = getRemoteLog();
-            
+            // String log = getRemoteLog();
+
             Transaction t = null;
             // List of created datasets
             List<AbstractBean> datasets = new ArrayList<AbstractBean>();
@@ -613,6 +613,9 @@ public class HPCExecutor extends RemoteExecutor {
 
     @Override
     public String getRemoteLog() {
+        if (session == null) {
+            return null;
+        }
         try {
             SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
             String workingfolder = null;
@@ -627,7 +630,7 @@ public class HPCExecutor extends RemoteExecutor {
                 sb.append(NL);
             }
             br.close();
-            
+
             // TODO RK : store working folder
 //            if ((workingfolder != null) && !storedJobInfo) {
 //                storedJobInfo = true;
@@ -649,7 +652,7 @@ public class HPCExecutor extends RemoteExecutor {
 //                    }
 //                }
 //            }
-            
+
             // return log as string
             return sb.toString();
         } catch (Throwable thr) {
