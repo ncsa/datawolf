@@ -36,73 +36,82 @@ public class SshUtils {
         private OutputStream targetStream;
 
         public void run() {
-            try {
-                // connect
-                connect();
+            for (int c = 0; c < 5; c++) {
+                try {
+                    // connect
+                    connect();
 
-                // send '\0'
-                logger.debug("sending: " + 0);
-                buf[0] = 0;
-                out.write(buf, 0, 1);
-                out.flush();
-                error = new StringBuffer(0);
+                    // send '\0'
+                    logger.debug("sending: " + 0);
+                    buf[0] = 0;
+                    out.write(buf, 0, 1);
+                    out.flush();
+                    error = new StringBuffer(0);
 
-                while (true) {
-                    logger.debug("checking ACK for C");
-                    if (SshUtils.checkAck(in, error) != 'C') {
-                        if (error.length() > 0)
-                            throw new IOException("scpFrom " + source + ", " + target + ": " + error.toString());
-                        break;
-                    }
-
-                    // read '0644 '
-                    logger.debug("reading 0644");
-                    in.read(buf, 0, 5);
-
-                    size = 0;
-                    logger.debug("reading size");
                     while (true) {
-                        in.read(buf, 0, 1);
-                        if (buf[0] == ' ')
+                        logger.debug("checking ACK for C");
+                        if (SshUtils.checkAck(in, error) != 'C') {
+                            if (error.length() > 0)
+                                throw new IOException("scpFrom " + source + ", " + target + ": " + error.toString());
                             break;
-                        size = size * 10 + (buf[0] - '0');
+                        }
+
+                        // read '0644 '
+                        logger.debug("reading 0644");
+                        in.read(buf, 0, 5);
+
+                        size = 0;
+                        logger.debug("reading size");
+                        while (true) {
+                            in.read(buf, 0, 1);
+                            if (buf[0] == ' ')
+                                break;
+                            size = size * 10 + (buf[0] - '0');
+                        }
+
+                        logger.debug("looking for 0x0a");
+                        for (int i = 0;; i++) {
+                            in.read(buf, i, 1);
+                            if (buf[i] == (byte) 0x0a)
+                                break;
+                        }
+
+                        // send '\0'
+                        logger.debug("sending: " + 0);
+                        buf[0] = 0;
+                        out.write(buf, 0, 1);
+                        out.flush();
+
+                        logger.debug("doing byte stream transfer: " + in + ", " + targetStream + ", " + size);
+                        byteStreamTransfer(in, targetStream, size);
+
+                        // send '\0'
+                        logger.debug("sending: " + 0);
+                        buf[0] = 0;
+                        out.write(buf, 0, 1);
+                        out.flush();
                     }
 
-                    logger.debug("looking for 0x0a");
-                    for (int i = 0;; i++) {
-                        in.read(buf, i, 1);
-                        if (buf[i] == (byte) 0x0a)
-                            break;
+                    return;
+                } catch (Throwable t) {
+                    operationError = t;
+                    logger.warn("run", t);
+                } finally {
+                    if (channel != null) {
+                        logger.debug(session + ", disconnecting channel after " + getCommand());
+                        channel.disconnect();
                     }
-
-                    // send '\0'
-                    logger.debug("sending: " + 0);
-                    buf[0] = 0;
-                    out.write(buf, 0, 1);
-                    out.flush();
-
-                    logger.debug("doing byte stream transfer: " + in + ", " + targetStream + ", " + size);
-                    byteStreamTransfer(in, targetStream, size);
-
-                    // send '\0'
-                    logger.debug("sending: " + 0);
-                    buf[0] = 0;
-                    out.write(buf, 0, 1);
-                    out.flush();
-                }
-            } catch (Throwable t) {
-                operationError = t;
-                logger.warn("run", t);
-            } finally {
-                if (channel != null) {
-                    logger.debug(session + ", disconnecting channel after " + getCommand());
-                    channel.disconnect();
+                    try {
+                        if (targetStream instanceof FileOutputStream)
+                            targetStream.close();
+                    } catch (Throwable e) {
+                        logger.error("problem closing target stream", e);
+                    }
                 }
                 try {
-                    if (targetStream instanceof FileOutputStream)
-                        targetStream.close();
-                } catch (Throwable e) {
-                    logger.error("problem closing target stream", e);
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    logger.info("interrupted", e);
                 }
             }
         }
@@ -118,55 +127,63 @@ public class SshUtils {
         private InputStream sourceStream;
 
         public void run() {
-            error = new StringBuffer(0);
-            try {
-                // connect
-                connect();
+            for (int c = 0; c < 5; c++) {
+                error = new StringBuffer(0);
+                try {
+                    // connect
+                    connect();
 
-                logger.debug("checking ACK for: " + 0);
-                if (SshUtils.checkAck(in, error) != 0)
-                    if (error.length() > 0)
-                        throw new IOException("scpTo " + source + ", " + target + ": " + error.toString());
+                    logger.debug("checking ACK for: " + 0);
+                    if (SshUtils.checkAck(in, error) != 0)
+                        if (error.length() > 0)
+                            throw new IOException("scpTo " + source + ", " + target + ": " + error.toString());
 
-                String name = PathUtils.getURIName(source);
+                    String name = PathUtils.getURIName(source);
 
-                // send "C0644 filesize source"
-                logger.debug("sending: C0644 filesize source");
-                String command = "C0644 " + size + " " + name + NonNLSConstants.LINE_SEP;
-                out.write(command.getBytes());
-                out.flush();
+                    // send "C0644 filesize source"
+                    logger.debug("sending: C0644 filesize source");
+                    String command = "C0644 " + size + " " + name + NonNLSConstants.LINE_SEP;
+                    out.write(command.getBytes());
+                    out.flush();
 
-                logger.debug("checking ACK for: " + 0);
-                if (SshUtils.checkAck(in, error) != 0)
-                    if (error.length() > 0)
-                        throw new IOException("scpTo " + source + ", " + target + ": " + error.toString());
+                    logger.debug("checking ACK for: " + 0);
+                    if (SshUtils.checkAck(in, error) != 0)
+                        if (error.length() > 0)
+                            throw new IOException("scpTo " + source + ", " + target + ": " + error.toString());
 
-                logger.debug("doing byte stream transfer: " + sourceStream + ", " + out + ", " + size);
-                byteStreamTransfer(sourceStream, out, size);
+                    logger.debug("doing byte stream transfer: " + sourceStream + ", " + out + ", " + size);
+                    byteStreamTransfer(sourceStream, out, size);
 
-                // send '\0'
-                logger.debug("sending: " + 0);
-                buf[0] = 0;
-                out.write(buf, 0, 1);
-                out.flush();
+                    // send '\0'
+                    logger.debug("sending: " + 0);
+                    buf[0] = 0;
+                    out.write(buf, 0, 1);
+                    out.flush();
 
-                logger.debug("checking ACK for: " + 0);
-                if (SshUtils.checkAck(in, error) != 0)
-                    if (error.length() > 0)
-                        throw new IOException("scpTo " + source + ", " + target + ": " + error.toString());
-            } catch (Throwable t) {
-                operationError = t;
-                logger.warn("run", t);
-            } finally {
-                if (channel != null) {
-                    logger.debug(session + ", disconnecting channel after " + getCommand());
-                    channel.disconnect();
+                    logger.debug("checking ACK for: " + 0);
+                    if (SshUtils.checkAck(in, error) != 0)
+                        if (error.length() > 0)
+                            throw new IOException("scpTo " + source + ", " + target + ": " + error.toString());
+                    return;
+                } catch (Throwable t) {
+                    operationError = t;
+                    logger.warn("run", t);
+                } finally {
+                    if (channel != null) {
+                        logger.debug(session + ", disconnecting channel after " + getCommand());
+                        channel.disconnect();
+                    }
+                    try {
+                        if (sourceStream instanceof FileInputStream)
+                            sourceStream.close();
+                    } catch (Throwable e) {
+                        logger.error("problem closing source stream", e);
+                    }
                 }
                 try {
-                    if (sourceStream instanceof FileInputStream)
-                        sourceStream.close();
-                } catch (Throwable e) {
-                    logger.error("problem closing source stream", e);
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    logger.info("interrupted", e);
                 }
             }
         }
