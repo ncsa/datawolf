@@ -93,7 +93,8 @@ import edu.illinois.ncsa.springdata.SpringData;
 @Path("/executions")
 public class ExecutionsResource {
 
-    Logger log = LoggerFactory.getLogger(ExecutionsResource.class);
+    Logger             log     = LoggerFactory.getLogger(ExecutionsResource.class);
+    private static int RETRIES = 5;
 
     /**
      * Create execution via Submission JSON
@@ -219,8 +220,18 @@ public class ExecutionsResource {
             String userHome = System.getProperty("user.home");
 
             session = maybeGetSession(new URI(contactURI), user, userHome);
-            SshUtils.copyFrom(fileFullPath, tempfile.getAbsolutePath(), session);
 
+            boolean success = false;
+            int attempts = 0;
+            while (!success && attempts < RETRIES) {
+                try {
+                    SshUtils.copyFrom(fileFullPath, tempfile.getAbsolutePath(), session);
+                    success = true;
+                } catch (Exception e) {
+                    attempts++;
+                    Thread.sleep(1000);
+                }
+            }
             // Create chart image
 
             File dataDir = new File("/tmp/", executionId);
