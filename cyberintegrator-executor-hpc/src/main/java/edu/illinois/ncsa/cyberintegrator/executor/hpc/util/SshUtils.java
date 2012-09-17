@@ -95,7 +95,7 @@ public class SshUtils {
                     return;
                 } catch (Throwable t) {
                     operationError = t;
-                    logger.warn("run", t);
+                    logger.warn("run [" + c + "]", t);
                 } finally {
                     if (channel != null) {
                         logger.debug(session + ", disconnecting channel after " + getCommand());
@@ -167,7 +167,7 @@ public class SshUtils {
                     return;
                 } catch (Throwable t) {
                     operationError = t;
-                    logger.warn("run", t);
+                    logger.warn("run [" + c + "]", t);
                 } finally {
                     if (channel != null) {
                         logger.debug(session + ", disconnecting channel after " + getCommand());
