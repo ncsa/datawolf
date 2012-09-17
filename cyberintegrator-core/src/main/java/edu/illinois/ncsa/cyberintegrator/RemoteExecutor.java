@@ -53,7 +53,9 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
         cancelRemoteJob();
         Thread tmp = remoteThread;
         remoteThread = null;
-        tmp.interrupt();
+        if (tmp != null) {
+            tmp.interrupt();
+        }
     }
 
     /**
