@@ -210,7 +210,7 @@ public class ExecutionsResource {
             HPCJobInfo hpcJobInfo = hpcJobInfoList.get(0);
             String workingDir = hpcJobInfo.getWorkingDir();
 
-            String fileFullPath = workingDir + "/" + file;
+            String fileFullPath = workingDir + "/result/" + file;
 
             // sftp to get the file by using fileFullPath
             final File tempfile = File.createTempFile("error", ".rlt");
