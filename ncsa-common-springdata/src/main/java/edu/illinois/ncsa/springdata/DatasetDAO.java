@@ -40,7 +40,15 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import edu.illinois.ncsa.domain.Dataset;
 
 public interface DatasetDAO extends PagingAndSortingRepository<Dataset, String> {
+    List<Dataset> findByTitleLike(String titlePattern);
+
     List<Dataset> findByCreatorEmail(String email);
 
+    List<Dataset> findByCreatorEmailAndTitleLike(String email, String pattern);
+
+    Page<Dataset> findByTitleLike(String titlePattern, Pageable page);
+
     Page<Dataset> findByCreatorEmail(String email, Pageable page);
+
+    Page<Dataset> findByCreatorEmailAndTitleLike(String email, String pattern, Pageable page);
 }
