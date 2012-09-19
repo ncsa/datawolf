@@ -34,6 +34,29 @@ public abstract class Executor {
     private String        executionId = null;
     private String        stepId      = null;
     private boolean       jobStopped  = false;
+    private boolean       storeLog    = true;
+
+    /**
+     * Should the executor store the logfiles generated.
+     * 
+     * @return will return true if the logfiles are stored in the database.
+     */
+    public boolean isStoreLog() {
+        return storeLog;
+    }
+
+    /**
+     * Should the logfiles be stored in the database. Set this to true and the
+     * logfiles generated for the execution of a step are stored in the
+     * database.
+     * 
+     * @param storeLog
+     *            set to true (the default) to store the logfiles in the
+     *            database.
+     */
+    public void setStoreLog(boolean storeLog) {
+        this.storeLog = storeLog;
+    }
 
     /**
      * Name of the executor. This name is used to find the executor to be used
@@ -224,11 +247,13 @@ public abstract class Executor {
     }
 
     private void saveLog() {
-        logfile.setExecutionId(executionId);
-        logfile.setStepId(stepId);
-        logfile.setDate(new Date());
-        logfile.setLog(log.toString());
-        logfile = SpringData.getBean(LogFileDAO.class).save(logfile);
+        if (isStoreLog()) {
+            logfile.setExecutionId(executionId);
+            logfile.setStepId(stepId);
+            logfile.setDate(new Date());
+            logfile.setLog(log.toString());
+            logfile = SpringData.getBean(LogFileDAO.class).save(logfile);
+        }
     }
 
     /**
