@@ -8,6 +8,10 @@
 
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
+	<bean id="engine" class="edu.illinois.ncsa.cyberintegrator.Engine">
+		<property name="storeLogs" value="false" />
+		<property name="timeout" value="30" />
+	</bean>
 
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />

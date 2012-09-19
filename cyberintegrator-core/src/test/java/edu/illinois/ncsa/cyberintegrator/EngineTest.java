@@ -40,6 +40,7 @@ import edu.illinois.ncsa.springdata.Transaction;
  */
 public class EngineTest {
     private static final String STEP_WITH_ERROR = "STEP WITH ERROR";
+    private static final String SLOW_STEP       = "SLOW STEP";
     protected Engine            engine;
 
     @BeforeClass
@@ -113,12 +114,180 @@ public class EngineTest {
 
         Transaction t = SpringData.getTransaction();
         t.start();
-        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+        try {
+            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+            assertEquals(State.FAILED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            t.commit();
+        }
+    }
 
-        assertEquals(State.FAILED, execution.getStepState(workflow.getSteps().get(0).getId()));
-        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+    @Test
+    public void testTimeOut1() throws Exception {
+        Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
 
-        t.commit();
+        // create a workflow with a step
+        Workflow workflow = createWorkflow(person, 2, false);
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        // create the execution
+        Execution execution = createExecution(person, workflow);
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // submit a single step
+        engine.setTimeout(1);
+        engine.execute(execution);
+
+        // check to see if all workflows are done
+        int loop = 0;
+        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+            Thread.sleep(100);
+            loop++;
+        }
+
+        // make sure everything is done
+        assertEquals(0, engine.getSteps(execution.getId()).size());
+
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start();
+            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            t.commit();
+        }
+    }
+
+    @Test
+    public void testTimeOut2() throws Exception {
+        Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
+
+        // create a workflow with a step
+        Workflow workflow = createWorkflow(person, 2, false);
+        // break input of second step
+        WorkflowStep step = workflow.getSteps().get(1);
+        step.setInput(step.getTool().getInputs().get(0), "broken");
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        // create the execution
+        Execution execution = createExecution(person, workflow);
+        Dataset dataset = createDataset(person);
+        SpringData.getBean(DatasetDAO.class).save(dataset);
+        execution.setDataset("dataset", dataset.getId());
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // submit a single step
+        engine.setTimeout(1);
+        engine.execute(execution);
+
+        // check to see if all workflows are done
+        int loop = 0;
+        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+            Thread.sleep(100);
+            loop++;
+        }
+
+        // make sure everything is done
+        assertEquals(0, engine.getSteps(execution.getId()).size());
+
+        Transaction t = SpringData.getTransaction();
+        t.start();
+        try {
+            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+            assertEquals(State.FINISHED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            t.commit();
+        }
+    }
+
+    @Test
+    public void testTimeOut3() throws Exception {
+        Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
+
+        // create a workflow with a step
+        Workflow workflow = createWorkflow(person, 2, false);
+        // mark first step as slooooow step
+        WorkflowStep step = workflow.getSteps().get(0);
+        step.setTitle(SLOW_STEP);
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        // create the execution
+        Execution execution = createExecution(person, workflow);
+        Dataset dataset = createDataset(person);
+        SpringData.getBean(DatasetDAO.class).save(dataset);
+        execution.setDataset("dataset", dataset.getId());
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // submit a single step
+        engine.setTimeout(1);
+        engine.execute(execution);
+
+        // check to see if all workflows are done
+        int loop = 0;
+        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+            Thread.sleep(100);
+            loop++;
+        }
+
+        // make sure everything is done
+        assertEquals(0, engine.getSteps(execution.getId()).size());
+
+        Transaction t = SpringData.getTransaction();
+        t.start();
+        try {
+            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+            assertEquals(State.FINISHED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.FINISHED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            t.commit();
+        }
+    }
+
+    @Test
+    public void testTimeOut4() throws Exception {
+        Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
+
+        // create a workflow with a step
+        Workflow workflow = createWorkflow(person, 2, false);
+        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        // create the execution
+        Execution execution = createExecution(person, workflow);
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // submit a single step
+        engine.setTimeout(2);
+        engine.execute(execution);
+
+        // Wait a second
+        Thread.sleep(1000);
+        Dataset dataset = createDataset(person);
+        SpringData.getBean(DatasetDAO.class).save(dataset);
+        execution.setDataset("dataset", dataset.getId());
+        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        // check to see if all workflows are done
+        int loop = 0;
+        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+            Thread.sleep(100);
+            loop++;
+        }
+
+        // make sure everything is done
+        assertEquals(0, engine.getSteps(execution.getId()).size());
+
+        Transaction t = SpringData.getTransaction();
+        t.start();
+        try {
+            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+            assertEquals(State.FINISHED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.FINISHED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            t.commit();
+        }
     }
 
     @Test
@@ -151,10 +320,13 @@ public class EngineTest {
 
         Transaction t = SpringData.getTransaction();
         t.start();
-        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
-        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
-        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
-        t.commit();
+        try {
+            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            t.commit();
+        }
     }
 
     @Test
@@ -213,11 +385,14 @@ public class EngineTest {
 
         Transaction t = SpringData.getTransaction();
         t.start(false);
-        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
-        for (WorkflowStep step : workflow.getSteps()) {
-            assertEquals(State.FINISHED, execution.getStepState(step.getId()));
+        try {
+            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+            for (WorkflowStep step : workflow.getSteps()) {
+                assertEquals(State.FINISHED, execution.getStepState(step.getId()));
+            }
+        } finally {
+            t.commit();
         }
-        t.commit();
 
         // assert all steps send notification
         assertEquals(workflow.getSteps().size(), finished.size());
@@ -323,6 +498,10 @@ public class EngineTest {
                 // throw failed exception in case of error
                 if (STEP_WITH_ERROR.equals(step.getTitle())) {
                     throw (new FailedException("Some Error"));
+                }
+
+                if (SLOW_STEP.equals(step.getTitle())) {
+                    Thread.sleep(3000);
                 }
 
                 // Do some computation

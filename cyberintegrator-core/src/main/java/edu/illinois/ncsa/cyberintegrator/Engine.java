@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -70,6 +71,12 @@ public class Engine {
     /** List of steps */
     private List<Executor>        queue        = new ArrayList<Executor>();
 
+    /** store the logs in the database */
+    private boolean               storeLogs    = true;
+
+    /** timeout of a workflow in seconds */
+    private int                   timeout      = 3600;
+
     /**
      * Create the engine with a single worker.
      */
@@ -84,6 +91,55 @@ public class Engine {
     }
 
     /**
+     * Returns true if the executors store the logfiles in the database.
+     * 
+     * @return true if the logfiles are stored in the database.
+     */
+    public boolean isStoreLogs() {
+        return storeLogs;
+    }
+
+    /**
+     * Should the logfiles be stored in the database. Set this to true to store
+     * the logfiles in a database.
+     * 
+     * @param storeLogs
+     *            set this to true (the default) to store the logfiles in the
+     *            database.
+     */
+    public void setStoreLogs(boolean storeLogs) {
+        logger.info("Store logs : " + storeLogs);
+        this.storeLogs = storeLogs;
+    }
+
+    /**
+     * Return the timout the engine will wait when no steps are ready to be
+     * executed, or executing before it declares the workflow aborted.
+     * 
+     * @return the number of seconds before a workflow is declared as aborted.
+     */
+    public int getTimeout() {
+        return timeout;
+    }
+
+    /**
+     * Sets the timeout for a workflow in seconds. If a workflow has steps that
+     * are in WAITING and no steps that are currently executing, and none of the
+     * steps in WAITING can be executed, the engine will wait this many seconds
+     * before it declares the workflow as ABORTED.
+     * 
+     * Setting the timeout to 0 will disable the timeout.
+     * 
+     * @param timeout
+     *            the number of seconds to wait before the workflow is declared
+     *            ABORTED.
+     */
+    public void setTimeout(int timeout) {
+        logger.info("Timout : " + timeout);
+        this.timeout = timeout;
+    }
+
+    /**
      * Find an executor that fits the given name. This will create a new
      * instance of the executor.
      * 
@@ -93,7 +149,9 @@ public class Engine {
      */
     public Executor findExecutor(String name) {
         try {
-            return executors.get(name).getClass().newInstance();
+            Executor executor = executors.get(name).getClass().newInstance();
+            executor.setStoreLog(storeLogs);
+            return executor;
         } catch (Exception e) {
             logger.error("Could not create an instance of the executor.", e);
             return null;
@@ -350,6 +408,59 @@ public class Engine {
                                             canrun = 2;
                                         } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
                                             canrun = 2;
+                                        }
+                                    }
+
+                                    // check to see if the workflow is aborted
+                                    if (timeout > 0) {
+                                        boolean abortWorkflow = true;
+                                        long recent = execution.getDate().getTime();
+                                        for (Entry<String, edu.illinois.ncsa.cyberintegrator.domain.Execution.State> entry : execution.getStepStates().entrySet()) {
+                                            // check the state of the step
+                                            switch (entry.getValue()) {
+                                            case RUNNING:
+                                            case QUEUED:
+                                                abortWorkflow = false;
+                                                break;
+                                            case FINISHED:
+                                            case ABORTED:
+                                            case FAILED:
+                                                if (recent < execution.getStepEnd(entry.getKey()).getTime()) {
+                                                    recent = execution.getStepEnd(entry.getKey()).getTime();
+                                                }
+                                                break;
+                                            default:
+                                                break;
+                                            }
+                                            if (!abortWorkflow) {
+                                                break;
+                                            }
+
+                                            // check if step can run
+                                            step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+                                            boolean cansteprun = true;
+                                            for (String id : step.getInputs().values()) {
+                                                if (!execution.hasDataset(id)) {
+                                                    cansteprun = false;
+                                                } else if (execution.getDataset(id) == null) {
+                                                    cansteprun = false;
+                                                } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                    cansteprun = false;
+                                                }
+                                            }
+                                            if (cansteprun) {
+                                                abortWorkflow = false;
+                                            }
+                                            if (!abortWorkflow) {
+                                                break;
+                                            }
+                                        }
+
+                                        // workflow should be aborted
+                                        if (abortWorkflow && (recent < (System.currentTimeMillis() - timeout * 1000))) {
+                                            logger.info("Aborting execution " + execution.getId());
+                                            logger.info(System.currentTimeMillis() + " " + recent);
+                                            Engine.this.stop(execution.getId());
                                         }
                                     }
                                 } catch (Exception e) {
