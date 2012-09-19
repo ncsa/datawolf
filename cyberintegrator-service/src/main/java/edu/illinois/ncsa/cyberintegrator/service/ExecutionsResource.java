@@ -207,6 +207,9 @@ public class ExecutionsResource {
             HPCJobInfoDAO hDao = SpringData.getBean(HPCJobInfoDAO.class);
             List<HPCJobInfo> hpcJobInfoList = hDao.findByExecutionId(executionId);
 
+            if (hpcJobInfoList.isEmpty())
+                return Response.status(500).entity("Can't create image (id:" + executionId + ")").build();
+
             HPCJobInfo hpcJobInfo = hpcJobInfoList.get(0);
             String workingDir = hpcJobInfo.getWorkingDir();
 

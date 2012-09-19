@@ -219,20 +219,31 @@ public class DatasetsResource {
      *            page number starting 0
      * @param email
      *            email of creator
+     * @param pattern
+     *            filename pattern such as %.msh
      * @return
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email) {
+    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
+            @QueryParam("pattern") @DefaultValue("") String pattern) {
         DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
 
         // without paging
         if (size < 1) {
             Iterable<Dataset> results = null;
             if (email.equals("")) {
-                results = datasetDao.findAll();
+                if (pattern.equals("")) {
+                    results = datasetDao.findAll();
+                } else {
+                    results = datasetDao.findByTitleLike(pattern);
+                }
             } else {
-                results = datasetDao.findByCreatorEmail(email);
+                if (pattern.equals("")) {
+                    results = datasetDao.findByCreatorEmail(email);
+                } else {
+                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
+                }
             }
 
             ArrayList<Dataset> list = new ArrayList<Dataset>();
@@ -240,13 +251,22 @@ public class DatasetsResource {
                 list.add(d);
             }
             return list;
+
         } else { // with paging
 
             Page<Dataset> results = null;
             if (email.equals("")) {
-                results = datasetDao.findAll(new PageRequest(page, size));
+                if (pattern.equals("")) {
+                    results = datasetDao.findAll(new PageRequest(page, size));
+                } else {
+                    results = datasetDao.findByTitleLike(pattern, new PageRequest(page, size));
+                }
             } else {
-                results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size));
+                if (pattern.equals("")) {
+                    results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size));
+                } else {
+                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, new PageRequest(page, size));
+                }
             }
             return results.getContent();
         }
