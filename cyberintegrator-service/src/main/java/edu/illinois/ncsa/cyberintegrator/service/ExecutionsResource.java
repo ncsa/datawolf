@@ -109,7 +109,7 @@ public class ExecutionsResource {
     @Produces({ MediaType.TEXT_PLAIN })
     public String createExecution(Submission submission) {
 
-        log.trace("POST /executions received");
+        log.debug("POST /executions received");
         Execution execution = new Execution();
         // find workflow
         WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
@@ -201,14 +201,17 @@ public class ExecutionsResource {
     @Path("{execution-id}/hpcfile")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
     public Response getHpcFile(@PathParam("execution-id") String executionId, @QueryParam("file") @DefaultValue("error.rlt") String file) {
+        log.info("Getting " + file + " for convergence graph of the exeuction: " + executionId);
         SSHSession session = null;
         try {
             // getting HPCJobInfo Bean
             HPCJobInfoDAO hDao = SpringData.getBean(HPCJobInfoDAO.class);
             List<HPCJobInfo> hpcJobInfoList = hDao.findByExecutionId(executionId);
 
-            if (hpcJobInfoList.isEmpty())
+            if (hpcJobInfoList.isEmpty()) {
+                log.error("Can't find hpcJogInfo bean for execution: " + executionId);
                 return Response.status(500).entity("Can't create image (id:" + executionId + ")").build();
+            }
 
             HPCJobInfo hpcJobInfo = hpcJobInfoList.get(0);
             String workingDir = hpcJobInfo.getWorkingDir();
@@ -257,14 +260,15 @@ public class ExecutionsResource {
                 response.type("image/jpeg");
                 return response.build();
             } else {
+                log.error("Couldn't create image (id:" + executionId + ")");
                 return Response.status(500).entity("Can't create image (id:" + executionId + ")").build();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Couldn't create image (id:" + executionId + ")", e);
             return Response.status(500).entity("Can't create image (id:" + executionId + ")").build();
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.error("Can't sftp file from remote machine (id:" + executionId + ")", e);
             return Response.status(500).entity("Can't sftp file from remote machine").build();
         } finally {
             // This makes sure the session gets closed if exception thrown
