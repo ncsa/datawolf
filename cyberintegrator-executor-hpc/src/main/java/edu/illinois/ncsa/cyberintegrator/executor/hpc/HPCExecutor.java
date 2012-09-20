@@ -444,6 +444,8 @@ public class HPCExecutor extends RemoteExecutor {
                 String command = commandPath;
                 if (commandArgs != null)
                     command += NonNLSConstants.SP + commandArgs;
+                command += NonNLSConstants.SP + "-j " + jobId;
+
                 logger.debug("get status command: " + command);
                 SshUtils.exec(session, command, out, null);
                 lines = out.toString().trim().split(NonNLSConstants.REMOTE_LINE_SEP);
@@ -530,7 +532,7 @@ public class HPCExecutor extends RemoteExecutor {
                         stdoutReader = null;
                     }
                     if ("DONE".equals(line.toUpperCase())) {
-                    	done = true;
+                        done = true;
                     }
                     // println(line);
                     stdout.append(line);
@@ -540,9 +542,9 @@ public class HPCExecutor extends RemoteExecutor {
                 }
             }
             if (!done) {
-            	return State.FAILED;
+                return State.FAILED;
             }
-            
+
             // TODO RK : replace code above with the following code.
             // String log = getRemoteLog();
 
@@ -568,7 +570,7 @@ public class HPCExecutor extends RemoteExecutor {
                 String key = step.getOutputs().get(logId);
                 execution.setDataset(key, ds.getId());
                 datasets.add(ds);
-                
+
                 return State.FINISHED;
             } finally {
                 t.commit();
