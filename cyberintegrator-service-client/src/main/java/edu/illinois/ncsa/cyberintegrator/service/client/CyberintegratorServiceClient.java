@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -273,11 +271,11 @@ public class CyberintegratorServiceClient {
         HttpClient httpclient = new DefaultHttpClient();
         String requestUrl = SERVER + "/workflows";
         HttpPost httpPost = new HttpPost(requestUrl);
- 
+
         MultipartEntity entity = new MultipartEntity();
         entity.addPart("workflow", new FileBody(zipfile));
         httpPost.setEntity(entity);
-        
+
         try {
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             return httpclient.execute(httpPost, responseHandler);
@@ -313,4 +311,40 @@ public class CyberintegratorServiceClient {
         }
         return null;
     }
+
+    public static boolean checkHpcFile(String executionId, String filename) {
+        boolean check = false;
+        String responseStr = null;
+
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/executions/" + executionId + "/checkhpcfile?file=" + filename;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.info("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+                check = false;
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                if ("YES".equals(responseStr.trim().toUpperCase()))
+                    check = true;
+            } catch (Exception ignore) {}
+        }
+        return check;
+    }
+
+    public static boolean checkHpcFeil(String executionId) {
+        return checkHpcFile(executionId, "error.rlt");
+    }
+
 }
