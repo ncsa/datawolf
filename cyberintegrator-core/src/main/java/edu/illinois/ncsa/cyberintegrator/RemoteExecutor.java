@@ -91,6 +91,12 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
                 if ((log != null) && !log.equals("")) {
                     setLog(log);
                 }
+
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    logger.info("Got interrupted.", e);
+                }
             }
 
         } catch (AbortException e) {
