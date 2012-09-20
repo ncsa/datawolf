@@ -146,6 +146,7 @@ public class DatasetsResource {
                     log.debug("Finding a person with id: " + useremail);
                     creator = personDao.findByEmail(useremail);
                     if (creator == null) {
+                        log.error("Couldn't find a person with id: " + useremail);
                         // TODO: need to remove; it's testing purpose
 //                        Person person = Person.createPerson("Jong", "Lee", "jonglee1@illinois.edu");
 //                        creator = personDao.save(person);
