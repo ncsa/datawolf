@@ -198,6 +198,66 @@ public class ExecutionsResource {
     }
 
     @GET
+    @Path("{execution-id}/checkhpcfile")
+    @Produces({ MediaType.TEXT_PLAIN })
+    public String checkHpcFile(@PathParam("execution-id") String executionId, @QueryParam("file") @DefaultValue("error.rlt") String file) {
+        log.info("Checking " + file + " for convergence graph of the exeuction: " + executionId);
+        SSHSession session = null;
+        String command = null;
+        try {
+            // getting HPCJobInfo Bean
+            HPCJobInfoDAO hDao = SpringData.getBean(HPCJobInfoDAO.class);
+            List<HPCJobInfo> hpcJobInfoList = hDao.findByExecutionId(executionId);
+
+            if (hpcJobInfoList.isEmpty()) {
+                log.error("Can't find hpcJogInfo bean for execution: " + executionId);
+                return "NO";
+            }
+
+            HPCJobInfo hpcJobInfo = hpcJobInfoList.get(0);
+            String workingDir = hpcJobInfo.getWorkingDir();
+
+            String fileFullPath = workingDir + "/result/" + file;
+
+            command = "test -e " + fileFullPath + " && echo \"YES\"";
+
+            StringBuffer stdout = new StringBuffer();
+            StringBuffer stderr = new StringBuffer();
+
+            String contactURI = "ssh://cyber.kisti.re.kr:22002";
+            String user = "pdynam";
+            String userHome = System.getProperty("user.home");
+
+            session = maybeGetSession(new URI(contactURI), user, userHome);
+
+            SshUtils.exec(session, command, stdout, stderr);
+            if ("YES".equals(stdout.toString().trim().toUpperCase())) {
+                if (session != null) {
+                    session.close();
+                }
+                return "YES";
+            }
+
+            if (session != null) {
+                session.close();
+            }
+            return "NO";
+
+        } catch (IllegalArgumentException e) {
+            log.error("SSH error to execute the command " + command, e);
+        } catch (Exception e) {
+            log.error("SSH error to execute the command " + command, e);
+        } finally {
+            // This makes sure the session gets closed if exception thrown
+            if (session != null) {
+                session.close();
+            }
+        }
+        return "NO";
+
+    }
+
+    @GET
     @Path("{execution-id}/hpcfile")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
     public Response getHpcFile(@PathParam("execution-id") String executionId, @QueryParam("file") @DefaultValue("error.rlt") String file) {
