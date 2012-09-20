@@ -525,21 +525,17 @@ public class HPCExecutor extends RemoteExecutor {
             BufferedReader stdoutReader = new BufferedReader(new FileReader(log));
             boolean done = false;
             if (stdoutReader != null) {
-                if (stdoutReader.ready()) {
-                    String line = stdoutReader.readLine();
-                    if (line == null) {
-                        stdoutReader.close();
-                        stdoutReader = null;
-                    }
+                String line;
+                while ((line = stdoutReader.readLine()) != null) {
                     if ("DONE".equals(line.toUpperCase())) {
                         done = true;
                     }
                     // println(line);
                     stdout.append(line);
                     stdout.append(NL);
-
-                    stdoutReader.close();
                 }
+                stdoutReader.close();
+                stdoutReader = null;
             }
             if (!done) {
                 return State.FAILED;
