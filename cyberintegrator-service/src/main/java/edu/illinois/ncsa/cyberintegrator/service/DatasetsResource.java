@@ -143,12 +143,13 @@ public class DatasetsResource {
             for (InputPart inputPart : userInputParts) {
                 try {
                     String useremail = inputPart.getBody(String.class, null);
+                    log.debug("Finding a person with id: " + useremail);
                     creator = personDao.findByEmail(useremail);
                     if (creator == null) {
                         // TODO: need to remove; it's testing purpose
-                        Person person = Person.createPerson("Jong", "Lee", "jonglee1@illinois.edu");
-                        creator = personDao.save(person);
-//                            return null;
+//                        Person person = Person.createPerson("Jong", "Lee", "jonglee1@illinois.edu");
+//                        creator = personDao.save(person);
+                        return null;
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
