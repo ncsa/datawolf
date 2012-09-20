@@ -292,7 +292,7 @@ public class ExecutionsResource {
     public boolean createChartImage(File dataFilePath, File imageFilePath) {
         try {
             JFreeChart chart = createLineGraph(dataFilePath);
-            ChartUtilities.saveChartAsJPEG(imageFilePath, chart, 800, 600);
+            ChartUtilities.saveChartAsJPEG(imageFilePath, chart, 480, 360);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
