@@ -583,7 +583,6 @@ public class HPCExecutor extends RemoteExecutor {
     // TODO RK remove following code, is rolled into getRemoteLog()
     private void createJobInfo() {
         try {
-            storedJobInfo = true;
             SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
             String workingDir = null;
             BufferedReader stdoutReader = new BufferedReader(new FileReader(log));
@@ -593,15 +592,15 @@ public class HPCExecutor extends RemoteExecutor {
                     if (line == null) {
                         stdoutReader.close();
                         stdoutReader = null;
+                        return;
                     }
-                    workingDir = line;
+                	workingDir = line;
                     // println(line);
                     // stdout.append(line);
                     // stdout.append(NL);
 
                     Transaction t = null;
                     try {
-
                         t = SpringData.getTransaction();
                         t.start();
                         HPCJobInfo info = new HPCJobInfo();
@@ -609,6 +608,7 @@ public class HPCExecutor extends RemoteExecutor {
                         info.setWorkingDir(workingDir);
 
                         SpringData.getBean(HPCJobInfoDAO.class).save(info);
+                        storedJobInfo = true;
                     } finally {
                         stdoutReader.close();
                         t.commit();
