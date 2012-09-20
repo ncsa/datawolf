@@ -462,10 +462,10 @@ public class HPCExecutor extends RemoteExecutor {
                     if (data[0].equals(jobId)) {
                         State jobState = getJobState(data[1]);
                         if (jobState.equals(State.FINISHED)) {
-                            getLogFile();
-                            return jobState;
+                            return getLogFile();
                         } else if (jobState.equals(State.RUNNING) && !storedJobInfo) {
                             createJobInfo();
+                            return jobState;
                         } else {
                             return jobState;
                         }
@@ -488,9 +488,7 @@ public class HPCExecutor extends RemoteExecutor {
         // need to check the log to see if we have a failure or success
         // Getting here might be a bug in Ranger's gondola template because
         // KISTI's machine actually returns "Finished"
-        getLogFile();
-
-        return State.FINISHED;
+        return getLogFile();
     }
 
     private State getJobState(String state) {
@@ -512,7 +510,7 @@ public class HPCExecutor extends RemoteExecutor {
 
     }
 
-    public void getLogFile() {
+    public State getLogFile() {
         // if we get here, job is neither queued nor running, get log
         try {
             if (!storedJobInfo) {
@@ -523,12 +521,16 @@ public class HPCExecutor extends RemoteExecutor {
             // Capture log as stdout
             StringBuilder stdout = new StringBuilder();
             BufferedReader stdoutReader = new BufferedReader(new FileReader(log));
+            boolean done = false;
             if (stdoutReader != null) {
                 if (stdoutReader.ready()) {
                     String line = stdoutReader.readLine();
                     if (line == null) {
                         stdoutReader.close();
                         stdoutReader = null;
+                    }
+                    if ("DONE".equals(line.toUpperCase())) {
+                    	done = true;
                     }
                     // println(line);
                     stdout.append(line);
@@ -537,6 +539,10 @@ public class HPCExecutor extends RemoteExecutor {
                     stdoutReader.close();
                 }
             }
+            if (!done) {
+            	return State.FAILED;
+            }
+            
             // TODO RK : replace code above with the following code.
             // String log = getRemoteLog();
 
@@ -562,6 +568,8 @@ public class HPCExecutor extends RemoteExecutor {
                 String key = step.getOutputs().get(logId);
                 execution.setDataset(key, ds.getId());
                 datasets.add(ds);
+                
+                return State.FINISHED;
             } finally {
                 t.commit();
                 SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
@@ -571,6 +579,7 @@ public class HPCExecutor extends RemoteExecutor {
         } catch (Throwable e) {
             logger.error("Error retrieving log file from remote system and writing it to a dataset.", e);
         }
+        return State.FAILED;
     }
 
     // TODO RK remove following code, is rolled into getRemoteLog()
