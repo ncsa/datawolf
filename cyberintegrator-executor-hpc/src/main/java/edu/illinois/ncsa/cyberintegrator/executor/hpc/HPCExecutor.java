@@ -90,6 +90,10 @@ public class HPCExecutor extends RemoteExecutor {
 
     private String              remoteLogFile  = null;
     private File                log            = null;
+    
+    // Name of standard error/out files
+    private String standardOut = null;
+    private String standardErr = null;
 
     // Dataset id to store log file as tool output
     private String              logId          = null;
@@ -246,7 +250,7 @@ public class HPCExecutor extends RemoteExecutor {
             // copy job script to target machine
             String scriptPath = stageFile(tmpScript, stagingDir, session, NonNLSConstants.SCRIPT);
 
-            // path to remote log file
+            // path to remote gondola log file
             remoteLogFile = stagingDir + NonNLSConstants.LOG;
 
             // quick check to see if we should stop
@@ -255,6 +259,8 @@ public class HPCExecutor extends RemoteExecutor {
             }
 
             jobId = submit(job, scriptPath, session, targetLineSep);
+            
+            findJobOutput();
 
         } catch (AbortException e) {
             throw e;
@@ -276,7 +282,42 @@ public class HPCExecutor extends RemoteExecutor {
         return State.QUEUED;
     }
 
-    private String submit(JobSubmissionType job, String targetPath, SSHSession session, String lineSep) throws IllegalArgumentException, Exception, IOException {
+    /**
+     * Parses job script and finds name of standard error and output files. It is left up to the retrieval service to determine the run directory
+     * TODO CMN : We should consider logging the err/out log file location/names to the gondola log 
+     */
+    private void findJobOutput() {
+    	for(LineType line : job.getScript().getLine()) {
+    		String content = line.getContent();
+    		if (content.contains("output")) {
+				String[] split = content.split("=");
+				standardOut = split[1].trim();
+				if (standardOut.contains("$(jobid)")) {
+					standardOut = standardOut.replace("$(jobid)", jobId);
+				}
+			} else if (content.contains("-o")) {
+				String[] split = content.split("-o");
+				standardOut = split[1].trim();
+				if (standardOut.contains("$JOB_ID")) {
+					standardOut = standardOut.replace("$JOB_ID", jobId);
+				}
+			} else if(content.contains("error")) {
+				String[] split = content.split("=");
+				standardErr = split[1].trim();
+				if (standardErr.contains("$(jobid)")) {
+					standardErr = standardOut.replace("$(jobid)", jobId);
+				}
+			} else if(content.contains("-e")) {
+				String[] split = content.split("-e");
+				standardErr = split[1].trim();
+				if (standardErr.contains("$JOB_ID")) {
+					standardErr = standardOut.replace("$JOB_ID", jobId);
+				}
+			}
+    	}
+	}
+
+	private String submit(JobSubmissionType job, String targetPath, SSHSession session, String lineSep) throws IllegalArgumentException, Exception, IOException {
         StringBuffer stdout = new StringBuffer();
         StringBuffer stderr = new StringBuffer();
         String[] lines = null;
@@ -464,7 +505,7 @@ public class HPCExecutor extends RemoteExecutor {
                     if (data[0].equals(jobId)) {
                         State jobState = getJobState(data[1]);
                         if (jobState.equals(State.FINISHED)) {
-                            return getLogFile();
+                            return getGondolaLogFile();
                         } else if (jobState.equals(State.RUNNING) && !storedJobInfo) {
                             createJobInfo();
                             return jobState;
@@ -490,7 +531,7 @@ public class HPCExecutor extends RemoteExecutor {
         // need to check the log to see if we have a failure or success
         // Getting here might be a bug in Ranger's gondola template because
         // KISTI's machine actually returns "Finished"
-        return getLogFile();
+        return getGondolaLogFile();
     }
 
     private State getJobState(String state) {
@@ -512,7 +553,7 @@ public class HPCExecutor extends RemoteExecutor {
 
     }
 
-    public State getLogFile() {
+    public State getGondolaLogFile() {
         // if we get here, job is neither queued nor running, get log
         try {
             if (!storedJobInfo) {
@@ -595,6 +636,18 @@ public class HPCExecutor extends RemoteExecutor {
                         return;
                     }
                 	workingDir = line;
+                	
+                	// This should be the standard err/out log file directory
+                	line = stdoutReader.readLine();
+                	if(line != null) {
+                		if(standardErr != null) {
+                			standardErr = line + "/" + standardErr;
+                		}
+                		
+                		if(standardOut != null) {
+                			standardOut = line + "/" + standardOut;
+                		}
+                	}
                     // println(line);
                     // stdout.append(line);
                     // stdout.append(NL);
@@ -606,6 +659,8 @@ public class HPCExecutor extends RemoteExecutor {
                         HPCJobInfo info = new HPCJobInfo();
                         info.setExecutionId(this.getExecutionId());
                         info.setWorkingDir(workingDir);
+                        info.setStandardError(standardErr);
+                        info.setStandardOutput(standardOut);
 
                         SpringData.getBean(HPCJobInfoDAO.class).save(info);
                         storedJobInfo = true;
