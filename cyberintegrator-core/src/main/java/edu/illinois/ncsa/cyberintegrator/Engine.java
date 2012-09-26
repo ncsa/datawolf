@@ -135,7 +135,7 @@ public class Engine {
      *            ABORTED.
      */
     public void setTimeout(int timeout) {
-        logger.info("Timout : " + timeout);
+        logger.info("Timeout : " + timeout);
         this.timeout = timeout;
     }
 
