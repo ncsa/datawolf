@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
+import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 
@@ -182,6 +183,34 @@ public class CyberintegratorServiceClient {
         return null;
     }
 
+    public static Execution getExecution(String executionId) {
+        String responseStr = null;
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/executions/" + executionId;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.debug("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+                ObjectMapper mapper = new ObjectMapper();
+                return mapper.readValue(responseStr, Execution.class);
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
+    
     public static Map<String, State> getState(String executionId) {
         String responseStr = null;
         Map<String, State> states = null;

@@ -312,6 +312,10 @@ public class Execution extends AbstractBean {
         return this.stepQueued.get(id);
     }
 
+    public Map<String, Date> getStepQueued() {
+        return this.stepQueued;
+    }
+
     /**
      * Sets the the the queued time of the given step with the id to now().
      * 
@@ -335,6 +339,10 @@ public class Execution extends AbstractBean {
         return this.stepStart.get(id);
     }
 
+    public Map<String, Date> getStepStart() {
+        return this.stepStart;
+    }
+
     /**
      * Sets the the the start time of the given step with the id to now().
      * 
@@ -355,6 +363,10 @@ public class Execution extends AbstractBean {
      */
     public Date getStepEnd(String id) {
         return this.stepEnd.get(id);
+    }
+
+    public Map<String, Date> getStepEnd() {
+        return this.stepEnd;
     }
 
     /**
