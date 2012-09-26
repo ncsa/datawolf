@@ -71,6 +71,7 @@ public abstract class LocalExecutor extends Executor implements Runnable {
     // EXECUTOR THREADPOOL
     // ----------------------------------------------------------------------
     public static void setWorkers(int workers) {
+        logger.info("Changing workers to " + workers);
         threadpool.setCorePoolSize(workers);
         threadpool.setMaximumPoolSize(workers);
     }
