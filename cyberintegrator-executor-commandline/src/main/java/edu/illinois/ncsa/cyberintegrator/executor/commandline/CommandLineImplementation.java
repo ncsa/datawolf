@@ -36,27 +36,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinTable;
-import javax.persistence.OneToMany;
-
-import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolImplementation;
-
-@Entity(name = "CommandLineImplementation")
-public class CommandLineImplementation extends WorkflowToolImplementation {
-    private static final long       serialVersionUID   = 1L;
-
+public class CommandLineImplementation {
     private String                  executable         = null;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "CommandLineImplementationOptions")
     private List<CommandLineOption> commandLineOptions = new ArrayList<CommandLineOption>();
 
-    @ElementCollection
-    @JoinTable(name = "CommandLineImplementationEnv")
     private Map<String, String>     env                = new HashMap<String, String>();
 
     private String                  captureStdOut      = null;

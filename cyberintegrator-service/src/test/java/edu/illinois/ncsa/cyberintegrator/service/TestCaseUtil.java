@@ -1,5 +1,9 @@
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.io.IOException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
@@ -20,7 +24,7 @@ public class TestCaseUtil {
         return execution;
     }
 
-    public static Workflow createWorkflow(Person creator) {
+    public static Workflow createWorkflow(Person creator) throws IOException {
         Workflow workflow = new Workflow();
         workflow.setCreator(creator);
         workflow.setTitle("TEST WORKFLOW");
@@ -30,7 +34,7 @@ public class TestCaseUtil {
         return workflow;
     }
 
-    public static WorkflowStep createWorkflowStep(Person creator) {
+    public static WorkflowStep createWorkflowStep(Person creator) throws IOException {
         WorkflowStep step = new WorkflowStep();
         step.setCreator(creator);
         step.setTool(createCommandLineTool(creator));
@@ -59,7 +63,7 @@ public class TestCaseUtil {
         return tool;
     }
 
-    public static WorkflowTool createCommandLineTool(Person creator) {
+    public static WorkflowTool createCommandLineTool(Person creator) throws IOException {
         WorkflowTool tool = new WorkflowTool();
         tool.setCreator(creator);
         tool.setTitle("Netstat");
@@ -83,7 +87,7 @@ public class TestCaseUtil {
         impl.setCaptureStdOut(STDOUT_ID);
         impl.getCommandLineOptions().add(option);
 
-        tool.setImplementation(impl);
+        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
 
         return tool;
     }

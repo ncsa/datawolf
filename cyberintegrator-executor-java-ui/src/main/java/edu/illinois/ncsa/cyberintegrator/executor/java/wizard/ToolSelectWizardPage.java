@@ -41,6 +41,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.executor.java.wizard;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -76,6 +77,7 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
@@ -97,7 +99,7 @@ public class ToolSelectWizardPage extends WizardPage {
     private ListViewer                      lvTools;
     private List<Class<? extends JavaTool>> tools;
     private final WorkflowTool              oldtool;
-    private final JavaToolImplementation    oldImplementation;
+    private JavaToolImplementation          oldImplementation;
     private Text                            txtName;
     private Text                            txtDescription;
     private Text                            txtVersion;
@@ -109,8 +111,13 @@ public class ToolSelectWizardPage extends WizardPage {
         setPageComplete(false);
         setMessage("Select tool from available tools.");
 
-        if ((oldtool != null) && (oldtool.getImplementation() != null) && (oldtool.getImplementation() instanceof JavaToolImplementation)) {
-            oldImplementation = (JavaToolImplementation) oldtool.getImplementation();
+        if ((oldtool != null) && (oldtool.getImplementation() != null)) {
+            try {
+                oldImplementation = new ObjectMapper().readValue(oldtool.getImplementation(), JavaToolImplementation.class);
+            } catch (IOException e) {
+                logger.error("Could not get old java tool implementation.", e);
+                oldImplementation = null;
+            }
         } else {
             oldImplementation = null;
         }
@@ -289,7 +296,7 @@ public class ToolSelectWizardPage extends WizardPage {
         return result;
     }
 
-    private WorkflowTool getTool(Class<? extends JavaTool> item) throws InstantiationException, IllegalAccessException {
+    private WorkflowTool getTool(Class<? extends JavaTool> item) throws InstantiationException, IllegalAccessException, IOException {
         JavaTool jt = item.newInstance();
 
         // create the tool
@@ -353,7 +360,7 @@ public class ToolSelectWizardPage extends WizardPage {
         // add tool implementation
         JavaToolImplementation jti = new JavaToolImplementation();
         jti.setToolClassName(item.getName());
-        tool.setImplementation(jti);
+        tool.setImplementation(new ObjectMapper().writeValueAsString(jti));
 
         return tool;
     }

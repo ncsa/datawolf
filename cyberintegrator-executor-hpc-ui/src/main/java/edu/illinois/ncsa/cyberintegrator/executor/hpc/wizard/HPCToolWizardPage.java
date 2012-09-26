@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
@@ -445,7 +447,6 @@ public class HPCToolWizardPage extends WizardPage {
         }
 
         HPCToolImplementation impl = new HPCToolImplementation();
-        tool.setImplementation(impl);
         impl.setExecutable(exec.getText());
         impl.setTemplate(hpcTemplate.getText());
 
@@ -524,6 +525,8 @@ public class HPCToolWizardPage extends WizardPage {
         }
 
         impl.setCommandLineOptions(this.options);
+        
+        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
     }
 
     private void validate() {

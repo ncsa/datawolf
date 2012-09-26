@@ -31,16 +31,9 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.executor.java;
 
-import javax.persistence.Entity;
-
-import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolImplementation;
-
-@Entity(name = "JavaToolImplementation")
-public class JavaToolImplementation extends WorkflowToolImplementation {
-    private static final long serialVersionUID = 1L;
-
+public class JavaToolImplementation {
     /** Class name containing the tool implementation */
-    private String            toolClassName    = "";
+    private String toolClassName = "";
 
     public JavaToolImplementation() {}
 

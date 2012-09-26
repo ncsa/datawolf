@@ -3,6 +3,7 @@ package edu.illinois.ncsa.cyberintegrator.executor.commandline;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.BeforeClass;
@@ -10,6 +11,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.GenericXmlApplicationContext;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
@@ -97,7 +100,7 @@ public class CommandLineExecutorTest {
         t.commit();
     }
 
-    private WorkflowTool createTool() {
+    private WorkflowTool createTool() throws IOException {
         WorkflowTool tool = new WorkflowTool();
         tool.setTitle("Netstat");
         tool.setDescription("Command Line Executor");
@@ -120,7 +123,7 @@ public class CommandLineExecutorTest {
         impl.setCaptureStdOut(STDOUT_ID);
         impl.getCommandLineOptions().add(option);
 
-        tool.setImplementation(impl);
+        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
 
         return tool;
     }

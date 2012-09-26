@@ -41,6 +41,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.executor.commandline.wizard;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +72,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
@@ -401,7 +404,7 @@ public class CommandLineWizardPage extends WizardPage {
                 transaction = SpringData.getTransaction();
                 transaction.start();
 
-                CommandLineImplementation impl = (CommandLineImplementation) oldtool.getImplementation();
+                CommandLineImplementation impl = new ObjectMapper().readValue(oldtool.getImplementation(), CommandLineImplementation.class);
                 exec.setText(impl.getExecutable());
 //          waitGUICheck.setSelection(impl.isGuiwait());
                 if (impl.getCaptureStdOut() != null) {
@@ -587,9 +590,8 @@ public class CommandLineWizardPage extends WizardPage {
         setPageComplete(true);
     }
 
-    public void updateTool(WorkflowTool tool) {
+    public void updateTool(WorkflowTool tool) throws IOException {
         CommandLineImplementation impl = new CommandLineImplementation();
-        tool.setImplementation(impl);
 
         impl.setExecutable(exec.getText());
 
@@ -667,7 +669,8 @@ public class CommandLineWizardPage extends WizardPage {
 //                tool.addInput(option.getInput().getInput());
 //                break;
 //
-//            case OUTPUT:
+//            case OUTPUT:        tool.setImplementation(impl);
+
 //                Optiondata optoutput = new Optiondata();
 //                optoutput.setCommandline(option.getOutput().isCommandLine());
 //                if (option.getOutput().isCommandLine() && (option.getFlag().length() > 0)) {
@@ -682,5 +685,7 @@ public class CommandLineWizardPage extends WizardPage {
 //                break;
 //            }
 //        }
+
+        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
     }
 }

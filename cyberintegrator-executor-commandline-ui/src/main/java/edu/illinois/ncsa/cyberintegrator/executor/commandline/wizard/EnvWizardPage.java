@@ -41,6 +41,7 @@
  *******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.executor.commandline.wizard;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -72,11 +73,17 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Table;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineImplementation;
 
 public class EnvWizardPage extends WizardPage {
+    private static Logger             logger = LoggerFactory.getLogger(EnvWizardPage.class);
+
     private final Map<String, String> env;
     private Button                    btnAdd;
     private Button                    btnDel;
@@ -90,7 +97,11 @@ public class EnvWizardPage extends WizardPage {
         env = new HashMap<String, String>();
 
         if (oldTool != null) {
-            env.putAll(((CommandLineImplementation) oldTool.getImplementation()).getEnv());
+            try {
+                env.putAll(new ObjectMapper().readValue(oldTool.getImplementation(), CommandLineImplementation.class).getEnv());
+            } catch (IOException e) {
+                logger.error("Could not parse old env variable.", e);
+            }
         }
     }
 
@@ -248,7 +259,9 @@ public class EnvWizardPage extends WizardPage {
         return null;
     }
 
-    public void updateTool(WorkflowTool tool) {
-        ((CommandLineImplementation) tool.getImplementation()).setEnv(env);
+    public void updateTool(WorkflowTool tool) throws IOException {
+        CommandLineImplementation impl = new ObjectMapper().readValue(tool.getImplementation(), CommandLineImplementation.class);
+        impl.setEnv(env);
+        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
     }
 }

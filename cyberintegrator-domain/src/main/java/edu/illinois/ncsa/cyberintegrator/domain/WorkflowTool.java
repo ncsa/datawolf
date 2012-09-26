@@ -43,6 +43,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
+import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
@@ -82,10 +83,9 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date                        date             = new Date();
 
-    /** implementation, this is executor specific. */
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
-    @DBRef
-    private WorkflowToolImplementation  implementation   = null;
+    /** implementation, this is executor specific. This is a JSON string */
+    @Lob
+    private String                      implementation   = null;
 
     /** creator of the workflow tool */
     @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
@@ -196,7 +196,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      * 
      * @return implementation of the tool.
      */
-    public WorkflowToolImplementation getImplementation() {
+    public String getImplementation() {
         return implementation;
     }
 
@@ -207,7 +207,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      *            sets the implementation of the tool.
      * 
      */
-    public void setImplementation(WorkflowToolImplementation implementation) {
+    public void setImplementation(String implementation) {
         this.implementation = implementation;
     }
 

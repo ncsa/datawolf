@@ -43,6 +43,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.illinois.ncsa.cyberintegrator.AbortException;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.LocalExecutor;
@@ -118,7 +120,7 @@ public class JavaExecutor extends LocalExecutor {
 
                 WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
                 Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-                JavaToolImplementation impl = (JavaToolImplementation) step.getTool().getImplementation();
+                JavaToolImplementation impl = new ObjectMapper().readValue(step.getTool().getImplementation(), JavaToolImplementation.class);
 
                 logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
 
