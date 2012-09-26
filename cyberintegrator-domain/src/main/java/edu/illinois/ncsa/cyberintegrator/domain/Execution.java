@@ -107,7 +107,6 @@ public class Execution extends AbstractBean {
     @ElementCollection
     @MapKeyColumn(name = "id")
     @Column(name = "date")
-    // @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepQueued")
     private Map<String, Long>   stepsQueued      = new HashMap<String, Long>();
 
@@ -115,7 +114,6 @@ public class Execution extends AbstractBean {
     @ElementCollection
     @MapKeyColumn(name = "id")
     @Column(name = "date")
-//    @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepStart")
     private Map<String, Long>   stepsStart       = new HashMap<String, Long>();
 
@@ -123,9 +121,15 @@ public class Execution extends AbstractBean {
     @ElementCollection
     @MapKeyColumn(name = "id")
     @Column(name = "date")
-//    @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepEnd")
     private Map<String, Long>   stepsEnd         = new HashMap<String, Long>();
+
+    /** a collection of properties to store information about the execution */
+    @ElementCollection
+    @MapKeyColumn(name = "key")
+    @Column(name = "value")
+    @CollectionTable(name = "ExecutionProperties")
+    private Map<String, String> properties       = new HashMap<String, String>();
 
     /**
      * Create a new instance of the execution.
@@ -403,5 +407,25 @@ public class Execution extends AbstractBean {
 
     public void setStepsEnd(Map<String, Long> stepsEnd) {
         this.stepsEnd = stepsEnd;
+    }
+
+    public boolean hasProperty(String key) {
+        return properties.containsKey(key);
+    }
+
+    public String getProperty(String key) {
+        return properties.get(key);
+    }
+
+    public void setProperty(String key, String val) {
+        this.properties.put(key, val);
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 }
