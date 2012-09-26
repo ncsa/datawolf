@@ -49,6 +49,7 @@ import javax.persistence.TemporalType;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import edu.illinois.ncsa.domain.AbstractBean;
@@ -108,7 +109,7 @@ public class Execution extends AbstractBean {
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepQueued")
-    private Map<String, Date>   stepQueued       = new HashMap<String, Date>();
+    private Map<String, Date>   stepsQueued      = new HashMap<String, Date>();
 
     /** the start date of each step executed */
     @ElementCollection
@@ -116,7 +117,7 @@ public class Execution extends AbstractBean {
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepStart")
-    private Map<String, Date>   stepStart        = new HashMap<String, Date>();
+    private Map<String, Date>   stepsStart       = new HashMap<String, Date>();
 
     /** the end date of each step executed */
     @ElementCollection
@@ -124,7 +125,7 @@ public class Execution extends AbstractBean {
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     @CollectionTable(name = "ExecutionStepEnd")
-    private Map<String, Date>   stepEnd          = new HashMap<String, Date>();
+    private Map<String, Date>   stepsEnd         = new HashMap<String, Date>();
 
     /**
      * Create a new instance of the execution.
@@ -151,9 +152,9 @@ public class Execution extends AbstractBean {
     public void setWorkflow(Workflow workflow) {
         this.workflowId = workflow.getId();
         this.stepState.clear();
-        this.stepQueued.clear();
-        this.stepStart.clear();
-        this.stepEnd.clear();
+        this.stepsQueued.clear();
+        this.stepsStart.clear();
+        this.stepsEnd.clear();
         for (WorkflowStep step : workflow.getSteps()) {
             setStepState(step.getId(), State.WAITING);
         }
@@ -309,11 +310,7 @@ public class Execution extends AbstractBean {
      *         queued.
      */
     public Date getStepQueued(String id) {
-        return this.stepQueued.get(id);
-    }
-
-    public Map<String, Date> getStepQueued() {
-        return this.stepQueued;
+        return this.stepsQueued.get(id);
     }
 
     /**
@@ -323,7 +320,15 @@ public class Execution extends AbstractBean {
      *            the id of the step that has been queued.
      */
     public void setStepQueued(String id) {
-        this.stepQueued.put(id, new Date());
+        this.stepsQueued.put(id, new Date());
+    }
+
+    public Map<String, Date> getStepsQueued() {
+        return this.stepsQueued;
+    }
+
+    public void setStepsQueued(Map<String, Date> stepQueued) {
+        this.stepsQueued = stepQueued;
     }
 
     /**
@@ -336,11 +341,7 @@ public class Execution extends AbstractBean {
      *         started.
      */
     public Date getStepStart(String id) {
-        return this.stepStart.get(id);
-    }
-
-    public Map<String, Date> getStepStart() {
-        return this.stepStart;
+        return this.stepsStart.get(id);
     }
 
     /**
@@ -349,8 +350,17 @@ public class Execution extends AbstractBean {
      * @param id
      *            the id of the step that has started execution
      */
+    @JsonIgnore
     public void setStepStart(String id) {
-        this.stepStart.put(id, new Date());
+        this.stepsStart.put(id, new Date());
+    }
+
+    public Map<String, Date> getStepsStart() {
+        return this.stepsStart;
+    }
+
+    public void setStepsStart(Map<String, Date> stepsStart) {
+        this.stepsStart = stepsStart;
     }
 
     /**
@@ -362,11 +372,7 @@ public class Execution extends AbstractBean {
      * @return the time the step ended, or null if the step has not ended.
      */
     public Date getStepEnd(String id) {
-        return this.stepEnd.get(id);
-    }
-
-    public Map<String, Date> getStepEnd() {
-        return this.stepEnd;
+        return this.stepsEnd.get(id);
     }
 
     /**
@@ -376,6 +382,14 @@ public class Execution extends AbstractBean {
      *            the id of the step that has ended execution
      */
     public void setStepEnd(String id) {
-        this.stepEnd.put(id, new Date());
+        this.stepsEnd.put(id, new Date());
+    }
+
+    public Map<String, Date> getStepsEnd() {
+        return this.stepsEnd;
+    }
+
+    public void setStepsEnd(Map<String, Date> stepsEnd) {
+        this.stepsEnd = stepsEnd;
     }
 }
