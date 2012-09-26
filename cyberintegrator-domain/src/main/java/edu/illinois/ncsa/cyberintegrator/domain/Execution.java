@@ -310,7 +310,11 @@ public class Execution extends AbstractBean {
      *         queued.
      */
     public Date getStepQueued(String id) {
-        return new Date(this.stepsQueued.get(id));
+        if (this.stepsQueued.containsKey(id)) {
+            return new Date(this.stepsQueued.get(id));
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -341,7 +345,11 @@ public class Execution extends AbstractBean {
      *         started.
      */
     public Date getStepStart(String id) {
-        return new Date(this.stepsStart.get(id));
+        if (this.stepsStart.containsKey(id)) {
+            return new Date(this.stepsStart.get(id));
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -372,7 +380,11 @@ public class Execution extends AbstractBean {
      * @return the time the step ended, or null if the step has not ended.
      */
     public Date getStepEnd(String id) {
-        return new Date(this.stepsEnd.get(id));
+        if (this.stepsEnd.containsKey(id)) {
+            return new Date(this.stepsEnd.get(id));
+        } else {
+            return null;
+        }
     }
 
     /**
