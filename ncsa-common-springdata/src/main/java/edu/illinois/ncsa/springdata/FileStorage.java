@@ -157,6 +157,12 @@ public class FileStorage {
         return fd;
     }
 
+    public boolean deleteFile(FileDescriptor fd) {
+        String dataURL = fd.getDataURL();
+        File f = new File(dataURL.split(":")[1]);
+        return f.delete();
+    }
+
     public InputStream readFile(FileDescriptor fd) throws IOException {
         // TODO RK : add some caching
         return new URL(fd.getDataURL()).openStream();
