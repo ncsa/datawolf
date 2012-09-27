@@ -126,8 +126,8 @@ public class Execution extends AbstractBean {
 
     /** a collection of properties to store information about the execution */
     @ElementCollection
-    @MapKeyColumn(name = "key")
-    @Column(name = "value")
+    @MapKeyColumn(name = "pKey", length = 100)
+    @Column(name = "pValue", length = 65535)
     @CollectionTable(name = "ExecutionProperties")
     private Map<String, String> properties       = new HashMap<String, String>();
 
