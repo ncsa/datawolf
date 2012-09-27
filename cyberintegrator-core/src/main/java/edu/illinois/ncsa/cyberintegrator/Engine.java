@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -358,14 +357,23 @@ public class Engine {
     class WorkerThread extends Thread {
         public void run() {
             int idx = 0;
+            int local = 0;
             for (;;) {
                 try {
                     if (queue.size() > 0) {
                         if (idx >= queue.size()) {
                             idx = 0;
-                        }
-                        Executor exec = queue.get(idx);
 
+                            // check to see if the workflow is aborted
+                            if (timeout > 0) {
+                                checkTimeOut();
+                            }
+                        }
+
+                        // logger.info("QS=" + queue.size() + " idx=" + idx +
+// " L=" + local + " " + LocalExecutor.debug());
+
+                        Executor exec = queue.get(idx);
                         switch (exec.getState()) {
                         case UNKNOWN:
                         case QUEUED:
@@ -373,11 +381,14 @@ public class Engine {
                             idx++;
                             break;
 
+                        case FINISHED:
                         case ABORTED:
                         case FAILED:
-                        case FINISHED:
                             synchronized (queue) {
                                 queue.remove(idx);
+                            }
+                            if (exec instanceof LocalExecutor) {
+                                local--;
                             }
                             saveQueue();
                             idx = 0;
@@ -391,87 +402,38 @@ public class Engine {
                             if (exec.isJobStopped()) {
                                 canrun = 2;
                             } else {
-                                Transaction transaction = null;
-                                try {
-                                    transaction = SpringData.getTransaction();
-                                    transaction.start();
-
-                                    Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
-                                    WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
-
-                                    // check to see if all inputs of the
-                                    // step are ready
-                                    for (String id : step.getInputs().values()) {
-                                        if (!execution.hasDataset(id)) {
-                                            canrun = 1;
-                                        } else if (execution.getDataset(id) == null) {
-                                            canrun = 2;
-                                        } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
-                                            canrun = 2;
-                                        }
-                                    }
-
-                                    // check to see if the workflow is aborted
-                                    if (timeout > 0) {
-                                        boolean abortWorkflow = true;
-                                        long recent = execution.getDate().getTime();
-                                        for (Entry<String, edu.illinois.ncsa.cyberintegrator.domain.Execution.State> entry : execution.getStepStates().entrySet()) {
-                                            // check the state of the step
-                                            switch (entry.getValue()) {
-                                            case RUNNING:
-                                            case QUEUED:
-                                                abortWorkflow = false;
-                                                break;
-                                            case FINISHED:
-                                            case ABORTED:
-                                            case FAILED:
-                                                if (recent < execution.getStepEnd(entry.getKey()).getTime()) {
-                                                    recent = execution.getStepEnd(entry.getKey()).getTime();
-                                                }
-                                                break;
-                                            default:
-                                                break;
-                                            }
-                                            if (!abortWorkflow) {
-                                                break;
-                                            }
-
-                                            // check if step can run
-                                            step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
-                                            boolean cansteprun = true;
-                                            for (String id : step.getInputs().values()) {
-                                                if (!execution.hasDataset(id)) {
-                                                    cansteprun = false;
-                                                } else if (execution.getDataset(id) == null) {
-                                                    cansteprun = false;
-                                                } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
-                                                    cansteprun = false;
-                                                }
-                                            }
-                                            if (cansteprun) {
-                                                abortWorkflow = false;
-                                            }
-                                            if (!abortWorkflow) {
-                                                break;
-                                            }
-                                        }
-
-                                        // workflow should be aborted
-                                        if (abortWorkflow && (recent < (System.currentTimeMillis() - timeout * 1000))) {
-                                            logger.info("Aborting execution " + execution.getId());
-                                            logger.info(System.currentTimeMillis() + " " + recent);
-                                            Engine.this.stop(execution.getId());
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    logger.error("Error getting job information.", e);
-                                } finally {
+                                if (local >= LocalExecutor.getWorkers()) {
+                                    canrun = 1;
+                                } else {
+                                    Transaction transaction = null;
                                     try {
-                                        transaction.commit();
+                                        transaction = SpringData.getTransaction();
+                                        transaction.start();
+
+                                        Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                        WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+
+                                        // check to see if all inputs of the
+                                        // step are ready
+                                        for (String id : step.getInputs().values()) {
+                                            if (!execution.hasDataset(id)) {
+                                                canrun = 1;
+                                            } else if (execution.getDataset(id) == null) {
+                                                canrun = 2;
+                                            } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                canrun = 2;
+                                            }
+                                        }
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
-                                    }
+                                    } finally {
+                                        try {
+                                            transaction.commit();
+                                        } catch (Exception e) {
+                                            logger.error("Error getting job information.", e);
+                                        }
 
+                                    }
                                 }
                             }
 
@@ -479,11 +441,16 @@ public class Engine {
                             switch (canrun) {
                             case 0:
                                 if (exec.isExecutorReady()) {
-                                    exec.startJob();
-                                    idx = 0;
-                                } else {
-                                    idx++;
+                                    if (exec instanceof LocalExecutor) {
+                                        if (local <= LocalExecutor.getWorkers()) {
+                                            local++;
+                                            exec.startJob();
+                                        }
+                                    } else {
+                                        exec.startJob();
+                                    }
                                 }
+                                idx++;
                                 break;
                             case 1:
                                 idx++;
@@ -492,6 +459,7 @@ public class Engine {
                                 exec.setState(edu.illinois.ncsa.cyberintegrator.domain.Execution.State.ABORTED);
                                 exec.stopJob();
                                 synchronized (queue) {
+                                    logger.warn("ABORTING " + exec.getExecutionId());
                                     queue.remove(idx);
                                 }
                                 saveQueue();
@@ -510,6 +478,58 @@ public class Engine {
                     logger.error("Runaway exception in engine.", thr);
                 }
             }
+        }
+
+        private void checkTimeOut() {
+//            boolean abortWorkflow = true;
+//            long recent = execution.getDate().getTime();
+//            for (Entry<String, edu.illinois.ncsa.cyberintegrator.domain.Execution.State> entry : execution.getStepStates().entrySet()) {
+//                // check the state of the step
+//                switch (entry.getValue()) {
+//                case RUNNING:
+//                case QUEUED:
+//                    abortWorkflow = false;
+//                    break;
+//                case FINISHED:
+//                case ABORTED:
+//                case FAILED:
+//                    if (recent < execution.getStepEnd(entry.getKey()).getTime()) {
+//                        recent = execution.getStepEnd(entry.getKey()).getTime();
+//                    }
+//                    break;
+//                default:
+//                    break;
+//                }
+//                if (!abortWorkflow) {
+//                    break;
+//                }
+//
+//                // check if step can run
+//                step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+//                boolean cansteprun = true;
+//                for (String id : step.getInputs().values()) {
+//                    if (!execution.hasDataset(id)) {
+//                        cansteprun = false;
+//                    } else if (execution.getDataset(id) == null) {
+//                        cansteprun = false;
+//                    } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+//                        cansteprun = false;
+//                    }
+//                }
+//                if (cansteprun) {
+//                    abortWorkflow = false;
+//                }
+//                if (!abortWorkflow) {
+//                    break;
+//                }
+//            }
+//
+//            // workflow should be aborted
+//            if (abortWorkflow && (recent < (System.currentTimeMillis() - timeout * 1000))) {
+//                logger.info("Aborting execution " + execution.getId());
+//                logger.info(System.currentTimeMillis() + " " + recent);
+//                Engine.this.stop(execution.getId());
+//            }
         }
     }
 }
