@@ -57,18 +57,22 @@ public class ExecutionsResourceGetTest {
     public void testStartExecutionById() throws Exception {
         logger.info("Test get workflow by id");
         CyberintegratorServiceClient.startExecution(id);
-        Transaction transaction = SpringData.getTransaction();
-        transaction.start();
         ExecutionDAO executionDAO = SpringData.getBean(ExecutionDAO.class);
         for (int i = 0; i < 100; i++) {
             Thread.sleep(1000);
-            Execution execution = executionDAO.findOne(id);
-            logger.info("Status of the job:" + execution.getStepState(stepId));
-            if (execution.getStepState(stepId) == Execution.State.FINISHED) {
-                break;
+            Transaction transaction = SpringData.getTransaction();
+            try {
+                transaction.start();
+                Execution execution = executionDAO.findOne(id);
+                logger.info("Status of the job:" + execution.getStepState(stepId));
+                if (execution.getStepState(stepId) == Execution.State.FINISHED) {
+                    return;
+                }
+            } finally {
+                transaction.commit();
             }
         }
-        transaction.commit();
+        throw new AssertionError("workflow never finished.");
 //        assertEquals(workflowJson, wfJson);
     }
 
