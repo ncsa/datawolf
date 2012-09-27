@@ -138,12 +138,15 @@ public abstract class LocalExecutor extends Executor implements Runnable {
             // mark step as finished
             setState(State.FINISHED);
         } catch (AbortException exc) {
+            logger.info("Job was aborted", exc);
             setState(State.ABORTED);
             println("job was aborted.", exc);
         } catch (FailedException exc) {
+            logger.info("Job has failed", exc);
             setState(State.FAILED);
             println("job failed.", exc);
         } catch (Throwable thr) {
+            logger.info("Error during execution.", thr);
             setState(State.FAILED);
             println("Error during execution.", thr);
         } finally {
