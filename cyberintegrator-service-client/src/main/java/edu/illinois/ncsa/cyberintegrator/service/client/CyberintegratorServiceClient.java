@@ -3,6 +3,7 @@ package edu.illinois.ncsa.cyberintegrator.service.client;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Map;
 
 import org.apache.http.client.HttpClient;
@@ -25,8 +26,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
+import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 
@@ -210,7 +211,7 @@ public class CyberintegratorServiceClient {
         }
         return null;
     }
-    
+
     public static Map<String, State> getState(String executionId) {
         String responseStr = null;
         Map<String, State> states = null;
@@ -376,4 +377,34 @@ public class CyberintegratorServiceClient {
         return checkHpcFile(executionId, "error.rlt");
     }
 
+    public static String createPerson(String firstName, String lastName, String email) {
+        HttpClient httpclient = new DefaultHttpClient();
+        String responseStr = null;
+        try {
+            String requestUrl = SERVER + "/persons?firstname=" + URLEncoder.encode(firstName, "UTF-8") + "&lastname=" + URLEncoder.encode(lastName, "UTF-8") + "&email="
+                    + URLEncoder.encode(email, "UTF-8");
+            HttpPost httpPost = new HttpPost(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.info("executing request " + httpPost.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpPost, responseHandler);
+                logger.debug("Response String: " + responseStr);
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } catch (UnsupportedEncodingException e1) {
+            logger.error("Can't URL encode",e1);
+            return null;
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return responseStr;
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
 }
