@@ -35,6 +35,7 @@ import java.util.List;
 
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -66,6 +67,18 @@ public class PersonsResource {
         PersonDAO personDao = SpringData.getBean(PersonDAO.class);
         Page<Person> results = personDao.findAll(new PageRequest(page, size));
         return results.getContent();
+    }
+
+    @POST
+    @Produces({ MediaType.TEXT_PLAIN })
+    public String createPerson(@QueryParam("firstname") @DefaultValue("") String firstName, @QueryParam("lastname") @DefaultValue("") String lastName,
+            @QueryParam("email") @DefaultValue("") String email) {
+        if ("".equals(email))
+            return null;
+        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
+        Person p = personDao.save(Person.createPerson(firstName, lastName, email));
+
+        return p.getId();
     }
 
     /**
