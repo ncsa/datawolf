@@ -72,6 +72,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
@@ -84,6 +88,7 @@ import edu.illinois.ncsa.cyberintegrator.executor.hpc.ssh.SSHSession;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.NonNLSConstants;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SshUtils;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionUtil;
 import edu.illinois.ncsa.cyberintegrator.springdata.HPCJobInfoDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.springdata.DatasetDAO;
@@ -511,10 +516,43 @@ public class ExecutionsResource {
         engine.stop(executionId);
     }
 
+    /**
+     * 
+     * @param executionId
+     *            execution Id
+     * @param except
+     *            json array list of dataset id
+     * @return
+     */
     @PUT
     @Path("{execution-id}/delete")
-    public void deleteExecution(@PathParam("execution-id") String executionId) {
-        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
-        exedao.delete(executionId);
+    public Response deleteExecution(@PathParam("execution-id") @DefaultValue("") String executionId, @QueryParam("except") @DefaultValue("") String except) {
+        if ("".equals(executionId)) {
+            return Response.status(500).entity("Must have execution Id").build();
+        }
+        List<String> exceptList = new ArrayList<String>();
+        if (!"".equals(except)) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode jsonObj = mapper.readTree(except);
+                for (int i = 0; i < jsonObj.size(); i++) {
+                    JsonNode f = jsonObj.get(i);
+                    exceptList.add(f.asText());
+                }
+            } catch (JsonProcessingException e) {
+                log.error("Fail to parse list of exception files in JSON: " + except, e);
+                return Response.status(500).entity("Fail to parse list of exception files in JSON: " + except).build();
+            } catch (IOException e) {
+                log.error("Fail to parse list of exception files in JSON: " + except, e);
+                return Response.status(500).entity("Fail to parse list of exception files in JSON: " + except).build();
+            }
+
+        }
+
+        if (ExecutionUtil.deleteExecution(executionId, exceptList))
+            return Response.ok().build();
+        else
+            return Response.status(500).entity("Can't delete execution id: " + executionId).build();
     }
+
 }
