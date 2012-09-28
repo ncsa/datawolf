@@ -176,6 +176,7 @@ public class ImportExport {
             // save workflow
             workflow = workflowDAO.save(workflow);
             t.commit();
+            t = null;
 
             return workflow;
         } catch (Exception exc) {
@@ -183,6 +184,10 @@ public class ImportExport {
                 if (zipfile != null) {
                     zipfile.close();
                 }
+            } catch (Exception e1) {
+                logger.error("Could not close zipfile.", e1);
+            }
+            try {
                 t.rollback();
             } catch (Exception e1) {
                 logger.error("Could not rollback transaction.", e1);

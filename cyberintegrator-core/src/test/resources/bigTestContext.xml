@@ -8,7 +8,13 @@
 
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
-
+	
+	<bean id="engine" class="edu.illinois.ncsa.cyberintegrator.Engine">
+		<property name="localExecutorThreads" value="50" />
+		<property name="storeLogs" value="false" />
+		<property name="timeout" value="30" />
+	</bean>
+	
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="memory" />
 		<property name="jpaVendorAdapter">
@@ -27,14 +33,12 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-<!--  
-	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	<bean id="mysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		<property name="url" value="jdbc:mysql://localhost/cyberintegrator" />
 		<property name="username" value="cyberintegrator" />
 		<property name="password" value="cyberintegrator" />
 	</bean>
- -->
 
 	<bean id="memory" class="com.jolbox.bonecp.BoneCPDataSource">
 		<property name="driverClass" value="org.hsqldb.jdbcDriver" />

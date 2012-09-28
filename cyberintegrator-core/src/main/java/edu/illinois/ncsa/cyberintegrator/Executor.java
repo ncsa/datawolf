@@ -312,15 +312,21 @@ public abstract class Executor {
             // fire an event to inform everybody of the new state
             StepStateChangedEvent event = new StepStateChangedEvent(step, execution, state);
             SpringData.getEventBus().fireEvent(event);
-        } catch (Exception e) {
-            logger.error("Could not set state of step in execution.", e);
-        } finally {
+
             try {
                 t.commit();
                 this.state = state;
             } catch (Exception e) {
                 logger.error("Could not set state of step in execution.", e);
             }
+        } catch (Exception e) {
+            try {
+                t.rollback();
+                this.state = State.ABORTED;
+            } catch (Exception e2) {
+                logger.error("Could not roll back transaction.", e2);
+            }
+            logger.error("Could not set state of step in execution.", e);
         }
     }
 }
