@@ -356,8 +356,11 @@ public class Engine {
 
     class WorkerThread extends Thread {
         public void run() {
+            Execution execution = null;
+            WorkflowStep step = null;
             int idx = 0;
             int local = 0;
+            int last = 0;
             for (;;) {
                 try {
                     if (queue.size() > 0) {
@@ -371,7 +374,8 @@ public class Engine {
                         }
 
                         // logger.info("QS=" + queue.size() + " idx=" + idx +
-// " L=" + local + " " + LocalExecutor.debug());
+// " X=" + last + " L=" + local + " " + LocalExecutor.debug() + " C=" + check +
+// " E=" + end);
 
                         Executor exec = queue.get(idx);
                         switch (exec.getState()) {
@@ -391,7 +395,9 @@ public class Engine {
                                 local--;
                             }
                             saveQueue();
+                            last--;
                             idx = 0;
+                            execution = null;
                             break;
 
                         case WAITING:
@@ -410,19 +416,13 @@ public class Engine {
                                         transaction = SpringData.getTransaction();
                                         transaction.start();
 
-                                        Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
-                                        WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
-
-                                        // check to see if all inputs of the
-                                        // step are ready
-                                        for (String id : step.getInputs().values()) {
-                                            if (!execution.hasDataset(id)) {
-                                                canrun = 1;
-                                            } else if (execution.getDataset(id) == null) {
-                                                canrun = 2;
-                                            } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
-                                                canrun = 2;
-                                            }
+                                        if ((execution == null) || !execution.getId().equals(exec.getExecutionId())) {
+                                            execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                            execution.getDatasets().values();
+                                        }
+                                        if ((step == null) || !step.getId().equals(exec.getStepId())) {
+                                            step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+                                            step.getInputs().values();
                                         }
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
@@ -432,7 +432,18 @@ public class Engine {
                                         } catch (Exception e) {
                                             logger.error("Error getting job information.", e);
                                         }
+                                    }
 
+                                    // check to see if all inputs of the
+                                    // step are ready
+                                    for (String id : step.getInputs().values()) {
+                                        if (!execution.hasDataset(id)) {
+                                            canrun = 1;
+                                        } else if (execution.getDataset(id) == null) {
+                                            canrun = 2;
+                                        } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                            canrun = 2;
+                                        }
                                     }
                                 }
                             }
@@ -445,6 +456,9 @@ public class Engine {
                                         if (local <= LocalExecutor.getWorkers()) {
                                             local++;
                                             exec.startJob();
+                                            if (idx > last) {
+                                                last = idx;
+                                            }
                                         }
                                     } else {
                                         exec.startJob();
@@ -463,11 +477,16 @@ public class Engine {
                                     queue.remove(idx);
                                 }
                                 saveQueue();
+                                last--;
                                 idx = 0;
                                 break;
                             }
                             break;
                         }
+                    }
+
+                    if ((local >= LocalExecutor.getWorkers()) && (idx > last)) {
+                        idx = 0;
                     }
 
                     // little sleep
