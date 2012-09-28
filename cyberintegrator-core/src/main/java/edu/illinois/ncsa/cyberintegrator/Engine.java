@@ -373,9 +373,7 @@ public class Engine {
                             }
                         }
 
-                        // logger.info("QS=" + queue.size() + " idx=" + idx +
-// " X=" + last + " L=" + local + " " + LocalExecutor.debug() + " C=" + check +
-// " E=" + end);
+                        logger.info("QS=" + queue.size() + " idx=" + idx + " X=" + last + " L=" + local + " " + LocalExecutor.debug());
 
                         Executor exec = queue.get(idx);
                         switch (exec.getState()) {
@@ -397,7 +395,6 @@ public class Engine {
                             saveQueue();
                             last--;
                             idx = 0;
-                            execution = null;
                             break;
 
                         case WAITING:
@@ -416,14 +413,10 @@ public class Engine {
                                         transaction = SpringData.getTransaction();
                                         transaction.start();
 
-                                        if ((execution == null) || !execution.getId().equals(exec.getExecutionId())) {
-                                            execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
-                                            execution.getDatasets().values();
-                                        }
-                                        if ((step == null) || !step.getId().equals(exec.getStepId())) {
-                                            step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
-                                            step.getInputs().values();
-                                        }
+                                        execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                        execution.getDatasets().values();
+                                        step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+                                        step.getInputs().values();
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
                                     } finally {
