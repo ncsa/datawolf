@@ -160,7 +160,19 @@ public class FileStorage {
     public boolean deleteFile(FileDescriptor fd) {
         String dataURL = fd.getDataURL();
         File f = new File(dataURL.split(":")[1]);
-        return f.delete();
+
+        if (f.exists()) {
+            if (f.delete()) {
+                logger.debug("file is deleted: " + dataURL);
+                return true;
+            } else {
+                logger.error("Can't delete a file id(" + fd.getId() + ") :" + fd.getDataURL());
+                return false; // file still exist
+            }
+        } else {
+            logger.error("The file does not exist: id(" + fd.getId() + ") :" + fd.getDataURL());
+            return true;
+        }
     }
 
     public InputStream readFile(FileDescriptor fd) throws IOException {

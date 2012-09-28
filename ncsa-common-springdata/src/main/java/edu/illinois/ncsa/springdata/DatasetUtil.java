@@ -9,9 +9,14 @@ import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 
 public class DatasetUtil {
-    Logger log = LoggerFactory.getLogger(DatasetUtil.class);
+    private static Logger log = LoggerFactory.getLogger(DatasetUtil.class);
 
-    public static void deleteDataset(String datasetId) {
+    // TODO: assuming that there is only 1 file for dataset
+    public static boolean deleteDataset(String datasetId) {
+        log.info("delete dataset by dataset id: " + datasetId);
+
+        Transaction t = SpringData.getTransaction();
+
         // find dataset
         DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
         Dataset dataset = datasetDao.findOne(datasetId);
@@ -19,20 +24,36 @@ public class DatasetUtil {
         // get all fd from the dataset
         List<FileDescriptor> fdList = dataset.getFileDescriptors();
 
-        // deleta dataset
-        datasetDao.delete(datasetId);
-
         // get filestorage
         FileDescriptorDAO fdDao = SpringData.getBean(FileDescriptorDAO.class);
         FileStorage fileStorage = SpringData.getFileStorage();
 
-        // delete fd
-        for (FileDescriptor fd : fdList) {
-            // TODO: need to check whether fd is used by other dataset
-            boolean success = fileStorage.deleteFile(fd);
+        FileDescriptor fd = fdList.get(0);
 
+        // delete fd
+
+        // TODO: need to check whether fd is used by other dataset
+        if (fileStorage.deleteFile(fd)) {
             fdDao.delete(fd);
+        } else {
+            try {
+                t.rollback();
+            } catch (Exception e) {
+                log.error("Can't rollback when deleting dataset id:" + datasetId, e);
+            }
+            return false;
         }
+
+        // deleta dataset
+        datasetDao.delete(datasetId);
+
+        try {
+            t.commit();
+        } catch (Exception e) {
+            log.error("Can't commit when deleting dataset id:" + datasetId, e);
+            return false;
+        }
+        return true;
     }
 
 }
