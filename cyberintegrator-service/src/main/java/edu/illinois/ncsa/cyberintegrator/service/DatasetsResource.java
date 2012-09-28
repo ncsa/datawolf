@@ -45,6 +45,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -66,6 +67,7 @@ import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.DatasetDAO;
+import edu.illinois.ncsa.springdata.DatasetUtil;
 import edu.illinois.ncsa.springdata.FileStorage;
 import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
@@ -293,6 +295,18 @@ public class DatasetsResource {
         return findOne;
     }
 
+    @PUT
+    @Path("{dataset-id}/delete")
+    public Response deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) {
+        if ("".equals(datasetId))
+            return Response.status(500).entity("Must have dataset id").build();
+
+        if (DatasetUtil.deleteDataset(datasetId))
+            return Response.ok().build();
+        else
+            return Response.status(500).entity("Can't delete dataset: " + datasetId).build();
+    }
+
     /**
      * 
      * Get a dataset in zip with all other files by Id
@@ -394,4 +408,5 @@ public class DatasetsResource {
 
         return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
     }
+
 }
