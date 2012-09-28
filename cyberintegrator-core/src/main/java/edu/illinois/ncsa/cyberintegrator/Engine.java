@@ -373,7 +373,7 @@ public class Engine {
                             }
                         }
 
-                        logger.info("QS=" + queue.size() + " idx=" + idx + " X=" + last + " L=" + local + " " + LocalExecutor.debug());
+//                        logger.info("QS=" + queue.size() + " idx=" + idx + " X=" + last + " L=" + local + " " + LocalExecutor.debug());
 
                         Executor exec = queue.get(idx);
                         switch (exec.getState()) {
