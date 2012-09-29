@@ -9,6 +9,8 @@ public class HPCToolImplementation  {
     private String                  executable         = null;
     private String                  template           = null;
     private String                  log                = null;
+    private String captureStdOut = null;
+    private String captureStdErr = null;
     private List<CommandLineOption> commandLineOptions = new ArrayList<CommandLineOption>();
 
     public HPCToolImplementation() {
@@ -53,5 +55,21 @@ public class HPCToolImplementation  {
     public void setCommandLineOptions(List<CommandLineOption> commandLineOptions) {
         this.commandLineOptions = commandLineOptions;
     }
+
+	public String getCaptureStdOut() {
+		return captureStdOut;
+	}
+
+	public void setCaptureStdOut(String captureStdOut) {
+		this.captureStdOut = captureStdOut;
+	}
+
+	public String getCaptureStdErr() {
+		return captureStdErr;
+	}
+
+	public void setCaptureStdErr(String captureStdErr) {
+		this.captureStdErr = captureStdErr;
+	}
 
 }

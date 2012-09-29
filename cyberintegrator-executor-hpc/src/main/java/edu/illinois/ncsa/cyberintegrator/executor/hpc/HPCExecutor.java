@@ -90,15 +90,20 @@ public class HPCExecutor extends RemoteExecutor {
     // Parsers qstat information
     private JobInfoParser       jobParser;
 
-    private String              remoteLogFile  = null;
-    private File                log            = null;
+    private String gondolaLogFile = null;
+    //private String              remoteLogFile  = null;
+    private File                gondolaLog            = null;
+    private File stdErrLog = null;
+    private File stdOutLog = null;
     
     // Name of standard error/out files
     private String standardOut = null;
     private String standardErr = null;
 
     // Dataset id to store log file as tool output
-    private String              logId          = null;
+    private String              gondolaLogId          = null;
+    private String stdOutId = null;
+    private String stdErrId = null;
     private String              jobId          = null;
 
     private boolean             storedJobInfo  = false;
@@ -107,7 +112,9 @@ public class HPCExecutor extends RemoteExecutor {
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
 
         // contains logging information from job run
-        log = new File(cwd, NonNLSConstants.LOG);
+        gondolaLog = new File(cwd, NonNLSConstants.LOG);
+        stdErrLog = new File(cwd, "stderr.log");
+        stdOutLog = new File(cwd, "stdout.log");
 
         // This is where we'll look for .ssh keys
         String home = System.getProperty("user.home");
@@ -210,7 +217,10 @@ public class HPCExecutor extends RemoteExecutor {
             }
 
             // Dataset id of log file to store as tool output
-            logId = impl.getLog();
+            gondolaLogId = impl.getLog();
+            stdOutId = impl.getCaptureStdOut();
+            stdErrId = impl.getCaptureStdErr();
+            
             // Generate a unique id
             String normUuid = normalize(UUID.randomUUID().toString());
             String targetPathSep = NonNLSConstants.REMOTE_PATH_SEP;
@@ -222,6 +232,9 @@ public class HPCExecutor extends RemoteExecutor {
             } else {
                 stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid + targetPathSep;
             }
+            
+            standardOut = stagingDir + "stdout";
+            standardErr = stagingDir + "stderr";
             // String stagingDir = targetUserHome + targetPathSep +
             // NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid +
             // targetPathSep;
@@ -253,7 +266,8 @@ public class HPCExecutor extends RemoteExecutor {
             String scriptPath = stageFile(tmpScript, stagingDir, session, NonNLSConstants.SCRIPT);
 
             // path to remote gondola log file
-            remoteLogFile = stagingDir + NonNLSConstants.LOG;
+            gondolaLogFile = stagingDir + NonNLSConstants.LOG;
+            // remoteLogFile = stagingDir + NonNLSConstants.LOG;
 
             // quick check to see if we should stop
             if (isJobStopped()) {
@@ -262,7 +276,7 @@ public class HPCExecutor extends RemoteExecutor {
 
             jobId = submit(job, scriptPath, session, targetLineSep);
             
-            findJobOutput();
+            //findJobOutput();
 
         } catch (AbortException e) {
             throw e;
@@ -288,6 +302,7 @@ public class HPCExecutor extends RemoteExecutor {
      * Parses job script and finds name of standard error and output files. It is left up to the retrieval service to determine the run directory
      * TODO CMN : We should consider logging the err/out log file location/names to the gondola log 
      */
+    /*
     private void findJobOutput() {
     	for(LineType line : job.getScript().getLine()) {
     		String content = line.getContent();
@@ -317,7 +332,7 @@ public class HPCExecutor extends RemoteExecutor {
 				}
 			}
     	}
-	}
+	} */
 
 	private String submit(JobSubmissionType job, String targetPath, SSHSession session, String lineSep) throws IllegalArgumentException, Exception, IOException {
         StringBuffer stdout = new StringBuffer();
@@ -420,6 +435,9 @@ public class HPCExecutor extends RemoteExecutor {
             String fileLocation = fileMap.get(key);
             content = content.concat(NonNLSConstants.SP + "-" + key + NonNLSConstants.SP + fileLocation);
         }
+        
+        // Add Standard out and Standard error
+        content = content.concat(NonNLSConstants.SP + "1>" + standardOut + NonNLSConstants.SP + "2>" + standardErr);
 
         executionLine.setContent(content);
         script.getLine().add(executionLine);
@@ -561,11 +579,14 @@ public class HPCExecutor extends RemoteExecutor {
             if (!storedJobInfo) {
                 createJobInfo();
             } else {
-                SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
+                SshUtils.copyFrom(gondolaLogFile, gondolaLog.getAbsolutePath(), session);
             }
+            
+            
+            
             // Capture log as stdout
             StringBuilder stdout = new StringBuilder();
-            BufferedReader stdoutReader = new BufferedReader(new FileReader(log));
+            BufferedReader stdoutReader = new BufferedReader(new FileReader(gondolaLog));
             boolean done = false;
             if (stdoutReader != null) {
                 String line;
@@ -583,6 +604,10 @@ public class HPCExecutor extends RemoteExecutor {
             if (!done) {
                 return State.FAILED;
             }
+            
+            // If done, copy standard error and out
+            SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
+            SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
 
             // TODO RK : replace code above with the following code.
             // String log = getRemoteLog();
@@ -601,12 +626,12 @@ public class HPCExecutor extends RemoteExecutor {
                 FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
 
                 Dataset ds = new Dataset();
-                ds.setTitle("stdout");
+                ds.setTitle("gondola-log");
                 ds.setCreator(execution.getCreator());
                 ds.addFileDescriptor(fd);
                 SpringData.getBean(DatasetDAO.class).save(ds);
 
-                String key = step.getOutputs().get(logId);
+                String key = step.getOutputs().get(gondolaLogId);
                 execution.setDataset(key, ds.getId());
                 datasets.add(ds);
 
@@ -626,9 +651,9 @@ public class HPCExecutor extends RemoteExecutor {
     // TODO RK remove following code, is rolled into getRemoteLog()
     private void createJobInfo() {
         try {
-            SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
+            SshUtils.copyFrom(gondolaLogFile, gondolaLog.getAbsolutePath(), session);
             String workingDir = null;
-            BufferedReader stdoutReader = new BufferedReader(new FileReader(log));
+            BufferedReader stdoutReader = new BufferedReader(new FileReader(gondolaLog));
             if (stdoutReader != null) {
                 if (stdoutReader.ready()) {
                     String line = stdoutReader.readLine();
@@ -640,16 +665,16 @@ public class HPCExecutor extends RemoteExecutor {
                 	workingDir = line;
                 	
                 	// This should be the standard err/out log file directory
-                	line = stdoutReader.readLine();
-                	if(line != null) {
-                		if(standardErr != null) {
-                			standardErr = line + "/" + standardErr;
-                		}
+                	//line = stdoutReader.readLine();
+                	//if(line != null) {
+                		//if(standardErr != null) {
+                		//	standardErr = line + "/" + standardErr;
+                		//}
                 		
-                		if(standardOut != null) {
-                			standardOut = line + "/" + standardOut;
-                		}
-                	}
+                		//if(standardOut != null) {
+                		//	standardOut = line + "/" + standardOut;
+                		//}
+                	//}
                     // println(line);
                     // stdout.append(line);
                     // stdout.append(NL);
@@ -661,8 +686,8 @@ public class HPCExecutor extends RemoteExecutor {
                         HPCJobInfo info = new HPCJobInfo();
                         info.setExecutionId(this.getExecutionId());
                         info.setWorkingDir(workingDir);
-                        info.setStandardError(standardErr);
-                        info.setStandardOutput(standardOut);
+                        //info.setStandardError(standardErr);
+                        //info.setStandardOutput(standardOut);
 
                         SpringData.getBean(HPCJobInfoDAO.class).save(info);
                         storedJobInfo = true;
@@ -680,24 +705,99 @@ public class HPCExecutor extends RemoteExecutor {
 
     @Override
     public String getRemoteLog() {
-        if (session == null) {
-            return null;
-        }
+        //if (session == null) {
+        //    return null;
+        //}
         try {
-            SshUtils.copyFrom(remoteLogFile, log.getAbsolutePath(), session);
+        	if(session != null) {
+        		// If the session is still open, make sure we get the error log files
+        		SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
+                SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
+        	}
+        	//SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
+            //SshUtils.copyFrom(standardErr, stdOutLog.getAbsolutePath(), session);
+            
             String workingfolder = null;
-            BufferedReader br = new BufferedReader(new FileReader(log));
+            BufferedReader br = new BufferedReader(new FileReader(stdOutLog));
+            
+            StringBuilder stdout = new StringBuilder();
+            StringBuilder stderr = new StringBuilder();
+            
             StringBuffer sb = new StringBuffer();
             String line = null;
+            sb.append("-------- STDOUT --------");
+            sb.append(NL);
             while ((line = br.readLine()) != null) {
                 if (workingfolder == null) {
                     workingfolder = line;
                 }
                 sb.append(line);
                 sb.append(NL);
+                
+                stdout.append(line);
+                stdout.append(NL);
+                
             }
             br.close();
+            
+            sb.append("-------- STDERR --------");
+            sb.append(NL);
+            
+            br = new BufferedReader(new FileReader(stdErrLog));
+            line = null;
+            while ((line = br.readLine()) != null) {
+                if (workingfolder == null) {
+                    workingfolder = line;
+                }
+                sb.append(line);
+                sb.append(NL);
+                
+                stderr.append(line);
+                stderr.append(NL);
+                
+            }
+            br.close();
+            
+            Transaction t = null;
+            List<AbstractBean> datasets = new ArrayList<AbstractBean>();
+            try {
+                t = SpringData.getTransaction();
+                t.start();
+                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
+                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
 
+                ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
+                FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+
+                Dataset ds = new Dataset();
+                ds.setTitle("stdout");
+                ds.setCreator(execution.getCreator());
+                ds.addFileDescriptor(fd);
+                SpringData.getBean(DatasetDAO.class).save(ds);
+
+                String key = step.getOutputs().get(stdOutId);
+                execution.setDataset(key, ds.getId());
+                
+                bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
+                fd = SpringData.getFileStorage().storeFile(bais);
+                
+                ds = new Dataset();
+                ds.setTitle("stderr");
+                ds.setCreator(execution.getCreator());
+                ds.addFileDescriptor(fd);
+                SpringData.getBean(DatasetDAO.class).save(ds);
+
+                key = step.getOutputs().get(stdErrId);
+                execution.setDataset(key, ds.getId());
+                
+                SpringData.getBean(ExecutionDAO.class).save(execution);
+                
+                datasets.add(ds);
+            } finally {
+            	t.commit();
+                SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
+            }
+            
             // TODO RK : store working folder
             // if ((workingfolder != null) && !storedJobInfo) {
             // storedJobInfo = true;

@@ -451,14 +451,32 @@ public class HPCToolWizardPage extends WizardPage {
         impl.setTemplate(hpcTemplate.getText());
 
         // Make this a UI option
+        // This is the Gondola log, not the actual standard out from the execution
         WorkflowToolData data = new WorkflowToolData();
-        data.setTitle("stdout");
-        data.setDescription("stdout of external tool.");
+        data.setTitle("gondola-log");
+        data.setDescription("gondola log file.");
         data.setMimeType("text/plain"); //$NON-NLS-1$
-        data.setDataId("stdout");
+        data.setDataId("gondola-log");
         tool.addOutput(data);
 
         impl.setLog(data.getDataId());
+        
+        // Capture Standard Error and Standard Out from the execution
+        WorkflowToolData standardOut = new WorkflowToolData();
+        standardOut.setTitle("standard-out");
+        standardOut.setDescription("standard out of remote tool.");
+        standardOut.setMimeType("text/plain");
+        
+        impl.setCaptureStdOut(standardOut.getDataId());
+        tool.addOutput(standardOut);
+        
+        WorkflowToolData standardErr = new WorkflowToolData();
+        standardErr.setTitle("standard-err");
+        standardErr.setDescription("standard error of remote tool.");
+        standardErr.setMimeType("text/plain");
+        
+        impl.setCaptureStdErr(standardErr.getDataId());
+        tool.addOutput(standardErr);
 
         // Add Username
         WorkflowToolParameter param = new WorkflowToolParameter();
