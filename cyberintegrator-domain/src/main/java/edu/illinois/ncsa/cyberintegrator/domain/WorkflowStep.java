@@ -65,7 +65,7 @@ public class WorkflowStep extends AbstractBean {
     private String              title            = "";                           //$NON-NLS-1$
 
     /** creator of the workflow step */
-    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @DBRef
     private Person              creator          = null;
 
