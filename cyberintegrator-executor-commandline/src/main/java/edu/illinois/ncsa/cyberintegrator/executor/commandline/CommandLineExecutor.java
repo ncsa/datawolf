@@ -137,10 +137,10 @@ public class CommandLineExecutor extends LocalExecutor {
                 case PARAMETER:
                     // user specified value
                     String value = null;
-                    if (execution.hasParameter(option.getOptionId())) {
-                        value = execution.getParameter(option.getOptionId());
+                    if (execution.hasParameter(step.getParameters().get(option.getOptionId()))) {
+                        value = execution.getParameter(step.getParameters().get(option.getOptionId()));
                     } else {
-                        value = option.getParameterValue();
+                        value = step.getTool().getParameter(option.getOptionId()).getValue();
                     }
                     if (value != null) {
                         command.add(value);

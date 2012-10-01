@@ -39,7 +39,6 @@ public class CommandLineParameterDialog extends Dialog {
     private Text                  txtValue;
     private Button                btnHidden;
     private Button                btnAllowNull;
-    private Button                btnIsCommandLine;
 
     public CommandLineParameterDialog(Shell shell, CommandLineOption option, WorkflowToolParameter param) {
         super(shell);
@@ -110,7 +109,7 @@ public class CommandLineParameterDialog extends Dialog {
         txtValue.setText(param.getValue());
 
         btnHidden = new Button(composite, SWT.CHECK);
-        btnHidden.setText("Show parameter?");
+        btnHidden.setText("Hidden parameter?");
         btnHidden.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
         btnHidden.setSelection(param.isHidden());
 
@@ -118,11 +117,6 @@ public class CommandLineParameterDialog extends Dialog {
         btnAllowNull.setText("Can be empty?");
         btnAllowNull.setLayoutData(new GridData(GridData.FILL, GridData.FILL, true, false, 2, 1));
         btnAllowNull.setSelection(param.isAllowNull());
-
-        btnIsCommandLine = new Button(composite, SWT.CHECK);
-        btnIsCommandLine.setText("Commandline?");
-        btnIsCommandLine.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-        btnIsCommandLine.setSelection(option.isCommandline());
 
         applyDialogFont(composite);
         return composite;
@@ -154,8 +148,7 @@ public class CommandLineParameterDialog extends Dialog {
     protected void okPressed() {
         option.setType(Type.PARAMETER);
         option.setFlag(txtFlag.getText().trim());
-        option.setParameterValue(param.getParameterId());
-        option.setCommandline(btnIsCommandLine.getSelection());
+        option.setOptionId(param.getParameterId());
 
         param.setTitle(txtName.getText().trim());
         param.setDescription(txtDescription.getText().trim());

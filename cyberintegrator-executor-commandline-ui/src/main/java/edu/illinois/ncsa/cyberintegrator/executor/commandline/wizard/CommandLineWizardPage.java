@@ -604,87 +604,48 @@ public class CommandLineWizardPage extends WizardPage {
             tool.addOutput(data);
 
             impl.setCaptureStdOut(data.getDataId());
-//            if (checkJoinStdoutStderr.get()) {
-//                impl.setJoinStdOutStdErr(true);
-//            }
+            if (joinStdoutStderrCheck.getSelection()) {
+                impl.setJoinStdOutStdErr(true);
+            }
         }
 
-//        if (!checkJoinStdoutStderr.get() && stderrCheck.getSelection()) {
-//            WorkflowToolData data = new WorkflowToolData();
-//            data.setTitle(stderr.getText());
-//            data.setDescription("stderr of external tool.");
-//            data.setMimeType("text/plain"); //$NON-NLS-1$
-//            data.setDataId("stderr");
-//            tool.addOutput(data);
-//
-//            impl.setCaptureStdErr(data.getDataId());
-//        }
+        if (!joinStdoutStderrCheck.getSelection() && stderrCheck.getSelection()) {
+            WorkflowToolData data = new WorkflowToolData();
+            data.setTitle(stderr.getText());
+            data.setDescription("stderr of external tool.");
+            data.setMimeType("text/plain"); //$NON-NLS-1$
+            data.setDataId("stderr");
+            tool.addOutput(data);
 
-//        Cmdoption cmdopt = new Cmdoption();
-//        external.getOption().add(cmdopt);
-//        int counter = 0;
-//        for (ToolOption option : options) {
-//            switch (option.getType()) {
-//            case VALUE:
-//                Optionvalue optval = new Optionvalue();
-//                if (option.getFlag().length() > 0) {
-//                    optval.setFlag(option.getFlag());
-//                }
-//                if (option.getValue().length() > 0) {
-//                    optval.setValue(option.getValue());
-//                }
-//                optval.setOrder(BigInteger.valueOf(counter));
-//                cmdopt.getValue().add(optval);
-//                counter++;
-//                break;
-//
-//            case PARAMETER:
-//                Optionparameter optpar = new Optionparameter();
-//                if (option.getFlag().length() > 0) {
-//                    optpar.setFlag(option.getFlag());
-//                }
-//                optpar.setRefid(option.getParameter().getId());
-//                optpar.setOrder(BigInteger.valueOf(counter));
-//                cmdopt.getParameter().add(optpar);
-//                counter++;
-//
-//                tool.addParameter(option.getParameter());
-//                break;
-//
-//            case INPUT:
-//                Optiondata optinput = new Optiondata();
-//                optinput.setCommandline(option.getInput().isCommandLine());
-//                if (option.getInput().isCommandLine() && (option.getFlag().length() > 0)) {
-//                    optinput.setFlag(option.getFlag());
-//                }
-//                optinput.setInput(option.getInput().getInput().getId());
-//                if (option.getInput().isAlsoOutput()) {
-//                    optinput.setOutput(option.getInput().getOutput().getId());
-//                    tool.addOutput(option.getInput().getOutput());
-//                }
-//                optinput.setOrder(BigInteger.valueOf(counter));
-//                cmdopt.getData().add(optinput);
-//                counter++;
-//
-//                tool.addInput(option.getInput().getInput());
-//                break;
-//
-//            case OUTPUT:        tool.setImplementation(impl);
+            impl.setCaptureStdErr(data.getDataId());
+        }
 
-//                Optiondata optoutput = new Optiondata();
-//                optoutput.setCommandline(option.getOutput().isCommandLine());
-//                if (option.getOutput().isCommandLine() && (option.getFlag().length() > 0)) {
-//                    optoutput.setFlag(option.getFlag());
-//                }
-//                optoutput.setOutput(option.getOutput().getOutput().getId());
-//                optoutput.setOrder(BigInteger.valueOf(counter));
-//                cmdopt.getData().add(optoutput);
-//                counter++;
-//
-//                tool.addOutput(option.getOutput().getOutput());
-//                break;
-//            }
-//        }
+        for (CommandLineOption option : options) {
+            impl.getCommandLineOptions().add(option);
+            switch (option.getType()) {
+            case VALUE:
+                break;
+
+            case PARAMETER:
+                tool.addParameter(parameters.get(option));
+                break;
+
+            case DATA:
+                switch (option.getInputOutput()) {
+                case INPUT:
+                    tool.addInput(data.get(option));
+                    break;
+                case OUTPUT:
+                    tool.addOutput(data.get(option));
+                    break;
+                case BOTH:
+                    tool.addInput(data.get(option));
+                    tool.addOutput(data.get(option));
+                    break;
+                }
+                break;
+            }
+        }
 
         tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
     }

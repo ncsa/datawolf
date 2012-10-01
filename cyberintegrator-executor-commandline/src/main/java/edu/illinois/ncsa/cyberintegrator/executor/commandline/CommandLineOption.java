@@ -3,18 +3,11 @@
  */
 package edu.illinois.ncsa.cyberintegrator.executor.commandline;
 
-import javax.persistence.Entity;
-
-import edu.illinois.ncsa.domain.AbstractBean;
-
 /**
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
-@Entity(name = "CommandLineOption")
-public class CommandLineOption extends AbstractBean {
-    private static final long serialVersionUID = 1L;
-
+public class CommandLineOption {
     public enum Type {
         VALUE, PARAMETER, DATA
     }
@@ -23,7 +16,9 @@ public class CommandLineOption extends AbstractBean {
         INPUT, OUTPUT, BOTH
     }
 
+    // what type of option
     private Type        type;
+    // unique id of the option
     private String      optionId;
 
     // optional flag to put before next option
@@ -34,13 +29,14 @@ public class CommandLineOption extends AbstractBean {
     private String      value;
 
     // TYPE=PARAMETER
-    // user specified parameter with a default value
-    private String      parameterValue;
+    // nothing here
 
     // TYPE=DATA
-    // user specified parameter with a default value
-    private boolean     commandline;
+    // should data be passed on commandline?
+    private boolean     commandline = true;
+    // input/output information
     private InputOutput inputOutput;
+    // filename of the data when stored on disk
     private String      filename;
 
     /**
@@ -86,21 +82,6 @@ public class CommandLineOption extends AbstractBean {
      */
     public void setFlag(String flag) {
         this.flag = flag;
-    }
-
-    /**
-     * @return the parameterValue
-     */
-    public String getParameterValue() {
-        return parameterValue;
-    }
-
-    /**
-     * @param parameterValue
-     *            the parameterValue to set
-     */
-    public void setParameterValue(String parameterValue) {
-        this.parameterValue = parameterValue;
     }
 
     /**

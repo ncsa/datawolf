@@ -138,13 +138,11 @@ public class HPCExecutor extends RemoteExecutor {
                     break;
 
                 case PARAMETER:
-                    String id = option.getParameterValue();
-                    String key = step.getParameters().get(id);
                     String value = null;
-                    if (execution.hasParameter(key)) {
-                        value = execution.getParameter(key);
+                    if (execution.hasParameter(step.getParameters().get(option.getOptionId()))) {
+                        value = execution.getParameter(step.getParameters().get(option.getOptionId()));
                     } else {
-                        value = step.getTool().getParameter(key).getValue();
+                        value = step.getTool().getParameter(option.getOptionId()).getValue();
                     }
                     if (option.isCommandline()) {
                         // add the parameters
@@ -157,7 +155,7 @@ public class HPCExecutor extends RemoteExecutor {
                         // parameters.add(option);
                     } else {
                         // add special parameters that are expected
-                        WorkflowToolParameter param = step.getParameter(key);
+                        WorkflowToolParameter param = step.getParameter(option.getOptionId());
 
                         if (param.getTitle().equals("Target Username")) {
                             targetUser = value;
@@ -183,7 +181,7 @@ public class HPCExecutor extends RemoteExecutor {
 
                         String optionId = option.getOptionId();
                         Map<String, String> inputs = step.getInputs();
-                        key = inputs.get(optionId);
+                        String key = inputs.get(optionId);
                         Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(key));
                         if (ds == null) {
                             throw (new AbortException("Dataset is missing."));
