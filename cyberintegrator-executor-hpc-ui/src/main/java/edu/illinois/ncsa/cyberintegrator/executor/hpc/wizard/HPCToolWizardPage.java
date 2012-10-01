@@ -53,7 +53,6 @@ public class HPCToolWizardPage extends WizardPage {
     private final List<CommandLineOption>                       options;
     private final Map<CommandLineOption, WorkflowToolParameter> parameters;
     private final Map<CommandLineOption, WorkflowToolData>      data;
-    private WorkflowTool                                        oldTool;
     private Text                                                exec;
     private Text                                                hpcTemplate;
     private List<FileDescriptor>                                fileDescriptors = new ArrayList<FileDescriptor>();
@@ -79,10 +78,6 @@ public class HPCToolWizardPage extends WizardPage {
         options = new ArrayList<CommandLineOption>();
         parameters = new HashMap<CommandLineOption, WorkflowToolParameter>();
         data = new HashMap<CommandLineOption, WorkflowToolData>();
-
-        this.oldTool = oldTool;
-
-        // TODO Auto-generated constructor stub
     }
 
     public void createControl(Composite parent) {
@@ -487,7 +482,7 @@ public class HPCToolWizardPage extends WizardPage {
 
         CommandLineOption specialOption = new CommandLineOption();
         specialOption.setType(Type.PARAMETER);
-        specialOption.setParameterValue(param.getParameterId());
+        specialOption.setOptionId(param.getParameterId());
         this.parameters.put(specialOption, param);
         this.options.add(specialOption);
 
@@ -502,7 +497,7 @@ public class HPCToolWizardPage extends WizardPage {
 
         specialOption = new CommandLineOption();
         specialOption.setType(Type.PARAMETER);
-        specialOption.setParameterValue(param.getParameterId());
+        specialOption.setOptionId(param.getParameterId());
         this.parameters.put(specialOption, param);
         this.options.add(specialOption);
 
@@ -516,7 +511,7 @@ public class HPCToolWizardPage extends WizardPage {
         param.setDescription("Remote host ssh");
         specialOption = new CommandLineOption();
         specialOption.setType(Type.PARAMETER);
-        specialOption.setParameterValue(param.getParameterId());
+        specialOption.setOptionId(param.getParameterId());
         this.parameters.put(specialOption, param);
         this.options.add(specialOption);
 
@@ -525,7 +520,9 @@ public class HPCToolWizardPage extends WizardPage {
         // Other options
         for (CommandLineOption option : options) {
             switch (option.getType()) {
-
+            case VALUE:
+            	break;
+            	
             case PARAMETER:
                 WorkflowToolParameter toolParameter = parameters.get(option);
                 // option.setId(toolParameter.getId());
