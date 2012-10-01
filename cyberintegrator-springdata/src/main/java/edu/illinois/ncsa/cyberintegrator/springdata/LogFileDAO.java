@@ -40,5 +40,5 @@ import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 public interface LogFileDAO extends PagingAndSortingRepository<LogFile, String> {
     List<LogFile> findByExecutionId(String executionId);
 
-    LogFile findLogByExecutionIdStepId(String executionId, String stepId);
+    LogFile findLogByExecutionIdAndStepId(String executionId, String stepId);
 }
