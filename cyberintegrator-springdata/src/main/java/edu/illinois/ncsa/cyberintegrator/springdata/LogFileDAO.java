@@ -36,4 +36,5 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 
 public interface LogFileDAO extends PagingAndSortingRepository<LogFile, String> {
+    LogFile findByExecutionId(String executionId);
 }
