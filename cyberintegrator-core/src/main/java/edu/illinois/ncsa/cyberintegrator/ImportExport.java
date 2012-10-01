@@ -99,7 +99,8 @@ public class ImportExport {
                     }
                 }
             }
-
+        } catch (Exception e) {
+            logger.warn("Error saving workflow.", e);
         } finally {
             if (zipfile != null) {
                 zipfile.close();
