@@ -31,10 +31,14 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.springdata;
 
+import java.util.List;
+
 import org.springframework.data.repository.PagingAndSortingRepository;
 
 import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 
 public interface LogFileDAO extends PagingAndSortingRepository<LogFile, String> {
-    LogFile findByExecutionId(String executionId);
+    List<LogFile> findByExecutionId(String executionId);
+
+    LogFile findLogByExecutionIdStepId(String executionId, String stepId);
 }
