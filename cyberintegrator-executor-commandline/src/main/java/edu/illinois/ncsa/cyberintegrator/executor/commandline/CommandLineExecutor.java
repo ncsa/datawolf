@@ -160,7 +160,8 @@ public class CommandLineExecutor extends LocalExecutor {
 
                     if (option.isCommandline()) {
                         if (option.getInputOutput() != InputOutput.OUTPUT) {
-                            Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(option.getOptionId()));
+                            String key = step.getInputs().get(option.getOptionId());
+                            Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(key));// option.getOptionId()));
                             if (ds == null) {
                                 throw (new AbortException("Dataset is missing."));
                             }
