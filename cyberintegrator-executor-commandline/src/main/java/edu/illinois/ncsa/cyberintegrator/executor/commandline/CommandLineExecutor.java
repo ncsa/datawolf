@@ -332,6 +332,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
 
                     Dataset ds = new Dataset();
+                    ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
@@ -349,6 +350,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
 
                     Dataset ds = new Dataset();
+                    ds.setTitle(step.getOutput(impl.getCaptureStdErr()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
@@ -368,6 +370,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     FileDescriptor fd = SpringData.getFileStorage().storeFile(fis);
 
                     Dataset ds = new Dataset();
+                    ds.setTitle(step.getOutput(entry.getValue()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
