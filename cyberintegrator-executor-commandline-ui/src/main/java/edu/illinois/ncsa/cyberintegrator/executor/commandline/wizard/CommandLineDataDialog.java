@@ -176,6 +176,7 @@ public class CommandLineDataDialog extends Dialog {
         option.setInputOutput(InputOutput.valueOf(cmbInputOutput.getText()));
         option.setFilename(txtFilename.getText().trim());
         option.setCommandline(chkCommandline.getSelection());
+        option.setOptionId(data.getDataId());
 
         data.setTitle(txtName.getText().trim());
         data.setDescription(txtDescription.getText().trim());
