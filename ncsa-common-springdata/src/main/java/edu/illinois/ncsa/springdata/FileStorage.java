@@ -11,6 +11,8 @@ import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import javax.activation.MimetypesFileTypeMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +147,9 @@ public class FileStorage {
         }
 
         // create the fd fields
-        // TODO RK : add mimetype
+
+        fd.setMimeType(new MimetypesFileTypeMap().getContentType(output));
+
         fd.setDataURL(output.toURI().toURL().toString());
         if (md5 != null) {
             fd.setMd5sum(md5.digest());
