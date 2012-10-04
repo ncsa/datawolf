@@ -155,7 +155,7 @@ public class HPCExecutor extends RemoteExecutor {
                         // parameters.add(option);
                     } else {
                         // add special parameters that are expected
-                        WorkflowToolParameter param = step.getParameter(option.getOptionId());
+                        WorkflowToolParameter param = step.getTool().getParameter(option.getOptionId());
 
                         if (param.getTitle().equals("Target Username")) {
                             targetUser = value;
