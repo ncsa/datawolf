@@ -31,6 +31,7 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.DefaultValue;
@@ -63,10 +64,18 @@ public class PersonsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Person> getPersons(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<Person> getPersons(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email) {
         PersonDAO personDao = SpringData.getBean(PersonDAO.class);
-        Page<Person> results = personDao.findAll(new PageRequest(page, size));
-        return results.getContent();
+        if ("".equals(email)) {
+            Page<Person> results = personDao.findAll(new PageRequest(page, size));
+            return results.getContent();
+        } else {
+            Person result = personDao.findByEmail(email);
+            List<Person> results = new ArrayList<Person>();
+            results.add(result);
+            return results;
+        }
+
     }
 
     @POST
