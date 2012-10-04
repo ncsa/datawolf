@@ -45,6 +45,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -122,14 +123,14 @@ public class CommandLineExecutor extends LocalExecutor {
             // add the options in order
             for (CommandLineOption option : impl.getCommandLineOptions()) {
                 // all have a flag option
-                if (option.getFlag() != null) {
+                if ((option.getFlag() != null) && !option.getFlag().trim().equals("")) {
                     command.add(option.getFlag());
                 }
 
                 switch (option.getType()) {
                 case VALUE:
                     // fixed value
-                    if (option.getValue() != null) {
+                    if ((option.getValue() != null) && !option.getValue().trim().equals("")) {
                         command.add(option.getValue());
                     }
                     break;
@@ -149,7 +150,8 @@ public class CommandLineExecutor extends LocalExecutor {
 
                 case DATA:
                     // pointer to file on disk
-                    String filename = option.getFilename();
+                    String filename = new File(cwd, option.getFilename()).getAbsolutePath();
+//                    String filename = option.getFilename();
                     if (filename == null) {
                         try {
                             filename = File.createTempFile("ci", ".tmp", cwd).getAbsolutePath();
@@ -330,7 +332,7 @@ public class CommandLineExecutor extends LocalExecutor {
                         stdout.append(stderr);
                     }
                     ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais);
 
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
@@ -348,7 +350,7 @@ public class CommandLineExecutor extends LocalExecutor {
             if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
                 try {
                     ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(step.getOutput(impl.getCaptureStdErr()).getTitle(), bais);
 
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getOutput(impl.getCaptureStdErr()).getTitle());
@@ -367,16 +369,35 @@ public class CommandLineExecutor extends LocalExecutor {
             // collect the output files
             for (Entry<String, String> entry : outputfiles.entrySet()) {
                 try {
-                    FileInputStream fis = new FileInputStream(entry.getValue());
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(fis);
-
                     Dataset ds = new Dataset();
-                    ds.setTitle(step.getOutput(entry.getValue()).getTitle());
+                    ds.setTitle(step.getTool().getOutput(entry.getKey()).getTitle());
                     ds.setCreator(execution.getCreator());
-                    ds.addFileDescriptor(fd);
+
+                    if (entry.getValue().contains("*")) {
+                        final String matchme = entry.getValue().replace("*", ".*");
+                        File[] files = new File(new File(entry.getValue()).getParent()).listFiles(new FileFilter() {
+                            @Override
+                            public boolean accept(File pathname) {
+                                return pathname.getAbsolutePath().matches(matchme);
+                            }
+                        });
+
+                        for (File file : files) {
+                            logger.debug("adding files to a dataset: " + file);
+                            FileInputStream fis = new FileInputStream(file);
+                            FileDescriptor fd = SpringData.getFileStorage().storeFile(file.getName(), fis);
+                            fis.close();
+                            ds.addFileDescriptor(fd);
+                        }
+
+                    } else {
+                        FileInputStream fis = new FileInputStream(entry.getValue());
+                        FileDescriptor fd = SpringData.getFileStorage().storeFile(new File(entry.getValue()).getName(), fis);
+                        ds.addFileDescriptor(fd);
+                    }
                     SpringData.getBean(DatasetDAO.class).save(ds);
 
-                    execution.setDataset(step.getOutputs().get(entry.getValue()), ds.getId());
+                    execution.setDataset(step.getOutputs().get(entry.getKey()), ds.getId());
                     datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
