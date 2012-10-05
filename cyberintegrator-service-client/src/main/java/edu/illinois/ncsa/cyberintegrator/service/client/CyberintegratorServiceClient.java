@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.client.HttpClient;
@@ -30,6 +31,8 @@ import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
+import edu.illinois.ncsa.domain.Dataset;
+import edu.illinois.ncsa.domain.Person;
 
 public class CyberintegratorServiceClient {
 
@@ -403,6 +406,65 @@ public class CyberintegratorServiceClient {
             try {
                 httpclient.getConnectionManager().shutdown();
                 return responseStr;
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
+    
+    public static Person getPersonByEmail(String email) {
+        String responseStr = null;
+        List<Person> persons = null;
+
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/persons?email=" + email;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.info("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+                ObjectMapper mapper = new ObjectMapper();
+                persons = mapper.readValue(responseStr, new TypeReference<List<Person>>() {});
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return persons.get(0);
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
+    
+    public static Dataset getDataset(String datasetId) {
+        String responseStr = null;
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/datasets/" + datasetId;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.debug("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+                ObjectMapper mapper = new ObjectMapper();
+                return mapper.readValue(responseStr, Dataset.class);
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
             } catch (Exception ignore) {}
         }
         return null;
