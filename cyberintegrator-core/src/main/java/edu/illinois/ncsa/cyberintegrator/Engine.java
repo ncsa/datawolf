@@ -59,22 +59,25 @@ import edu.illinois.ncsa.springdata.Transaction;
  * @author Rob Kooper
  */
 public class Engine {
-    private static final Logger   logger       = LoggerFactory.getLogger(Engine.class);
+    private static final Logger   logger             = LoggerFactory.getLogger(Engine.class);
 
     /** All known executors. */
-    private Map<String, Executor> executors    = new HashMap<String, Executor>();
+    private Map<String, Executor> executors          = new HashMap<String, Executor>();
 
     /** List of all workers */
-    private WorkerThread          engineThread = new WorkerThread();
+    private WorkerThread          engineThread       = new WorkerThread();
 
     /** List of steps */
-    private List<Executor>        queue        = new ArrayList<Executor>();
+    private List<Executor>        queue              = new ArrayList<Executor>();
 
     /** store the logs in the database */
-    private boolean               storeLogs    = true;
+    private boolean               storeLogs          = true;
 
     /** timeout of a workflow in seconds */
-    private int                   timeout      = 3600;
+    private int                   timeout            = 3600;
+
+    /** number of jobs that can be in local executor queue */
+    private int                   extraLocalExecutor = 1;
 
     /**
      * Create the engine with a single worker.
@@ -109,6 +112,30 @@ public class Engine {
     public void setStoreLogs(boolean storeLogs) {
         logger.info("Store logs : " + storeLogs);
         this.storeLogs = storeLogs;
+    }
+
+    /**
+     * The number of additional jobs that can be scheduled on the local
+     * executor. The local executor has a limit of jobs it can run based on
+     * getLocalExecutorThreads(), this will allow additional jobs to be
+     * scheduled to keep the local executor always busy. The default is one
+     * additional jobs.
+     * 
+     * @return the number of additional jobs that can be scheduled.
+     */
+    public int getExtraLocalExecutor() {
+        return extraLocalExecutor;
+    }
+
+    /**
+     * Sets the number of additional jobs that can be scheduled. See
+     * getExtraLocalExecutor().
+     * 
+     * @param extraLocalExecutor
+     *            the number of additional jobs that can be scheduled.
+     */
+    public void setExtraLocalExecutor(int extraLocalExecutor) {
+        this.extraLocalExecutor = extraLocalExecutor;
     }
 
     /**
@@ -373,7 +400,7 @@ public class Engine {
                             }
                         }
 
-//                        logger.info("QS=" + queue.size() + " idx=" + idx + " X=" + last + " L=" + local + " " + LocalExecutor.debug());
+                        logger.info("QS=" + queue.size() + " idx=" + idx + " X=" + last + " L=" + local + " " + LocalExecutor.debug());
 
                         Executor exec = queue.get(idx);
                         switch (exec.getState()) {
@@ -405,7 +432,7 @@ public class Engine {
                             if (exec.isJobStopped()) {
                                 canrun = 2;
                             } else {
-                                if (local >= LocalExecutor.getWorkers()) {
+                                if (local >= (LocalExecutor.getWorkers() + getExtraLocalExecutor())) {
                                     canrun = 1;
                                 } else {
                                     Transaction transaction = null;
@@ -446,7 +473,7 @@ public class Engine {
                             case 0:
                                 if (exec.isExecutorReady()) {
                                     if (exec instanceof LocalExecutor) {
-                                        if (local <= LocalExecutor.getWorkers()) {
+                                        if (local <= (LocalExecutor.getWorkers() + getExtraLocalExecutor())) {
                                             local++;
                                             exec.startJob();
                                             if (idx > last) {
@@ -478,7 +505,7 @@ public class Engine {
                         }
                     }
 
-                    if ((local >= LocalExecutor.getWorkers()) && (idx > last)) {
+                    if ((local >= (LocalExecutor.getWorkers() + getExtraLocalExecutor())) && (idx > last)) {
                         idx = 0;
                     }
 

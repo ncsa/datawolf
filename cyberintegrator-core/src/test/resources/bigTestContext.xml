@@ -10,7 +10,8 @@
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
 	
 	<bean id="engine" class="edu.illinois.ncsa.cyberintegrator.Engine">
-		<property name="localExecutorThreads" value="50" />
+		<property name="localExecutorThreads" value="4" />
+		<property name="extraLocalExecutor" value="4" />
 		<property name="storeLogs" value="false" />
 		<property name="timeout" value="30" />
 	</bean>
