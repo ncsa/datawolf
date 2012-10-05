@@ -215,6 +215,37 @@ public class CyberintegratorServiceClient {
         return null;
     }
 
+    public static List<Execution> getExecutionsByEmail(String email) {
+        if(email== null) return null;
+        String responseStr = null;
+        List<Execution> executions = null;
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/executions?email=" + email;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.debug("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+                ObjectMapper mapper = new ObjectMapper();
+                executions = mapper.readValue(responseStr, new TypeReference<List<Execution>>() {});
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return executions;
+            } catch (Exception ignore) {}
+        }
+        return null;        
+    }
+    
     public static Map<String, State> getState(String executionId) {
         String responseStr = null;
         Map<String, State> states = null;
