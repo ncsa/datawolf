@@ -43,7 +43,7 @@ public class BigWorkflow implements Runnable {
     private static Workflow workflow;
 
     private static int      CLIENTS = 1;
-    private static int      JOBS    = 50;
+    private static int      JOBS    = 20;
 
     public static void main(String[] args) throws Exception {
         // setup spring data
@@ -158,12 +158,14 @@ public class BigWorkflow implements Runnable {
                         row += (execution.getStepEnd(step.getId()).getTime() - start) + "\t";
 
                         g2d.setColor(colors[col]);
+                        // queue time
                         int s = (int) (execution.getStepQueued(step.getId()).getTime() - start);
                         int e = (int) (execution.getStepStart(step.getId()).getTime() - start);
-                        g2d.fillRect((int) (s * scale_x), (int) (y + scale_y * 0.1), (int) ((e - s) * scale_x), (int) (scale_y * 0.2));
+                        g2d.fillRect((int) Math.round(s * scale_x), (int) Math.round(y + scale_y * 0.4), (int) Math.round((e - s) * scale_x), (int) Math.round(scale_y * 0.2));
+                        // run time
                         s = (int) (execution.getStepStart(step.getId()).getTime() - start);
                         e = (int) (execution.getStepEnd(step.getId()).getTime() - start);
-                        g2d.fillRect((int) (s * scale_x), (int) (y + scale_y * 0.3), (int) ((e - s) * scale_x), (int) (scale_y * 0.6));
+                        g2d.fillRect((int) Math.round(s * scale_x), (int) Math.round(y + scale_y * 0.1), (int) Math.round((e - s) * scale_x), (int) Math.round(scale_y * 0.8));
                     }
                     col++;
                 }
@@ -189,7 +191,7 @@ public class BigWorkflow implements Runnable {
         frm.setVisible(true);
 
         try {
-            ImageIO.write(img, "png", new File("/Users/kooper/Desktop/time.png"));
+            ImageIO.write(img, "png", new File("time.png"));
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
