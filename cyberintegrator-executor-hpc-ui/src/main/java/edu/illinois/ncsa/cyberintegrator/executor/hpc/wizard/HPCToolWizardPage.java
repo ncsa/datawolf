@@ -483,6 +483,7 @@ public class HPCToolWizardPage extends WizardPage {
         CommandLineOption specialOption = new CommandLineOption();
         specialOption.setType(Type.PARAMETER);
         specialOption.setOptionId(param.getParameterId());
+        specialOption.setCommandline(false);
         this.parameters.put(specialOption, param);
         this.options.add(specialOption);
 
@@ -498,6 +499,7 @@ public class HPCToolWizardPage extends WizardPage {
         specialOption = new CommandLineOption();
         specialOption.setType(Type.PARAMETER);
         specialOption.setOptionId(param.getParameterId());
+        specialOption.setCommandline(false);
         this.parameters.put(specialOption, param);
         this.options.add(specialOption);
 
@@ -512,6 +514,7 @@ public class HPCToolWizardPage extends WizardPage {
         specialOption = new CommandLineOption();
         specialOption.setType(Type.PARAMETER);
         specialOption.setOptionId(param.getParameterId());
+        specialOption.setCommandline(false);
         this.parameters.put(specialOption, param);
         this.options.add(specialOption);
 
