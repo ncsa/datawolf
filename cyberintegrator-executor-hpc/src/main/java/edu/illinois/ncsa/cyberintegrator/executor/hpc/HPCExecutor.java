@@ -765,7 +765,7 @@ public class HPCExecutor extends RemoteExecutor {
                 Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
 
                 ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+                FileDescriptor fd = SpringData.getFileStorage().storeFile("stdout", bais);
 
                 Dataset ds = new Dataset();
                 ds.setTitle("stdout");
@@ -777,7 +777,7 @@ public class HPCExecutor extends RemoteExecutor {
                 execution.setDataset(key, ds.getId());
                 
                 bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                fd = SpringData.getFileStorage().storeFile(bais);
+                fd = SpringData.getFileStorage().storeFile("stderr", bais);
                 
                 ds = new Dataset();
                 ds.setTitle("stderr");
