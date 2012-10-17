@@ -94,7 +94,7 @@ public class CommandLineExecutorTest {
             System.out.println("Execution ID  = " + lf.getExecutionId());
             System.out.println("Step ID       = " + lf.getStepId());
             System.out.println("Date          = " + lf.getDate());
-            System.out.println("LOG           = " + lf.getLog().split("\n").length);
+            System.out.println("LOG           = " + lf.getLog().getDataURL());
         }
 
         t.commit();

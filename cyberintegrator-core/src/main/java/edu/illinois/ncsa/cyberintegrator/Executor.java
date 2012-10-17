@@ -3,6 +3,7 @@
  */
 package edu.illinois.ncsa.cyberintegrator;
 
+import java.io.ByteArrayInputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
@@ -18,6 +19,8 @@ import edu.illinois.ncsa.cyberintegrator.event.StepStateChangedEvent;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.springdata.FileDescriptorDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
 
@@ -248,11 +251,22 @@ public abstract class Executor {
 
     private void saveLog() {
         if (isStoreLog()) {
-            logfile.setExecutionId(executionId);
-            logfile.setStepId(stepId);
-            logfile.setDate(new Date());
-            logfile.setLog(log.toString());
-            logfile = SpringData.getBean(LogFileDAO.class).save(logfile);
+            if (logfile.getLog() == null) {
+                logfile.setExecutionId(executionId);
+                logfile.setStepId(stepId);
+                logfile.setDate(new Date());
+                logfile.setLog(new FileDescriptor());
+                logfile = SpringData.getBean(LogFileDAO.class).save(logfile);
+            }
+
+            try {
+                ByteArrayInputStream bais = new ByteArrayInputStream(log.toString().getBytes("UTF-8"));
+                FileDescriptor fd = logfile.getLog();
+                fd = SpringData.getFileStorage().storeFile(fd.getId(), "log.txt", bais);
+                SpringData.getBean(FileDescriptorDAO.class).save(fd);
+            } catch (Exception e) {
+                logger.error("Could not save log message.", e);
+            }
         }
     }
 

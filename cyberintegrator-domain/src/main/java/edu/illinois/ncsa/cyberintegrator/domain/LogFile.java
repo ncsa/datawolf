@@ -2,14 +2,17 @@ package edu.illinois.ncsa.cyberintegrator.domain;
 
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
+import javax.persistence.FetchType;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
+import edu.illinois.ncsa.domain.FileDescriptor;
 
 /**
  * A simple class to store the log.
@@ -33,8 +36,8 @@ public class LogFile extends AbstractBean {
     private Date              date             = new Date();
 
     /** the actual log message. */
-    @Lob
-    private String            log              = "";
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private FileDescriptor    log              = null;
 
     public String getExecutionId() {
         return executionId;
@@ -72,21 +75,21 @@ public class LogFile extends AbstractBean {
     }
 
     /**
-     * Returns the actual log message.
+     * Returns the filedescriptor of the log message.
      * 
-     * @return the log message.
+     * @return the log filedescriptor of the log message.
      */
-    public String getLog() {
+    public FileDescriptor getLog() {
         return log;
     }
 
     /**
-     * Sets the actual log message.
+     * Sets the filedescriptor of the log message.
      * 
      * @param log
-     *            the actual log message.
+     *            the filedescriptor of the log message.
      */
-    public void setLog(String log) {
+    public void setLog(FileDescriptor log) {
         this.log = log;
     }
 }
