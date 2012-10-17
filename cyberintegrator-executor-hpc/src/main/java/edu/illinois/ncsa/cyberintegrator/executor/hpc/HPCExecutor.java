@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -48,9 +49,11 @@ import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.event.ObjectCreatedEvent;
+import edu.illinois.ncsa.gondola.types.submission.ErrorHandlerType;
 import edu.illinois.ncsa.gondola.types.submission.JobStateType;
 import edu.illinois.ncsa.gondola.types.submission.JobSubmissionType;
 import edu.illinois.ncsa.gondola.types.submission.LineType;
+import edu.illinois.ncsa.gondola.types.submission.RegexType;
 import edu.illinois.ncsa.gondola.types.submission.ScriptType;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.SpringData;
@@ -105,6 +108,10 @@ public class HPCExecutor extends RemoteExecutor {
 	private String stdOutId = null;
 	private String stdErrId = null;
 	private String jobId = null;
+
+	// Information returned when job submitted
+	private String submissionStdOut = null;
+	private String submissionStdErr = null;
 
 	private boolean storedJobInfo = false;
 
@@ -368,6 +375,7 @@ public class HPCExecutor extends RemoteExecutor {
 			// SystemUtils.doExec(args, null, null, true, stdout, stderr);
 			// }
 
+		checkForErrors(stdout, stderr, job.getSubmitErrorHandler());
 		// checkForErrors(stdout, stderr, subE.getErrorHandler());
 
 		// if (subE.getJobIdParser().isStderr())
@@ -379,6 +387,53 @@ public class HPCExecutor extends RemoteExecutor {
 		}
 
 		return "job-id-unknown";
+	}
+
+	private void checkForErrors(StringBuffer stdout, StringBuffer stderr,
+			ErrorHandlerType errorHandler) throws FailedException {
+		submissionStdErr = stderr.toString();
+		submissionStdOut = stdout.toString();
+		logger.debug("stderr string: " + submissionStdErr);
+		logger.debug("stdout string: " + submissionStdErr);
+
+		for (RegexType regex : errorHandler.getStderrError()) {
+			if (Pattern
+					.compile(regex.getContent(),
+							JobInfoParser.getFlags(regex.getFlags()))
+					.matcher(submissionStdErr).matches()) {
+				throw new FailedException("Error submitting job");
+			}
+		}
+		for (RegexType regex : errorHandler.getStdoutError()) {
+			if (Pattern
+					.compile(regex.getContent(),
+							JobInfoParser.getFlags(regex.getFlags()))
+					.matcher(submissionStdOut).matches()) {
+				throw new FailedException("Error submitting job");
+			}
+		}
+
+		for (RegexType regex : errorHandler.getStderrWarn()) {
+			logger.debug("regex for warn: " + regex.getContent());
+			logger.debug("regex flag for warn: " + regex.getFlags());
+			if (Pattern
+					.compile(regex.getContent(),
+							JobInfoParser.getFlags(regex.getFlags()))
+					.matcher(submissionStdErr).matches()) {
+				logger.warn(submissionStdErr);
+				break;
+			}
+		}
+
+		for (RegexType regex : errorHandler.getStdoutWarn()) {
+			if (Pattern
+					.compile(regex.getContent(),
+							JobInfoParser.getFlags(regex.getFlags()))
+					.matcher(submissionStdOut).matches()) {
+				logger.warn(submissionStdOut);
+				break;
+			}
+		}
 	}
 
 	public String parseJobId(String[] lines) {
@@ -779,6 +834,8 @@ public class HPCExecutor extends RemoteExecutor {
 			String line = null;
 			sb.append("-------- STDOUT --------");
 			sb.append(NL);
+			sb.append(submissionStdOut);
+			sb.append(NL);
 			while ((line = br.readLine()) != null) {
 				if (workingfolder == null) {
 					workingfolder = line;
@@ -793,6 +850,8 @@ public class HPCExecutor extends RemoteExecutor {
 			br.close();
 
 			sb.append("-------- STDERR --------");
+			sb.append(NL);
+			sb.append(submissionStdErr);
 			sb.append(NL);
 
 			br = new BufferedReader(new FileReader(stdErrLog));
