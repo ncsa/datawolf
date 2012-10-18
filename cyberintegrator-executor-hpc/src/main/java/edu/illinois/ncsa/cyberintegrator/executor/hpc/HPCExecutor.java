@@ -72,6 +72,8 @@ import edu.illinois.ncsa.springdata.Transaction;
  * 
  */
 public class HPCExecutor extends RemoteExecutor {
+	private static final String HPC_SCRIPT_DIR = "[HPC-SCRIPT-DIR]";
+	private static final String HPC_EXE = "[HPC-EXE]";
 	private static Logger logger = LoggerFactory.getLogger(HPCExecutor.class);
 	private static final String NL = System.getProperty("line.separator");
 
@@ -251,15 +253,15 @@ public class HPCExecutor extends RemoteExecutor {
 			String stagingDir = null;
 			if (targetUserHome.endsWith(targetPathSep)) {
 				stagingDir = targetUserHome + NonNLSConstants.JOB_SCRIPTS
-						+ targetPathSep + normUuid + targetPathSep;
+						+ targetPathSep + normUuid; // + targetPathSep;
 			} else {
 				stagingDir = targetUserHome + targetPathSep
 						+ NonNLSConstants.JOB_SCRIPTS + targetPathSep
-						+ normUuid + targetPathSep;
+						+ normUuid; //+ targetPathSep;
 			}
 
-			standardOut = stagingDir + "stdout";
-			standardErr = stagingDir + "stderr";
+			standardOut = stagingDir + targetPathSep + "stdout";
+			standardErr = stagingDir + targetPathSep + "stderr";
 			// String stagingDir = targetUserHome + targetPathSep +
 			// NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid +
 			// targetPathSep;
@@ -286,7 +288,7 @@ public class HPCExecutor extends RemoteExecutor {
 													// stagingDir, session,
 													// impl.getExecutable());
 
-			job = createJob(workflow, command, jc);
+			job = createJob(workflow, command, stagingDir, jc);
 			jobParser = new JobInfoParser(job.getStatusHandler().getParser());
 
 			// Generate job script locally
@@ -298,7 +300,7 @@ public class HPCExecutor extends RemoteExecutor {
 					NonNLSConstants.SCRIPT);
 
 			// path to remote gondola log file
-			gondolaLogFile = stagingDir + NonNLSConstants.LOG;
+			gondolaLogFile = stagingDir + targetPathSep + NonNLSConstants.LOG;
 			// remoteLogFile = stagingDir + NonNLSConstants.LOG;
 
 			// quick check to see if we should stop
@@ -441,7 +443,7 @@ public class HPCExecutor extends RemoteExecutor {
 		return parser.parseJobId(lines);
 	}
 
-	private JobSubmissionType createJob(File workflow, List<String> command,
+	private JobSubmissionType createJob(File workflow, List<String> command, String stagingDir,
 			JAXBContext jc) throws FailedException {
 		JAXBElement<?> element = null;
 		try {
@@ -459,7 +461,7 @@ public class HPCExecutor extends RemoteExecutor {
 		// job.setMyproxyUser(myproxyUser);
 		job.setTargetUser(targetUser);
 		job.setTargetUserHome(targetUserHome);
-		updateJobScript(job.getScript(), fileMap, command);
+		updateJobScript(job.getScript(), fileMap, command, stagingDir);
 
 		return job;
 	}
@@ -493,9 +495,9 @@ public class HPCExecutor extends RemoteExecutor {
 	}
 
 	protected void updateJobScript(ScriptType script,
-			Map<String, String> fileMap, List<String> command) {
+			Map<String, String> fileMap, List<String> command, String stagingDir) {
 		// Create executable line from the user specified exe and inputs
-		LineType executionLine = new LineType();
+		//LineType executionLine = new LineType();
 		Iterator<String> iterator = fileMap.keySet().iterator();
 		String content = "sh" + NonNLSConstants.SP + executablePath;// line.getContent();
 
@@ -519,19 +521,39 @@ public class HPCExecutor extends RemoteExecutor {
 		content = content.concat(NonNLSConstants.SP + "1>" + standardOut
 				+ NonNLSConstants.SP + "2>" + standardErr);
 
-		executionLine.setContent(content);
-		script.getLine().add(executionLine);
+		//executionLine.setContent(content);
+		
+		// Add executable at line marked HPC_EXE
+		for(LineType line : script.getLine()) {
+			if(line.getContent().equals(HPC_EXE)) {
+				line.setContent(content);
+				break;
+			}
+		}
+		
+		// Replace HPC-SCRIPT-DIR with the gondola working directory
+		for(LineType line : script.getLine()) {
+			if(line.getContent().contains(HPC_SCRIPT_DIR)) {
+				String lineContent = line.getContent();
+				lineContent = lineContent.replace(HPC_SCRIPT_DIR, stagingDir);
+				line.setContent(lineContent);
+				//line.setContent(content);
+				//break;
+			}
+		}
+		
+		//script.getLine().add(executionLine);
 
-		LineType done = new LineType();
-		done.setContent("echo" + NonNLSConstants.SP + NonNLSConstants.DONE);
-		done.setLog(true);
-		script.getLine().add(done);
+		//LineType done = new LineType();
+		//done.setContent("echo" + NonNLSConstants.SP + NonNLSConstants.DONE);
+		//done.setLog(true);
+		//script.getLine().add(done);
 	}
 
 	private File writeLocalScript(File cwd, ScriptType script,
 			String stagingDir, String normUuid, String lineSep)
 			throws Exception {
-		String logPath = stagingDir + NonNLSConstants.LOG;
+		String logPath = stagingDir + NonNLSConstants.REMOTE_PATH_SEP + NonNLSConstants.LOG;
 		// status.setLogFile(logPath);
 		StringBuffer sb = new StringBuffer();
 		for (LineType line : script.getLine()) {
@@ -550,7 +572,7 @@ public class HPCExecutor extends RemoteExecutor {
 	private String stageFile(File f, String stagingDir, SSHSession session,
 			String fileName) throws Throwable {
 		SshUtils.mkdirs(stagingDir, session);
-		String targetPath = stagingDir + fileName;
+		String targetPath = stagingDir + NonNLSConstants.REMOTE_PATH_SEP + fileName;
 		SshUtils.copyTo(f.getAbsolutePath(), targetPath, session);
 		return targetPath;
 	}
@@ -693,6 +715,7 @@ public class HPCExecutor extends RemoteExecutor {
 				stdoutReader.close();
 				stdoutReader = null;
 			}
+			done = false;
 			if (!done) {
 				return State.FAILED;
 			}
