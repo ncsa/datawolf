@@ -717,7 +717,7 @@ public class HPCExecutor extends RemoteExecutor {
 				stdoutReader.close();
 				stdoutReader = null;
 			}
-			done = false;
+			
 			if (!done) {
 				return State.FAILED;
 			}
