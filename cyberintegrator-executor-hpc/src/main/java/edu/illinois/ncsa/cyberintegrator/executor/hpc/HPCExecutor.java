@@ -692,11 +692,11 @@ public class HPCExecutor extends RemoteExecutor {
 		try {
 			if (!storedJobInfo) {
 				createJobInfo();
-			} 
-			
-			SshUtils.copyFrom(gondolaLogFile, gondolaLog.getAbsolutePath(),
+			} else {
+				SshUtils.copyFrom(gondolaLogFile, gondolaLog.getAbsolutePath(),
 						session);
-
+			}
+			
 			// Capture log as stdout
 			StringBuilder stdout = new StringBuilder();
 			BufferedReader stdoutReader = new BufferedReader(new FileReader(
