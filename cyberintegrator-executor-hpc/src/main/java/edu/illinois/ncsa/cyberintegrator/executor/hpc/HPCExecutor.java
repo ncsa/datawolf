@@ -657,6 +657,7 @@ public class HPCExecutor extends RemoteExecutor {
 		} catch (IllegalArgumentException e) {
 			throw new FailedException("Failed to update job status", e);
 		} catch (Exception e) {
+			throw new FailedException("Failed to update job status", e);
 		} finally {
 			out.setLength(0);
 		}
@@ -665,6 +666,7 @@ public class HPCExecutor extends RemoteExecutor {
 		// need to check the log to see if we have a failure or success
 		// Getting here might be a bug in Ranger's gondola template because
 		// KISTI's machine actually returns "Finished"
+		logger.debug("qstat did not return any job status, check if job finished.");
 		return getGondolaLogFile();
 	}
 
