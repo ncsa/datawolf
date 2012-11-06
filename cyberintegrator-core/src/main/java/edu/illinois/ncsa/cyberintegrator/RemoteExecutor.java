@@ -87,9 +87,12 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
                     state = newstate;
                 }
 
-                String log = getRemoteLog();
-                if ((log != null) && !log.equals("")) {
-                    setLog(log);
+                // get the log only if running
+                if (state == State.RUNNING) {
+                    String log = getRemoteLog();
+                    if ((log != null) && !log.equals("")) {
+                        setLog(log);
+                    }
                 }
 
                 try {
@@ -97,6 +100,12 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
                 } catch (InterruptedException e) {
                     logger.info("Got interrupted.", e);
                 }
+            }
+
+            // get the log at the end always
+            String log = getRemoteLog();
+            if ((log != null) && !log.equals("")) {
+                setLog(log);
             }
 
         } catch (AbortException e) {
