@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -81,7 +82,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
             // submit job first
             State state = submitRemoteJob(cwd);
             setState(state);
-
+            Random random = new Random();
             while ((state != State.ABORTED) && (state != State.FAILED) && (state != State.FINISHED)) {
                 State newstate = checkRemoteJob();
                 if ((newstate != null) && (newstate != state)) {
@@ -98,7 +99,8 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
                 }
 
                 try {
-                    Thread.sleep(REMOTE_JOB_CHECK_INTERVAL);
+                    int interval = REMOTE_JOB_CHECK_INTERVAL + random.nextInt(1000);
+                    Thread.sleep(interval);
                 } catch (InterruptedException e) {
                     logger.info("Got interrupted.", e);
                 }
