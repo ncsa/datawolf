@@ -99,7 +99,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
                 }
 
                 try {
-                    int interval = REMOTE_JOB_CHECK_INTERVAL + random.nextInt(1000);
+                    int interval = REMOTE_JOB_CHECK_INTERVAL + random.nextInt(5000);
                     Thread.sleep(interval);
                 } catch (InterruptedException e) {
                     logger.info("Got interrupted.", e);

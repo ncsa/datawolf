@@ -279,7 +279,7 @@ public class SshUtils {
 				+ session);
 
 		Random random = new Random();
-		int delay = random.nextInt(1000);
+		int delay = random.nextInt(5000);
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
@@ -306,7 +306,7 @@ public class SshUtils {
 				+ session);
 
 		Random random = new Random();
-		int delay = random.nextInt(1000);
+		int delay = random.nextInt(5000);
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
@@ -375,7 +375,7 @@ public class SshUtils {
 					"ssh utils, exec: session object was null");
 
 		Random random = new Random();
-		int delay = random.nextInt(1000);
+		int delay = random.nextInt(5000);
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) {
