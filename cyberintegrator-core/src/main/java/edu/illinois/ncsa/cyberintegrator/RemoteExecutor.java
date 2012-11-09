@@ -30,7 +30,9 @@ import edu.illinois.ncsa.springdata.Transaction;
  * 
  */
 public abstract class RemoteExecutor extends Executor implements Runnable {
-    private static final Logger logger = LoggerFactory.getLogger(RemoteExecutor.class);
+    private static final int    REMOTE_JOB_CHECK_INTERVAL = 30000;
+
+    private static final Logger logger                    = LoggerFactory.getLogger(RemoteExecutor.class);
 
     private Thread              remoteThread;
 
@@ -96,7 +98,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
                 }
 
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(REMOTE_JOB_CHECK_INTERVAL);
                 } catch (InterruptedException e) {
                     logger.info("Got interrupted.", e);
                 }
