@@ -215,8 +215,16 @@ public class CyberintegratorServiceClient {
         return null;
     }
 
+    /**
+     * 
+     * @param email
+     *            email address of the creator of the execution
+     * @return
+     *         list of executions
+     */
     public static List<Execution> getExecutionsByEmail(String email) {
-        if(email== null) return null;
+        if (email == null)
+            return null;
         String responseStr = null;
         List<Execution> executions = null;
         HttpClient httpclient = new DefaultHttpClient();
@@ -243,9 +251,52 @@ public class CyberintegratorServiceClient {
                 return executions;
             } catch (Exception ignore) {}
         }
-        return null;        
+        return null;
     }
-    
+
+    /**
+     * 
+     * @param email
+     *            email address of the creator of the execution
+     * @param size
+     *            number of executions in a page
+     * @param page
+     *            page number
+     * @return
+     *         list of executions
+     */
+    public static List<Execution> getExecutionsByEmail(String email, int size, int page) {
+        if (email == null)
+            return null;
+        String responseStr = null;
+        List<Execution> executions = null;
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/executions?email=" + email + "&size=" + size + "&page=" + page;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.debug("executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                logger.debug("Response String: " + responseStr);
+                ObjectMapper mapper = new ObjectMapper();
+                executions = mapper.readValue(responseStr, new TypeReference<List<Execution>>() {});
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+                return executions;
+            } catch (Exception ignore) {}
+        }
+        return null;
+    }
+
     public static Map<String, State> getState(String executionId) {
         String responseStr = null;
         Map<String, State> states = null;
@@ -431,7 +482,7 @@ public class CyberintegratorServiceClient {
             }
 
         } catch (UnsupportedEncodingException e1) {
-            logger.error("Can't URL encode",e1);
+            logger.error("Can't URL encode", e1);
             return null;
         } finally {
             try {
@@ -441,7 +492,7 @@ public class CyberintegratorServiceClient {
         }
         return null;
     }
-    
+
     public static Person getPersonByEmail(String email) {
         String responseStr = null;
         List<Person> persons = null;
@@ -472,7 +523,7 @@ public class CyberintegratorServiceClient {
         }
         return null;
     }
-    
+
     public static Dataset getDataset(String datasetId) {
         String responseStr = null;
         HttpClient httpclient = new DefaultHttpClient();
