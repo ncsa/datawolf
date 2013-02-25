@@ -594,12 +594,13 @@ public class HPCExecutor extends RemoteExecutor {
                 if (data != null) {
                     if (data[0].equals(jobId)) {
                         State jobState = getJobState(data[1]);
-                        if (jobState.equals(State.FINISHED)) {
+                        if (jobState.equals(State.FINISHED) || jobState.equals(State.ABORTED)) {
                             return getGondolaLogFile();
                         } else if (jobState.equals(State.RUNNING) && !storedJobInfo) {
                             createJobInfo();
                             return jobState;
                         } else {
+                            logger.debug("Job is not finished, aborted, nor running: "+jobState.toString());
                             return jobState;
                         }
                     }
@@ -746,7 +747,7 @@ public class HPCExecutor extends RemoteExecutor {
                         return;
                     }
                     workingDir = line;
-
+                    jobResultDirectory = workingDir;
                     // This should be the standard err/out log file directory
                     // line = stdoutReader.readLine();
                     // if(line != null) {
