@@ -357,6 +357,45 @@ public class CyberintegratorServiceClient {
         }
     }
 
+    public static void cancel(String executionId, List<String> stepIds) {
+        String responseStr = null;
+
+        HttpClient httpclient = new DefaultHttpClient();
+        try {
+            String requestUrl = SERVER + "/executions/" + executionId + "/cancel";
+            if (stepIds != null) {
+                if (!stepIds.isEmpty()) {
+                    requestUrl += "?stepids=";
+                    for (String stepId : stepIds) {
+                        requestUrl += stepId + ";";
+                    }
+                    requestUrl = requestUrl.substring(0, requestUrl.length() - 1);
+                }
+            }
+
+            HttpPut httpPut = new HttpPut(requestUrl);
+
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            logger.info("executing request " + httpPut.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpPut, responseHandler);
+                logger.debug("Response String: " + responseStr);
+                // ObjectMapper mapper = new ObjectMapper();
+                // states = mapper.readValue(responseStr, new
+                // TypeReference<Map<String, String>>() {});
+            } catch (Exception e) {
+                logger.error("HTTP get failed", e);
+            }
+
+        } finally {
+            try {
+                httpclient.getConnectionManager().shutdown();
+            } catch (Exception ignore) {}
+        }
+    }
+
     public static void startExecution(String executionId) {
         String responseStr = null;
         HttpClient httpclient = new DefaultHttpClient();
@@ -551,4 +590,5 @@ public class CyberintegratorServiceClient {
         }
         return null;
     }
+
 }
