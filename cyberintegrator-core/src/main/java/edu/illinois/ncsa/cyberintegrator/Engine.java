@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
+import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
@@ -79,13 +81,16 @@ public class Engine {
     /** number of jobs that can be in local executor queue */
     private int                   extraLocalExecutor = 1;
 
+    /** flag indicating if queue has been checked for unfinished jobs on startup */
+    private boolean               loadedQueue        = false;
+
     /**
      * Create the engine with a single worker.
      */
     public Engine() {
         engineThread.setName("EngineThread");
         engineThread.start();
-        loadQueue();
+        // loadQueue();
     }
 
     public void setLocalExecutorThreads(int threads) {
@@ -323,7 +328,21 @@ public class Engine {
         synchronized (queue) {
             for (Executor exec : queue) {
                 if (exec.getExecutionId().equals(executionId) && allsteps.contains(exec.getStepId())) {
-                    exec.stopJob();
+                    // CMN: does this really need a transaction?
+                    Transaction t = SpringData.getTransaction();
+                    try {
+                        t.start();
+                        exec.stopJob();
+                    } catch (Exception e) {
+                        logger.error("Error starting transaction to stop job", e);
+                    } finally {
+                        try {
+                            t.commit();
+                        } catch (Exception e) {
+                            logger.error("Error committing transaction", e);
+                        }
+                    }
+
                 }
             }
         }
@@ -372,17 +391,79 @@ public class Engine {
      */
     private void saveQueue() {
         // TODO RK : Enable saving of queue to spring-data
+        // Nothing to do here, each execution is already saved
     }
 
     /**
      * Load the queue from the underlying persistence layer.
      */
     private void loadQueue() {
-        // TODO RK : Enable loading of queue from spring-data
+        logger.debug("Load queue with any unfinished steps");
+        Map<Execution, List<String>> queue = new HashMap<Execution, List<String>>();
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start(true);
+            ExecutionDAO executionDAO = SpringData.getBean(ExecutionDAO.class);
+            List<String> steps = null;
+            for (Execution execution : executionDAO.findAll()) {
+                Map<String, State> stepStates = execution.getStepStates();
+                steps = new ArrayList<String>();
+                Iterator<String> stepIterator = stepStates.keySet().iterator();
+                while (stepIterator.hasNext()) {
+                    String stepId = stepIterator.next();
+                    State stepState = stepStates.get(stepId);
+                    if (stepState.equals(State.WAITING) || stepState.equals(State.QUEUED) || stepState.equals(State.RUNNING)) {
+                        steps.add(stepId);
+                    }
+                }
+
+                if (steps.size() > 0) {
+                    queue.put(execution, steps);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error opening transaction.", e);
+        } finally {
+            try {
+                t.commit();
+            } catch (Exception e) {
+                logger.error("Error closing transaction.", e);
+            }
+        }
+
+        // CMN: Should/Does this need to be inside the transaction?
+        if (queue.size() > 0) {
+            logger.debug("Found " + queue.size() + " execution(s) with unfinished setps, run them now.");
+            Iterator<Execution> executions = queue.keySet().iterator();
+            while (executions.hasNext()) {
+                Execution execution = executions.next();
+                List<String> steps = queue.get(execution);
+
+                execute(execution, steps.toArray(new String[steps.size()]));
+            }
+        }
+        logger.debug("Finished loading queue.");
     }
 
     class WorkerThread extends Thread {
         public void run() {
+            if (!loadedQueue) {
+                while (!loadedQueue) {
+                    try {
+                        // TODO CMN: Need to handle case of multiple workers
+                        Thread.sleep(100);
+                        Transaction t = SpringData.getTransaction();
+                        if (t != null) {
+                            loadedQueue = true;
+                            loadQueue();
+                        }
+                    } catch (NullPointerException e) {
+                        // do nothing, context is not loaded yet
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             Execution execution = null;
             WorkflowStep step = null;
             int idx = 0;
