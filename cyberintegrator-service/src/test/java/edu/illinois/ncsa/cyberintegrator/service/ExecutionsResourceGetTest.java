@@ -3,6 +3,7 @@ package edu.illinois.ncsa.cyberintegrator.service;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -29,6 +30,13 @@ public class ExecutionsResourceGetTest {
     public static void setUp() throws Exception {
         logger.info("Setting up Test for Executions Resource");
 
+        CyberintegratorServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
+
+        EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
+    }
+
+    @Before
+    public void createContext() throws Exception {
         new GenericXmlApplicationContext("testContext.xml");
 
         // create person
@@ -42,10 +50,6 @@ public class ExecutionsResourceGetTest {
         stepId = steps.get(0).getId();
         SpringData.getBean(ExecutionDAO.class).save(execution);
         id = execution.getId();
-
-        CyberintegratorServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
-
-        EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
     }
 
     @AfterClass
