@@ -84,6 +84,11 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
             setState(state);
             Random random = new Random();
             while ((state != State.ABORTED) && (state != State.FAILED) && (state != State.FINISHED)) {
+                // check to see if job is stopped.
+                if (isJobStopped()) {
+                    throw (new AbortException("Job got stopped."));
+                }
+
                 State newstate = checkRemoteJob();
                 if ((newstate != null) && (newstate != state)) {
                     setState(newstate);
