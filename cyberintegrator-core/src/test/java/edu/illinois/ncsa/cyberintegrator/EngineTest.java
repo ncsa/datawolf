@@ -37,6 +37,9 @@ import edu.illinois.ncsa.springdata.Transaction;
 /**
  * @author Rob Kooper <kooper@illinois.edu>
  * 
+ * @TODO add test to test loadQueue - create engine, add workflow, stop engine
+ *       and start new engine
+ * 
  */
 public class EngineTest {
     public static final String STEP_WITH_ERROR = "STEP WITH ERROR";
@@ -45,13 +48,14 @@ public class EngineTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        new GenericXmlApplicationContext("testContext.xml");
+        // new GenericXmlApplicationContext("testContext.xml");
     }
 
     @Before
     public void createEngine() {
         engine = new Engine();
         engine.addExecutor(new DummyExecutor());
+        new GenericXmlApplicationContext("testContext.xml");
     }
 
     @After

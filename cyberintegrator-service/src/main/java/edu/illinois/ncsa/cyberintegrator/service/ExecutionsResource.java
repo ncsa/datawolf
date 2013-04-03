@@ -511,9 +511,15 @@ public class ExecutionsResource {
      */
     @PUT
     @Path("{execution-id}/cancel")
-    public void cancelExecution(@PathParam("execution-id") String executionId) {
+    public void cancelExecution(@PathParam("execution-id") String executionId, @QueryParam("stepids") @DefaultValue("") String stepIds) {
         Engine engine = SpringData.getBean(Engine.class);
-        engine.stop(executionId);
+
+        if (stepIds.equals("")) {
+            engine.stop(executionId);
+        } else {
+            String[] ids = stepIds.split(";");
+            engine.stop(executionId, ids);
+        }
     }
 
     /**
@@ -554,5 +560,4 @@ public class ExecutionsResource {
         else
             return Response.status(500).entity("Can't delete execution id: " + executionId).build();
     }
-
 }

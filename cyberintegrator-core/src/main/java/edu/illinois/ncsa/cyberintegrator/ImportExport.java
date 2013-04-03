@@ -150,15 +150,16 @@ public class ImportExport {
                     continue;
                 }
                 String[] pieces = entry.getName().split("/");
+                FileDescriptor blob = null;
                 if (fdDAO.exists(pieces[1])) {
                     logger.info("Already have blob with id : " + pieces[1]);
-                    continue;
+                    blob = fdDAO.findOne(pieces[1]);
+                } else {
+                    // save blob
+                    InputStream is = zipfile.getInputStream(entry);
+                    blob = fs.storeFile(pieces[1], pieces[2], is);
+                    is.close();
                 }
-
-                // save blob
-                InputStream is = zipfile.getInputStream(entry);
-                FileDescriptor blob = fs.storeFile(pieces[1], pieces[2], is);
-                is.close();
 
                 // fix workflow
                 for (WorkflowStep step : workflow.getSteps()) {
