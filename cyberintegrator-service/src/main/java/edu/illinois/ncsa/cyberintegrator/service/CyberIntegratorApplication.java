@@ -19,6 +19,7 @@ public class CyberIntegratorApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> rrcs = new HashSet<Class<?>>();
+        rrcs.add(AuthenticationInterceptor.class);
         rrcs.add(WorkflowsResource.class);
         rrcs.add(ExecutionsResource.class);
         rrcs.add(DatasetsResource.class);
