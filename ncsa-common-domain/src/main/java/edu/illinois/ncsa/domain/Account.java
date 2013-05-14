@@ -44,10 +44,11 @@ public class Account extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
-    /** First Name of the person. */
+    /** userid of the person, often email address. */
     private String            userid           = "";  //$NON-NLS-1$
 
-    /** First Name of the person. */
+    /** password associated with the userid. */
+    // TODO RK : password should really be encrypted
     private String            password         = "";  //$NON-NLS-1$
 
     /** email of the person. */
