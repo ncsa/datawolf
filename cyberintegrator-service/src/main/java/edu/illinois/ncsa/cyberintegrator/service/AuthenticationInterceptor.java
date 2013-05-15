@@ -5,7 +5,9 @@ import java.util.StringTokenizer;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.Provider;
 
+import org.jboss.resteasy.annotations.interception.ServerInterceptor;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ResourceMethod;
 import org.jboss.resteasy.core.ServerResponse;
@@ -21,6 +23,8 @@ import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.springdata.AccountDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
+@Provider
+@ServerInterceptor
 public class AuthenticationInterceptor implements PreProcessInterceptor {
     Logger log = LoggerFactory.getLogger(DatasetsResource.class);
 

@@ -21,6 +21,10 @@
 	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorage" />
 
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
+	
+	<!--  enable authentication 
+	<bean id="authentication" class=" edu.illinois.ncsa.cyberintegrator.service.AuthenticationInterceptor" />
+	-->
 
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
