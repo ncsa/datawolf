@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Cyberintegrator Editor</title>
+    <!-- <link rel="stylesheet" href="assets/css/demo-all.css"> -->
+    <link href="assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="main.css" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="assets/css/perimeterAnchorsDemo.css"> -->
+
+    <style type="text/css">
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+</script>
+    <script type="text/template" id="workflow-list-item">
+        <%= title %>
+    </script>
+    <script type="text/template" id="addshape-button-template">
+        <button id="addshape-button" class="btn btn-primary">Add Shape</button>
+    </script>
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container-fluid">
+                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="brand" href="#">Cyberintegrator Editor</a>
+                <div class="nav-collapse collapse">
+                    <ul class="nav">
+                        <li class="active"><a href="#">Home</a></li>
+                        <li><a href="#">About</a></li>   
+                        <li><a href="#">Contact</a></li>   
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id='editor-app' class="container-fluid">
+        <div class="row-fluid">
+            <div class="span2">
+                <div>
+                <h4>Tools</h4>
+                <!--
+                    <select size="10">
+                        <option value="eAIRS-CFD">eAIRS-CFD</option>
+                        <option value="eAIRS File-Transfer">eAIRS File-Transfer</option>
+                        <option value="eAIRS Results">eAIRS Results</option>
+                        <option value="eAIRS CFD Parameters">eAIRS CFD Parameters</option>
+                    </select> -->
+                    <div id="workflow-tools"></div>
+                </div>
+                <div id="workflows">
+                    <h4>Workflows</h4>
+                    <select size="10">
+                        <option value="Workflow 1">Workflow 1</option>
+                        <option value="Workflow 2">Workflow 2</option>
+                        <option value="Workflow 3">Workflow 3</option>
+                        <option value="Workflow 4">Workflow 4</option>
+                    </select>
+                </div>
+           </div>
+            <div class="span4">
+                <div class="dropzone">
+                <h4>Workflow Graph</h4>
+                    <div id="wgraph">
+                        
+                        <div class="shape" data-shape="Rectangle" id="analysis1">eAIRS-CFD</div>
+                        <div class="shape" data-shape="Ellipse" id="input1">file-locations.txt</div>
+                        <div class="shape" data-shape="Ellipse" id="output1">standard-out</div>
+                        <div class="shape" data-shape="Ellipse" id="output2">standard-err</div>
+                        <div class="shape" data-shape="Ellipse" id="output3">gondola-log</div>
+                    </div>
+                    <div id="add-shape-div" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/jquery-1.9.0.js"></script>
+    <script src="assets/jquery-ui-1.9.2-min.js"></script>
+    
+    <script src="assets/underscore-min.js"></script>
+    <script src="assets/backbone-min.js"></script> 
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/backbone.localStorage.js"></script> 
+
+    <script src="assets/jquery.jsPlumb-1.4.1-all-min.js"></script>
+
+    <!-- Views -->
+    <script src="js/views/workflowgraphview.js"></script>
+    <script src="js/views/workflowtoolview.js"></script>
+
+    <!-- Models -->
+
+    <!-- main application -->
+    <script src="js/main.js"></script>
+</body>
+</html>

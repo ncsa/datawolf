@@ -1,0 +1,171 @@
+body {
+	padding-top: 60px;
+    padding-bottom: 40px;
+    background: #222;
+    color: #fff;
+    font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+}
+
+path, ._jsPlumb_endpoint { cursor:pointer; }
+
+/* z index stuff. windows are at z-index 24. */
+
+._jsPlumb_connector { z-index:18; }
+._jsPlumb_endpoint { z-index:19; 
+}._jsPlumb_overlay { z-index:20; }
+
+._jsPlumb_connector._jsPlumb_hover {
+    z-index:21 !important;
+}
+
+._jsPlumb_endpoint._jsPlumb_hover {
+    z-index:22 !important;
+}
+
+._jsPlumb_overlay._jsPlumb_hover {
+    z-index:23 !important;
+}
+
+._jsPlumb_connector {
+    z-index:1;
+}
+
+.shape {
+    z-index:2;
+    opacity:0.7;
+    filter:alpha(opacity=70);
+    position:absolute;
+    cursor:pointer;
+    text-align:center;
+    color:#333;
+}
+
+/* Shapes */
+[data-shape=RectangleOld] {
+    width:210px;
+    height:70px;
+    left:380px;
+    top:505px;
+    line-height: 70px;
+    background-image:url(img/rectangle.png);
+}
+[data-shape=Rectangle] {
+    width:125px;
+    height:65px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+    left:300px;
+    top:60px;
+    background-color: #eaedef;
+    line-height: 60px;
+    border: 3px solid #659d32; 
+}
+
+[data-shape=Ellipse1] {
+    width:150px;
+    height:70px;
+    left:250px;
+    top:300px;
+    line-height: 70px;
+    background-image:url(img/ellipse.png);
+}
+
+[data-shape=Ellipse] {
+    width:125px;
+    height:50px;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    left:100px;
+    top:60px;
+    background-color: #eaedef;
+    line-height: 50px; /* seems to effect text location */
+    /*border: 3px solid #66CCCC; */
+    border: 3px solid #CDAD00;
+}
+
+[data-shape=Circle] {
+    width:50px;
+    height:50px;
+    -webkit-border-radius: 25px;
+    -moz-border-radius: 25px;
+    border-radius: 25px;
+    left:100px;
+    top:60px;
+    background-color: #000000;
+}
+
+[data-shape=Circle1] {
+    width:150px;
+    height:150px;
+    left:100px;
+    top:60px;
+    line-height: 150px;
+    background-image:url(img/circle.png);
+}
+
+[data-shape=Triangle] {
+    width:150px;
+    height:150px;
+    line-height: 150px;
+    background-image:url(img/triangle.png);
+}
+
+._90[data-shape=Triangle] {
+    width:150px;
+    height:150px;
+    line-height: 150px;
+    background-image:url(img/triangle_90.png);
+}
+
+[data-shape=Diamond] {
+    width:150px;
+    height:150px;
+    left:550px;
+    top:150px;
+    line-height: 150px;
+    background-image:url(img/diamond.png);
+}
+
+#dropzone {
+    background-color:'#000000';
+    height: 400px;
+    width: 400px;
+}
+
+
+#wgraph {
+    /* these two margins settings are here just to ensure that jsPlumb handles
+    margins properly.*/  
+    /*margin-top:44px; */
+    margin-left: auto;
+    position: relative;
+    font-size: 80%;
+    margin-right: auto;
+    width: 1024px;
+    border-left: 2px solid #456;
+    border-right: 2px solid #456;
+    border-bottom: 2px solid #456;
+    height: 768px;
+    overflow: hidden;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: #eaedef;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+#workflow-tools {
+
+    background-color:#eaedef;
+    color: #000000;
+    /*
+    Put this back after demo screenshots
+    width:225px;
+    height:250px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px; */
+}
