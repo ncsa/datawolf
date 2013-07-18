@@ -350,10 +350,10 @@ public class CommandLineExecutor extends LocalExecutor {
             if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
                 try {
                     ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(step.getOutput(impl.getCaptureStdErr()).getTitle(), bais);
+                    FileDescriptor fd = SpringData.getFileStorage().storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais);
 
                     Dataset ds = new Dataset();
-                    ds.setTitle(step.getOutput(impl.getCaptureStdErr()).getTitle());
+                    ds.setTitle(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
                     SpringData.getBean(DatasetDAO.class).save(ds);
