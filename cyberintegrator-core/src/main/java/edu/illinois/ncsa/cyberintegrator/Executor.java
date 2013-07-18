@@ -33,6 +33,7 @@ public abstract class Executor {
 
     private StringBuilder log         = new StringBuilder();
     private LogFile       logfile     = new LogFile();
+    private int           lastsave    = 0;
     private State         state       = State.UNKNOWN;
     private String        executionId = null;
     private String        stepId      = null;
@@ -168,7 +169,7 @@ public abstract class Executor {
         synchronized (log) {
             log.append(msg);
             logger.debug(msg);
-            saveLog();
+            saveLog(false);
         }
     }
 
@@ -196,7 +197,7 @@ public abstract class Executor {
             log.append(msg);
             log.append("\n");
             logger.debug(msg);
-            saveLog();
+            saveLog(false);
         }
     }
 
@@ -231,7 +232,7 @@ public abstract class Executor {
             log.append("\n");
             log.append(sw.toString());
             logger.debug(msg, thr);
-            saveLog();
+            saveLog(false);
         }
     }
 
@@ -245,12 +246,17 @@ public abstract class Executor {
         synchronized (log) {
             log = new StringBuilder(msg);
             logger.debug(msg);
-            saveLog();
+            saveLog(true);
         }
     }
 
-    private void saveLog() {
-        if (isStoreLog()) {
+    protected void flushLog() {
+        saveLog(true);
+    }
+
+    private void saveLog(boolean flush) {
+        if (isStoreLog() && (flush || ((log.length() - lastsave) > 1024))) {
+            lastsave = log.length();
             if (logfile.getLog() == null) {
                 logfile.setExecutionId(executionId);
                 logfile.setStepId(stepId);

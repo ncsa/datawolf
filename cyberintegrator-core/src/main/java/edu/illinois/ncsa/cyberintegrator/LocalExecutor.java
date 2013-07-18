@@ -160,6 +160,7 @@ public abstract class LocalExecutor extends Executor implements Runnable {
                 logger.info(msg);
                 println(msg);
             }
+            flushLog();
         }
     }
 

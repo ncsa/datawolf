@@ -133,6 +133,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
                 logger.info(msg);
                 println(msg);
             }
+            flushLog();
         }
     }
 

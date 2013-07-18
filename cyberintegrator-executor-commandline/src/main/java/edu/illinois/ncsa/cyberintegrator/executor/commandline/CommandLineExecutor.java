@@ -313,6 +313,7 @@ public class CommandLineExecutor extends LocalExecutor {
                 } catch (InterruptedException e) {}
             }
         } while ((stdoutReader != null) || (stderrReader != null));
+        flushLog();
 
         t = SpringData.getTransaction();
         // List of created datasets
