@@ -18,11 +18,15 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
+import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.springdata.DatasetDAO;
@@ -32,12 +36,15 @@ import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
 
 public class ImportExport {
-    private static Logger       logger        = LoggerFactory.getLogger(ImportExport.class);
+    private static Logger       logger         = LoggerFactory.getLogger(ImportExport.class);
 
-    private static final String WORKFLOW_FILE = "workflow.json";
-    private static final String BLOBS_FOLDER  = "blobs";
+    private static final String WORKFLOW_FILE  = "workflow.json";
+    private static final String EXECUTION_FILE = "execution.json";
+    private static final String STEP_FILE      = "step.json";
+    private static final String DATASET_FILE   = "dataset.json";
 
-    private static final String DATASET_FILE  = "dataset.json";
+    private static final String BLOBS_FOLDER   = "blobs";
+    private static final String LOGS_FOLDER    = "logs";
 
     /**
      * Exports the given workflow to a zip file. The complete workflow will be
@@ -202,6 +209,185 @@ public class ImportExport {
     }
 
     /**
+     * Exports the given execution to a zip file. The complete execution will be
+     * exported as a JSON object, including all outputs generated during the
+     * execution
+     * 
+     * @param file
+     *            the zipfile where the execution will be saved, this file will
+     *            be overwritten.
+     * @param executionId
+     *            the id of the exection to export.
+     * @throws Exception
+     *             an exception is thrown if the execution could not be saved.
+     */
+    public static void exportExecution(File file, String executionId) throws Exception {
+        // create zipfile
+        ZipOutputStream zipfile = null;
+
+        // create transaction
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start(true);
+            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(executionId);
+
+            zipfile = new ZipOutputStream(new FileOutputStream(file));
+
+            // export dataset
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // this will close the outputstream, hence the byte array
+            ObjectMapper mapper = new ObjectMapper();
+            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
+            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+            mapper.writeValue(jsonGenerator, execution);
+
+            zipfile.putNextEntry(new ZipEntry(EXECUTION_FILE));
+            zipfile.write(baos.toByteArray());
+            zipfile.closeEntry();
+
+            // export blobs
+            Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
+            FileStorage fs = SpringData.getFileStorage();
+            byte[] buf = new byte[10240];
+            int len = 0;
+            Set<String> datasets = new HashSet<String>(execution.getDatasets().values());
+            for (String datasetId : datasets) {
+                Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(datasetId);
+                for (FileDescriptor fd : dataset.getFileDescriptors()) {
+                    if (!blobs.contains(fd)) {
+                        blobs.add(fd);
+
+                        zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
+                        InputStream is = fs.readFile(fd);
+                        while ((len = is.read(buf)) > 0) {
+                            zipfile.write(buf, 0, len);
+                        }
+                        is.close();
+                        zipfile.closeEntry();
+                    }
+                }
+            }
+
+            // export logfiles
+            for (LogFile logfile : SpringData.getBean(LogFileDAO.class).findByExecutionId(execution.getId())) {
+                FileDescriptor fd = logfile.getLog();
+                if (!blobs.contains(fd)) {
+                    blobs.add(fd);
+
+                    zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", LOGS_FOLDER, fd.getId(), fd.getFilename())));
+                    InputStream is = fs.readFile(fd);
+                    while ((len = is.read(buf)) > 0) {
+                        zipfile.write(buf, 0, len);
+                    }
+                    is.close();
+                    zipfile.closeEntry();
+                }
+            }
+
+        } finally {
+            if (zipfile != null) {
+                zipfile.close();
+            }
+            t.rollback();
+        }
+    }
+
+    /**
+     * Exports the given step to a zip file. The complete step will be
+     * exported as a JSON object, including all outputs generated during the
+     * specific execution.
+     * 
+     * @param file
+     *            the zipfile where the step will be saved, this file will
+     *            be overwritten.
+     * @param stepId
+     *            the id of the step to export.
+     * @param executionId
+     *            the id of the exection to find the data to export.
+     * @throws Exception
+     *             an exception is thrown if the step could not be saved.
+     */
+    public static void exportStep(File file, String stepId, String executionId) throws Exception {
+        // create zipfile
+        ZipOutputStream zipfile = null;
+
+        // create transaction
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start(true);
+            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(stepId);
+
+            zipfile = new ZipOutputStream(new FileOutputStream(file));
+
+            // export dataset
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // this will close the outputstream, hence the byte array
+            ObjectMapper mapper = new ObjectMapper();
+            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
+            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+            mapper.writeValue(jsonGenerator, step);
+
+            zipfile.putNextEntry(new ZipEntry(STEP_FILE));
+            zipfile.write(baos.toByteArray());
+            zipfile.closeEntry();
+
+            // export blobs
+            if (executionId != null) {
+                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(executionId);
+                Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
+                FileStorage fs = SpringData.getFileStorage();
+                byte[] buf = new byte[10240];
+                int len = 0;
+                Set<String> datasets = new HashSet<String>();
+                for (WorkflowToolData tooldata : step.getTool().getOutputs()) {
+                    if (execution.getDataset(tooldata.getId()) != null) {
+                        datasets.add(execution.getDataset(tooldata.getDataId()));
+                    }
+                }
+                for (String datasetId : datasets) {
+                    Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(datasetId);
+                    for (FileDescriptor fd : dataset.getFileDescriptors()) {
+                        if (!blobs.contains(fd)) {
+                            blobs.add(fd);
+
+                            zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
+                            InputStream is = fs.readFile(fd);
+                            while ((len = is.read(buf)) > 0) {
+                                zipfile.write(buf, 0, len);
+                            }
+                            is.close();
+                            zipfile.closeEntry();
+                        }
+                    }
+                }
+
+                LogFile logfile = SpringData.getBean(LogFileDAO.class).findLogByExecutionIdAndStepId(execution.getId(), step.getId());
+                FileDescriptor fd = logfile.getLog();
+                if (!blobs.contains(fd)) {
+                    blobs.add(fd);
+
+                    zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", LOGS_FOLDER, fd.getId(), fd.getFilename())));
+                    InputStream is = fs.readFile(fd);
+                    while ((len = is.read(buf)) > 0) {
+                        zipfile.write(buf, 0, len);
+                    }
+                    is.close();
+                    zipfile.closeEntry();
+                }
+
+            }
+
+        } finally {
+            if (zipfile != null) {
+                zipfile.close();
+            }
+            t.rollback();
+        }
+    }
+
+    /**
      * Exports the given dataset to a zip file. The complete dataset will be
      * exported as a JSON object, including blobs.
      * 
@@ -209,9 +395,9 @@ public class ImportExport {
      *            the zipfile where the dataset will be saved, this file will
      *            be overwritten.
      * @param datasetId
-     *            the id of the workflow to export.
+     *            the id of the dataset to export.
      * @throws Exception
-     *             an exception is thrown if the workflow could not be saved.
+     *             an exception is thrown if the dataset could not be saved.
      */
     public static void exportDataset(File file, String datasetId) throws Exception {
         // create zipfile
