@@ -18,8 +18,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
@@ -57,7 +59,7 @@ public class ImportExport {
         // create transaction
         Transaction t = SpringData.getTransaction();
         try {
-            t.start();
+            t.start(true);
             Workflow workflow = SpringData.getBean(WorkflowDAO.class).findOne(workflowId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
@@ -105,7 +107,7 @@ public class ImportExport {
             if (zipfile != null) {
                 zipfile.close();
             }
-            t.commit();
+            t.rollback();
         }
     }
 
@@ -218,7 +220,7 @@ public class ImportExport {
         // create transaction
         Transaction t = SpringData.getTransaction();
         try {
-            t.start();
+            t.start(true);
             Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(datasetId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
@@ -259,7 +261,7 @@ public class ImportExport {
             if (zipfile != null) {
                 zipfile.close();
             }
-            t.commit();
+            t.rollback();
         }
     }
 
@@ -345,4 +347,38 @@ public class ImportExport {
 
     }
 
+    /**
+     * Exports the given logfile to a textfile.
+     * 
+     * @param file
+     *            the textfile where the log will be saved, this file will
+     *            be overwritten.
+     * @param logfileId
+     *            the id of the workflow to export.
+     * @throws Exception
+     *             an exception is thrown if the logfile could not be saved.
+     */
+    public static void exportLogfile(File file, String logfileId) throws Exception {
+        // create transaction
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start(true);
+            LogFile logfile = SpringData.getBean(LogFileDAO.class).findOne(logfileId);
+
+            FileDescriptor fd = logfile.getLog();
+            FileStorage fileStorage = SpringData.getFileStorage();
+
+            FileOutputStream output = new FileOutputStream(file);
+            InputStream input = fileStorage.readFile(fd);
+            byte[] buf = new byte[10240];
+            int len;
+            while ((len = input.read(buf)) > 0) {
+                output.write(buf, 0, len);
+            }
+            input.close();
+            output.close();
+        } finally {
+            t.rollback();
+        }
+    }
 }
