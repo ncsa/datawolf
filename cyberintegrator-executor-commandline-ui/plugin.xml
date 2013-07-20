@@ -11,4 +11,13 @@
             name="Command Line Tool">
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="edu.illinois.ncsa.cyberintegrator.rcp.perspective">
+         <newWizardShortcut
+               id="edu.illinois.ncsa.cyberintegrator.executor.commandline.wizard.CommandLineWizard">
+         </newWizardShortcut>
+      </perspectiveExtension>
+   </extension>
 </plugin>

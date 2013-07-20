@@ -7,9 +7,17 @@
             category="edu.illinois.ncsa.cyberintegrator.rcp.cyberintegrator"
             class="edu.illinois.ncsa.cyberintegrator.executor.hpc.wizard.HPCToolWizard"
             icon="icons/world.png"
-            id="cyberintegrator-executor-hpc-ui.wizard1"
+            id="edu.illinois.ncsa.cyberintegrator.executor.hpc.wizard.HPCToolWizard"
             name="HPC Tool">
       </wizard>
    </extension>
-
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="edu.illinois.ncsa.cyberintegrator.rcp.perspective">
+         <newWizardShortcut
+               id="edu.illinois.ncsa.cyberintegrator.executor.hpc.wizard.HPCToolWizard">
+         </newWizardShortcut>
+      </perspectiveExtension>
+   </extension>
 </plugin>
