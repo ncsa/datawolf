@@ -382,16 +382,7 @@ public class Engine {
     private void addJob(Executor exec) {
         synchronized (queue) {
             queue.add(exec);
-            saveQueue();
         }
-    }
-
-    /**
-     * Save the queue to the underlying persistence layer.
-     */
-    private void saveQueue() {
-        // TODO RK : Enable saving of queue to spring-data
-        // Nothing to do here, each execution is already saved
     }
 
     /**
@@ -425,7 +416,7 @@ public class Engine {
             logger.error("Error opening transaction.", e);
         } finally {
             try {
-                t.commit();
+                t.rollback();
             } catch (Exception e) {
                 logger.error("Error closing transaction.", e);
             }
@@ -500,7 +491,6 @@ public class Engine {
                             if (exec instanceof LocalExecutor) {
                                 local--;
                             }
-                            saveQueue();
                             last--;
                             idx = 0;
                             break;
@@ -577,7 +567,6 @@ public class Engine {
                                     logger.warn("ABORTING " + exec.getExecutionId());
                                     queue.remove(idx);
                                 }
-                                saveQueue();
                                 last--;
                                 idx = 0;
                                 break;
