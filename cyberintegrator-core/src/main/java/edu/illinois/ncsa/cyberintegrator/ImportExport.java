@@ -4,8 +4,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -27,11 +32,14 @@ import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.FileDescriptorDAO;
 import edu.illinois.ncsa.springdata.FileStorage;
+import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 import edu.illinois.ncsa.springdata.Transaction;
 
@@ -115,6 +123,67 @@ public class ImportExport {
     }
 
     /**
+     * Check the bean and replace all people with people already stored based on
+     * their email addresses. This function is recursive and assumes to be
+     * called inside a transaction.
+     * 
+     * @param bean
+     *            the bean to be checked.
+     */
+    private static void fixPeople(AbstractBean bean) {
+        // check to see if bean is person, if so check if we need to swap
+        if (bean instanceof Person) {
+            Person p1 = (Person) bean;
+            PersonDAO dao = SpringData.getBean(PersonDAO.class);
+            Person p2 = dao.findOne(p1.getId());
+            if (p2 != null) {
+                return;
+            }
+            p2 = dao.findByEmail(((Person) bean).getEmail());
+            if (p2 != null) {
+                p1.setId(p2.getId());
+                p1.setEmail(p2.getEmail());
+                p1.setFirstName(p2.getFirstName());
+                p1.setLastName(p2.getLastName());
+                return;
+            }
+            return;
+        }
+
+        // check all subfields
+        for (Field field : bean.getClass().getDeclaredFields()) {
+            try {
+                field.setAccessible(true);
+                fixPeople(field.get(bean));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void fixPeople(Object obj) {
+        if (obj == null) {
+            return;
+        }
+        if (obj instanceof AbstractBean) {
+            fixPeople((AbstractBean) obj);
+        } else if (obj instanceof Collection<?>) {
+            for (Object o : (Collection<?>) obj) {
+                fixPeople(o);
+            }
+        } else if (obj instanceof Map<?, ?>) {
+            for (Entry<?, ?> entry : ((Map<?, ?>) obj).entrySet()) {
+                fixPeople(entry.getKey());
+                fixPeople(entry.getValue());
+            }
+        } else if (obj.getClass().isArray()) {
+            for (Object o : Arrays.asList(obj)) {
+                fixPeople(o);
+            }
+        }
+    }
+
+    /**
      * Imports the workflow from the zipfile. The complete workflow will be
      * imported, including people definitions as well as tools.
      * The blobs associated with the tools will be imported as well. This will
@@ -140,6 +209,8 @@ public class ImportExport {
 
             // get workflow
             Workflow workflow = new ObjectMapper().readValue(zipfile.getInputStream(zipfile.getEntry(WORKFLOW_FILE)), Workflow.class);
+            fixPeople(workflow);
+
             WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
             if (workflowDAO.exists(workflow.getId())) {
                 throw (new Exception("Workflow already imported."));
@@ -472,6 +543,7 @@ public class ImportExport {
 
             // get workflow
             Dataset dataset = new ObjectMapper().readValue(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
+            fixPeople(dataset);
             DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
             if (datasetDAO.exists(dataset.getId())) {
                 throw (new Exception("Dataset already imported."));

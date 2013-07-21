@@ -13,6 +13,8 @@
 		<property name="timeout" value="30" />
 	</bean>
 
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk" />
+
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="jpaVendorAdapter">
