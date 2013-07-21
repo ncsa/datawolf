@@ -54,6 +54,21 @@ public class FilesResource {
      *         a FileDescriptor
      */
     @GET
+    @Path("form")
+    @Produces({ MediaType.TEXT_HTML })
+    public String getForm() {
+        return "<html><body><form action='/files' method='post' enctype='multipart/form-data'><input type='file' name='uploadedFile' /><br/><input type='submit' /></form></body></html>";
+    }
+
+    /**
+     * get a file-descriptor with given id
+     * 
+     * @param id
+     *            file-desciptor id
+     * @return
+     *         a FileDescriptor
+     */
+    @GET
     @Path("{id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public FileDescriptor getFileDescriptor(@PathParam("id") String id) {
@@ -100,11 +115,6 @@ public class FilesResource {
 
     /**
      * upload a file
-     * <form action="rest/file/upload" method="post"
-     * enctype="multipart/form-data">
-     * <input type="file" name="uploadedFile" />
-     * <input type="submit" value="Upload It" />
-     * </form>
      * 
      * @param input
      *            form data with file and other information
@@ -114,7 +124,7 @@ public class FilesResource {
     @POST
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
-    public FileDescriptor uploadFile(MultipartFormDataInput input) {
+    public FileDescriptor uploadFile(MultipartFormDataInput input) throws IOException {
         FileStorage fileStorage = SpringData.getFileStorage();
 
         FileDescriptor fileDescriptor = null;
@@ -124,21 +134,14 @@ public class FilesResource {
         List<InputPart> inputParts = uploadForm.get("uploadedFile");
 
         for (InputPart inputPart : inputParts) {
-            try {
-                MultivaluedMap<String, String> header = inputPart.getHeaders();
-                fileName = getFileName(header);
+            MultivaluedMap<String, String> header = inputPart.getHeaders();
+            fileName = getFileName(header);
 
-                // convert the uploaded file to inputstream
-                InputStream inputStream = inputPart.getBody(InputStream.class, null);
+            // convert the uploaded file to inputstream
+            InputStream inputStream = inputPart.getBody(InputStream.class, null);
 
-                // Store the file
-                fileDescriptor = fileStorage.storeFile(fileName, inputStream);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-
+            // Store the file
+            fileDescriptor = fileStorage.storeFile(fileName, inputStream);
         }
 
         // return

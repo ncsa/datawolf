@@ -8,10 +8,18 @@
 
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 
+	<!-- enable this to store on disk -->
 	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk">
 		<property name="levels" value="3" />
 	</bean>
 
+	<!--  enable this to store in medici
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageMedici">
+		<property name="server" value="http://localhost:9000/" />
+		<property name="key" value="letmein" />
+	</bean>
+	-->
+	
 	<bean id="entityManagerFactory"
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />

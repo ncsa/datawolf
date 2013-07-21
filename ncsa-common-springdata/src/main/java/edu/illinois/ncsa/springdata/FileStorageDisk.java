@@ -19,10 +19,13 @@ import org.slf4j.LoggerFactory;
 import edu.illinois.ncsa.domain.FileDescriptor;
 
 /**
+ * Stores files on disk. This class has 2 parameters, level and folder. The
+ * default is to store the files in the temp folder and have 2 levels. The
+ * levels are to prevent to many files in a single folder.
+ * 
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
-// TODO RK :  Make this an interface and code an implementation
 public class FileStorageDisk implements FileStorage {
     private static Logger logger = LoggerFactory.getLogger(FileStorageDisk.class);
 
