@@ -93,10 +93,6 @@ public class ImportExport {
                 for (FileDescriptor fd : step.getTool().getBlobs()) {
                     if (!blobs.contains(fd)) {
                         blobs.add(fd);
-                        // TODO RK : hack to convert chris workflow
-                        if (fd.getDataURL().startsWith("file:/home/cnavarro/data/files")) {
-                            fd.setDataURL(fd.getDataURL().replace("/home/cnavarro/data/files", fs.getFolder()));
-                        }
 
                         zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
                         InputStream is = fs.readFile(fd);

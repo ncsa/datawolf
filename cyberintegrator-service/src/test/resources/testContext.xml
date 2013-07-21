@@ -18,7 +18,7 @@
 	
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 
-	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorage" />
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk" />
 
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
 	
