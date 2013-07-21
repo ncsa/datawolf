@@ -37,7 +37,7 @@ import edu.illinois.ncsa.springdata.SpringData;
 public class BugCBI399Test {
     @Before
     public void setup() {
-        new GenericXmlApplicationContext("testContext.xml");
+        new GenericXmlApplicationContext("cbi399.xml");
     }
 
     @Test
@@ -52,6 +52,14 @@ public class BugCBI399Test {
         Workflow workflow2 = EngineTest.createWorkflow(person2, 2, true);
         File file2 = saveWorkflow(workflow2);
         ImportExport.importWorkflow(file2);
+
+        ObjectMapper mapper = new ObjectMapper();
+        final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(System.out);
+        jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+        for (Person pb : SpringData.getBean(PersonDAO.class).findAll()) {
+            mapper.writeValue(jsonGenerator, pb);
+
+        }
 
         // make sure people are reused
         assertEquals(1, SpringData.getBean(PersonDAO.class).count());
