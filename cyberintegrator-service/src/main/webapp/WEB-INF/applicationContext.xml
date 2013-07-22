@@ -21,8 +21,6 @@
 		<property name="folder" value="data/files" />
 	</bean>
 
-	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
-
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 	
 	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
