@@ -26,10 +26,24 @@ import edu.illinois.ncsa.springdata.SpringData;
 @Provider
 @ServerInterceptor
 public class AuthenticationInterceptor implements PreProcessInterceptor {
-    Logger log = LoggerFactory.getLogger(DatasetsResource.class);
+    private Logger  log     = LoggerFactory.getLogger(DatasetsResource.class);
+
+    private boolean enabled = Boolean.getBoolean("cyberintegrator.authentication");
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     @Override
     public ServerResponse preProcess(HttpRequest request, ResourceMethod method) throws Failure, WebApplicationException {
+        if (!enabled) {
+            return null;
+        }
+
         if (request.getHttpHeaders().getRequestHeader("Authorization") != null) {
             String token = request.getHttpHeaders().getRequestHeader("Authorization").get(0);
 

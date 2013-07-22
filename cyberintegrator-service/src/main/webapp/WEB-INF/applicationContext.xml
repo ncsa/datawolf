@@ -2,10 +2,21 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:repository="http://www.springframework.org/schema/data/repository"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
-		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+		http://www.springframework.org/schema/data/repository http://www.springframework.org/schema/data/repository/spring-repository.xsd">
 
+	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
+
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk">
+		<property name="levels" value="3" />
+		<property name="folder" value="data/files" />
+	</bean>
+	
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
+	
 	<bean id="engine" class="edu.illinois.ncsa.cyberintegrator.Engine">
 		<property name="executors">
 			<set>
@@ -16,20 +27,12 @@
 		</property>
 	</bean>
 
-	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorage">
-		<property name="levels" value="3" />
-		<property name="folder" value="data/files" />
-	</bean>
-
-	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
-	
-	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
-
 	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-		<property name="dataSource" ref="edisonMysql" />
+		<property name="dataSource" ref="hsqldata" />
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="generateDdl" value="true" />
+				<!-- <property name="showSql" value="true" /> -->
 			</bean>
 		</property>
 		<property name="packagesToScan">
@@ -43,53 +46,13 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-	<!-- hsqldb setting -->
-	<bean id="dataSourcePool" class="com.jolbox.bonecp.BoneCPDataSource">
-		<property name="driverClass" value="org.hsqldb.jdbcDriver" />
-		<property name="jdbcUrl" value="jdbc:hsqldb:mem:." />
+	<bean id="hsqldata" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	    <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+ 		<property name="url" value="jdbc:hsqldb:file:data/cyberintegrator;shutdown=true" />
 		<property name="username" value="sa" />
 		<property name="password" value="" />
-		<property name="idleConnectionTestPeriod" value="60" />
-		<property name="idleMaxAge" value="240" />
-		<property name="maxConnectionsPerPartition" value="30" />
-		<property name="minConnectionsPerPartition" value="10" />
-		<property name="partitionCount" value="3" />
-		<property name="acquireIncrement" value="5" />
-		<property name="statementsCacheSize" value="100" />
-		<property name="releaseHelperThreads" value="3" />
 	</bean>
 
-	<bean id="cyberintegratorMysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost/cyberintegrator" />
-		<property name="username" value="cyberintegrator" />
-		<property name="password" value="cyberintegrator" />
-	</bean>
- 
-  	<bean id="edisonMysql" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost/edison" />
-		<property name="username" value="edison" />
-		<property name="password" value="edison" />
-	</bean>
-	
-	<!-- mysql setting -->
-	<!-- 
-	<bean id="dataSourcePool" class="com.jolbox.bonecp.BoneCPDataSource">
-		<property name="driverClass" value="com.mysql.jdbc.Driver" />
-		<property name="jdbcUrl" value="jdbc:mysql://localhost/cyberintegrator" />
-		<property name="username" value="cyberintegrator" />
-		<property name="password" value="cyberintegrator" />
-		<property name="idleConnectionTestPeriod" value="60" />
-		<property name="idleMaxAge" value="240" />
-		<property name="maxConnectionsPerPartition" value="30" />
-		<property name="minConnectionsPerPartition" value="10" />
-		<property name="partitionCount" value="3" />
-		<property name="acquireIncrement" value="5" />
-		<property name="statementsCacheSize" value="100" />
-		<property name="releaseHelperThreads" value="3" />
-	</bean>
- 	-->
 	<jpa:repositories base-package="edu.illinois.ncsa.springdata" />
 	<jpa:repositories base-package="edu.illinois.ncsa.cyberintegrator.springdata" />
 </beans>
