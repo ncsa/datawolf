@@ -150,14 +150,14 @@ public class CommandLineExecutor extends LocalExecutor {
 
                 case DATA:
                     // pointer to file on disk
-                    String filename = new File(cwd, option.getFilename()).getAbsolutePath();
-//                    String filename = option.getFilename();
+                    String filename;
+                    if ((option.getFilename() != null) && !option.getFilename().equals("")) {
+                        filename = new File(cwd, option.getFilename()).getAbsolutePath();
+                    } else {
+                        filename = File.createTempFile("cbi", ".tmp", cwd).getAbsolutePath();
+                    }
                     if (filename == null) {
-                        try {
-                            filename = File.createTempFile("ci", ".tmp", cwd).getAbsolutePath();
-                        } catch (IOException exc) {
-                            throw (new FailedException("Could not create temp file.", exc));
-                        }
+                        throw (new FailedException("Could not create temp file."));
                     }
 
                     if (option.isCommandline()) {
