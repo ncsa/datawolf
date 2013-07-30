@@ -40,6 +40,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     color:#333;
 }
 
+/* #analysis1 { top:17em; left:49em;} */
 /* Shapes */
 [data-shape=RectangleOld] {
     width:210px;
@@ -50,7 +51,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     background-image:url(img/rectangle.png);
 }
 [data-shape=Rectangle] {
-    width:125px;
+    width:150px;
     height:65px;
     -webkit-border-radius: 15px;
     -moz-border-radius: 15px;

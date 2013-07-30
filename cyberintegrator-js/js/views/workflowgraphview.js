@@ -1,3 +1,6 @@
+var inputAnchors = [[-0.07, 0.5, -1, 0], [-0.07, 0.25, -1, 0], [-0.07, 0.75, -1, 0]];
+var outputAnchors = [[1.04, 0.5, 1, 0], [1.04, 0.25, 1, 0], [1.04, 0.75, 1, 0] ];
+
 var WorkflowGraphView = Backbone.View.extend({
     events: {
         'dragenter .wgraph': 'handleDragEnter',
@@ -9,7 +12,6 @@ var WorkflowGraphView = Backbone.View.extend({
     initialize: function() {
         this.$el.bind('dragenter', _.bind(this.handleDragEnter, this));
         this.$el.bind('dragover', _.bind(this.handleDragOver, this));
-
         this.$el.bind('drop', _.bind(this.handleDrop, this));
     },
 
@@ -20,23 +22,22 @@ var WorkflowGraphView = Backbone.View.extend({
                 hoverClass:"dropHover",
                 activeClass:"dragActive"
             };
-            var outputAnchors = [[1, 0.2, 1, 0], [1, 0.8, 1, 0] ]
-            var inputAnchors = [[-0.04, 0.5, -1, 0]];
+            
 
             
             // eAIRS-CFD for demo
+            /*
             jsPlumb.addEndpoint('analysis1', { anchor: inputAnchors[0] }, inputEndpoint);
             jsPlumb.addEndpoint('analysis1', { anchor: outputAnchors[0] }, inputEndpoint); 
             jsPlumb.addEndpoint('analysis1', { anchor:"RightMiddle" }, inputEndpoint); 
             jsPlumb.addEndpoint('analysis1', { anchor: outputAnchors[1] }, inputEndpoint);
-            //jsPlumb.addEndpoint('rec1', { anchor:"BottomRight" }, inputEndpoint); 
+            
             jsPlumb.addEndpoint('input1', {anchor: "RightMiddle" }, inputEndpoint);
-
 
             jsPlumb.addEndpoint('output1', {anchor: "LeftMiddle" }, inputEndpoint);
             jsPlumb.addEndpoint('output2', {anchor: "LeftMiddle" }, inputEndpoint);
             jsPlumb.addEndpoint('output3', {anchor: "LeftMiddle" }, inputEndpoint); 
-            
+            */
 
             //jsPlumb.addEndpoint('rec1', { anchor:"TopRight" }, inputEndpoint); 
             //jsPlumb.addEndpoint('rec1', { anchor:"BottomRight" }, inputEndpoint); 
@@ -79,6 +80,21 @@ var WorkflowGraphView = Backbone.View.extend({
         return this;
     },
 
+    createWorkflowStep: function(toolId) {
+        var title = "toolTitle";
+        var date = new Date();
+        var creator = currentUser;
+
+        // TODO: when workflow-tool-view is created, we should be able to check the collection of tools to find the match
+        var tool = "some-tool";
+        var workflowStep = new WorkflowStep({title: title, date: date, creator: creator, tool: tool});
+
+        workflowStepCollection.add(workflowStep);
+
+        console.log("# of steps = "+workflowStepCollection.length);
+        console.log("date = "+date);
+    },
+
     handleDragOver: function(e) {
         e.preventDefault(); // Drop event will not fire unles you cancel default behavior.
         e.stopPropagation();
@@ -94,8 +110,19 @@ var WorkflowGraphView = Backbone.View.extend({
         e.preventDefault();
 
         if(toolDrop) {
-            var data = e.originalEvent.dataTransfer.getData('Text');
+            var uri = e.originalEvent.dataTransfer.getData('Text');
+
+            var workflowTool = null;
+            workflowToolCollection.each(function(model) {
+                if(model.get('id') === uri) {
+                    workflowTool = model;
+                }
+            });
             
+            // TODO: CMN fix this to get width/heigh dynamically, values are from CSS
+            var x = e.originalEvent.offsetX - 62;
+            var y = e.originalEvent.offsetY - 32;
+            //console.log(e);
             //console.log('drop: '+JSON.stringify(data));
             var myapp = $("#editor-app");
             //console.log("find .wgraph");
@@ -103,27 +130,43 @@ var WorkflowGraphView = Backbone.View.extend({
 
 
             var id = "my-id" + incr;
-            var innerText = data;
+            var innerText = workflowTool.get('title');
             incr++;
             var shapeClass = "shape";
             var dataShapeClass = "Rectangle";
             var divTag = document.createElement("div");
+
             divTag.id = id;
             divTag.setAttribute("class", shapeClass);
             divTag.setAttribute("data-shape", dataShapeClass);
             divTag.innerText = innerText;
-            
+            divTag.style.position = "absolute";
+            divTag.style.left = x+'px';
+            divTag.style.top = y+'px';
+
             $('#wgraph').append(divTag);
 
             var shapes = $(".shape");
+
+            console.log(shapes);
             //console.log(shapes);
-            var anchors = [[1, 0.2, 1, 0], [0.8, 1, 0, 1], [0, 0.8, -1, 0], [0.2, 0, 0, -1] ]
+            //var anchors = [[1, 0.2, 1, 0], [0.8, 1, 0, 1], [0, 0.8, -1, 0], [0.2, 0, 0, -1] ]
+            //var inputAnchors = [[-0.04, 0.5, -1, 0]];
             // make everything draggable
             jsPlumb.draggable(shapes);
-            jsPlumb.addEndpoint(id, {anchor: "RightMiddle"}, inputEndpoint);        
-            jsPlumb.addEndpoint(id, { anchor:"LeftMiddle" }, inputEndpoint); 
+
+            // Add input endpoints
+            for(var index = 0; index < workflowTool.get('inputs'); index++) {
+               jsPlumb.addEndpoint(id, { anchor: inputAnchors[index] }, targetEndpoint);  
+            }
+
+            // Add output endpoints
+            for(var index = 0; index < workflowTool.get('outputs'); index++) {
+               jsPlumb.addEndpoint(id, { anchor: outputAnchors[index] }, sourceEndpoint);  
+            }
 
             toolDrop = false;
+            this.createWorkflowStep()
         }
     }
 
