@@ -2,16 +2,28 @@
 
 var workflowGraphView = null;
 
+var workflowStepCollection = new WorkflowStepCollection();
+
+var workflowToolCollection = new WorkflowToolCollection();
+
+// TODO When the PersonView is created, select the first person as current user
+var currentUser = new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu"});
+
 
 // Test purposes
 var incr = 0;
 
 // Endpoint Types
+/*
 var exampleDropOptions = {
                 tolerance:"touch",
                 hoverClass:"dropHover",
                 activeClass:"dragActive"
-            };
+            }; */
+var exampleDropOptions = {
+                hoverClass:"hover",
+                activeClass:"active"
+};
 
 // Green
 //var color2 = "#316b31";
@@ -24,27 +36,38 @@ var color3 = "#616161";
 // Helps determine whether a connection is being made or a tool is dropped
 var toolDrop = false;
 
-var inputEndpoint = {
+var targetEndpoint = {
     endpoint: ["Rectangle", {width: 15, height: 10}],
-    paintStyle:{ fillStyle:color3 },
+    paintStyle:{ fillStyle: "transparent", strokeStyle: color3, lineWidth: 3 },
+    scope:"green dot",
+    connectorStyle:{ strokeStyle:color2, lineWidth:3 },
+    connector: ["Bezier", { curviness:63 } ],
+    isTarget:true,
+    maxConnections:-1,
+    dropOptions : exampleDropOptions
+};
+
+var sourceEndpoint = {
+    endpoint: ["Rectangle", {width: 15, height: 10}],
+    paintStyle:{ fillStyle: "transparent", strokeStyle: color3, lineWidth: 3  },
     isSource:true,
     scope:"green dot",
     connectorStyle:{ strokeStyle:color2, lineWidth:3 },
     connector: ["Bezier", { curviness:63 } ],
-    maxConnections:3,
-    isTarget:true,
-    dropOptions : exampleDropOptions
-};
-var outputEndpoint = {
-    endpoint:["Dot", {radius:7} ],
-    anchor:"BottomLeft",
-    paintStyle:{ fillStyle: color3, opacity:0.5 },
     isSource:true,
-    scope:'blue dot',
-    connectorStyle:{ strokeStyle: color3, lineWidth:4 },
-    connector : ["Bezier", {curviness:63}],
-    isTarget:true,
-    dropOptions : exampleDropOptions
+    maxConnections:-1,
+    dragOptions : {}
+};
+
+// Found on JSFiddle, temporary to give a uuid
+function generateUUID() {
+    var d = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x7|0x8)).toString(16);
+    });
+    return uuid;
 };
 
 /*
@@ -108,15 +131,13 @@ var resetRenderMode = function(desiredMode) {
 
         init();
     };
+
 var init = function() {
     var workflowGraphView = new WorkflowGraphView({
         el: '#wgraph'
     });
 
     workflowGraphView.render();
-    //$('#render').html(workflowGraphView.render().el);
-
-    //workflowGraphView.addShape('my-id', 'shape', 'Circle');
 }    
 
 // Router
@@ -144,12 +165,17 @@ var AppRouter = Backbone.Router.extend({
         //$('#add-shape-div').html(new AddShapeButtonView().render().el);
 
         // This tool list should come from a rest endpoint
-        var listVal = {title: "eAIRS Parameters"};
-        var listVal1 = {title: "eAIRS File Transfer"};
-        var model = [listVal, listVal1];
+        var cfdTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS-CFD", inputs: '1', outputs: '3'});
+        var parameterTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS CFD Parameters", inputs: '0', outputs: '1'});
+        var fileTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS File-Transfer", inputs: '2', outputs: '1'});
+        var resultTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS Results", inputs: '1', outputs: '1'});
+
+        workflowToolCollection.add(cfdTool);
+        workflowToolCollection.add(parameterTool);
+        workflowToolCollection.add(fileTool);
+        workflowToolCollection.add(resultTool);
         
-        //console.log("length is "+model.length);
-        $('#workflow-tools').html(new WorkflowToolListView({model: model}).render().el);
+        $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
     }
 
 });
