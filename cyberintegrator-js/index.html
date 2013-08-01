@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>Cyberintegrator Editor</title>
     <!-- <link rel="stylesheet" href="assets/css/demo-all.css"> -->
-    <link href="assets/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="main.css" rel="stylesheet">
     <!-- <link rel="stylesheet" href="assets/css/perimeterAnchorsDemo.css"> -->
 
@@ -20,6 +20,27 @@
 </script>
     <script type="text/template" id="workflow-list-item">
         <%= title %>
+    </script>
+    <script type="text/template" id="new-workflow-buttons">
+        <button id="new-workflow" class="btn btn-primary">New</button>
+        <button id="open-workflow" class="btn">Open</button>
+        <button id="delete-workflow" class="btn">Delete</button>
+    </script>
+    <script type="text/template" id="new-workflow">
+        <form class="form-horizontal">
+            <div class="control-group">
+                <label class="control-label" for="workflow-title">Title:</label>
+                <div class="controls">
+                    <input type="text" name="workflow-title" id="workflow-title" placeholder="enter title"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <button class="btn" id="create-workflow">Create</button>
+                    <button class="btn" id="cancel">Cancel</button>
+                </div>
+            </div>
+        </form>
     </script>
     <script type="text/template" id="addshape-button-template">
         <button id="addshape-button" class="btn btn-primary">Add Shape</button>
@@ -46,7 +67,6 @@
     <div id='editor-app' class="container-fluid">
         <div class="row-fluid">
             <div class="span2">
-                <div>
                 <h4>Tools</h4>
                 <!--
                     <select size="10">
@@ -56,17 +76,27 @@
                         <option value="eAIRS CFD Parameters">eAIRS CFD Parameters</option>
                     </select> -->
                     <div id="workflow-tools"></div>
-                </div>
-                <div id="workflows">
+                <div id="workflow-parent">
                     <h4>Workflows</h4>
-                    <select size="10">
-                        <option value="Workflow 1">Workflow 1</option>
-                        <option value="Workflow 2">Workflow 2</option>
-                        <option value="Workflow 3">Workflow 3</option>
-                        <option value="Workflow 4">Workflow 4</option>
-                    </select>
+                    <div id="workflows"></div>
+                    <div id="workflowbuttons"></div>
+                    <div id="modalWorkflowView" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+                            <h3 id="newWorkflowDialogLabel">New Workflow</h3>
+                        </div>
+                        <div class="modal-body" id="modal-content">
+                            <div id="new-workflow-content"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <!-- 
+                            <button id="create-workflow" class="btn btn-primary">Create</button>
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                        -->
+                        </div> 
+                    </div>
                 </div>
-           </div>
+            </div>
             <div class="span4">
                 <div class="dropzone">
                 <h4>Workflow Graph</h4>
@@ -79,7 +109,7 @@
                         <div class="shape" data-shape="Ellipse" id="output2">standard-err</div>
                         <div class="shape" data-shape="Ellipse" id="output3">gondola-log</div> -->
                     </div>
-                    <div id="add-shape-div" style="display:none;"></div>
+                   
                 </div>
             </div>
         </div>
@@ -97,11 +127,13 @@
     <!-- Views -->
     <script src="js/views/workflowgraphview.js"></script>
     <script src="js/views/workflowtoolview.js"></script>
+    <script src="js/views/workflowview.js"></script>
 
     <!-- Models -->
     <script src="js/models/personmodel.js"></script>
     <script src="js/models/workflowstepmodel.js"></script>
     <script src="js/models/workflowtoolmodel.js"></script>
+    <script src="js/models/workflowmodel.js"></script>
 
     <!-- main application -->
     <script src="js/main.js"></script>

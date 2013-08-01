@@ -1,10 +1,14 @@
 // Global Variables
+var currentWorkflow = null;
 
-var workflowGraphView = null;
-
+// Collections
+var workflowCollection = new WorkflowCollection();
 var workflowStepCollection = new WorkflowStepCollection();
-
 var workflowToolCollection = new WorkflowToolCollection();
+
+// Views
+var workflowGraphView = null;
+var workflowListView = null;
 
 // TODO When the PersonView is created, select the first person as current user
 var currentUser = new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu"});
@@ -133,7 +137,7 @@ var resetRenderMode = function(desiredMode) {
     };
 
 var init = function() {
-    var workflowGraphView = new WorkflowGraphView({
+    workflowGraphView = new WorkflowGraphView({
         el: '#wgraph'
     });
 
@@ -165,22 +169,60 @@ var AppRouter = Backbone.Router.extend({
         //$('#add-shape-div').html(new AddShapeButtonView().render().el);
 
         // This tool list should come from a rest endpoint
-        var cfdTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS-CFD", inputs: '1', outputs: '3'});
-        var parameterTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS CFD Parameters", inputs: '0', outputs: '1'});
-        var fileTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS File-Transfer", inputs: '2', outputs: '1'});
-        var resultTool = new WorkflowTool({ id: generateUUID(), title: "eAIRS Results", inputs: '1', outputs: '1'});
+        var cfdTool = new WorkflowTool({ id: '1', title: "eAIRS-CFD", inputs: '1', outputs: '3'});
+        var parameterTool = new WorkflowTool({ id: '2', title: "eAIRS CFD Parameters", inputs: '0', outputs: '1'});
+        var fileTool = new WorkflowTool({ id: '3', title: "eAIRS File-Transfer", inputs: '2', outputs: '1'});
+        var resultTool = new WorkflowTool({ id: '4', title: "eAIRS Results", inputs: '1', outputs: '1'});
 
         workflowToolCollection.add(cfdTool);
         workflowToolCollection.add(parameterTool);
         workflowToolCollection.add(fileTool);
         workflowToolCollection.add(resultTool);
+
+        workflowCollection.add(new Workflow({id: generateUUID(), title: "title"}));
         
         $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
+
+        workflowListView = new WorkflowListView({model: workflowCollection});
+        $('#workflows').html(workflowListView.render().el);
+        $('#workflowbuttons').html(new WorkflowButtonView().render().el);
     }
 
 });
 
 var eventBus = _.extend({}, Backbone.Events);
+
+eventBus.on('clicked:newworkflow', function() {
+    console.log('eventbus triggered');
+    $('#new-workflow-content').html(new AddWorkflowView().render().el);
+    $('#modalWorkflowView').modal('show');
+});
+
+eventBus.on('clicked:createworkflow', function(workflowId) {
+    console.log("create workflow: "+workflowId);
+    currentWorkflow = workflowId;
+    // TODO this should be something we can trigger from an update of the collection
+    workflowListView = new WorkflowListView({model: workflowCollection});
+    $('#workflows').html(workflowListView.render().el);
+    workflowGraphView.setWorkflow(workflowId);
+
+});
+
+eventBus.on('clicked:openworkflow', function(workflowId) {
+    currentWorkflow = workflowId;
+    workflowGraphView.setWorkflow(workflowId);
+});
+
+eventBus.on('clicked:deleteworkflow', function() {
+    // TODO this should be automatically done if we bind add/remove events to the view
+    workflowListView = new WorkflowListView({model: workflowCollection});
+    $('#workflows').html(workflowListView.render().el);
+});
+
+eventBus.on('clearWorkflow', function() {
+    currentWorkflow = null;
+    workflowGraphView.setWorkflow(null);
+})
 
 var app = new AppRouter();
 Backbone.history.start();

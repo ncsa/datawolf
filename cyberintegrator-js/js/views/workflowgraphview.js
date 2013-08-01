@@ -16,12 +16,37 @@ var WorkflowGraphView = Backbone.View.extend({
     },
 
     render: function(e) {
+        // build the graph view the first time
+
+        if(currentWorkflow != null) {
+            var workflow = null;
+            console.log("current workflow is: "+currentWorkflow);
+            workflowCollection.each(function(model) {
+                if(model.get('id') === currentWorkflow) {
+                    workflow = model;
+                }
+            });
+
+            var x = 5;
+            var y = 50;
+            var stepCollection = workflow.getWorkflowSteps();
+            console.log("steps = "+stepCollection.length);
+            var _this = this;
+            stepCollection.each(function(workflowStep) {
+                console.log("step title = "+ workflowStep.get('title') );
+                var workflowTool = workflowStep.getTool();
+                var toolId = workflowTool.get('id');
+                console.log("tool to add is "+toolId);
+                _this.addToolToGraph(toolId, x, y);
+                x = x + 200;
+            });
+        } 
         //console.log("render graph view");
-        var exampleDropOptions = {
-                tolerance:"touch",
-                hoverClass:"dropHover",
-                activeClass:"dragActive"
-            };
+        //var exampleDropOptions = {
+            //    tolerance:"touch",
+            //    hoverClass:"dropHover",
+            //    activeClass:"dragActive"
+            //};
             
 
             
@@ -49,10 +74,12 @@ var WorkflowGraphView = Backbone.View.extend({
 
 
             //jsPlumb.connect({ source: "rec1", target: "ellipse1", anchors: ["LeftMiddle", "RightMiddle"]});
-            var shapes = $(".shape");
+            //var shapes = $(".shape");
                 
             // make everything draggable
-            jsPlumb.draggable(shapes);
+
+
+            //jsPlumb.draggable(shapes);
 
             // loop through them and connect each one to each other one.
             /*
@@ -80,19 +107,122 @@ var WorkflowGraphView = Backbone.View.extend({
         return this;
     },
 
+    setWorkflow: function(workflowId) {
+        console.log("draw workflow");
+        $(this.el).empty();
+        var workflow = null;
+        workflowCollection.each(function(model) {
+            if(model.get('id') === workflowId) {
+                workflow = model;
+            }
+        });
+
+        if(workflow != null) {
+
+            var x = 20;
+            var y = 50;
+            var stepCollection = workflow.getWorkflowSteps();
+            var _this = this;
+            stepCollection.each(function(workflowStep) {
+                var workflowTool = workflowStep.getTool();
+                var toolId = workflowTool.get('id');
+                _this.addToolToGraph(toolId, x, y);
+                x = x + 200;
+            });
+        }
+    },
+
     createWorkflowStep: function(toolId) {
-        var title = "toolTitle";
+        var workflowTool = null;
+        workflowToolCollection.each(function(model) {
+            if(model.get('id') === toolId) {
+                workflowTool = model;
+            }
+        });
+
+        var id = generateUUID();
+        var title = workflowTool.get('title');
         var date = new Date();
         var creator = currentUser;
 
         // TODO: when workflow-tool-view is created, we should be able to check the collection of tools to find the match
         var tool = "some-tool";
-        var workflowStep = new WorkflowStep({title: title, date: date, creator: creator, tool: tool});
+        var workflowStep = new WorkflowStep({id: id, title: title, date: date, creator: creator, tool: workflowTool});
 
-        workflowStepCollection.add(workflowStep);
+        var workflow = null;
+        console.log("current workflow is: "+currentWorkflow);
+        workflowCollection.each(function(model) {
+            if(model.get('id') === currentWorkflow) {
+                workflow = model;
+            }
+        });
+        //workflow.set({steps: workflowStep });
 
-        console.log("# of steps = "+workflowStepCollection.length);
+        var stepCollection = workflow.getWorkflowSteps();
+        stepCollection.add(workflowStep);
+        workflow.set({steps: stepCollection});
+
+        if(stepCollection != null) {
+            console.log("# of steps = "+stepCollection.length);
+        } else {
+            console.log("somethings not right");
+        }
+        //workflowStepCollection.add(workflowStep);
+
+        console.log("workflow is: "+JSON.stringify(workflow, undefined, 2));
+        
         console.log("date = "+date);
+        workflow.save();
+    },
+
+    addToolToGraph: function(toolId, x, y) {
+        console.log("x = " +x + ", y = "+y);
+        var workflowTool = null;
+        workflowToolCollection.each(function(model) {
+            if(model.get('id') === toolId) {
+                workflowTool = model;
+            }
+        });
+         // TODO: CMN fix this to get width/heigh dynamically, values are from CSS
+            
+        //console.log(e);
+        //console.log('drop: '+JSON.stringify(data));
+        var myapp = $("#editor-app");
+        //console.log("find .wgraph");
+        //console.log(myapp.find('.wgraph'));
+
+
+        var id = "my-id" + incr;
+        var innerText = workflowTool.get('title');
+        incr++;
+        var shapeClass = "shape";
+        var dataShapeClass = "Rectangle";
+        var divTag = document.createElement("div");
+
+        divTag.id = id;
+        divTag.setAttribute("class", shapeClass);
+        divTag.setAttribute("data-shape", dataShapeClass);
+        divTag.innerText = innerText;
+        divTag.style.position = "absolute";
+        divTag.style.left = x+'px';
+        divTag.style.top = y+'px';
+
+        $('#wgraph').append(divTag);
+
+        var shapes = $(".shape");
+
+        // make everything draggable
+        jsPlumb.draggable(shapes);
+
+        // Add input endpoints
+        for(var index = 0; index < workflowTool.get('inputs'); index++) {
+           jsPlumb.addEndpoint(id, { anchor: inputAnchors[index] }, targetEndpoint);  
+        }
+
+        // Add output endpoints
+        for(var index = 0; index < workflowTool.get('outputs'); index++) {
+           jsPlumb.addEndpoint(id, { anchor: outputAnchors[index] }, sourceEndpoint);  
+        }
     },
 
     handleDragOver: function(e) {
@@ -110,63 +240,19 @@ var WorkflowGraphView = Backbone.View.extend({
         e.preventDefault();
 
         if(toolDrop) {
-            var uri = e.originalEvent.dataTransfer.getData('Text');
-
+            var toolId = e.originalEvent.dataTransfer.getData('Text');
             var workflowTool = null;
             workflowToolCollection.each(function(model) {
-                if(model.get('id') === uri) {
+                if(model.get('id') === toolId) {
                     workflowTool = model;
                 }
             });
-            
-            // TODO: CMN fix this to get width/heigh dynamically, values are from CSS
             var x = e.originalEvent.offsetX - 62;
             var y = e.originalEvent.offsetY - 32;
-            //console.log(e);
-            //console.log('drop: '+JSON.stringify(data));
-            var myapp = $("#editor-app");
-            //console.log("find .wgraph");
-            //console.log(myapp.find('.wgraph'));
-
-
-            var id = "my-id" + incr;
-            var innerText = workflowTool.get('title');
-            incr++;
-            var shapeClass = "shape";
-            var dataShapeClass = "Rectangle";
-            var divTag = document.createElement("div");
-
-            divTag.id = id;
-            divTag.setAttribute("class", shapeClass);
-            divTag.setAttribute("data-shape", dataShapeClass);
-            divTag.innerText = innerText;
-            divTag.style.position = "absolute";
-            divTag.style.left = x+'px';
-            divTag.style.top = y+'px';
-
-            $('#wgraph').append(divTag);
-
-            var shapes = $(".shape");
-
-            console.log(shapes);
-            //console.log(shapes);
-            //var anchors = [[1, 0.2, 1, 0], [0.8, 1, 0, 1], [0, 0.8, -1, 0], [0.2, 0, 0, -1] ]
-            //var inputAnchors = [[-0.04, 0.5, -1, 0]];
-            // make everything draggable
-            jsPlumb.draggable(shapes);
-
-            // Add input endpoints
-            for(var index = 0; index < workflowTool.get('inputs'); index++) {
-               jsPlumb.addEndpoint(id, { anchor: inputAnchors[index] }, targetEndpoint);  
-            }
-
-            // Add output endpoints
-            for(var index = 0; index < workflowTool.get('outputs'); index++) {
-               jsPlumb.addEndpoint(id, { anchor: outputAnchors[index] }, sourceEndpoint);  
-            }
+            this.addToolToGraph(toolId, x, y);
 
             toolDrop = false;
-            this.createWorkflowStep()
+            this.createWorkflowStep(workflowTool.get('id'));
         }
     }
 
