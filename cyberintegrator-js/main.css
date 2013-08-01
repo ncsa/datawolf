@@ -170,3 +170,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     -moz-border-radius: 5px;
     border-radius: 5px; */
 }
+
+#modalWorkflowView {
+    color: #000000;
+}
