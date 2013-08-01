@@ -88,7 +88,7 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private String                      implementation   = null;
 
     /** creator of the workflow tool */
-    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
+    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @DBRef
     private Person                      creator          = null;
 
