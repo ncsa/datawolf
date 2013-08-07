@@ -47,8 +47,9 @@ var targetEndpoint = {
     connectorStyle:{ strokeStyle:color2, lineWidth:3 },
     connector: ["Bezier", { curviness:63 } ],
     isTarget:true,
-    maxConnections:-1,
-    dropOptions : exampleDropOptions
+    maxConnections:1,
+    dropOptions : exampleDropOptions,
+    overlays:[ [ "Label", { location:[0.5, -0.5], label:"Drop", cssClass:"endpointTargetLabel" } ] ]
 };
 
 var sourceEndpoint = {
@@ -60,7 +61,8 @@ var sourceEndpoint = {
     connector: ["Bezier", { curviness:63 } ],
     isSource:true,
     maxConnections:-1,
-    dragOptions : {}
+    dragOptions : {},
+    overlays:[ [ "Label", { location:[0.5, -0.5], label:"Drop", cssClass:"endpointTargetLabel" } ] ]
 };
 
 // Found on JSFiddle, temporary to give a uuid
@@ -142,7 +144,20 @@ var init = function() {
     });
 
     workflowGraphView.render();
-}    
+};    
+
+// Utility methods
+var getWorkflow = function(workflowId) {
+    var workflow = null;
+        workflowCollection.each(function(model) {
+        if(model.get('id') === workflowId) {
+            workflow = model;
+            return false;
+        }
+    });
+
+    return workflow;
+}
 
 // Router
 var AppRouter = Backbone.Router.extend({
@@ -166,22 +181,9 @@ var AppRouter = Backbone.Router.extend({
             resetRenderMode(jsPlumb.SVG);
         });
 
-        //$('#add-shape-div').html(new AddShapeButtonView().render().el);
-
-        // This tool list should come from a rest endpoint
-        var cfdTool = new WorkflowTool({ id: '1', title: "eAIRS-CFD", inputs: '1', outputs: '3'});
-        var parameterTool = new WorkflowTool({ id: '2', title: "eAIRS CFD Parameters", inputs: '0', outputs: '1'});
-        var fileTool = new WorkflowTool({ id: '3', title: "eAIRS File-Transfer", inputs: '2', outputs: '1'});
-        var resultTool = new WorkflowTool({ id: '4', title: "eAIRS Results", inputs: '1', outputs: '1'});
-
-        workflowToolCollection.add(cfdTool);
-        workflowToolCollection.add(parameterTool);
-        workflowToolCollection.add(fileTool);
-        workflowToolCollection.add(resultTool);
-
-        workflowCollection.add(new Workflow({id: generateUUID(), title: "title"}));
-        
-        $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
+        workflowToolCollection.fetch({success: function() {
+            $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
+        }});
 
         workflowListView = new WorkflowListView({model: workflowCollection});
         $('#workflows').html(workflowListView.render().el);

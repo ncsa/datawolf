@@ -30,6 +30,9 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     z-index:1;
 }
 
+.endpointTargetLabel {
+    color: #000000;
+}
 .shape {
     z-index:2;
     opacity:0.7;

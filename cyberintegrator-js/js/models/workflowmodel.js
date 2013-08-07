@@ -3,7 +3,7 @@ var Workflow = Backbone.Model.extend({
 
 	},
 
-	getWorkflowSteps: function() {
+	getSteps: function() {
 		return new WorkflowStepCollection(this.get('steps'));
 	}
 

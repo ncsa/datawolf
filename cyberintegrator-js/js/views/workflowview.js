@@ -89,7 +89,6 @@ var WorkflowButtonView = Backbone.View.extend({
 
 	openWorkflow: function(e) {
 		var selection = $('#workflowSelector').val();
-		console.log("selection is "+selection);	
 		eventBus.trigger("clicked:openworkflow", selection);
 	}
 
