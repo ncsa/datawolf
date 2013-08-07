@@ -18,11 +18,12 @@
 		main = (options) ->
 
 			options ||= { 
-					'proxy_regexp' : /^\/(workflows|persons|executions|datasets|files)(\/.*)?$/
+					'proxy_regexp' : /^\/(workflows|persons|executions|datasets|files|workflowtools)(\/.*)?$/
 					'local_port'   : 8001
 					'local_host'   : '127.0.0.1' 		
-					'remote_port'  : 8888
-					'remote_host'  : 'rapid.ncsa.illinois.edu'  
+					'remote_port'  : 9093 
+					'remote_host'  : 'localhost'  
+                    #'remote_host'  : 'rapid.ncsa.illinois.edu'  
 
 					# Only used to explicity define the local, hidden web server port
 					#'silent_port'  : 8000
