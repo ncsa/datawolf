@@ -1,8 +1,6 @@
 var inputAnchors = [[-0.07, 0.5, -1, 0], [-0.07, 0.25, -1, 0], [-0.07, 0.75, -1, 0]];
 var outputAnchors = [[1.04, 0.5, 1, 0], [1.04, 0.25, 1, 0], [1.04, 0.75, 1, 0] ];
 
-var DEBUG = false;
-
 // TODO CMN: implement auto-layout algorithm
 var WorkflowGraphView = Backbone.View.extend({
     events: {
@@ -23,7 +21,6 @@ var WorkflowGraphView = Backbone.View.extend({
 
         if(currentWorkflow != null) {
             var workflow = null;
-            console.log("current workflow is: "+currentWorkflow);
             workflowCollection.each(function(model) {
                 if(model.get('id') === currentWorkflow) {
                     workflow = model;
@@ -139,13 +136,8 @@ var WorkflowGraphView = Backbone.View.extend({
     },
 
     createWorkflowStep: function(toolId) {
-        var workflowTool = null;
-        workflowToolCollection.each(function(model) {
-            if(model.get('id') === toolId) {
-                workflowTool = model;
-            }
-        });
-
+        var workflowTool = getWorkflowTool(toolId); 
+        
         var stepId = generateUUID();
         var title = workflowTool.get('title');
         var date = new Date();
@@ -164,7 +156,7 @@ var WorkflowGraphView = Backbone.View.extend({
             parameters[workflowToolParameter.get('parameterId')] = generateUUID();
         });
 
-        var workflowStep = new WorkflowStep({id: stepId, title: title, date: date, creator: creator, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
+        var workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: null, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
 
         var workflow = null;
         console.log("current workflow is: "+currentWorkflow);
@@ -196,6 +188,7 @@ var WorkflowGraphView = Backbone.View.extend({
                 return false;
             }
         });
+
          // TODO: CMN fix graph objects to get width/height dynamically instead of using static values from CSS
         //var myapp = $("#editor-app");
 
@@ -222,11 +215,12 @@ var WorkflowGraphView = Backbone.View.extend({
 
         // Add input endpoints
         var inputs = workflowTool.getInputs();
+
         var index = 0;
 
-        targetEndpoint.overlays[0][1].label
-
+        //targetEndpoint.overlays[0][1].label
         inputs.each(function(workflowToolData) {
+            //console.log(JSON.stringify(workflowToolData, undefined, 2));
             var endpoint = jQuery.extend(true, {}, targetEndpoint);
 
             var title = workflowToolData.get('title');
@@ -251,6 +245,8 @@ var WorkflowGraphView = Backbone.View.extend({
             jsPlumb.addEndpoint(id, { anchor: outputAnchors[index], beforeDetach: handleDisconnect }, endpoint); 
             index++;
         });
+        var del = jQuery.extend(true, {}, deleteEndpoint);
+        jsPlumb.addEndpoint(id, { anchor: "TopRight" }, del);
 
     },
 
@@ -286,6 +282,11 @@ var WorkflowGraphView = Backbone.View.extend({
     }
 
 });
+
+var mouseClick = function() {
+    console.log("mouse click");
+    return true;
+}
 
 // Handles connecting steps 
 var handleConnect = function(connection) {

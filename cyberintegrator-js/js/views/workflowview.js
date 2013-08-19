@@ -50,7 +50,8 @@ var WorkflowButtonView = Backbone.View.extend({
 	events: {
 		"click button#new-workflow" : "newWorkflow",
 		"click button#delete-workflow" : "deleteWorkflow",
-		"click button#open-workflow" : "openWorkflow"
+		"click button#open-workflow" : "openWorkflow",
+		"click button#save-workflow" : "saveWorkflow"
 	},
 
 	template: _.template($("#new-workflow-buttons").html()),
@@ -90,6 +91,12 @@ var WorkflowButtonView = Backbone.View.extend({
 	openWorkflow: function(e) {
 		var selection = $('#workflowSelector').val();
 		eventBus.trigger("clicked:openworkflow", selection);
+	},
+
+	saveWorkflow: function(e) {
+		var selection = $('#workflowSelector').val();
+		var workflow = getWorkflow(selection);
+		postWorkflow(workflow);
 	}
 
 });
@@ -116,7 +123,7 @@ var AddWorkflowView = Backbone.View.extend({
 		var date = new Date();
 
 		// TODO add creator to the workflow, this should come from the user that logs into the system when that is in place
-		var workflow = new Workflow({id: id, title: title, date: date});
+		var workflow = new Workflow({id: id, title: title, created: date, creator: currentUser});
 		workflowCollection.create(workflow);
 		$('#modalWorkflowView').modal('hide');
 		eventBus.trigger("clicked:createworkflow", id);
