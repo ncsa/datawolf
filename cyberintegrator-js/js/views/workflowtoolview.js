@@ -55,3 +55,13 @@ var WorkflowToolListItemView = Backbone.View.extend({
     } 
        
 });
+
+var WorkflowToolInfoView = Backbone.View.extend({
+    initialize: function() {
+
+    },
+
+    render: function() {
+        return this;
+    }
+});

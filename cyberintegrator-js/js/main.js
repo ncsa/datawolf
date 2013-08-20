@@ -221,13 +221,14 @@ var AppRouter = Backbone.Router.extend({
         workflowListView = new WorkflowListView({model: workflowCollection});
         $('#workflows').html(workflowListView.render().el);
         $('#workflowbuttons').html(new WorkflowButtonView().render().el);
-        jsPlumb.bind("endpointClick", deleteButton);
+        jsPlumb.bind("endpointClick", handleEndpointClick);
 
         var workflow = null;//new Workflow({id: generateUUID()});
         workflowCollection.each(function(w) {
             workflow = w;
         });
-        
+
+        $('#persons').html(new PersonListView({model: personCollection}).render().el);
     }
 
 });
@@ -262,7 +263,7 @@ var postWorkflow = function(workflow) {
 
 }
 
-var deleteButton = function(endpoint, originalEvent) {
+var handleEndpointClick = function(endpoint, originalEvent) {
     if(endpoint.overlays[0].getLabel() === 'X') {
         //alert("click on endpoint on element " + endpoint.elementId);
         var workflow = getWorkflow(currentWorkflow);
@@ -312,6 +313,9 @@ var deleteButton = function(endpoint, originalEvent) {
             // TODO CMN: workflow trigger update workflow event
             eventBus.trigger("clicked:openworkflow", currentWorkflow);
         }
+    } else {
+        $('#infoview').empty();
+        $('#infoview').append(endpoint.overlays[0].getLabel());
     }
 }
 

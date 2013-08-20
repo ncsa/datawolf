@@ -1,6 +1,7 @@
 var WorkflowListView = Backbone.View.extend({
 	tagName: "select",
 	id: "workflowSelector",
+	className: 'cbi-select',
 
 	events: {
 		"change" : "onChange"
@@ -58,6 +59,7 @@ var WorkflowButtonView = Backbone.View.extend({
 
 	render: function(e) {
 		$(this.el).html(this.template());
+
 		return this;
 	},
 

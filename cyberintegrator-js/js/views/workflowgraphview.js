@@ -18,7 +18,6 @@ var WorkflowGraphView = Backbone.View.extend({
 
     render: function(e) {
         // build the graph view the first time
-
         if(currentWorkflow != null) {
             var workflow = null;
             workflowCollection.each(function(model) {

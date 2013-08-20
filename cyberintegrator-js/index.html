@@ -18,14 +18,19 @@
 </head>
 <body>
 </script>
+    <script type="text/template" id="person-list-item">
+        <%= firstName %> <%= lastName %> - <%= email %>
+    </script>
     <script type="text/template" id="workflow-list-item">
         <%= title %>
     </script>
     <script type="text/template" id="new-workflow-buttons">
-        <button id="new-workflow" class="btn btn-primary">New</button>
-        <button id="open-workflow" class="btn">Open</button>
-        <button id="delete-workflow" class="btn">Delete</button>
-        <button id="save-workflow" class="btn">Save</button>
+        <div class="btn-group btn-group-horizontal">
+            <button id="new-workflow" class="btn myButton">New</button>
+            <button id="open-workflow" class="btn myButton">Open</button>
+            <button id="delete-workflow" class="btn myButton">Delete</button>
+            <button id="save-workflow" class="btn myButton">Save</button>
+        <div>    
     </script>
     <script type="text/template" id="new-workflow">
         <form class="form-horizontal">
@@ -61,6 +66,9 @@
                         <li><a href="#">About</a></li>   
                         <li><a href="#">Contact</a></li>   
                     </ul>
+                    <form class="navbar-search pull-right">
+                        <input type="text" class="search-query" placeholder="Search">
+                    </form>
                 </div>
             </div>
         </div>
@@ -68,17 +76,12 @@
     <div id='editor-app' class="container-fluid">
         <div class="row-fluid">
             <div class="span2">
-                <h4>Tools</h4>
-                <!--
-                    <select size="10">
-                        <option value="eAIRS-CFD">eAIRS-CFD</option>
-                        <option value="eAIRS File-Transfer">eAIRS File-Transfer</option>
-                        <option value="eAIRS Results">eAIRS Results</option>
-                        <option value="eAIRS CFD Parameters">eAIRS CFD Parameters</option>
-                    </select> -->
+                <div id="tool-parent">
+                    <legend class="cbi-legend">Tools</legend>
                     <div id="workflow-tools"></div>
+                </div>
                 <div id="workflow-parent">
-                    <h4>Workflows</h4>
+                    <legend class="cbi-legend">Workflows</legend>
                     <div id="workflows"></div>
                     <div id="workflowbuttons"></div>
                     <div id="modalWorkflowView" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -97,12 +100,16 @@
                         </div> 
                     </div>
                 </div>
+                <div id="person-parent">
+                    <legend class="cbi-legend">Users</legend>
+                    <!-- <button class="btn btn-success collapsed" data-toggle="collapse" data-target="#persons"></button> -->
+                    <div id="persons"></div>
+                </div>
             </div>
-            <div class="span4">
+            <div class="span10">
                 <div class="dropzone">
-                <h4>Workflow Graph</h4>
+                    <legend class="cbi-legend">Workflow Graph</legend>
                     <div id="wgraph">
-                        
                         <!-- 
                         <div class="shape" data-shape="Rectangle" id="analysis1" left='49em' top='71em'>eAIRS-CFD</div>
                         <div class="shape" data-shape="Ellipse" id="input1">file-locations.txt</div>
@@ -110,10 +117,33 @@
                         <div class="shape" data-shape="Ellipse" id="output2">standard-err</div>
                         <div class="shape" data-shape="Ellipse" id="output3">gondola-log</div> -->
                     </div>
-                   
                 </div>
             </div>
         </div>
+        <div class="row-fluid">
+            <div class="span2">
+                <div id='workflow-tool-info'>
+                    <legend class="cbi-legend">Info</legend>
+                    <div id="infoview">
+                        <form id="form">
+                             <div class="row-fluid">
+                                <div class="span4">
+                                    <label>Title:</label>
+                                    <label>Description:</label>
+                                    <label>Author:</label>
+                                    <label>Version:</label>
+                                </div>
+                                <div class="span4">
+                                    <label>the-title</label>
+                                    <text>the-description</text>
+                                    <label>the-author</label>
+                                    <label>the-version</label>
+                                </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div> 
     </div>
     <script src="assets/jquery-1.9.0.js"></script>
     <script src="assets/jquery-ui-1.9.2-min.js"></script>
@@ -129,6 +159,7 @@
     <script src="js/views/workflowgraphview.js"></script>
     <script src="js/views/workflowtoolview.js"></script>
     <script src="js/views/workflowview.js"></script>
+    <script src="js/views/personview.js"></script>
 
     <!-- Models -->
     <script src="js/models/filedescriptormodel.js"></script>
