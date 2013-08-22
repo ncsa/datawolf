@@ -8,6 +8,7 @@ var personCollection = new PersonCollection();
 var workflowCollection = new WorkflowCollection();
 var workflowStepCollection = new WorkflowStepCollection();
 var workflowToolCollection = new WorkflowToolCollection();
+var stepLocationCollection = new GraphStepLocationCollection();
 
 // Views
 var workflowGraphView = null;
@@ -211,7 +212,7 @@ var AppRouter = Backbone.Router.extend({
 
         personCollection.fetch({success: function() {
             currentUser = personCollection.first();
-            currentUser.unset('@id');
+            //currentUser.unset('@id');
             //currentUser.set('@id', '2');
             if(DEBUG) {
                 console.log("current user: "+JSON.stringify(currentUser, undefined, 2));
@@ -227,6 +228,15 @@ var AppRouter = Backbone.Router.extend({
         workflowCollection.each(function(w) {
             workflow = w;
         });
+
+        // fetch graph locations
+        stepLocationCollection.fetch({success: function() {
+            stepLocationCollection.each(function(graphLocation) {
+                //graphLocation.destroy();
+                //console.log(JSON.stringify(graphLocation));
+            }); 
+            //console.log("# of step locations = "+stepLocationCollection.size());
+        }});
 
         $('#persons').html(new PersonListView({model: personCollection}).render().el);
     }

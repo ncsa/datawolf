@@ -25,3 +25,17 @@ var WorkflowStep = Backbone.Model.extend({
 var WorkflowStepCollection = Backbone.Collection.extend({
 	model: WorkflowStep
 });
+
+var GraphStepLocation = Backbone.Model.extend({
+	getX: function() {
+		return this.get('x');
+	},
+	getY: function() {
+		return this.get('y');
+	}
+});
+
+var GraphStepLocationCollection = Backbone.Collection.extend({
+	model: GraphStepLocation,
+	localStorage: new Backbone.LocalStorage('graphlocations')
+});
