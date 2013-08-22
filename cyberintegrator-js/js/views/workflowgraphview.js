@@ -26,8 +26,8 @@ var WorkflowGraphView = Backbone.View.extend({
                 }
             });
 
-            var x = 5;
-            var y = 50;
+            //var x = 5;
+            //var y = 50;
             var stepCollection = workflow.getWorkflowSteps();
             var _this = this;
             stepCollection.each(function(workflowStep) {
@@ -36,7 +36,7 @@ var WorkflowGraphView = Backbone.View.extend({
                 var toolId = workflowTool.get('id');
                 //console.log("tool to add is "+toolId);
                 _this.addToolToGraph(toolId, workflowStep.get('id'), x, y);
-                x = x + 200;
+                //x = x + 200;
             });
         } 
         
@@ -52,15 +52,22 @@ var WorkflowGraphView = Backbone.View.extend({
             if(DEBUG) {
                 console.log(JSON.stringify(workflow, undefined, 2));
             }
-            var x = 20;
-            var y = 50;
+            //var x = 20;
+            //var y = 50;
             var stepCollection = workflow.getSteps();
             var _this = this;
             stepCollection.each(function(workflowStep) {
                 var workflowTool = workflowStep.getTool();
                 var toolId = workflowTool.get('id');
-                _this.addToolToGraph(toolId, workflowStep.get('id'), x, y);
-                x = x + 200;
+                var stepId = workflowStep.get('id');
+                var graphLocation = null;
+                stepLocationCollection.find(function(location) {
+                    if(location.get('id') === stepId) {
+                        graphLocation = location;
+                        return false;
+                    }
+                })
+                _this.addToolToGraph(toolId, workflowStep.get('id'), graphLocation.getX(), graphLocation.getY());
             });
 
             var stepCollectionSource = workflow.getSteps();
@@ -140,7 +147,23 @@ var WorkflowGraphView = Backbone.View.extend({
         var stepId = generateUUID();
         var title = workflowTool.get('title');
         var date = new Date();
-        var creator = currentUser;
+        var creator = null; 
+
+        var workflow = null;
+        console.log("current workflow is: "+currentWorkflow);
+        workflowCollection.each(function(model) {
+            if(model.get('id') === currentWorkflow) {
+                workflow = model;
+            }
+        });
+
+        // POJO's can only appear once in JSON so other instances should just include a reference
+        if(workflow.getCreator().get('id') === currentUser.get('id')) {
+            creator = currentUser.get('id');
+        } else {
+            creator = currentUser;
+        }
+        currentUser;
 
         // Create new input/output table
         var inputs = new Object();
@@ -155,15 +178,7 @@ var WorkflowGraphView = Backbone.View.extend({
             parameters[workflowToolParameter.get('parameterId')] = generateUUID();
         });
 
-        var workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: null, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
-
-        var workflow = null;
-        console.log("current workflow is: "+currentWorkflow);
-        workflowCollection.each(function(model) {
-            if(model.get('id') === currentWorkflow) {
-                workflow = model;
-            }
-        });
+        var workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: creator, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
 
         var stepCollection = workflow.getSteps();
         stepCollection.add(workflowStep);
@@ -202,15 +217,19 @@ var WorkflowGraphView = Backbone.View.extend({
         divTag.setAttribute("data-shape", dataShapeClass);
         divTag.innerText = innerText;
         divTag.style.position = "absolute";
-        divTag.style.left = x+'px';
-        divTag.style.top = y+'px';
+        divTag.style.left = x;
+        divTag.style.top = y;
 
         $('#wgraph').append(divTag);
 
-        var shapes = $(".shape");
+        //var shapes = $(".shape");
 
         // make everything draggable
-        jsPlumb.draggable(shapes);
+        jsPlumb.draggable($('#'+stepId));
+        //jsPlumb.draggable(shapes);
+
+        // update the step location when drag stops
+        $('#'+stepId).bind('dragstop', handleDragStop);
 
         // Add input endpoints
         var inputs = workflowTool.getInputs();
@@ -271,16 +290,33 @@ var WorkflowGraphView = Backbone.View.extend({
                     workflowTool = model;
                 }
             });
-            var x = e.originalEvent.offsetX - 62;
-            var y = e.originalEvent.offsetY - 32;
+            var x = e.originalEvent.offsetX - 62 + 'px';
+            var y = e.originalEvent.offsetY - 32 + 'px';
             var stepId = this.createWorkflowStep(workflowTool.get('id'));
+
+            var graphLocation = new GraphStepLocation({id: stepId, x: x, y: y});
+            stepLocationCollection.create(graphLocation);
             this.addToolToGraph(toolId, stepId, x, y);
 
             toolDrop = false;
         }
-    }
+    },
 
 });
+
+var handleDragStop = function(e) {
+    var div = e.currentTarget;
+    var stepId = div.id;
+    var x = div.style.left
+    var y = div.style.top
+
+    stepLocationCollection.each(function(location) {
+        if(location.get('id') === stepId) {
+            location.save({x: x, y: y});
+            return false;
+        }
+    });
+}
 
 var mouseClick = function() {
     console.log("mouse click");

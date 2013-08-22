@@ -82,6 +82,20 @@ var WorkflowButtonView = Backbone.View.extend({
 					return false;
 				}
 			});
+
+			tmp.getSteps().each(function(workflowStep) {
+				var location = null;
+				stepLocationCollection.each(function(graphLocation) {
+					if(graphLocation.get('id') === workflowStep.get('id')) {
+						location = graphLocation;
+						return false;
+					}
+				});
+				
+				if(location != null) {
+					location.destroy();
+				}
+			});
 			tmp.destroy();
 			if(currentWorkflow === selectedWorkflow) {
 				eventBus.trigger('clearWorkflow', null);
