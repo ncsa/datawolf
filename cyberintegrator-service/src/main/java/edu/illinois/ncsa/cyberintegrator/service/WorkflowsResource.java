@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -55,6 +56,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
@@ -68,6 +71,43 @@ import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/workflows")
 public class WorkflowsResource {
+    private static final Logger log = LoggerFactory.getLogger(WorkflowsResource.class);
+
+    @POST
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Workflow createWorkflow(Workflow workflow) {
+        log.debug("Creating new workflow with id " + workflow.getId());
+        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
+        Workflow tmp = workflowDAO.save(workflow);
+        return tmp;
+    }
+
+    @PUT
+    @Path("{id}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Workflow updateWorkflow(Workflow workflow) {
+        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
+        Workflow tmp = workflowDAO.save(workflow);
+        log.debug("Updating workflow. workflow id " + workflow.getId());
+        return tmp;
+    }
+
+    @DELETE
+    @Path("{id}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public boolean removeWorkflow(@PathParam("id") String id) {
+        // TODO CMN : fix this, deleting workflow doesn't clean up references
+        log.debug("delete workflow with id " + id);
+        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
+        if (workflowDAO.exists(id)) {
+            workflowDAO.delete(id);
+
+            return true;
+        }
+        return false;
+    }
 
     /**
      * 
@@ -132,6 +172,7 @@ public class WorkflowsResource {
     public List<Workflow> getWorkflows(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
         WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
         Page<Workflow> results = wfdao.findAll(new PageRequest(page, size));
+        log.debug("get workflows");
         return results.getContent();
     }
 
@@ -148,6 +189,7 @@ public class WorkflowsResource {
     @Path("{workflow-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow getWorkflow(@PathParam("workflow-id") String workflowId) {
+        log.warn("get workflow by id");
         WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
         return wfdao.findOne(workflowId);
     }
