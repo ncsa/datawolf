@@ -211,34 +211,43 @@ var AppRouter = Backbone.Router.extend({
         }});
 
         personCollection.fetch({success: function() {
-            currentUser = personCollection.first();
-            //currentUser.unset('@id');
-            //currentUser.set('@id', '2');
+            if(personCollection.size() > 0) {
+                currentUser = personCollection.first();
+            }
+
             if(DEBUG) {
                 console.log("current user: "+JSON.stringify(currentUser, undefined, 2));
             }
         }});
 
-        workflowListView = new WorkflowListView({model: workflowCollection});
-        $('#workflows').html(workflowListView.render().el);
-        $('#workflowbuttons').html(new WorkflowButtonView().render().el);
-        jsPlumb.bind("endpointClick", handleEndpointClick);
-
-        var workflow = null;//new Workflow({id: generateUUID()});
-        workflowCollection.each(function(w) {
-            workflow = w;
-        });
-
-        // fetch graph locations
-        stepLocationCollection.fetch({success: function() {
-            stepLocationCollection.each(function(graphLocation) {
-                //graphLocation.destroy();
-                //console.log(JSON.stringify(graphLocation));
-            }); 
-            //console.log("# of step locations = "+stepLocationCollection.size());
+        //var tmpCollection = new WorkflowCollection();
+        //workflowCollection.syncDirtyAndDestroyed();
+        workflowCollection.fetch({success: function() {
+            workflowCollection.each(function(workflow) {
+                if(_.isString(workflow.get('creator'))) {
+                    // Fixes a bug where not all the json for the model is returned
+                    workflow.fetch();
+                }
+            });
+            workflowListView = new WorkflowListView({model: workflowCollection});
+            $('#workflows').html(workflowListView.render().el);
+            $('#workflowbuttons').html(new WorkflowButtonView().render().el);
         }});
 
-        $('#persons').html(new PersonListView({model: personCollection}).render().el);
+        jsPlumb.bind("endpointClick", handleEndpointClick);
+
+        //var workflow = null;//new Workflow({id: generateUUID()});
+        //workflowCollection.each(function(w) {
+        //    workflow = w;
+        //});
+
+        // fetch graph locations
+        /* temp removed since no url set, it gives error trying to sync  
+        */
+        stepLocationCollection.syncDirtyAndDestroyed();
+        stepLocationCollection.fetch();
+
+        //$('#persons').html(new PersonListView({model: personCollection}).render().el);
     }
 
 });
@@ -256,7 +265,7 @@ var postWorkflow = function(workflow) {
                 request.setRequestHeader("Content-type", "application/json");
                 request.setRequestHeader("Accept", "application/json");
             },
-            url: "http://localhost:8001/workflows/create",
+            url: "http://localhost:8001/workflows",
             dataType: "text",
             data: JSON.stringify(workflow),
 
@@ -316,12 +325,31 @@ var handleEndpointClick = function(endpoint, originalEvent) {
             if(tmp != null) {
                 jsPlumb.remove(tmp);
             }
+            var steps = workflow.get('steps');    
+            var index = 0;
+            for(var tmpIndex = 0; tmpIndex < steps.length; tmpIndex++) {
+                console.log(steps[index].id);
+                if(steps[tmpIndex].id === step.get('id')) {
+                    index = tmpIndex;
+                    break;
+                }
+            } 
+            if(index < steps.length) {
+                steps.splice(index, 1);
+            }
 
-            workflow.removeStep(step.get('id'));
+            workflow.save({steps: steps}, {
+                wait: true,
 
-            workflow.save();
-            // TODO CMN: workflow trigger update workflow event
-            eventBus.trigger("clicked:openworkflow", currentWorkflow);
+                success: function(model, response) {
+                    console.log("updated workflow - success");
+                    //console.log("workflow is: "+JSON.stringify(model, undefined, 2));
+                },
+
+                error: function(model, error) {
+                    console.log("failed to update workflow");
+                }
+            });
         }
     } else {
         $('#infoview').empty();
@@ -332,8 +360,7 @@ var handleEndpointClick = function(endpoint, originalEvent) {
 var eventBus = _.extend({}, Backbone.Events);
 
 eventBus.on('clicked:newworkflow', function() {
-    console.log('eventbus triggered');
-    $('#new-workflow-content').html(new AddWorkflowView().render().el);
+    $('#new-workflow-content').html(new AddWorkflowView({model: new Workflow()}).render().el);
     $('#modalWorkflowView').modal('show');
 });
 
@@ -341,8 +368,8 @@ eventBus.on('clicked:createworkflow', function(workflowId) {
     console.log("create workflow: "+workflowId);
     currentWorkflow = workflowId;
     // TODO this should be something we can trigger from an update of the collection
-    workflowListView = new WorkflowListView({model: workflowCollection});
-    $('#workflows').html(workflowListView.render().el);
+    //workflowListView = new WorkflowListView({model: workflowCollection});
+    //$('#workflows').html(workflowListView.render().el);
     workflowGraphView.setWorkflow(workflowId);
 
 });
@@ -354,8 +381,8 @@ eventBus.on('clicked:openworkflow', function(workflowId) {
 
 eventBus.on('clicked:deleteworkflow', function() {
     // TODO this should be automatically done if we bind add/remove events to the view
-    workflowListView = new WorkflowListView({model: workflowCollection});
-    $('#workflows').html(workflowListView.render().el);
+    //workflowListView = new WorkflowListView({model: workflowCollection});
+    //$('#workflows').html(workflowListView.render().el);
 });
 
 eventBus.on('clearWorkflow', function() {
@@ -364,4 +391,5 @@ eventBus.on('clearWorkflow', function() {
 })
 
 var app = new AppRouter();
+
 Backbone.history.start();

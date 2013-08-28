@@ -48,12 +48,13 @@ var WorkflowGraphView = Backbone.View.extend({
         var workflow = getWorkflow(workflowId);
 
         if(workflow != null) {
+            this.model = workflow;
 
             if(DEBUG) {
                 console.log(JSON.stringify(workflow, undefined, 2));
             }
-            //var x = 20;
-            //var y = 50;
+            var x = 5;
+            var y = 50;
             var stepCollection = workflow.getSteps();
             var _this = this;
             stepCollection.each(function(workflowStep) {
@@ -67,7 +68,13 @@ var WorkflowGraphView = Backbone.View.extend({
                         return false;
                     }
                 })
-                _this.addToolToGraph(toolId, workflowStep.get('id'), graphLocation.getX(), graphLocation.getY());
+
+                if(graphLocation != null) {
+                    _this.addToolToGraph(toolId, workflowStep.get('id'), graphLocation.getX(), graphLocation.getY());
+                } else {
+                    _this.addToolToGraph(toolId, workflowStep.get('id'), x+'px', y+'px');//graphLocation.getX(), graphLocation.getY());
+                }
+                x = x + 200;
             });
 
             var stepCollectionSource = workflow.getSteps();
@@ -112,29 +119,33 @@ var WorkflowGraphView = Backbone.View.extend({
                         });
                     });
 
-                    console.log(sourceLabel + " is connected to "+targetLabel);
-
+                    if(DEBUG) {
+                        console.log(sourceLabel + " is connected to "+targetLabel);
+                    }
+                       
                     var sourceEndpoint = null;
                     var targetEndpoint = null;
                     var shapes = $(".shape");
-                    for(var i = 0; i < shapes.length; i++) {
-                        if(shapes[i].id === sourceStep.get('id')) {//workflowStep.get('id')) {
-                            var endpoints = jsPlumb.getEndpoints(shapes[i]);
-                            for(var j = 0; j < endpoints.length; j++) {
-                                if(endpoints[j].overlays[0].getLabel() === sourceLabel) {
-                                    sourceEndpoint = endpoints[j];
+                    if(sourceStep != null) {
+                        for(var i = 0; i < shapes.length; i++) {
+                            if(shapes[i].id === sourceStep.get('id')) {//workflowStep.get('id')) {
+                                var endpoints = jsPlumb.getEndpoints(shapes[i]);
+                                for(var j = 0; j < endpoints.length; j++) {
+                                    if(endpoints[j].overlays[0].getLabel() === sourceLabel) {
+                                        sourceEndpoint = endpoints[j];
+                                    }
                                 }
-                            }
-                        } else if(shapes[i].id === targetStep.get('id')) {
-                            var endpoints = jsPlumb.getEndpoints(shapes[i]);
-                            for(var j = 0; j < endpoints.length; j++) {
-                                if(endpoints[j].overlays[0].getLabel() === targetLabel) {
-                                    targetEndpoint = endpoints[j];
+                            } else if(shapes[i].id === targetStep.get('id')) {
+                                var endpoints = jsPlumb.getEndpoints(shapes[i]);
+                                for(var j = 0; j < endpoints.length; j++) {
+                                    if(endpoints[j].overlays[0].getLabel() === targetLabel) {
+                                        targetEndpoint = endpoints[j];
+                                    }
                                 }
                             }
                         }
+                        jsPlumb.connect({source: sourceEndpoint, target: targetEndpoint});
                     }
-                    jsPlumb.connect({source: sourceEndpoint, target: targetEndpoint});
                 }
             });
 
@@ -180,21 +191,34 @@ var WorkflowGraphView = Backbone.View.extend({
 
         var workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: creator, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
 
-        var stepCollection = workflow.getSteps();
-        stepCollection.add(workflowStep);
-        workflow.set({steps: stepCollection});
+        var steps = workflow.get('steps');
+        var newstep = workflowStep.toJSON();
+        steps.push(newstep);
+
+        //workflow.set({steps: steps});
 
         if(DEBUG) {
-            console.log("workflow is: "+JSON.stringify(workflow, undefined, 2));
+            console.log("workflow is: "+JSON.stringify(this.model, undefined, 2));
         }
 
-        workflow.save();
+        this.model.save({steps: steps}, {
+            wait: true,
+
+            success: function(model, response) {
+                console.log("updated workflow - success");
+                //console.log("workflow is: "+JSON.stringify(model, undefined, 2));
+            },
+
+            error: function(model, error) {
+                console.log("failed to update workflow");
+            }
+        });
 
         return stepId;
     },
 
     addToolToGraph: function(toolId, stepId, x, y) {
-        //console.log("x = " +x + ", y = "+y);
+        // console.log("x = " +x + ", y = "+y);
         var workflowTool = null;
         workflowToolCollection.each(function(model) {
             if(model.get('id') === toolId) {
@@ -202,7 +226,6 @@ var WorkflowGraphView = Backbone.View.extend({
                 return false;
             }
         });
-
          // TODO: CMN fix graph objects to get width/height dynamically instead of using static values from CSS
         //var myapp = $("#editor-app");
 
@@ -222,11 +245,11 @@ var WorkflowGraphView = Backbone.View.extend({
 
         $('#wgraph').append(divTag);
 
-        //var shapes = $(".shape");
+        var shapes = $(".shape");
 
         // make everything draggable
-        jsPlumb.draggable($('#'+stepId));
-        //jsPlumb.draggable(shapes);
+        //jsPlumb.draggable($('#'+stepId));
+        jsPlumb.draggable(shapes);
 
         // update the step location when drag stops
         $('#'+stepId).bind('dragstop', handleDragStop);
@@ -294,9 +317,13 @@ var WorkflowGraphView = Backbone.View.extend({
             var y = e.originalEvent.offsetY - 32 + 'px';
             var stepId = this.createWorkflowStep(workflowTool.get('id'));
 
+            // temp removed for url issue with rest
             var graphLocation = new GraphStepLocation({id: stepId, x: x, y: y});
             stepLocationCollection.create(graphLocation);
             this.addToolToGraph(toolId, stepId, x, y);
+
+            //console.log("workflow has");
+            //console.log(JSON.stringify(getWorkflow(currentWorkflow), undefined, 2));
 
             toolDrop = false;
         }
@@ -343,9 +370,11 @@ var handleConnect = function(connection) {
     var sourceEndpoint = connection.connection.endpoints[0];
     var targetEndpoint = connection.dropEndpoint;
 
-    console.log("connect "+sourceEndpoint.overlays[0].getLabel() + " to " + targetEndpoint.overlays[0].getLabel());
+    if(DEBUG) {
+        console.log("connect "+sourceEndpoint.overlays[0].getLabel() + " to " + targetEndpoint.overlays[0].getLabel());
+    }
 
-    var workflowTool = sourceStep.getTool();
+    var workflowTool = getWorkflowTool(sourceStep.get('tool').id);
     var workflowToolOutputs = workflowTool.getOutputs();
     var workflowToolData = null;
 
@@ -364,12 +393,17 @@ var handleConnect = function(connection) {
             outputUUID = stepOutputMap[key];
         }
     }
-
     //console.log("UUID of output is "+outputUUID);
 
     // Find the Input being connected
+    var tool = getWorkflowTool(targetStep.get('tool').id);
     var workflowToolDataInput = null;
-    var workflowToolInputCollection = targetStep.getTool().getInputs();
+    var workflowToolInputCollection = tool.getInputs();//getWorkflowTool(targetStep.getTool().get('id'));//targetStep.getTool().getInputs();
+    //console.log("here5: "+JSON.stringify(tool, undefined, 2));
+    //console.log(JSON.stringify(tool.get("inputs"));
+    //console.log(workflowToolInputCollection.size());
+
+    //console.log(JSON.stringify(targetStep.getTool(), undefined, 2));
     workflowToolInputCollection.each(function(workflowToolInput) {
         if(workflowToolInput.get('title') === targetEndpoint.overlays[0].getLabel()) {
             workflowToolDataInput = workflowToolInput;
@@ -377,7 +411,10 @@ var handleConnect = function(connection) {
         }
     });
 
-    console.log("tool input being connected is "+workflowToolDataInput.get('title'));
+    if(DEBUG) {
+        console.log("tool input being connected is "+workflowToolDataInput.get('title'));
+    }
+
     targetStep.setInput(workflowToolDataInput.get('dataId'), outputUUID);
 
     if(DEBUG) {
@@ -387,6 +424,7 @@ var handleConnect = function(connection) {
         }
     }   
 
+    // TODO CMN : does this just save what changed or is this a full save?
     workflow.save();
 
     return true;

@@ -10,7 +10,12 @@ var WorkflowListView = Backbone.View.extend({
 	initialize: function() {
 		this.$el.attr('size', '10');
 		this.model.bind("reset", this.render, this);
-		this.model.fetch();
+		var self = this;
+		this.model.bind("add", function(workflow) {
+			$(self.el).append(new WorkflowListItemView({model: workflow}).render().el);
+		});
+		
+		//this.model.fetch();
 	},
 
 	render: function(e) {
@@ -24,7 +29,8 @@ var WorkflowListView = Backbone.View.extend({
 
 	onChange: function(e) {
 		var selection = $('#workflowSelector').val();
-		//console.log("selection is "+selection);
+		console.log("selection is "+selection);
+		//console.log(JSON.stringify(getWorkflow(selection), undefined, 2));
 	}
 
 });
@@ -33,6 +39,11 @@ var WorkflowListItemView = Backbone.View.extend({
 	tagName: "option",
 
 	template: _.template($('#workflow-list-item').html()),
+
+	initialize: function() {
+		this.model.bind("change", this.render, this);
+		this.model.bind("destroy", this.close, this);
+	},
 
 	attributes: function() {
 		return {
@@ -44,6 +55,10 @@ var WorkflowListItemView = Backbone.View.extend({
 		$(this.el).html(this.template(this.model.toJSON()));
 
 		return this;
+	},
+	close: function() {
+		$(this.el).unbind();
+		$(this.el).remove();
 	}
 });
 
@@ -65,15 +80,15 @@ var WorkflowButtonView = Backbone.View.extend({
 
 	newWorkflow: function(e) {
 		e.preventDefault();
-		console.log("trigger new");
 		eventBus.trigger("clicked:newworkflow", null);	
 	},
 
 	deleteWorkflow: function(e) {
-		// TODO implement delete workflow
+		// TODO implement delete workflow completely (both REST service and client)
 		e.preventDefault();
 
 		var selectedWorkflow = $('#workflowSelector').val();
+		console.log("selected workflow = "+selectedWorkflow);
 		if(selectedWorkflow != null) {
 			var tmp = null;
 			workflowCollection.each(function(workflow) {
@@ -112,7 +127,11 @@ var WorkflowButtonView = Backbone.View.extend({
 	saveWorkflow: function(e) {
 		var selection = $('#workflowSelector').val();
 		var workflow = getWorkflow(selection);
-		postWorkflow(workflow);
+		//console.log("saving workflow");
+		//console.log(JSON.stringify(workflow, undefined, 2));
+		//workflow.set({title: "test1" });
+		//workflow.save();
+		//postWorkflow(workflow);
 	}
 
 });
@@ -137,12 +156,23 @@ var AddWorkflowView = Backbone.View.extend({
 		var id = generateUUID();
 		var title = this.$('input[name=workflow-title]').val();
 		var date = new Date();
+		var creator = currentUser.toJSON();
+		var _this = this.model;
+		this.model.save({title: title, created: date, creator: creator}, {
+			wait: true,
 
-		// TODO add creator to the workflow, this should come from the user that logs into the system when that is in place
-		var workflow = new Workflow({id: id, title: title, created: date, creator: currentUser});
-		workflowCollection.create(workflow);
+			success: function(model, response) {
+				console.log("workflow created - success.");
+				workflowCollection.add(_this);
+				eventBus.trigger("clicked:createworkflow", model.get('id'));//id);
+			},
+			error: function(model, error) {
+				//console.log(JSON.stringify(model, undefined, 2));
+				console.log("workflow not saved: "+error.responseText);
+			}
+		});
+
 		$('#modalWorkflowView').modal('hide');
-		eventBus.trigger("clicked:createworkflow", id);
 	},
 
 	cancelWorkflow: function(e) {

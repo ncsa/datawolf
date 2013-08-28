@@ -1,7 +1,5 @@
 var Workflow = Backbone.Model.extend({
-	initialize: function() {
-
-	},
+	urlRoot: "/workflows/",
 
 	getCreator: function() {
 		return new Person(this.get('creator'));
@@ -32,5 +30,6 @@ var Workflow = Backbone.Model.extend({
 
 var WorkflowCollection = Backbone.Collection.extend({
 	model: Workflow,
-	localStorage: new Backbone.LocalStorage('workflows')
+	//localStorage: new Backbone.LocalStorage('workflows'),
+	url: "/workflows/",
 });
