@@ -50,6 +50,12 @@ var WorkflowGraphView = Backbone.View.extend({
         if(workflow != null) {
             this.model = workflow;
 
+            if(this.model.get('title') != null) {
+                $('#workflow-legend').html("Workflow Graph - "+this.model.get('title'));
+            } else {
+                $('#workflow-legend').html("Workflow Graph - untitled");
+            }
+
             if(DEBUG) {
                 console.log(JSON.stringify(workflow, undefined, 2));
             }
@@ -337,12 +343,19 @@ var handleDragStop = function(e) {
     var x = div.style.left
     var y = div.style.top
 
+    var updated = false;
     stepLocationCollection.each(function(location) {
         if(location.get('id') === stepId) {
             location.save({x: x, y: y});
+            updated = true;
             return false;
         }
     });
+
+    if(!updated) {
+        var graphLocation = new GraphStepLocation({id: stepId, x: x, y: y});
+        stepLocationCollection.create(graphLocation);
+    }
 }
 
 var mouseClick = function() {

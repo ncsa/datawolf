@@ -207,6 +207,7 @@ var AppRouter = Backbone.Router.extend({
 
         //var tempToolCollection = new WorkflowToolCollection();
         workflowToolCollection.fetch({success: function() {
+            //console.log("tool collection size = "+workflowToolCollection.size());
             $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
         }});
 
@@ -221,17 +222,23 @@ var AppRouter = Backbone.Router.extend({
         }});
 
         //var tmpCollection = new WorkflowCollection();
-        //workflowCollection.syncDirtyAndDestroyed();
+        // Fetch the collection and check for dirty/destroyed
         workflowCollection.fetch({success: function() {
-            workflowCollection.each(function(workflow) {
-                if(_.isString(workflow.get('creator'))) {
-                    // Fixes a bug where not all the json for the model is returned
-                    workflow.fetch();
-                }
-            });
-            workflowListView = new WorkflowListView({model: workflowCollection});
-            $('#workflows').html(workflowListView.render().el);
-            $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+            workflowCollection.syncDirtyAndDestroyed();
+
+            // Re-fetch after sync because fetch won't pull everything if there are dirty/destroyed records
+            // TODO CMN: is there a way to determine if everything was up to date? 
+            workflowCollection.fetch({success: function() {
+                workflowCollection.each(function(workflow) {
+                    if(_.isString(workflow.get('creator'))) {
+                        // Fixes a bug where not all the json for the model is returned
+                        workflow.fetch();
+                    }
+                });
+                workflowListView = new WorkflowListView({model: workflowCollection});
+                $('#workflows').html(workflowListView.render().el);
+                $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+            }});
         }});
 
         jsPlumb.bind("endpointClick", handleEndpointClick);
@@ -244,7 +251,7 @@ var AppRouter = Backbone.Router.extend({
         // fetch graph locations
         /* temp removed since no url set, it gives error trying to sync  
         */
-        stepLocationCollection.syncDirtyAndDestroyed();
+        //stepLocationCollection.syncDirtyAndDestroyed();
         stepLocationCollection.fetch();
 
         //$('#persons').html(new PersonListView({model: personCollection}).render().el);
