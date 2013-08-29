@@ -770,6 +770,9 @@ public class HPCExecutor extends RemoteExecutor {
                         HPCJobInfo info = new HPCJobInfo();
                         info.setExecutionId(this.getExecutionId());
                         info.setWorkingDir(workingDir);
+                        if(jobId != null) {
+                            info.setJobId(jobId);
+                        }
                         // info.setStandardError(standardErr);
                         // info.setStandardOutput(standardOut);
 
