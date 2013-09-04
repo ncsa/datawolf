@@ -67,7 +67,8 @@ var WorkflowButtonView = Backbone.View.extend({
 		"click button#new-workflow" : "newWorkflow",
 		"click button#delete-workflow" : "deleteWorkflow",
 		"click button#open-workflow" : "openWorkflow",
-		"click button#save-workflow" : "saveWorkflow"
+		"click button#save-workflow" : "saveWorkflow",
+		"click button#copy-workflow" : "copyWorkflow"
 	},
 
 	template: _.template($("#new-workflow-buttons").html()),
@@ -132,6 +133,168 @@ var WorkflowButtonView = Backbone.View.extend({
 		//workflow.set({title: "test1" });
 		//workflow.save();
 		//postWorkflow(workflow);
+	},
+
+	copyWorkflow: function(e) {
+		var selection = $('#workflowSelector').val();
+		var	oldWorkflow = getWorkflow(selection);
+		var workflowClone = oldWorkflow.clone();
+
+		// TODO CMN: should we let user specify a title?
+		//var title = workflowClone.get('title') + '(1)';
+		//workflowClone.set('title', title);
+
+		var originalCreator = oldWorkflow.getCreator();
+		var newCreator = currentUser;
+
+	    var date = new Date(); 
+	    workflowClone.set('created', date);
+		workflowClone.unset('id');
+
+		var contributors = workflowClone.get('contributors');
+		if(contributors == null) {
+			contributors = new Object();
+		}
+
+
+		var sameCreator = false;
+		if(originalCreator.get('email') != newCreator.get('email')) {
+			contributors.push(newCreator);
+			workflowClone.set('contributors', contributors);
+		} else {
+			sameCreator = true;
+		}
+		
+		var steps = workflowClone.get('steps');
+		var clonedSteps = new WorkflowStepCollection();
+
+		// Update cloned steps with new ids, etc
+		for(var index = 0; index < steps.length; index++) {
+			var oldStep = new WorkflowStep(steps[index]);
+			console.log(JSON.stringify(oldStep, undefined, 2));
+
+			var workflowTool = oldStep.getTool();
+
+			var inputs = new Object();
+	        var outputs = new Object();
+	        var parameters = new Object();
+
+	        workflowTool.getOutputs().each(function(workflowToolData) {
+	            outputs[workflowToolData.get('dataId')] = generateUUID();
+	        });
+
+	        workflowTool.getParameters().each(function(workflowToolParameter) {
+	            parameters[workflowToolParameter.get('parameterId')] = generateUUID();
+	        });
+			
+	        var stepId = generateUUID();
+	        var title = oldStep.get('title');
+	        var workflowStep = null;
+	        if(index === 0 && !sameCreator) {
+	        	workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: newCreator, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
+	    	} else {
+	        	workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: newCreator.get('id'), tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
+	    	}
+	        clonedSteps.add(workflowStep);
+
+	        //Update cloned step with same location information as original step
+	        var graphLocation = stepLocationCollection.get(oldStep.get('id'));
+	        if(graphLocation != null) {
+	        	var newGraphLocation = graphLocation.clone();
+	        	newGraphLocation.set('id', stepId);
+	        	console.log("found graph location: "+JSON.stringify(graphLocation, undefined, 2));
+	        	// TODO: uncomment this when finished with clone
+	        	stepLocationCollection.add(newGraphLocation);
+	        }
+	    }
+
+	    // Reconnect input/outputs
+		for(var index = 0; index < steps.length; index++) {
+			var oldStep = new WorkflowStep(steps[index]);
+			var newIndex;
+			for(var key in oldStep.getInputs()) {
+				var value = oldStep.getInputs()[key];
+				var toolDataInputCollection = oldStep.getTool().getInputs();
+
+				var connectedInput = null;
+				var connectedOutput = null;
+				toolDataInputCollection.each(function(toolDataInput) {
+					if(toolDataInput.get('dataId') === key) {
+						connectedInput = toolDataInput;
+						return false;
+					}
+				});
+
+				for(var i = 0; i < steps.length; i++) {
+					var currentStep = new WorkflowStep(steps[i]);
+					var tmpTool = currentStep.getTool();
+					var tmpOutputs = currentStep.getOutputs();
+					for(var j in tmpOutputs) {
+						if(tmpOutputs[j] === value) {	
+							var dataOutputCollection = tmpTool.getOutputs();
+							dataOutputCollection.each(function(workflowToolData) {
+								if(workflowToolData.get('dataId') === j) {
+									newIndex = i;
+									connectedOutput = workflowToolData;
+									return false;
+								}
+							});
+						}
+					}
+				}
+
+				var sourceStep = clonedSteps.at(newIndex);
+				var outputTool = sourceStep.get('tool');
+				var workflowToolOutputs = outputTool.getOutputs();
+				var workflowToolData = null;
+
+				workflowToolOutputs.each(function(workflowToolOutput) {
+				    if(workflowToolOutput.get('title') === connectedOutput.get('title')) {
+				        workflowToolData = workflowToolOutput;
+				        return false;
+				    }
+			    });     
+
+				var stepOutputMap = sourceStep.getOutputs();
+				var outputDataId = workflowToolData.get('dataId');
+				var outputUUID = null;
+				for(var key in stepOutputMap) {
+				    if(key === outputDataId) {
+				        outputUUID = stepOutputMap[key];
+				    }
+				}
+
+				var targetStep = clonedSteps.at(index);
+				var inputTool = targetStep.get('tool');
+				var inputDataCollection = inputTool.getInputs();
+				var workflowToolDataInput = null;
+				inputDataCollection.each(function(workflowToolInput) {
+					if(workflowToolInput.get('title') === connectedInput.get('title')) {
+						workflowToolDataInput = workflowToolInput;
+						return false;
+					}
+				});
+				//console.log(workflowToolData.get('title') + " is the input to "+workflowToolDataInput.get('title'));
+				targetStep.setInput(workflowToolDataInput.get('dataId'), outputUUID);
+			} 
+		}
+
+		workflowClone.set('steps', clonedSteps);
+		//console.log(JSON.stringify(workflowClone, undefined, 2));
+
+		// This works, just need to finish above todo's
+		workflowClone.save({}, {
+			wait: true,
+			
+			success: function(model, response) {
+				console.log("copied workflow - success");
+				workflowCollection.add(workflowClone);
+			},
+
+			error: function(model, response) {
+				console.log("copied workflow - failed");
+			}
+		});
 	}
 
 });
