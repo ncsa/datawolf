@@ -1,9 +1,10 @@
 var WorkflowToolListView = Backbone.View.extend({
     tagName: 'ul',
     id: 'workflowListItemView',
+    className: 'workflowToolView',
 
     initialize: function() {
-       this.$el.attr('size', '10');
+       this.$el.attr('size', '25');
        //this.$el.attr('draggable', 'true');
        //this.$el.bind('dragstart', _.bind(this.handleDragStart, this));
     },
@@ -27,7 +28,7 @@ var WorkflowToolListView = Backbone.View.extend({
 });
 
 var WorkflowToolListItemView = Backbone.View.extend({
-    tagName: 'ol',
+    tagName: 'li',
 
     template: _.template($('#workflow-list-item').html()),
     initialize: function() {

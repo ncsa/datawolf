@@ -1,9 +1,9 @@
 body {
-	padding-top: 60px;
-    padding-bottom: 40px;
+	/* padding-top: 60px; */
+    /* padding-bottom: 40px; */
     background: #222;
     color: #fff;
-    font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+    /* font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif; */
 }
 
 path, ._jsPlumb_endpoint { cursor:pointer; }
@@ -183,4 +183,19 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 
 #modalWorkflowView {
     color: #000000;
+}
+
+.navbar-static-top {
+  margin-bottom: 19px;
+}
+
+.workflowToolView {
+    padding: 2px;
+    margin: 2px;
+    list-style-type: none;
+}
+
+.container-liquid {
+  padding: 0 15px;
+  margin: 0 auto;
 }

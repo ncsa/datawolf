@@ -232,6 +232,7 @@ var AppRouter = Backbone.Router.extend({
                 workflowCollection.each(function(workflow) {
                     if(_.isString(workflow.get('creator'))) {
                         // Fixes a bug where not all the json for the model is returned
+                        console.log("fetching again for id = "+workflow.get('id'));
                         workflow.fetch();
                     }
                 });
@@ -290,17 +291,18 @@ var postWorkflow = function(workflow) {
 }
 
 var handleEndpointClick = function(endpoint, originalEvent) {
+    var workflow = getWorkflow(currentWorkflow);
+    var step = null;
+    var workflowStepCollection = workflow.getSteps();
+    workflowStepCollection.each(function(workflowStep) {
+        if(workflowStep.get('id') === endpoint.elementId) {
+            step = workflowStep;
+            return false;
+        }
+    });    
     if(endpoint.overlays[0].getLabel() === 'X') {
         //alert("click on endpoint on element " + endpoint.elementId);
-        var workflow = getWorkflow(currentWorkflow);
-        var step = null;
-        var workflowStepCollection = workflow.getSteps();
-        workflowStepCollection.each(function(workflowStep) {
-            if(workflowStep.get('id') === endpoint.elementId) {
-                step = workflowStep;
-                return false;
-            }
-        });
+        
         var confirmDelete = confirm("delete "+step.get('title') + "?");
 
         if(confirmDelete) {
@@ -359,8 +361,31 @@ var handleEndpointClick = function(endpoint, originalEvent) {
             });
         }
     } else {
-        $('#infoview').empty();
-        $('#infoview').append(endpoint.overlays[0].getLabel());
+        console.log("workflow step is "+step.get('title'));
+        var endpointLbl = endpoint.overlays[0].getLabel();
+        var toolData = null;
+        step.getTool().getInputs().each(function(toolInput) {
+            if(toolInput.get('title') === endpointLbl) {
+                toolData = toolInput;
+                return false;
+            }
+        });
+
+        if(toolData == null) {
+            step.getTool().getOutputs().each(function(toolOutput) {
+                if(toolOutput.get('title') === endpointLbl) {
+                    toolData = toolOutput;
+                    return false;
+                }
+            });
+        }
+
+        if(toolData != null) {
+            console.log("found tool data");
+            $('#infoview').empty();
+            $('#infoview').append(new ToolDataInfoView({model: toolData}).render().el);
+        } 
+        //$('#infoview').append(endpoint.overlays[0].getLabel());
     }
 }
 

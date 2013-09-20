@@ -2,19 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyberintegrator Editor</title>
     <!-- <link rel="stylesheet" href="assets/css/demo-all.css"> -->
     <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="main.css" rel="stylesheet">
     <!-- <link rel="stylesheet" href="assets/css/perimeterAnchorsDemo.css"> -->
-
+    <!--
     <style type="text/css">
         body {
             padding-top: 60px;
             padding-bottom: 40px;
         }
-    </style>
+    </style> -->
 </head>
 <body>
 </script>
@@ -24,12 +25,58 @@
     <script type="text/template" id="workflow-list-item">
         <%= title %>
     </script>
+    <script type="text/template" id="workflow-info-view">
+        <form class="form-inline">
+            <div class="control-group">
+                <label class="control-label" for="workflow-title">Title:</label>
+                <div class="controls">
+                    <input type="text" name="workflow-title" id="workflow-title" placeholder="enter title" value="<%= title %>"/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="workflow-date">Date:</label>
+                <div class="controls">
+                    <input type="text" name="workflow-date" id="workflow-date" placeholder="no date" value="<%= created %>" readonly/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="workflow-creator">Creator:</label>
+                <div class="controls">
+                    <input type="text" name="workflow-creator" id="workflow-creator" placeholder="no creator" value="<%= creator.firstName %> <%= creator.lastName %>" readonly/>
+                </div>
+            </div>
+        </form>
+    </script>
+     <script type="text/template" id="tool-data-info-view">
+        <form class="form-inline">
+            <div class="control-group">
+                <label class="control-label" for="tooldata-title">Title:</label>
+                <div class="controls">
+                    <input type="text" name="tooldata-title" id="tooldata-title" placeholder="enter title" value="<%= title %>" readonly/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="tooldata-description">Description:</label>
+                <div class="controls">
+                    <input type="text" name="tooldata-description" id="tooldata-description" placeholder="no date" value="<%= description %>" readonly/>
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="tooldata-mimetype">Mime-Type:</label>
+                <div class="controls">
+                    <input type="text" name="tooldata-mimetype" id="tooldata-mimetype" placeholder="no creator" value="<%= mimeType %>" readonly/>
+                </div>
+            </div>
+        </form>
+    </script>
+    <script type="text/template" id="workflow-step-info-view">
+    </script>
     <script type="text/template" id="new-workflow-buttons">
-        <div class="btn-group btn-group-horizontal">
-            <button id="new-workflow" class="btn myButton">New</button>
-            <button id="open-workflow" class="btn myButton">Open</button>
-            <button id="delete-workflow" class="btn myButton">Delete</button>
-            <button id="copy-workflow" class="btn myButton">Copy</button>
+        <div class="btn-group">
+            <button id="new-workflow" class="btn btn-default">New</button>
+            <button id="open-workflow" class="btn btn-default">Open</button>
+            <button id="delete-workflow" class="btn btn-default">Delete</button>
+            <button id="copy-workflow" class="btn btn-default">Copy</button>
             <!-- <button id="save-workflow" class="btn myButton">Save</button> -->
         <div>    
     </script>
@@ -52,35 +99,33 @@
     <script type="text/template" id="addshape-button-template">
         <button id="addshape-button" class="btn btn-primary">Add Shape</button>
     </script>
-    <div class="navbar navbar-fixed-top">
-        <div class="navbar-inner">
-            <div class="container-fluid">
-                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+   
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="brand" href="#">Cyberintegrator Editor</a>
-                <div class="nav-collapse collapse">
-                    <ul class="nav">
-                        <li class="active"><a href="#">Home</a></li>
-                        <li><a href="#">Execute</a></li>
-                        <li><a href="#">About</a></li>   
-                        <li><a href="#">Contact</a></li>   
-                    </ul>
-                    <form class="navbar-search pull-right">
-                        <input type="text" class="search-query" placeholder="Search">
-                    </form>
-                </div>
+                <a class="navbar-brand" href="#">Cyberintegrator Editor</a>
+            </div>
+            <div class="navbar-collapse collapse navbar-ex1-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Home</a></li>
+                    <li><a href="#">Execute</a></li>
+                    <li><a href="#">About</a></li>   
+                    <li><a href="#">Contact</a></li>   
+                </ul>
             </div>
         </div>
-    </div>
-    <div id='editor-app' class="container-fluid">
-        <div class="row-fluid">
-            <div class="span2">
+    </nav> 
+    <div id='editor-app' class="container-liquid">
+        <div class="row">
+            <div class="col-md-2 col-lg-2">
                 <div id="tool-parent">
                     <legend class="cbi-legend">Tools</legend>
-                    <div id="workflow-tools"></div>
+                    <div id="workflow-tools"></div>                 
                 </div>
                 <div id="workflow-parent">
                     <legend class="cbi-legend">Workflows</legend>
@@ -131,7 +176,7 @@
                     <div id="persons"></div>
                 </div> -->
             </div>
-            <div class="span10">
+            <div class="col-md-10 col-lg-10">
                 <div class="dropzone">
                     <legend class="cbi-legend" id="workflow-legend">Workflow Graph</legend>
                     <div id="wgraph">
@@ -187,6 +232,7 @@
     <script src="js/views/workflowgraphview.js"></script>
     <script src="js/views/workflowtoolview.js"></script>
     <script src="js/views/workflowview.js"></script>
+    <script src="js/views/infoview.js"></script>
     <!-- <script src="js/views/personview.js"></script> -->
 
     <!-- Models -->

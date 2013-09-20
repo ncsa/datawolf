@@ -234,7 +234,7 @@ var WorkflowGraphView = Backbone.View.extend({
         });
          // TODO: CMN fix graph objects to get width/height dynamically instead of using static values from CSS
         //var myapp = $("#editor-app");
-
+        
         var id = stepId;
         var innerText = workflowTool.get('title');
         var shapeClass = "shape";
@@ -248,6 +248,7 @@ var WorkflowGraphView = Backbone.View.extend({
         divTag.style.position = "absolute";
         divTag.style.left = x;
         divTag.style.top = y;
+        divTag.onmousedown = mouseClick;
 
         $('#wgraph').append(divTag);
 
@@ -358,8 +359,21 @@ var handleDragStop = function(e) {
     }
 }
 
-var mouseClick = function() {
-    console.log("mouse click");
+var mouseClick = function(e) {
+    console.log("mouse click: "+e.target.id);
+    var stepId = e.target.id;
+    var workflow = getWorkflow(currentWorkflow);
+    var workflowStep = null;
+    workflow.getSteps().each(function(step) {
+        if(step.get('id') === stepId) {
+            workflowStep = step;
+            return false;
+        }
+    });
+
+    console.log("selected "+workflowStep.get('title'));
+
+    
     return true;
 }
 

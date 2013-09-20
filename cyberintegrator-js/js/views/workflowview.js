@@ -29,8 +29,12 @@ var WorkflowListView = Backbone.View.extend({
 
 	onChange: function(e) {
 		var selection = $('#workflowSelector').val();
-		console.log("selection is "+selection);
-		//console.log(JSON.stringify(getWorkflow(selection), undefined, 2));
+		console.log("selection is "+console);
+
+		//var workflow = getWorkflow(selection);
+		//console.log(JSON.stringify(workflow, undefined, 2));
+		$('#infoview').html(new WorkflowInfoView({model: workflow}).render().el);
+		//selection.log(JSON.stringify(getWorkflow(selection), undefined, 2));
 	}
 
 });
