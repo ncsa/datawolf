@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -660,6 +661,9 @@ public class HPCExecutor extends RemoteExecutor {
             StringBuilder gondolaLogContent = new StringBuilder();
             BufferedReader gondolaLogReader = new BufferedReader(new FileReader(gondolaLog));
             boolean done = false;
+            String startTime = null;
+            String endTime = null;
+            
             if (gondolaLogReader != null) {
                 String line;
                 while ((line = gondolaLogReader.readLine()) != null) {
@@ -667,6 +671,10 @@ public class HPCExecutor extends RemoteExecutor {
                         jobResultDirectory = line;
                     } else if ("DONE".equals(line.toUpperCase())) {
                         done = true;
+                    } else if(line.startsWith("start:")) {
+                        startTime = line.substring(7, line.length());
+                    } else if(line.startsWith("end:")) {
+                        endTime = line.substring(5, line.length());
                     }
                     // println(line);
                     gondolaLogContent.append(line);
@@ -675,7 +683,7 @@ public class HPCExecutor extends RemoteExecutor {
                 gondolaLogReader.close();
                 gondolaLogReader = null;
             }
-
+            
             if (!done) {
                 // If not done, copy standard error and out
                 SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
@@ -703,8 +711,19 @@ public class HPCExecutor extends RemoteExecutor {
                 // TODO make this more generic
                 t = SpringData.getTransaction();
                 t.start();
+                
                 WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
                 Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+                
+                // Record start/end time
+                SimpleDateFormat sdfParser = new SimpleDateFormat("EEE MMM d HH:mm:ss zzz yyyy");
+                if(startTime != null) {
+                    execution.setStepStart(getStepId(), sdfParser.parse(startTime).getTime());
+                }
+                
+                if(endTime != null) {
+                    execution.setStepEnd(getStepId(), sdfParser.parse(endTime).getTime());
+                }
 
                 ByteArrayInputStream bais = new ByteArrayInputStream(gondolaLogContent.toString().getBytes("UTF-8"));
                 FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);

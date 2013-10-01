@@ -328,7 +328,11 @@ public class Execution extends AbstractBean {
      *            the id of the step that has been queued.
      */
     public void setStepQueued(String id) {
-        this.stepsQueued.put(id, System.currentTimeMillis());
+        setStepQueued(id, System.currentTimeMillis());
+    }
+
+    public void setStepQueued(String id, Long queued) {
+        this.stepsQueued.put(id, queued);
     }
 
     public Map<String, Long> getStepsQueued() {
@@ -364,7 +368,11 @@ public class Execution extends AbstractBean {
      */
     @JsonIgnore
     public void setStepStart(String id) {
-        this.stepsStart.put(id, System.currentTimeMillis());
+        setStepStart(id, System.currentTimeMillis());
+    }
+
+    public void setStepStart(String id, Long start) {
+        this.stepsStart.put(id, start);
     }
 
     public Map<String, Long> getStepsStart() {
@@ -398,7 +406,11 @@ public class Execution extends AbstractBean {
      *            the id of the step that has ended execution
      */
     public void setStepEnd(String id) {
-        this.stepsEnd.put(id, System.currentTimeMillis());
+        setStepEnd(id, System.currentTimeMillis());
+    }
+
+    public void setStepEnd(String id, Long end) {
+        this.stepsEnd.put(id, end);
     }
 
     public Map<String, Long> getStepsEnd() {
