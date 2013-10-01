@@ -34,6 +34,7 @@ package edu.illinois.ncsa.cyberintegrator.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -60,14 +61,22 @@ public class PersonsResource {
      *            number of datasets per page
      * @param page
      *            page number starting 0
+     * @param showdeleted
+     *            should we return deleted person.
      * @return
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Person> getPersons(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email) {
+    public List<Person> getPersons(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
+            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         PersonDAO personDao = SpringData.getBean(PersonDAO.class);
         if ("".equals(email)) {
-            Page<Person> results = personDao.findAll(new PageRequest(page, size));
+            Page<Person> results = null;
+            if (showdeleted) {
+                results = personDao.findAll(new PageRequest(page, size));
+            } else {
+                results = personDao.findByDeleted(false, new PageRequest(page, size));
+            }
             return results.getContent();
         } else {
             Person result = personDao.findByEmail(email);
@@ -107,4 +116,24 @@ public class PersonsResource {
         return personDao.findOne(personId);
     }
 
+    /**
+     * Delete the person given the specific id.
+     * 
+     * @param personId
+     *            the person to be deleted
+     */
+    @DELETE
+    @Path("{person-id}")
+    public void deletePerson(@PathParam("person-id") String personId) throws Exception {
+        if ("".equals(personId)) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
+        Person person = personDao.findOne(personId);
+        if (person == null) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        person.setDeleted(true);
+        personDao.save(person);
+    }
 }
