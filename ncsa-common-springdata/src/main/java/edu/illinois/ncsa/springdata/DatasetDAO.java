@@ -35,11 +35,10 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.PagingAndSortingRepository;
 
 import edu.illinois.ncsa.domain.Dataset;
 
-public interface DatasetDAO extends PagingAndSortingRepository<Dataset, String> {
+public interface DatasetDAO extends PagingAndSortingAndDeleteRepository<Dataset, String> {
     List<Dataset> findByTitleLike(String titlePattern);
 
     List<Dataset> findByCreatorEmail(String email);

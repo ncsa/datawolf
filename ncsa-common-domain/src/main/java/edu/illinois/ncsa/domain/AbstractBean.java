@@ -55,6 +55,9 @@ public class AbstractBean implements Serializable {
     @Column(length = 36)
     private String            id;
 
+    /** Should the bean be assumed to be deleted and not be returned */
+    private boolean           deleted          = false;
+
     public AbstractBean() {
         setId(UUID.randomUUID().toString());
     }
@@ -77,6 +80,27 @@ public class AbstractBean implements Serializable {
      */
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     * 
+     * @return true if the bean is deleted, false otherwise.
+     */
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    /**
+     * Should the bean be assumed to be deleted. Only a handfule rest api calls
+     * right now will use this value.
+     * 
+     * @param deleted
+     *            true if the bean is deleted, false otherwise.
+     */
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     /**
