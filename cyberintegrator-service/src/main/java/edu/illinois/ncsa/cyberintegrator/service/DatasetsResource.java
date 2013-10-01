@@ -126,8 +126,8 @@ public class DatasetsResource {
 //                    SpringData.getBean(DatasetDAO.class).save(dataset);
 
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
+                    log.error("Could not save dataset.", e);
+                    return e.getMessage();
                 }
 
             }

@@ -108,7 +108,6 @@
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>file-service</artifactId>
 			<version>${ncsa.common.version}</version>
-			<classifier>classes</classifier>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
