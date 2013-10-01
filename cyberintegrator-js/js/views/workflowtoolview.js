@@ -31,6 +31,12 @@ var WorkflowToolListItemView = Backbone.View.extend({
     tagName: 'li',
 
     template: _.template($('#workflow-list-item').html()),
+
+    events: {
+        "click" : "onClick",
+        "mouseleave" : "hideDetails"
+    },
+    
     initialize: function() {
        this.$el.attr('draggable', 'true');
        this.$el.bind('dragstart', _.bind(this.handleDragStart, this));
@@ -45,6 +51,21 @@ var WorkflowToolListItemView = Backbone.View.extend({
 
     render: function(e) {
         $(this.el).html(this.template(this.model.toJSON()));
+        var popoverTitle = _.template($('#workflow-popover').html())
+        var popoverContentTop = _.template($('#workflow-tool-popover-content-top').html());
+        var popoverContentDesc = _.template($('#workflow-tool-popover-content-description').html());
+
+        // Get Inputs
+        var inputTitleTemplate = _.template($('#workflow-tool-popover-content-input-title').html());
+        var popoverContentInputs = inputTitleTemplate();
+        var inputs = new WorkflowToolDataCollection(this.model.get("inputs"));
+
+        var inputTemplate = _.template($('#workflow-tool-popover-content-inputs').html());
+        inputs.each(function(workflowToolData) {
+            popoverContentInputs += inputTemplate(workflowToolData.toJSON());
+        });
+        var content = popoverContentTop(this.model.toJSON()) + popoverContentDesc(this.model.toJSON()) + popoverContentInputs;
+        $(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: content, trigger: 'manual'});
 
         return this;
     },
@@ -53,6 +74,20 @@ var WorkflowToolListItemView = Backbone.View.extend({
         var modelUri = this.model.get('id');
         e.originalEvent.dataTransfer.setData("Text", modelUri);
         toolDrop = true;
+    },
+
+    onClick: function(e) {
+        //console.log("mouse click");
+        //var selection = $('#workflowSelector').val();
+        e.preventDefault();
+        $('.highlight').removeClass('highlight');
+        $(this.el).addClass('highlight');
+
+        $(this.el).popover('toggle');
+    },
+
+    hideDetails: function() {
+
     } 
        
 });

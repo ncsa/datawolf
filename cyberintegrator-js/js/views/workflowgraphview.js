@@ -1,11 +1,67 @@
 var inputAnchors = [[-0.07, 0.5, -1, 0], [-0.07, 0.25, -1, 0], [-0.07, 0.75, -1, 0]];
 var outputAnchors = [[1.04, 0.5, 1, 0], [1.04, 0.25, 1, 0], [1.04, 0.75, 1, 0] ];
+var endpointHoverStyle = {fillStyle:"#5C96BC"}
+// Green
+//var color2 = "#316b31";
+// tree moss green
+//var color2 = "#659d32";
+var color2 = "#3B5E2B";
+// Yellow
+var color3 = "#616161";
+
+var exampleDropOptions = {
+                hoverClass:"hover",
+                activeClass:"active"
+};
+
+var deleteEndpoint = {
+    endpoint: "Dot",
+    paintStyle:{ fillStyle: "#FFFFFF", radius: 7},
+    scope:"green dot",
+    connectorStyle:{ strokeStyle: "#D0D2D3", lineWidth: 5 },
+    connector: ["Bezier", { curviness:63 } ],
+    isTarget:false,
+    maxConnections:1,
+    dropOptions : exampleDropOptions,
+    overlays:[ [ "Label", { location:[0.54, 0.55], label:"X", cssClass:"endpointTargetLabel" } ] ]
+}
+
+var targetEndpoint = {
+    endpoint: "Rectangle",
+    paintStyle:{ width: 16, height: 7, fillStyle: "#929497" },
+    scope:"green dot",
+    connectorStyle:{ strokeStyle: "#D0D2D3", lineWidth: 5 },
+    connector: ["Bezier", { curviness:63 } ],
+    isTarget:true,
+    maxConnections:1,
+    dropOptions : exampleDropOptions,
+    //EndpointHoverStyle : {fillStyle:"#5C96BC" },
+    hoverPaintStyle: {fillStyle: "#00ADEE"},
+
+    overlays:[ [ "Label", { location:[0.0, 0.0], label:"Drop", cssClass:"in-output-text-default" } ] ]
+};
+
+var sourceEndpoint = {
+    endpoint: "Rectangle",
+    paintStyle:{ width: 16, height: 7, fillStyle: "#929497" },
+    isSource:true,
+    scope:"green dot",
+    connectorStyle: { strokeStyle: "#D0D2D3", lineWidth: 5 },
+    connector: ["Bezier", { curviness:63 } ],
+    isSource:true,
+    maxConnections:-1,
+    hoverPaintStyle: {fillStyle: "#00ADEE"},
+    dragOptions : {},
+    overlays:[ [ "Label", { location:[2.0, 0.3], label:"Drop", cssClass:"in-output-text-default" } ] ]
+};
+
+var classWorkflowId = null;
 
 // TODO CMN: implement auto-layout algorithm
 var WorkflowGraphView = Backbone.View.extend({
     events: {
-        'dragenter .wgraph': 'handleDragEnter',
-        'drop .wgraph': 'handleDrop'
+        'dragenter .pane1': 'handleDragEnter',
+        'drop .pane1': 'handleDrop'
     },
 
     //template: _.template($('#drop-template').html()),
@@ -17,6 +73,8 @@ var WorkflowGraphView = Backbone.View.extend({
     },
 
     render: function(e) {
+        // Add Button Bar
+        $(this.el).append(new WorkflowGraphButtonBar().render().el);
         // build the graph view the first time
         if(currentWorkflow != null) {
             var workflow = null;
@@ -45,15 +103,19 @@ var WorkflowGraphView = Backbone.View.extend({
 
     setWorkflow: function(workflowId) {
         $(this.el).empty();
+        $(this.el).append(new WorkflowGraphButtonBar().render().el);
         var workflow = getWorkflow(workflowId);
 
         if(workflow != null) {
             this.model = workflow;
-
+            classWorkflowId = this.model.get('id'); 
             if(this.model.get('title') != null) {
-                $('#workflow-legend').html("Workflow Graph - "+this.model.get('title'));
+                //console.log($('a[href$="#pane1"]').text(this.model.get('title')));
+                console.log($('label[id=lbl'+workflowId+ ']').text(this.model.get('title')));
+                //$('#workflow-legend').html("Workflow Graph - "+this.model.get('title'));
             } else {
-                $('#workflow-legend').html("Workflow Graph - untitled");
+                console.log("workflow has no title");
+                //$('#workflow-legend').html("Workflow Graph - untitled");
             }
 
             if(DEBUG) {
@@ -155,6 +217,8 @@ var WorkflowGraphView = Backbone.View.extend({
                 }
             });
 
+        } else {
+            console.log("workflow null: "+workflowId);
         }
     },
 
@@ -167,9 +231,10 @@ var WorkflowGraphView = Backbone.View.extend({
         var creator = null; 
 
         var workflow = null;
-        console.log("current workflow is: "+currentWorkflow);
+        var workflowId = this.model.get('id');
+        console.log("current workflow is: "+this.model.get('id'));
         workflowCollection.each(function(model) {
-            if(model.get('id') === currentWorkflow) {
+            if(model.get('id') === workflowId) {
                 workflow = model;
             }
         });
@@ -238,7 +303,7 @@ var WorkflowGraphView = Backbone.View.extend({
         var id = stepId;
         var innerText = workflowTool.get('title');
         var shapeClass = "shape";
-        var dataShapeClass = "Rectangle";
+        var dataShapeClass = getShape(innerText); //"Rectangle";
         var divTag = document.createElement("div");
 
         divTag.id = id;
@@ -250,7 +315,8 @@ var WorkflowGraphView = Backbone.View.extend({
         divTag.style.top = y;
         divTag.onmousedown = mouseClick;
 
-        $('#wgraph').append(divTag);
+        //$('#wgraph').append(divTag);
+        $(this.el).append(divTag);
 
         var shapes = $(".shape");
 
@@ -272,13 +338,16 @@ var WorkflowGraphView = Backbone.View.extend({
             var endpoint = jQuery.extend(true, {}, targetEndpoint);
 
             var title = workflowToolData.get('title');
-            var xLocation = -0.75 * (title.length / 4.0);
+            var length = title.length;
+            //console.log("length = "+title.length);
+            var xLocation = -0.0023 * length * length * length + 0.063 * length * length - 0.6474 * length + 0.7278;
 
             endpoint.overlays[0][1].location[0] = xLocation;
-            endpoint.overlays[0][1].label = title; 
+            endpoint.overlays[0][1].label = title;
 
             jsPlumb.addEndpoint(id, { anchor: inputAnchors[index], beforeDrop: handleConnect }, endpoint);  
             index++;
+            //console.log(length);
         });
 
         // Add output endpoints
@@ -287,14 +356,18 @@ var WorkflowGraphView = Backbone.View.extend({
         outputs.each(function(workflowToolData) {
             var endpoint = jQuery.extend(true, {}, sourceEndpoint);
             var title = workflowToolData.get('title');
-            var xLocation = 0.85 * (title.length / 4.0);
+
+            var length = title.length;
+            //console.log("length = "+title.length);
+            var xLocation = -0.0306 * length * length + 0.9652 * length - 4.0247;
             endpoint.overlays[0][1].location[0] = xLocation;
             endpoint.overlays[0][1].label = title;
             jsPlumb.addEndpoint(id, { anchor: outputAnchors[index], beforeDetach: handleDisconnect }, endpoint); 
             index++;
         });
         var del = jQuery.extend(true, {}, deleteEndpoint);
-        jsPlumb.addEndpoint(id, { anchor: "TopRight" }, del);
+        jsPlumb.addEndpoint(id, { anchor: [0.90,0.25,0,0.0] }, del);
+        //jsPlumb.addEndpoint(id, { anchor: "TopRight" }, del);
 
     },
 
@@ -335,8 +408,37 @@ var WorkflowGraphView = Backbone.View.extend({
             toolDrop = false;
         }
     },
+});
+
+var WorkflowGraphButtonBar = Backbone.View.extend({
+
+    template: _.template($("#workflow-graph-button-bar").html()),
+
+    initialize: function() {
+
+    },
+
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    }
 
 });
+
+var getShape = function(title) {
+    
+    if(title === 'eAIRS File-Transfer') {
+        return "Rectangle-1";
+    } else if(title === 'eAIRS CFD Parameters') {
+        return "Rectangle-2";
+    } else if(title === 'eAIRS Results') {
+        return "Rectangle-3";
+    } else if(title === 'eAIRS-CFD-Tachyon-MPI') {
+        return "Rectangle-4";
+    } else {
+        return "Rectangle-1";
+    }
+}
 
 var handleDragStop = function(e) {
     var div = e.currentTarget;
@@ -362,7 +464,8 @@ var handleDragStop = function(e) {
 var mouseClick = function(e) {
     console.log("mouse click: "+e.target.id);
     var stepId = e.target.id;
-    var workflow = getWorkflow(currentWorkflow);
+    console.log("workflow id = "+classWorkflowId);
+    var workflow = getWorkflow(classWorkflowId);
     var workflowStep = null;
     workflow.getSteps().each(function(step) {
         if(step.get('id') === stepId) {
@@ -379,10 +482,11 @@ var mouseClick = function(e) {
 
 // Handles connecting steps 
 var handleConnect = function(connection) {
+    console.log("handle connect");
     var sourceStepId = connection.sourceId;
     var targetStepId = connection.targetId;
 
-    var workflow = getWorkflow(currentWorkflow);
+    var workflow = getWorkflow(classWorkflowId);
     var workflowSteps = workflow.getSteps();
     var sourceStep = null;
     var targetStep = null;

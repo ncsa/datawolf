@@ -1,14 +1,16 @@
 var WorkflowListView = Backbone.View.extend({
-	tagName: "select",
+	tagName: "ul",
 	id: "workflowSelector",
-	className: 'cbi-select',
-
+	//className: 'cbi-select',
+	//className: "list-group cbi-list-group",
+	className: 'workflowToolView',
 	events: {
-		"change" : "onChange"
+		"change" : "onChange",
+		"click" : "onClick" 
 	},
 
 	initialize: function() {
-		this.$el.attr('size', '10');
+		//this.$el.attr('size', '10');
 		this.model.bind("reset", this.render, this);
 		var self = this;
 		this.model.bind("add", function(workflow) {
@@ -30,19 +32,28 @@ var WorkflowListView = Backbone.View.extend({
 	onChange: function(e) {
 		var selection = $('#workflowSelector').val();
 		console.log("selection is "+console);
-
+		eventBus.trigger("clicked:openworkflow", selection);
 		//var workflow = getWorkflow(selection);
 		//console.log(JSON.stringify(workflow, undefined, 2));
-		$('#infoview').html(new WorkflowInfoView({model: workflow}).render().el);
+		//$('#infoview').html(new WorkflowInfoView({model: workflow}).render().el);
 		//selection.log(JSON.stringify(getWorkflow(selection), undefined, 2));
+
 	}
 
 });
 
 var WorkflowListItemView = Backbone.View.extend({
-	tagName: "option",
-
+	tagName: "li",
+	//className: "list-group-item cbi-list-group-item",
 	template: _.template($('#workflow-list-item').html()),
+	//className: "active",
+
+	events: {
+		"click" : "onClick",
+		"dblclick" : "onDoubleClick",
+		"mouseenter" : "showDetails",
+		"mouseleave" : "hideDetails",
+	},
 
 	initialize: function() {
 		this.model.bind("change", this.render, this);
@@ -58,16 +69,55 @@ var WorkflowListItemView = Backbone.View.extend({
 	render: function(e) {
 		$(this.el).html(this.template(this.model.toJSON()));
 
+		var popoverTitle = _.template($('#workflow-popover').html())
+		var popoverContent = _.template($('#workflow-popover-content').html());
+		$(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: popoverContent(this.model.toJSON()), trigger: 'manual'});
+
 		return this;
 	},
 	close: function() {
 		$(this.el).unbind();
 		$(this.el).remove();
+	},
+
+	onClick: function(e) {
+		var id = this.model.get('id');
+		//console.log(JSON.stringify(getWorkflow(id), null, 2));
+		$('.highlight').removeClass('highlight');
+		$(this.el).addClass('highlight');
+		if(showWorkflowInfo) {
+			$(this.el).popover('toggle');
+		}
+		//$(this.el).popover('show');
+		//$(this.el).popover({html: true, title: "Hello", content: '<div class="my-popover-content">world</div>'});
+	},
+
+	onDoubleClick: function(e) {
+		console.log("double click");
+		//var selection = $('#workflowSelector').val();
+		e.preventDefault();
+		var id = this.model.get('id');
+		console.log("selection is "+id);
+		console.log("add highlight");
+		$('.highlight').removeClass('highlight');
+		$(this.el).addClass('highlight');
+		eventBus.trigger("clicked:newopenworkflow", id);
+	},
+
+	showDetails: function() {
+		// if we want to show on over, put popover code here	
+	},
+
+	hideDetails: function() {
+		// TODO - this calls a lot of unnecessary destroys
+		//$(this.el).popover('destroy');
 	}
+
 });
 
 var WorkflowButtonView = Backbone.View.extend({
 	events: {
+		"click button#workflow-info-btn" : "workflowInfo",
 		"click button#new-workflow" : "newWorkflow",
 		"click button#delete-workflow" : "deleteWorkflow",
 		"click button#open-workflow" : "openWorkflow",
@@ -91,8 +141,8 @@ var WorkflowButtonView = Backbone.View.extend({
 	deleteWorkflow: function(e) {
 		// TODO implement delete workflow completely (both REST service and client)
 		e.preventDefault();
-
-		var selectedWorkflow = $('#workflowSelector').val();
+		var selectedWorkflow = $('.highlight').attr('value')
+		//var selectedWorkflow = $('#workflowSelector').val();
 		console.log("selected workflow = "+selectedWorkflow);
 		if(selectedWorkflow != null) {
 			var tmp = null;
@@ -116,7 +166,18 @@ var WorkflowButtonView = Backbone.View.extend({
 					location.destroy();
 				}
 			});
-			tmp.destroy();
+			tmp.destroy({
+				wait: true,
+			
+				success: function(model, response) {
+					console.log("deleted workflow - success");
+				},
+
+				error: function(model, response) {
+					console.log("deleted workflow - failed"+response);
+				}
+
+			});
 			if(currentWorkflow === selectedWorkflow) {
 				eventBus.trigger('clearWorkflow', null);
 			}
@@ -299,6 +360,11 @@ var WorkflowButtonView = Backbone.View.extend({
 				console.log("copied workflow - failed");
 			}
 		});
+	},
+
+	workflowInfo : function() {
+		//console.log("clicked workflow info");
+		showWorkflowInfo = !showWorkflowInfo;
 	}
 
 });

@@ -421,7 +421,17 @@ as that.
         break;
       case 'delete':
         if (_.isString(model.id) && model.id.length === 36) {
-          return localsync(method, model, options);
+          // CMN - hack to delete properly, I don't know why the 36 string size means delete only local
+          options.success = function(resp, status, xhr) {
+            localsync(method, model, options);
+            return success(resp, status, xhr);
+          };
+          options.error = function(resp) {
+            options.dirty = true;
+            return success(localsync(method, model, options));
+          };
+          return onlineSync(method, model, options);
+          //return localsync(method, model, options);
         } else {
           options.success = function(resp, status, xhr) {
             localsync(method, model, options);

@@ -1,6 +1,10 @@
 // Global Variables
 var DEBUG = false;
 
+// Show information
+var showWorkflowInfo = false;
+var showToolInfo = false;
+
 var currentWorkflow = null;
 
 // Collections
@@ -24,58 +28,10 @@ var exampleDropOptions = {
                 hoverClass:"dropHover",
                 activeClass:"dragActive"
             }; */
-var exampleDropOptions = {
-                hoverClass:"hover",
-                activeClass:"active"
-};
 
-// Green
-//var color2 = "#316b31";
-// tree moss green
-//var color2 = "#659d32";
-var color2 = "#3B5E2B";
-// Yellow
-var color3 = "#616161";
 
 // Helps determine whether a connection is being made or a tool is dropped
 var toolDrop = false;
-
-var deleteEndpoint = {
-    endpoint: ["Rectangle", {width: 15, height: 15}],
-    paintStyle:{ fillStyle: "transparent", strokeStyle: color3, lineWidth: 3 },
-    scope:"green dot",
-    connectorStyle:{ strokeStyle:color2, lineWidth:3 },
-    connector: ["Bezier", { curviness:63 } ],
-    isTarget:false,
-    maxConnections:1,
-    dropOptions : exampleDropOptions,
-    overlays:[ [ "Label", { location:[0.5, 0.5], label:"X", cssClass:"endpointTargetLabel" } ] ]
-}
-
-var targetEndpoint = {
-    endpoint: ["Rectangle", {width: 15, height: 10}],
-    paintStyle:{ fillStyle: "transparent", strokeStyle: color3, lineWidth: 3 },
-    scope:"green dot",
-    connectorStyle:{ strokeStyle:color2, lineWidth:3 },
-    connector: ["Bezier", { curviness:63 } ],
-    isTarget:true,
-    maxConnections:1,
-    dropOptions : exampleDropOptions,
-    overlays:[ [ "Label", { location:[0.5, -0.5], label:"Drop", cssClass:"endpointTargetLabel" } ] ]
-};
-
-var sourceEndpoint = {
-    endpoint: ["Rectangle", {width: 15, height: 10}],
-    paintStyle:{ fillStyle: "transparent", strokeStyle: color3, lineWidth: 3  },
-    isSource:true,
-    scope:"green dot",
-    connectorStyle:{ strokeStyle:color2, lineWidth:3 },
-    connector: ["Bezier", { curviness:63 } ],
-    isSource:true,
-    maxConnections:-1,
-    dragOptions : {},
-    overlays:[ [ "Label", { location:[0.5, -0.5], label:"Drop", cssClass:"endpointTargetLabel" } ] ]
-};
 
 // Found on JSFiddle, temporary to give a uuid
 function generateUUID() {
@@ -152,10 +108,16 @@ var resetRenderMode = function(desiredMode) {
 
 var init = function() {
     workflowGraphView = new WorkflowGraphView({
-        el: '#wgraph'
+        //el: '#wgraph'
+        el: '#pane1'
     });
 
     workflowGraphView.render();
+    jsPlumb.importDefaults({
+        //HoverPaintStyle : {strokeStyle:"#ec9f2e" },
+        //EndpointHoverStyle : {fillStyle:"#5C96BC" }
+
+    });
 };    
 
 // Utility methods
@@ -232,13 +194,14 @@ var AppRouter = Backbone.Router.extend({
                 workflowCollection.each(function(workflow) {
                     if(_.isString(workflow.get('creator'))) {
                         // Fixes a bug where not all the json for the model is returned
-                        console.log("fetching again for id = "+workflow.get('id'));
+                        //console.log("fetching again for id = "+workflow.get('id'));
                         workflow.fetch();
                     }
                 });
                 workflowListView = new WorkflowListView({model: workflowCollection});
                 $('#workflows').html(workflowListView.render().el);
                 $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+
             }});
         }});
 
@@ -254,13 +217,45 @@ var AppRouter = Backbone.Router.extend({
         */
         //stepLocationCollection.syncDirtyAndDestroyed();
         stepLocationCollection.fetch();
-
+        registerCloseEvent();
+        registerOpenEvent();
+        registerTabEvent();
         //$('#persons').html(new PersonListView({model: personCollection}).render().el);
     }
 
 });
 
+function registerTabEvent() {
+    //console.log("register tab event");
+    $("#tabs").children('li').each(function() {
+        $(this).on('click', tabSelectionEvent);
+    });
+}
 
+function tabSelectionEvent() {
+    //var selected = this;
+    //updateTabSelection(this);
+    eventBus.trigger("clicked:tab", this);
+}
+
+function registerOpenEvent() {
+    $(".openTab").click(function() {
+        eventBus.trigger("clicked:newworkflow", null);
+    });
+}
+
+function registerCloseEvent() {
+
+    $(".closeTab").click(function () {
+
+        //there are multiple elements which has .closeTab icon so close the tab whose close icon is clicked
+        var tabContentId = $(this).parent().attr("href");
+        $(this).parent().parent().remove(); //remove li of tab
+        $('#tabs a:last').tab('show'); // Select first tab
+        $(tabContentId).remove(); //remove respective tab content
+
+    });
+}
 
 var postWorkflow = function(workflow) {
     if(DEBUG) {
@@ -391,10 +386,11 @@ var handleEndpointClick = function(endpoint, originalEvent) {
 
 var eventBus = _.extend({}, Backbone.Events);
 
+/*
 eventBus.on('clicked:newworkflow', function() {
     $('#new-workflow-content').html(new AddWorkflowView({model: new Workflow()}).render().el);
     $('#modalWorkflowView').modal('show');
-});
+});*/
 
 eventBus.on('clicked:createworkflow', function(workflowId) {
     console.log("create workflow: "+workflowId);
@@ -417,10 +413,82 @@ eventBus.on('clicked:deleteworkflow', function() {
     //$('#workflows').html(workflowListView.render().el);
 });
 
+eventBus.on('clicked:newopenworkflow', function(workflowId) {
+    //currentWorkflow = workflowId;
+    //workflowGraphView.setWorkflow(workflowId);
+    $('.active').removeClass('active');
+
+    // Clear out selected tab CSS before adding new active tab
+    eventBus.trigger('clicked:tab', null);
+    //$(this.el).addClass('highlight');
+
+    var txt = '<li class="active"><a href="#'+workflowId +'" data-toggle="tab" class="mytab"><button class="close closeTab" type="button" >×</button><label class="canvastab-text-selected" id="lbl'+workflowId+'"></label></a></li>';
+    console.log(txt);
+    
+    $("#tabs").append(txt);
+    var divTag = document.createElement("div");
+
+    divTag.id = workflowId;
+    divTag.setAttribute("class", "tab-pane active dropzone canvas-selected");
+
+    $("#tab-content").append(divTag);
+    //$("#"+workflowId).append("I'm the new pane");    
+    var graphView = new WorkflowGraphView({
+        el: '#'+workflowId
+    });
+    graphView.render();
+    graphView.setWorkflow(workflowId);
+    registerCloseEvent();
+    $('.active').on('click', tabSelectionEvent);
+    
+});
+
+eventBus.on('clicked:newworkflow', function() {
+    var workflow = new Workflow();
+    var id = generateUUID();
+    var title = "untitled";
+    var date = new Date();
+    var creator = currentUser.toJSON();
+    workflow.save({title: title, created: date, creator: creator}, {
+        wait: true,
+
+        success: function(model, response) {
+            console.log("workflow created - success.");
+            workflowCollection.add(workflow);
+            eventBus.trigger("clicked:newopenworkflow", workflow.get('id'));
+            //eventBus.trigger("clicked:createworkflow", model.get('id'));//id);
+        },
+        error: function(model, error) {
+            //console.log(JSON.stringify(model, undefined, 2));
+            console.log("workflow not saved: "+error.responseText);
+        }
+    });
+    workflow.set("title", "untitled");
+});
+
 eventBus.on('clearWorkflow', function() {
     currentWorkflow = null;
     workflowGraphView.setWorkflow(null);
-})
+});
+
+eventBus.on('clicked:tab', function(selected) {
+    $("#tabs").children('li').each(function() {
+        if(this === selected) {
+            console.log("selected label is "+$(this).find('label').text());
+            var child = $(this).find('label');
+            child.removeClass('canvastab-text-unselected');
+            child.addClass('canvastab-text-selected');
+
+        } else if(this.id === 'add-workflow') {
+            // Do nothing
+        } else {
+            console.log("unselected label is "+$(this).find('label').text());
+            var child = $(this).find('label');
+            child.removeClass('canvastab-text-selected');
+            child.addClass('canvastab-text-unselected');
+        }
+    });
+});
 
 var app = new AppRouter();
 

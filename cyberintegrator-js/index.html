@@ -5,17 +5,8 @@
     <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyberintegrator Editor</title>
-    <!-- <link rel="stylesheet" href="assets/css/demo-all.css"> -->
     <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="main.css" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="assets/css/perimeterAnchorsDemo.css"> -->
-    <!--
-    <style type="text/css">
-        body {
-            padding-top: 60px;
-            padding-bottom: 40px;
-        }
-    </style> -->
 </head>
 <body>
 </script>
@@ -23,7 +14,7 @@
         <%= firstName %> <%= lastName %> - <%= email %>
     </script>
     <script type="text/template" id="workflow-list-item">
-        <%= title %>
+       <%= title %>
     </script>
     <script type="text/template" id="workflow-info-view">
         <form class="form-inline">
@@ -72,13 +63,30 @@
     <script type="text/template" id="workflow-step-info-view">
     </script>
     <script type="text/template" id="new-workflow-buttons">
+        <div class="btn-toolbar nav-button-bar">
+            <div class="btn-group pull-right cbi-btn-group">
+                <button id="workflow-info-btn" type="button" data-toggle="buttons" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-info-sign"></span>
+                </button>
+                <button type="button" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-share"></span>
+                </button>
+                <button id="delete-workflow" type="button" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-trash"></span>
+                </button> 
+                <button id="new-workflow" type="button" class="btn btn-default btn-xs">
+                    <span class="glyphicon glyphicon-plus"></span>
+                </button> 
+            </div>
+        </div>
+    <!--
         <div class="btn-group">
             <button id="new-workflow" class="btn btn-default">New</button>
             <button id="open-workflow" class="btn btn-default">Open</button>
             <button id="delete-workflow" class="btn btn-default">Delete</button>
             <button id="copy-workflow" class="btn btn-default">Copy</button>
-            <!-- <button id="save-workflow" class="btn myButton">Save</button> -->
-        <div>    
+            
+        <div> -->    
     </script>
     <script type="text/template" id="new-workflow">
         <form class="form-horizontal">
@@ -96,11 +104,88 @@
             </div>
         </form>
     </script>
+    <script type="text/template" id="workflow-graph-button-bar">
+        <div class="canvas-button-bar">
+            <button type="button" class="btn btn-default">
+                <span class="glyphicon glyphicon-trash"></span>
+            </button>
+            <button type="button" class="btn btn-default">
+                <span class="glyphicon glyphicon-search"></span>
+            </button>
+        </div> 
+    </script>
     <script type="text/template" id="addshape-button-template">
         <button id="addshape-button" class="btn btn-primary">Add Shape</button>
     </script>
-   
-    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+    <script type="text/template" id="workflow-popover">
+        <div class="info-title-bkgrd info-title-font">
+            <%= title %>
+        </div>
+    </script>
+    <script type="text/template" id="workflow-popover-content">
+        <div>
+            <div>
+               <table class="table">
+                <tbody>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Date Created</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= created %></font></td>
+                    </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Author</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= creator.firstName %> <%= creator.lastName %></font></td>
+                    </tr>
+                </tbody>
+               </table>
+            </div>
+            <div class="">
+               <div class="info-tab-bkgrd info-tab-div">
+                    <font class="info-tab-font">Description</font>
+                </div>
+                <div class="info-content-normal">
+                    <%= description %>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    <!-- Tool Info Scripts -->
+    <script type="text/template" id="workflow-tool-popover-content-top">
+        <table class="table">
+                <tbody>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Date Created</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= date %></font></td>
+                    </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Author</font></td>
+                        <td><font class="info-metadata-fontvalue">Unknown</font></td>
+                    </tr>
+                </tbody>
+               </table>
+    </script>
+   <script type="text/template" id="workflow-tool-popover-content-description">
+        <div class="info-tab-bkgrd info-tab-div">
+            <font class="info-tab-font">Description</font>
+        </div>
+        <div class="info-content-normal">
+            <%= description %>
+        </div>
+    </script> 
+    <script type="text/template" id="workflow-tool-popover-content-input-title">
+               <div class="info-tab-bkgrd info-tab-div">
+                    <font class="info-tab-font">Inputs</font>
+                </div>
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content-inputs">
+                <div class="info-content-normal">
+                    <font class="info-content-subhead"><%= title %></font>
+                    <br>
+                    <%= description %>
+                </div>
+    </script>
+    <!--
+    <nav class="navbar navbar-static-top nav-stacked" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -119,14 +204,112 @@
                 </ul>
             </div>
         </div>
-    </nav> 
+    </nav> -->
     <div id='editor-app' class="container-liquid">
         <div class="row">
-            <div class="col-md-2 col-lg-2">
+            <div class="col-lg-2 panel-left-bkgrd">
+                <div id="spacer" class=""></div>
+                <div id="my-nav">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li class="active Nav-1-link"><a href="#"><label class="Nav-1-Selected">Build</label></a></li>
+                        <li class="Nav-1-link"><a href="#"><label class=" Nav-1-Default">Execute</label></a></li>
+                    </ul>
+                </div> 
+                <div id="tool-parent">
+                    <div class="Nav-2-Bkgrd nav-title">
+                        <h3 class="cbi-title Nav-2-Text">
+                             <span class="glyphicon glyphicon-wrench title-header"></span>
+                            <!--
+                            <button type="button" class="btn btn-default btn-sm tool-button">
+                                <span class="glyphicon glyphicon-wrench"></span>
+                            </button> -->
+                            Tools
+                            
+                        </h3>
+                    </div>
+                    <div>
+                        <form class="navbar-form" role="search">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search" name="tool-search" id="tool-search"/>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="workflow-tools"></div>
+                        <div class="btn-toolbar nav-button-bar">
+                        <!-- <div class="test-div"> -->
+                        <div class="btn-group pull-right cbi-btn-group">
+                            <button type="button" data-toggle="buttons" class="btn btn-default btn-xs test-p">
+                                <span class="glyphicon glyphicon-info-sign"></span>
+                            </button>
+                            <button type="button" class="btn btn-default btn-xs">
+                                <span class="glyphicon glyphicon-share"></span>
+                            </button>
+                            <!-- TODO implement add tool, this is just a UI placeholder --> 
+                            <button type="button" class="btn btn-default btn-xs open">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                        </div>
+                    </div>                 
+                </div>
+                <br/>
+                <div id="workflow-parent">
+                    <div class="Nav-2-Bkgrd nav-title">
+                        <h3 class="cbi-title Nav-2-Text">
+                            <span class="glyphicon glyphicon-link title-header"></span>
+                            <!--
+                            <button type="button" class="btn btn-default btn-sm tool-button">
+                                <span class="glyphicon glyphicon-link"></span>
+                            </button> -->
+                            Workflows
+                        </h3>
+                    </div>
+                    <form class="navbar-form" role="search">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search" name="workflow-search" id="workflow-search"/>
+                            <div class="input-group-btn">
+                                <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="workflows"></div>
+                    <div id="workflowbuttons"></div>
+                    <!--
+                    <div class="btn-toolbar nav-button-bar">
+                        
+                        <div class="btn-group pull-right cbi-btn-group">
+                            <button type="button" class="btn btn-default btn-xs">
+                                <span class="glyphicon glyphicon-info-sign"></span>
+                            </button>
+                            <button type="button" class="btn btn-default btn-xs">
+                                <span class="glyphicon glyphicon-share"></span>
+                            </button>
+                            <button type="button" class="btn btn-default btn-xs deleteWorkflow">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button> -->
+                            <!-- TODO implement add tool, this is just a UI placeholder -->
+                            <!--
+                            <button type="button" class="btn btn-default btn-xs open openTab">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button> 
+                        </div>-->
+                </div>
+                <!--
                 <div id="tool-parent">
                     <legend class="cbi-legend">Tools</legend>
                     <div id="workflow-tools"></div>                 
                 </div>
+                -->
+                <!--
+                <div id="tool-parent" class="panel panel-default my-header">
+                    <div class="panel-heading my-header">
+                        <h3 class="panel-title my-header">Tools</h3>
+                    </div>
+                    <div id="workflow-tools" class="panel-body my-header"></div>                 
+                </div> -->
+                <!--
                 <div id="workflow-parent">
                     <legend class="cbi-legend">Workflows</legend>
                     <div id="workflows"></div>
@@ -140,54 +323,96 @@
                             <div id="new-workflow-content"></div>
                         </div>
                         <div class="modal-footer">
-                            <!-- 
-                            <button id="create-workflow" class="btn btn-primary">Create</button>
-                            <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-                        -->
                         </div> 
                     </div>
-                </div>
+                </div> -->
+                <!--
+                <div id="workflow-parent" class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Workflows</h3>
+                    </div>
+                    <div id="workflows" class="panel-body"></div>
+                </div> -->
+                <!--
                 <div id='workflow-tool-info'>
                     <legend class="cbi-legend">Info</legend>
                     <div id="infoview">
                         <form id="form">
                         </form>
-                        <!--
-                        <form id="form">
-                             <div class="row-fluid">
-                                <div class="span1">
-                                    <label>Title:</label>
-                                    <label>Description:</label>
-                                    <label>Author:</label>
-                                    <label>Version:</label>
-                                </div>
-                                <div class="span1">
-                                    <label>the-title</label>
-                                    <text>the-description</text>
-                                    <label>the-author</label>
-                                    <label>the-version</label>
-                                </div>
-                        </form> -->
                     </div>
-                </div>
+                </div> -->
                 <!--
                 <div id="person-parent">
                     <legend class="cbi-legend">Users</legend>
                     <div id="persons"></div>
                 </div> -->
             </div>
-            <div class="col-md-10 col-lg-10">
-                <div class="dropzone">
-                    <legend class="cbi-legend" id="workflow-legend">Workflow Graph</legend>
-                    <div id="wgraph">
-                        <!-- 
-                        <div class="shape" data-shape="Rectangle" id="analysis1" left='49em' top='71em'>eAIRS-CFD</div>
-                        <div class="shape" data-shape="Ellipse" id="input1">file-locations.txt</div>
-                        <div class="shape" data-shape="Ellipse" id="output1">standard-out</div>
-                        <div class="shape" data-shape="Ellipse" id="output2">standard-err</div>
-                        <div class="shape" data-shape="Ellipse" id="output3">gondola-log</div> -->
+            <div class="panel-right-bkgrd col-lg-10">
+                <div class="pull-right app-login">
+                    <a href="">Hello Chris</a> 
+                    <label>|</label>
+                    <a href="">Logout</a>
+                     <span class="glyphicon glyphicon-briefcase"></span>
+                </div> 
+                <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+                    <li id="add-workflow">
+                        <a href="" data-toggle="tab">
+                           <button type="button" class="btn btn-default btn-xs openTab mytab">
+                                <span class="glyphicon glyphicon-plus add-workflow-button"></span>
+                            </button> 
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="#pane1" data-toggle="tab" class="mytab">
+                            <button class="close closeTab" type="button" >×</button><label id="lbl" class="canvastab-text-selected">Untitled</label>
+                        </a>
+                    </li>
+                    <!--
+                    <li class="">
+                        <a href="#pane2" data-toggle="tab" class="mytab"><button class="close closeTab" type="button" >×</button><label id="lbl1" class="canvastab-text-unselected">Untitled</label></a>
+                    </li> -->
+                    <!--
+                        <li class="active"><a href="#pane1" data-toggle="tab" title="my title"><button class="close closeTab" type="button" >×</button><label id="lbl">Tab 1</label></a></li>
+                        <li><a href="#pane2" data-toggle="tab"><button class="close closeTab" type="button" >×</button><label id="lbl2">Tab 2</label></a></li>
+                    -->
+                </ul>
+               
+                <div id="tab-content" class="tab-content">
+                    
+                    <div id="pane1" class="tab-pane active dropzone canvas-selected">
+                        <!--
+                        <div class="canvas-button-bar">
+                            <button type="button" class="btn btn-default">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>
+                            <button type="button" class="btn btn-default">
+                                <span class="glyphicon glyphicon-search"></span>
+                            </button>
+                        </div> -->
                     </div>
+                    <!--
+                    <div id="pane2" class="tab-pane ">
+                        hello world
+                     </div> -->
                 </div>
+
+                <!--
+                <div id="tabs">
+                    <ul id="cbi-nav-tabs" class="nav nav-tabs">
+                        <li><a href="pane3" data-toggle="tab">+</a></li>
+                        <li class="active"><a href="#pane1" data-toggle="tab" title="my title"><button class="close closeTab" type="button" >×</button><label id="lbl">Tab 1</label></a></li>
+                        <li><a href="#pane2" data-toggle="tab"><button class="close closeTab" type="button" >×</button><label id="lbl2">Tab 2</label></a></li>
+                    </ul>
+                    <div id="tab-content" class="tab-content">
+                        <div id="pane1" class="active dropzone wgraph">
+                            hello world 2
+                            
+                        </div>
+                        <div id="pane2" class="wgraph">
+                            hello world
+                         </div> 
+                    </div>
+                </div> -->
             </div>
         </div>
         <!--

@@ -1,8 +1,20 @@
+/*
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+    src:local('Open Sans'), 
+        local('OpenSans'),
+        url("OpenSans-Regular.ttf") format('truetype'),
+        url("OpenSans.woff") format('woff');        
+}
+*/
 body {
 	/* padding-top: 60px; */
     /* padding-bottom: 40px; */
-    background: #222;
-    color: #fff;
+    /* background: #222; */
+    color: #FFFFFF;
+    /* font-family:'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; */
     /* font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif; */
 }
 
@@ -32,15 +44,19 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 
 .endpointTargetLabel {
     color: #000000;
+    font-size: 10px;
+    text-align: center;
 }
 .shape {
-    z-index:2;
-    opacity:0.7;
-    filter:alpha(opacity=70);
+    /* z-index:2; */
+    /* opacity:0.7; */
+    /* filter:alpha(opacity=70); */
     position:absolute;
     cursor:pointer;
     text-align:center;
-    color:#333;
+    color:#ffffff;
+    padding: 10px;
+    font-size:13px;
 }
 
 /* #analysis1 { top:17em; left:49em;} */
@@ -53,17 +69,52 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     line-height: 70px;
     background-image:url(img/rectangle.png);
 }
-[data-shape=Rectangle] {
-    width:150px;
-    height:65px;
-    -webkit-border-radius: 15px;
-    -moz-border-radius: 15px;
-    border-radius: 15px;
-    left:300px;
-    top:60px;
-    background-color: #eaedef;
-    line-height: 60px;
-    border: 3px solid #659d32; 
+
+/* .Tool-default-green */
+[data-shape=Rectangle-1] {
+    width : 130px;
+    height : 47px;
+    border-radius : 14px  / 12px;
+    -moz-border-radius : 14px  / 12px;
+    -webkit-border-radius : 14px  / 12px;
+    /* left:300px;
+    top:60px; */
+    background : #88782F;
+    background : rgba(136, 120, 47, 1);
+    font-size : 13px;
+}
+
+/* .Tool-default-yellow */
+[data-shape=Rectangle-2] {
+    width : 130px;
+    height : 47px;
+    border-radius : 14px  / 12px;
+    -moz-border-radius : 14px  / 12px;
+    -webkit-border-radius : 14px  / 12px;
+    background : #D78E28;
+    background : rgba(215, 142, 40, 1);
+    
+}
+
+/* .Tool-default-red */
+[data-shape=Rectangle-3] {
+    width : 130px;
+    height : 47px;
+    border-radius : 14px  / 12px;
+    -moz-border-radius : 14px  / 12px;
+    -webkit-border-radius : 14px  / 12px;
+    background : #90191C;
+    background : rgba(144, 25, 28, 1);
+}
+
+/* .Tool-default-blue */
+[data-shape=Rectangle-4] {
+    width : 130px;
+    height : 47px;    border-radius : 14px  / 12px;
+    -moz-border-radius : 14px  / 12px;
+    -webkit-border-radius : 14px  / 12px;
+    background: #195EDF;
+    background: rgba(25, 94, 223, 1);
 }
 
 [data-shape=Ellipse1] {
@@ -142,32 +193,31 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     height: 100%;
 }*/
 
-#wgraph {
-    /* these two margins settings are here just to ensure that jsPlumb handles
-    margins properly.*/  
-    /*margin-top:44px; */
+.wgraph-deprecated {
     margin-left: auto;
     position: relative;
     font-size: 80%;
     margin-right: auto;
     /*width: 1024px;*/
-    border-left: 2px solid #456;
-    border-right: 2px solid #456;
-    border-bottom: 2px solid #456;
-    height: 600px;
+    /* border-left: 2px solid #456; */
+    /* border-right: 2px solid #456; */
+    /* border-bottom: 2px solid #456; */
+    height: 960px;
     overflow: hidden;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
-    background-color: #eaedef;
+    /* background-color: #eaedef; */
+    background-color: #FFFFFF;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
     border-radius: 5px;
+    width: 1346px;
 }
 
 #workflow-tools {
 
-    background-color:#eaedef;
-    color: #000000;
+    /* background-color:#eaedef; */
+    /* color: #000000; */
     /*
     Put this back after demo screenshots
     width:225px;
@@ -182,7 +232,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 }
 
 #modalWorkflowView {
-    color: #000000;
+    /*   color: #000000; */
 }
 
 .navbar-static-top {
@@ -198,4 +248,391 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 .container-liquid {
   padding: 0 15px;
   margin: 0 auto;
+}
+
+/* New CSS */
+.nav-tabs > li .close {
+    margin: -2px 0 0 10px;
+    font-size: 18px;
+}
+
+.Nav-1-Selected
+{
+  font-family : Open Sans;
+  font-weight : Light;
+  font-size : 24px;
+  letter-spacing : 1.2px;
+  color : #FFFFFF;
+  /* color : rgb(8, 183, 183); */
+}
+
+.Nav-1-Over
+{
+  font-family : Open Sans;
+  font-size : 24px;
+  letter-spacing : 1.2px;
+  color : #08B7B7;
+  color : rgb(8, 183, 183);
+}
+
+.Nav-1-Default
+{
+  font-family : Open Sans;
+  font-size : 24px;
+  letter-spacing : 1.2px;
+  color : #808184;
+  color : rgb(128, 129, 132);
+}
+
+/*
+.Nav-2-Bkgrd
+{
+    background : #304A54;
+    background : rgba(48, 74, 84, 1);
+    height : 41px;
+
+} */
+
+.Nav-2-Bkgrd
+{
+  background : #304A54;
+  background : rgba(48, 74, 84, 1);
+  height : 41px;
+  /* The CSS causes the background to not be as dark as intended */
+  /*
+  background : -moz-linear-gradient(50% 100% 90deg,rgba(48, 74, 84, 0.1) 0%,rgba(48, 74, 84, 0.09) 7.5%,rgba(48, 74, 84, 0) 53.07%,rgba(48, 74, 84, 0.09) 93.15%,rgba(48, 74, 84, 0.1) 100%);
+  background : -webkit-linear-gradient(90deg, rgba(48, 74, 84, 0.1) 0%, rgba(48, 74, 84, 0.09) 7.5%, rgba(48, 74, 84, 0) 53.07%, rgba(48, 74, 84, 0.09) 93.15%, rgba(48, 74, 84, 0.1) 100%);
+  background : -webkit-gradient(linear,50% 100% ,50% 0% ,color-stop(0,rgba(48, 74, 84, 0.1) ),color-stop(0.075,rgba(48, 74, 84, 0.09) ),color-stop(0.5307,rgba(48, 74, 84, 0) ),color-stop(0.9315,rgba(48, 74, 84, 0.09) ),color-stop(1,rgba(48, 74, 84, 0.1) ));
+  background : -o-linear-gradient(90deg, rgba(48, 74, 84, 0.1) 0%, rgba(48, 74, 84, 0.09) 7.5%, rgba(48, 74, 84, 0) 53.07%, rgba(48, 74, 84, 0.09) 93.15%, rgba(48, 74, 84, 0.1) 100%);
+  background : -ms-linear-gradient(90deg, rgba(48, 74, 84, 0.1) 0%, rgba(48, 74, 84, 0.09) 7.5%, rgba(48, 74, 84, 0) 53.07%, rgba(48, 74, 84, 0.09) 93.15%, rgba(48, 74, 84, 0.1) 100%);
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#304A54', endColorstr='#304A54' ,GradientType=0)";
+  background : linear-gradient(0deg, rgba(48, 74, 84, 0.1) 0%, rgba(48, 74, 84, 0.09) 7.5%, rgba(48, 74, 84, 0) 53.07%, rgba(48, 74, 84, 0.09) 93.15%, rgba(48, 74, 84, 0.1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#304A54',endColorstr='#304A54' , GradientType=0);
+  */
+
+}
+
+.Nav-2-Text
+{
+  font-family : Open Sans;
+  font-weight: Semibold;
+  font-size : 21px;
+  color : #E6E7E8;
+  color : rgb(230, 231, 232);
+}
+
+.panel-left-bkgrd {
+    background : #395763;
+    background : rgba(57, 87, 99, 1);
+    /* width : 243px; */
+    height : 1000px;
+    /* Allows the darker background to fill the horizontal */
+    padding-right: 0px;
+    padding-left: 0px;
+}
+
+.panel-right-bkgrd {
+    
+    background : #DCE2E5;
+    background : rgba(220, 226, 229, 1); 
+    /*width : 1376px; */
+    height : 1000px;
+}
+
+/* Endpoint */
+.in-output-default
+{
+  background : #929497;
+  background : rgba(146, 148, 151, 1);
+  width : 16px;
+  height : 7px;
+}
+
+/* Endpoint Hover */
+.in-output-over
+{
+  background : #00ADEE;
+  background : rgba(0, 173, 238, 1);
+  /* width : 16px;
+  height : 7px; */
+}
+
+/* Connected Endpoint */
+.in-output-connected
+{
+  background : #58595B;
+  background : rgba(88, 89, 91, 1);
+  width : 16px;
+  height : 7px;
+}
+
+/* Endpoint Label */
+.in-output-text-default
+{
+  font-family : Open Sans;
+  font-size : 10px;
+  color : #000000;
+  color : rgb(0, 0, 0, 1);
+  /* This color was too light */
+  /* 
+  color : #929497;
+  color : rgb(146, 148, 151); */
+}
+
+.in-output-text-connected
+{
+  font-family : Open Sans;
+  font-size : 10px;
+  color : #58595B;
+  color : rgb(88, 89, 91);
+}
+
+.canvas-selected
+{
+    background : #FFFFFF;
+    background : rgba(255, 255, 255, 1);
+    border-style : Solid;
+    border-color : #A6A8AB;
+    border-color : rgba(166, 168, 171, 1);
+    border-width : 1px;
+    /*width : 1346px; */
+    height : 960px;
+    box-shadow : 2px 2px 2px rgba(35, 31, 32, 0.3);
+    filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='#231F20') ;
+    padding: 5px;
+}
+
+.canvas-unselected
+{
+    background : #E6E6E5;
+    background : rgba(230, 230, 229, 1);
+    border-style : Solid;
+    border-color : #CCCBCB;
+    border-color : rgba(204, 203, 203, 1);
+    border-width : 1px;
+    width : 179px;
+    height : 52px;
+}
+
+.canvastab-text-selected
+{
+  font-family : Open Sans;
+  font-weight : Semibold
+  font-size : 16px;
+  color : #231F20;
+  color : rgb(35, 31, 32);
+}
+
+.canvastab-text-unselected
+{
+  font-family : Open Sans;
+  font-weight : Semibold
+  font-size : 16px;
+  color : #6D6E70;
+  color : rgb(109, 110, 112);
+}
+
+.my-header {
+    background : #395763;
+    background : rgba(57, 87, 99, 1);
+    color: #FFFFFF;
+    border-color: #395763;
+
+}
+
+.cbi-panel-title {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#spacer {
+    height: 50px;
+}
+
+.nav-title {
+    height: 65px;
+}
+
+.cbi-title {
+    text-align: center;
+    padding: 40px;
+}
+
+.Nav-1-link {
+    text-align: right;
+}
+
+.cbi-list-group {
+    background : #395763;
+    background : rgba(57, 87, 99, 1);
+}
+
+.cbi-list-group-item {
+    background : #395763;
+    background : rgba(57, 87, 99, 1);
+    border-color: #395763;
+}
+
+.highlight {
+    background-color: #E6E7E8;
+    color: #000000;
+}
+
+
+/* My own CSS */
+.canvas-button-bar {
+    padding: 5px;
+    background-color:#E6E7E8; 
+}
+
+.openButton {
+    float: right;
+}
+
+.tool-button {
+    float: left;
+}
+
+.title-header {
+    float: left;
+}
+
+.nav-button-bar {
+    /* width: 100%; */
+    border-style : Solid;
+    border-color : #304A54;
+    border-color : rgba(48, 74, 84, 1);
+    border-width : 1px;
+    height: 35px;
+}
+
+.cbi-btn-group {
+    padding-top: 5px
+}
+
+.app-login {
+    color: #000000;
+}
+
+/* Need to determine which CSS corresponds to this */
+.mytab {
+    background: #D1D1D1
+}
+
+.add-workflow-button {
+    color: #FFFFFF;
+}
+
+.list-item {
+    color: #FFFFFF;
+}
+
+.popover-title {
+  padding: 3px 3px;
+  padding-top: 5px;
+}
+
+.popover
+{
+  background : #EDE9DC;
+  background : rgba(237, 233, 220, 1);
+  border-style : Solid;
+  border-color : #A6A8AC;
+  border-color : rgba(166, 168, 172, 1);
+  border-width : 1px;
+  max-width : 323px;
+  width: 323px;
+  height : 489px;
+  box-shadow : 2px 2px 1px rgba(35, 31, 32, 0.3);
+  filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='#231F20') ;
+}
+
+/* Override bootstrap default */
+.popover-title {
+  background : #EDE9DC;
+  background : rgba(237, 233, 220, 1);
+}
+
+
+.info-title-bkgrd {
+  background : #89792F;
+  background : rgba(137, 121, 47, 1);
+  width : 299px;
+  height : 21px;
+  margin: 0 auto;
+}
+
+.info-title-font {
+  font-family : Open Sans;
+  font-weight : bold;
+  font-size : 16px;
+  color : #FFFFFF;
+  color : rgb(255, 255, 255);
+  text-align: center;
+}
+
+.info-metadata-fontlabel
+{
+  font-family : Open Sans;
+  font-size : 12px;
+  color : #808184;
+  color : rgb(128, 129, 132);
+}
+
+.info-metadata-fontvalue
+{
+  font-family : Open Sans;
+  font-size : 12px;
+  color : #231F20;
+  color : rgb(35, 31, 32);
+}
+
+.info-tab-bkgrd
+{
+  background : -moz-linear-gradient(50% 100% 90deg,rgba(255, 255, 255, 1) 0%,rgba(255, 255, 255, 0) 100%);
+  background : -webkit-linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  background : -webkit-gradient(linear,50% 100% ,50% 0% ,color-stop(0,rgba(255, 255, 255, 1) ),color-stop(1,rgba(255, 255, 255, 0) ));
+  background : -o-linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  background : -ms-linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFF', endColorstr='#FFFFFF' ,GradientType=0)";
+  background : linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  width : 299px;
+  height : 21px;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFF',endColorstr='#FFFFFF' , GradientType=0);
+}
+
+/* Override bootstrap defaults */
+.popover-content {
+  padding: 10px 10px;
+}
+
+.info-tab-font
+{
+  font-family : Open Sans;
+  font-weight : bold;
+  font-size : 12px;
+  letter-spacing : 0.6px;
+  color : #231F20;
+  color : rgb(35, 31, 32);
+}
+
+.info-tab-div {
+  padding-left: 5px;
+}
+
+.info-content-normal
+{
+  font-family : Open Sans;
+  font-size : 12px;
+  color : #595A5C;
+  color : rgb(89, 90, 92);
+}
+
+.info-content-subhead
+{
+  font-family : Open Sans;
+  font-weight : bold;
+  font-size : 12px;
+  color : #231F20;
+  color : rgb(35, 31, 32);
 }
