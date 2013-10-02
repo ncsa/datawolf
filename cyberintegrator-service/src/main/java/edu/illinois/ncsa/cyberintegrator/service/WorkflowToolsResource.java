@@ -101,7 +101,7 @@ public class WorkflowToolsResource {
      */
     @DELETE
     @Path("{tool-id}")
-    public void deletePerson(@PathParam("tool-id") String toolId) throws Exception {
+    public void deleteTool(@PathParam("tool-id") String toolId) throws Exception {
         if ("".equals(toolId)) {
             throw (new Exception("Invalid id passed in."));
         }
