@@ -300,7 +300,7 @@ public class HPCExecutor extends RemoteExecutor {
             }
 
             jobId = submit(job, scriptPath, session, targetLineSep);
-
+            createJobInfo();
             // findJobOutput();
 
         } catch (AbortException e) {
@@ -550,17 +550,41 @@ public class HPCExecutor extends RemoteExecutor {
 
     @Override
     public void cancelRemoteJob() {
-        // TODO : CMN : implement this
+        
+        String cancelJobId = jobId;
+        if(cancelJobId == null) {
+            Transaction t = SpringData.getTransaction();
+            try {
+                try {
+                    t.start(true);
+                    List<HPCJobInfo> jobs = SpringData.getBean(HPCJobInfoDAO.class).findByExecutionId(getExecutionId());
+                    if(jobs.isEmpty()) {
+                        logger.error("No job info beans found for execution "+getExecutionId());
+                    } else {
+                        cancelJobId = jobs.get(0).getJobId();
+                    }
+                } finally {
+                    t.commit();
+                }
+            } catch(Exception e) {
+                logger.error("Error retrieving job information for execution "+getExecutionId());
+            }
+        }
+        
         logger.info(String.format("Stopping RemoteJob : %s", jobId));
         if (session != null) {
-            String command = job.getTerminatePath() + NonNLSConstants.SP + jobId;
-            try {
-                SshUtils.exec(session, command);
-                // setState(State.ABORTED);
-            } catch (IllegalArgumentException e) {
-                logger.error("Could not cancel job " + jobId, e);
-            } catch (Exception e) {
-                logger.error("Could not cancel job " + jobId, e);
+            if(cancelJobId != null) {
+                String command = job.getTerminatePath() + NonNLSConstants.SP + cancelJobId;
+                try {
+                    SshUtils.exec(session, command);
+                    // setState(State.ABORTED);
+                } catch (IllegalArgumentException e) {
+                    logger.error("Could not cancel job " + jobId, e);
+                } catch (Exception e) {
+                    logger.error("Could not cancel job " + jobId, e);
+                }
+            } else {
+                logger.error("Job ID was null for execution id "+getExecutionId());
             }
         }
     }
@@ -598,7 +622,7 @@ public class HPCExecutor extends RemoteExecutor {
                         if (jobState.equals(State.FINISHED) || jobState.equals(State.ABORTED)) {
                             return getGondolaLogFile();
                         } else if (jobState.equals(State.RUNNING) && !storedJobInfo) {
-                            createJobInfo();
+                            updateJobInfo();
                             return jobState;
                         } else {
                             logger.debug("Job is not finished, aborted, nor running: "+jobState.toString());
@@ -652,7 +676,7 @@ public class HPCExecutor extends RemoteExecutor {
         // if we get here, job is neither queued nor running, get log
         try {
             if (!storedJobInfo) {
-                createJobInfo();
+                updateJobInfo();
             } else {
                 SshUtils.copyFrom(gondolaLogFile, gondolaLog.getAbsolutePath(), session);
             }
@@ -750,9 +774,31 @@ public class HPCExecutor extends RemoteExecutor {
         }
         return State.FAILED;
     }
+    private void createJobInfo() {
+        Transaction t = SpringData.getTransaction();
+        try {
+            try {
+                t.start();
+                HPCJobInfo info = new HPCJobInfo();
+                if(jobId != null) {
+                    info.setJobId(jobId);
+                } else {
+                    logger.warn("Job id was null");
+                }
+            
+                SpringData.getBean(HPCJobInfoDAO.class).save(info);
+            
+            } finally {
+              t.commit();
+            }
+        } catch(Exception e) {
+            logger.error("Error saving job information in HPC Executor", e);
+        }
+        
+    }
 
     // TODO RK remove following code, is rolled into getRemoteLog()
-    private void createJobInfo() {
+    private void updateJobInfo() {
         try {
             SshUtils.copyFrom(gondolaLogFile, gondolaLog.getAbsolutePath(), session);
             String workingDir = null;
@@ -786,17 +832,20 @@ public class HPCExecutor extends RemoteExecutor {
                     try {
                         t = SpringData.getTransaction();
                         t.start();
-                        HPCJobInfo info = new HPCJobInfo();
-                        info.setExecutionId(this.getExecutionId());
-                        info.setWorkingDir(workingDir);
-                        if(jobId != null) {
-                            info.setJobId(jobId);
+                        
+                        HPCJobInfoDAO jobInfoDAO = SpringData.getBean(HPCJobInfoDAO.class);
+                        List<HPCJobInfo> jobs = jobInfoDAO.findByExecutionId(this.getExecutionId());
+                        
+                        if(!jobs.isEmpty()) {
+                            HPCJobInfo info = jobs.get(0);
+                            info.setExecutionId(this.getExecutionId());
+                            info.setWorkingDir(workingDir);
+       
+                            SpringData.getBean(HPCJobInfoDAO.class).save(info);
+                            storedJobInfo = true;
+                        } else {
+                            logger.error("No job information bean found for execution id "+getExecutionId());
                         }
-                        // info.setStandardError(standardErr);
-                        // info.setStandardOutput(standardOut);
-
-                        SpringData.getBean(HPCJobInfoDAO.class).save(info);
-                        storedJobInfo = true;
                     } finally {
                         stdoutReader.close();
                         t.commit();
