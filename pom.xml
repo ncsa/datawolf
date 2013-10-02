@@ -105,6 +105,7 @@
 		<module>ncsa-common-springdata</module>
 		<module>file-service-client</module>
 		<module>file-service</module>
+		<module>file-webapp</module>
 	</modules>
 
 	<dependencies>

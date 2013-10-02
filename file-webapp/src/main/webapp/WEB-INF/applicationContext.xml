@@ -8,12 +8,19 @@
 
 	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
 
-	<bean id="entityManagerFactory"
-		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-		<property name="dataSource" ref="dataSource" />
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk">
+		<property name="levels" value="3" />
+		<property name="folder" value="data/files" />
+	</bean>
+
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
+
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="hsqldata" />
 		<property name="jpaVendorAdapter">
 			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
 				<property name="generateDdl" value="true" />
+				<!-- <property name="showSql" value="true" /> -->
 			</bean>
 		</property>
 		<property name="packagesToScan">
@@ -27,20 +34,12 @@
 		<property name="entityManagerFactory" ref="entityManagerFactory" />
 	</bean>
 
-	<bean id="dataSource"
-		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-		<property name="driverClassName" value="org.hsqldb.jdbcDriver" />
-		<property name="url" value="jdbc:hsqldb:mem:." />
+	<bean id="hsqldata" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+	    <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+ 		<property name="url" value="jdbc:hsqldb:file:data/files;shutdown=true" />
 		<property name="username" value="sa" />
 		<property name="password" value="" />
 	</bean>
-	<!-- <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource"> 
-		<property name="driverClassName" value="com.mysql.jdbc.Driver" /> <property 
-		name="url" value="jdbc:mysql://localhost/cyberintegrator" /> <property name="username" 
-		value="cyberintegrator" /> <property name="password" value="cyberintegrator" 
-		/> </bean> -->
-	<jpa:repositories base-package="edu.illinois.ncsa.springdata" />
 
-	<!-- <jpa:repositories base-package="edu.illinois.ncsa.cyberintegrator.springdata" 
-		/> -->
+	<jpa:repositories base-package="edu.illinois.ncsa.springdata" />
 </beans>

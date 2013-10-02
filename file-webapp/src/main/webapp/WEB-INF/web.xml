@@ -11,9 +11,9 @@
 		<param-value>/WEB-INF/applicationContext.xml</param-value>
 	</context-param>
  -->	
-	<context-param>
-        <param-name>javax.ws.rs.Application</param-name>
-        <param-value>edu.illinois.ncsa.file.service.FileApplication</param-value>
+ 	<context-param>
+        <param-name>resteasy.scan</param-name>
+        <param-value>true</param-value>
     </context-param>
 
 	<listener>

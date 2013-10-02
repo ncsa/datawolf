@@ -6,8 +6,8 @@
 		<artifactId>ncsa-common</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
-	<packaging>jar</packaging>
-	<artifactId>file-service</artifactId>
+	<packaging>war</packaging>
+	<artifactId>file-webapp</artifactId>
 
 	<dependencies>
 		<dependency>
@@ -68,6 +68,11 @@
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>file-service-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>file-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
