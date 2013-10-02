@@ -80,6 +80,7 @@ import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.HPCJobInfo;
+import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
@@ -90,6 +91,7 @@ import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SshUtils;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionUtil;
 import edu.illinois.ncsa.cyberintegrator.springdata.HPCJobInfoDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.PersonDAO;
@@ -466,6 +468,40 @@ public class ExecutionsResource {
     public WorkflowStep getStep(@PathParam("execution-id") String executionId, @PathParam("step-id") String stepId) {
 
         return null;
+    }
+
+    /**
+     * Get all logfiles belonging to the execution
+     * 
+     * @param executionId
+     *            a execution Id
+     * @return
+     *         list of logfile ids
+     */
+    @GET
+    @Path("{execution-id}/logfiles")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public List<LogFile> getLogfiles(@PathParam("execution-id") String executionId) {
+        LogFileDAO logfileDao = SpringData.getBean(LogFileDAO.class);
+        return logfileDao.findByExecutionId(executionId);
+    }
+
+    /**
+     * Get the logfile belonging to a single step of the execution
+     * 
+     * @param executionId
+     *            a execution Id
+     * @param stepId
+     *            a step Id
+     * @return
+     *         list of logfile ids
+     */
+    @GET
+    @Path("{execution-id}/logfiles/{step-id}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public LogFile getLogfiles(@PathParam("execution-id") String executionId, @PathParam("step-id") String stepId) {
+        LogFileDAO logfileDao = SpringData.getBean(LogFileDAO.class);
+        return logfileDao.findLogByExecutionIdAndStepId(executionId, stepId);
     }
 
     @GET
