@@ -33,6 +33,7 @@ package edu.illinois.ncsa.cyberintegrator.service;
 
 import java.util.List;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -64,9 +65,15 @@ public class WorkflowToolsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<WorkflowTool> getWorkflowTools(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<WorkflowTool> getWorkflowTools(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         WorkflowToolDAO toolDAO = SpringData.getBean(WorkflowToolDAO.class);
-        Page<WorkflowTool> results = toolDAO.findAll(new PageRequest(page, size));
+        Page<WorkflowTool> results;
+        if (showdeleted) {
+            results = toolDAO.findByDeleted(showdeleted, new PageRequest(page, size));
+        } else {
+            results = toolDAO.findAll(new PageRequest(page, size));
+        }
         return results.getContent();
     }
 
@@ -84,6 +91,27 @@ public class WorkflowToolsResource {
     public WorkflowTool getWorkflowTool(@PathParam("tool-id") String toolId) {
         WorkflowToolDAO toolDAO = SpringData.getBean(WorkflowToolDAO.class);
         return toolDAO.findOne(toolId);
+    }
+
+    /**
+     * Delete the tool given the specific id.
+     * 
+     * @param toolId
+     *            the tool to be deleted
+     */
+    @DELETE
+    @Path("{tool-id}")
+    public void deleteTool(@PathParam("tool-id") String toolId) throws Exception {
+        if ("".equals(toolId)) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        WorkflowToolDAO toolDao = SpringData.getBean(WorkflowToolDAO.class);
+        WorkflowTool tool = toolDao.findOne(toolId);
+        if (tool == null) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        tool.setDeleted(true);
+        toolDao.save(tool);
     }
 
     // TODO add endpoint for creating a workflow tool

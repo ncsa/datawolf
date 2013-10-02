@@ -31,9 +31,8 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.springdata;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
-
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
+import edu.illinois.ncsa.springdata.PagingAndSortingAndDeleteRepository;
 
-public interface WorkflowToolDAO extends PagingAndSortingRepository<WorkflowTool, String> {
+public interface WorkflowToolDAO extends PagingAndSortingAndDeleteRepository<WorkflowTool, String> {
 }

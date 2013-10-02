@@ -33,12 +33,11 @@ package edu.illinois.ncsa.cyberintegrator.springdata;
 
 import java.util.List;
 
-import org.springframework.data.repository.PagingAndSortingRepository;
-
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.springdata.PagingAndSortingAndDeleteRepository;
 
-public interface WorkflowDAO extends PagingAndSortingRepository<Workflow, String> {
+public interface WorkflowDAO extends PagingAndSortingAndDeleteRepository<Workflow, String> {
 
     List<Workflow> findByCreator(Person person);
 

@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -156,13 +157,19 @@ public class ExecutionsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email) {
+    public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
+            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
 
         // without paging
         if (size < 1) {
             if (email.equals("")) {
-                Iterable<Execution> tmp = exedao.findAll(new Sort(Sort.Direction.DESC, "date"));
+                Iterable<Execution> tmp;
+                if (showdeleted) {
+                    tmp = exedao.findAll(new Sort(Sort.Direction.DESC, "date"));
+                } else {
+                    tmp = exedao.findByDeleted(false, new Sort(Sort.Direction.DESC, "date"));
+                }
                 ArrayList<Execution> list = new ArrayList<Execution>();
                 for (Execution d : tmp) {
                     list.add(d);
@@ -176,7 +183,11 @@ public class ExecutionsResource {
 
             Page<Execution> results = null;
             if (email.equals("")) {
-                results = exedao.findAll(new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
+                if (showdeleted) {
+                    results = exedao.findAll(new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
+                } else {
+                    results = exedao.findByDeleted(false, new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
+                }
             } else {
                 results = exedao.findByCreatorEmail(email, new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
             }
@@ -200,6 +211,21 @@ public class ExecutionsResource {
     public Execution getExecution(@PathParam("execution-id") String executionId) {
         ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
         return exedao.findOne(executionId);
+    }
+
+    @DELETE
+    @Path("{execution-id}")
+    public void deleteExecution(@PathParam("execution-id") @DefaultValue("") String executionId) throws Exception {
+        if ("".equals(executionId)) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
+        Execution execution = exedao.findOne(executionId);
+        if (execution == null) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        execution.setDeleted(true);
+        exedao.save(execution);
     }
 
     @GET

@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -230,7 +231,7 @@ public class DatasetsResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
-            @QueryParam("pattern") @DefaultValue("") String pattern) {
+            @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
 
         // without paging
@@ -238,7 +239,11 @@ public class DatasetsResource {
             Iterable<Dataset> results = null;
             if (email.equals("")) {
                 if (pattern.equals("")) {
-                    results = datasetDao.findAll();
+                    if (showdeleted) {
+                        results = datasetDao.findAll();
+                    } else {
+                        results = datasetDao.findByDeleted(false);
+                    }
                 } else {
                     results = datasetDao.findByTitleLike(pattern);
                 }
@@ -261,7 +266,11 @@ public class DatasetsResource {
             Page<Dataset> results = null;
             if (email.equals("")) {
                 if (pattern.equals("")) {
-                    results = datasetDao.findAll(new PageRequest(page, size));
+                    if (showdeleted) {
+                        results = datasetDao.findAll(new PageRequest(page, size));
+                    } else {
+                        results = datasetDao.findByDeleted(false, new PageRequest(page, size));
+                    }
                 } else {
                     results = datasetDao.findByTitleLike(pattern, new PageRequest(page, size));
                 }
@@ -295,9 +304,24 @@ public class DatasetsResource {
         return findOne;
     }
 
+    @DELETE
+    @Path("{dataset-id}")
+    public void deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
+        if ("".equals(datasetId)) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+        Dataset dataset = datasetDao.findOne(datasetId);
+        if (dataset == null) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        dataset.setDeleted(true);
+        datasetDao.save(dataset);
+    }
+
     @PUT
-    @Path("{dataset-id}/delete")
-    public Response deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) {
+    @Path("{dataset-id}/purge")
+    public Response purgeDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) {
         if ("".equals(datasetId))
             return Response.status(500).entity("Must have dataset id").build();
 
@@ -407,6 +431,36 @@ public class DatasetsResource {
         }
 
         return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
+    }
+
+    /**
+     * get the file with given id
+     * 
+     * @param id
+     *            file-descriptor id
+     * @return
+     *         file
+     */
+    @GET
+    @Path("{dataset-id}/{filedescriptor-id}/delete")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response deleteFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+        Dataset dataset = datasetDao.findOne(datasetId);
+        List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
+        FileDescriptor fileDescriptor = null;
+        for (FileDescriptor fd : fileDescriptors) {
+            if (fd.getId().equals(fileDescriptorId)) {
+                fileDescriptor = fd;
+                break;
+            }
+        }
+
+        if (fileDescriptor == null)
+            return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
+        dataset.getFileDescriptors().remove(fileDescriptor);
+        datasetDao.save(dataset);
+        return Response.ok().build();
     }
 
 }

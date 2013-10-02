@@ -169,9 +169,15 @@ public class WorkflowsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Workflow> getWorkflows(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<Workflow> getWorkflows(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        Page<Workflow> results = wfdao.findAll(new PageRequest(page, size));
+        Page<Workflow> results;
+        if (showdeleted) {
+            results = wfdao.findAll(new PageRequest(page, size));
+        } else {
+            results = wfdao.findByDeleted(false, new PageRequest(page, size));
+        }
         log.debug("get workflows");
         return results.getContent();
     }
@@ -192,6 +198,21 @@ public class WorkflowsResource {
         log.warn("get workflow by id");
         WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
         return wfdao.findOne(workflowId);
+    }
+
+    @DELETE
+    @Path("{workflow-id}/delete")
+    public void deleteWorkflow(@PathParam("workflow-id") @DefaultValue("") String workflowId) throws Exception {
+        if ("".equals(workflowId)) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
+        Workflow workflow = workflowDao.findOne(workflowId);
+        if (workflow == null) {
+            throw (new Exception("Invalid id passed in."));
+        }
+        workflow.setDeleted(true);
+        workflowDao.save(workflow);
     }
 
     /**
@@ -260,10 +281,16 @@ public class WorkflowsResource {
     @GET
     @Path("{workflow-id}/executions")
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
+    public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         ExecutionDAO execDao = SpringData.getBean(ExecutionDAO.class);
-        List<Execution> execList = execDao.findByWorkflowId(workflowId);
-        return execList;
+        Page<Execution> results;
+        if (showdeleted) {
+            results = execDao.findByWorkflowId(workflowId, new PageRequest(page, size));
+        } else {
+            results = execDao.findByWorkflowIdAndDeleted(workflowId, false, new PageRequest(page, size));
+        }
+        return results.getContent();
     }
 
     @GET
