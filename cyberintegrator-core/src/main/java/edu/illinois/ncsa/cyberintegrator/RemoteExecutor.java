@@ -36,6 +36,8 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
     private static final Logger logger                    = LoggerFactory.getLogger(RemoteExecutor.class);
 
     private Thread              remoteThread;
+    private int                 attempts                  = 0;
+    private static final int    MAX_SUBMIT_SLEEP          = 3600000;
 
     /*
      * Create a thread and launch the thread that will do the real work.
@@ -80,7 +82,17 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
             setup(cwd);
 
             // submit job first
+
             State state = submitRemoteJob(cwd);
+            while (state == State.WAITING) {
+                try {
+                    Thread.sleep(getExponentialBackoff());
+                    state = submitRemoteJob(cwd);
+                } catch (InterruptedException e) {
+                    logger.info("Job Submission got interrupted.", e);
+                }
+            }
+
             setState(state);
             Random random = new Random();
             while ((state != State.ABORTED) && (state != State.FAILED) && (state != State.FINISHED)) {
@@ -135,6 +147,15 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
             }
             flushLog();
         }
+    }
+
+    private long getExponentialBackoff() {
+        long sleep = Math.round((Math.pow(2, attempts) - 1.0) * 0.5) * 1000;
+        if (sleep < MAX_SUBMIT_SLEEP) {
+            attempts++;
+        }
+
+        return sleep;
     }
 
     /**
