@@ -37,7 +37,7 @@
       <directory>target</directory>
       <outputDirectory>lib</outputDirectory>
       <includes>
-        <include>cyberintegrator-service-*-SNAPSHOT.war</include>
+        <include>*.war</include>
       </includes>
     </fileSet>
     <fileSet>

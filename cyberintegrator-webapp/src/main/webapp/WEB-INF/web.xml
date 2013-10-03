@@ -15,13 +15,6 @@
         <param-name>resteasy.scan</param-name>
         <param-value>true</param-value>
     </context-param>
-
-<!-- 
-	<context-param>
-        <param-name>javax.ws.rs.Application</param-name>
-        <param-value>edu.illinois.ncsa.cyberintegrator.service.CyberIntegratorApplication</param-value>
-    </context-param>
- -->
  
 	<listener>
     	<listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
@@ -52,14 +45,14 @@
 	</filter-mapping>	
 	
 	<servlet>
-		<servlet-name>ci-service</servlet-name>
+		<servlet-name>cyberintegrator</servlet-name>
 		<servlet-class>
 			org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher
         </servlet-class>
 	</servlet>
  
 	<servlet-mapping>
-		<servlet-name>ci-service</servlet-name>
+		<servlet-name>cyberintegrator</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
  
