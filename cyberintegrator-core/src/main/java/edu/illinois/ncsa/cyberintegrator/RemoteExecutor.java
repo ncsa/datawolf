@@ -85,14 +85,15 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
 
             State state = submitRemoteJob(cwd);
             while (state == State.WAITING) {
-                if (isJobStopped()) {
-                    throw (new AbortException("Job got stopped."));
-                }
-
                 try {
                     Thread.sleep(getExponentialBackoff());
                 } catch (InterruptedException e) {
                     logger.info("Job Submission got interrupted.", e);
+                }
+
+                // Check if job is stopped before attempting submission
+                if (isJobStopped()) {
+                    throw (new AbortException("Job got stopped."));
                 }
                 state = submitRemoteJob(cwd);
             }
