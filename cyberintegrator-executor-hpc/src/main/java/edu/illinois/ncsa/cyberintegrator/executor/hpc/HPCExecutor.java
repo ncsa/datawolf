@@ -74,6 +74,7 @@ import edu.illinois.ncsa.springdata.Transaction;
  */
 public class HPCExecutor extends RemoteExecutor {
 
+    private static final String CANNOT_CONNECT = "Cannot connect to";
     // This should be an executor option
     private static final String NCPUS              = "[NCPUS]";
     private static final String HPC_SCRIPT_DIR     = "[HPC-SCRIPT-DIR]";
@@ -126,6 +127,7 @@ public class HPCExecutor extends RemoteExecutor {
     private String              submissionStdErr   = null;
 
     private boolean             storedJobInfo      = false;
+    private String scriptPath = null;
 
     @Override
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
@@ -143,170 +145,179 @@ public class HPCExecutor extends RemoteExecutor {
         Transaction t = SpringData.getTransaction();
         try {
             t.start();
-            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-            HPCToolImplementation impl = new ObjectMapper().readValue(step.getTool().getImplementation(), HPCToolImplementation.class);
-
-            for (CommandLineOption option : impl.getCommandLineOptions()) {
-                switch (option.getType()) {
-                case VALUE:
-                    // fixed value
-                    if (option.getValue() != null) {
-                        command.add(option.getValue());
-                    }
-                    break;
-
-                case PARAMETER:
-                    String value = null;
-                    if (execution.hasParameter(step.getParameters().get(option.getOptionId()))) {
-                        value = execution.getParameter(step.getParameters().get(option.getOptionId()));
-                    } else {
-                        value = step.getTool().getParameter(option.getOptionId()).getValue();
-                    }
-                    if (option.isCommandline()) {
-                        // add the parameters
-                        if (option.getFlag() != null) {
-                            if (!option.getFlag().isEmpty()) {
-                                command.add(option.getFlag());
+            if(scriptPath == null) {
+                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
+                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+                HPCToolImplementation impl = new ObjectMapper().readValue(step.getTool().getImplementation(), HPCToolImplementation.class);
+    
+                for (CommandLineOption option : impl.getCommandLineOptions()) {
+                    switch (option.getType()) {
+                    case VALUE:
+                        // fixed value
+                        if (option.getValue() != null) {
+                            command.add(option.getValue());
+                        }
+                        break;
+    
+                    case PARAMETER:
+                        String value = null;
+                        if (execution.hasParameter(step.getParameters().get(option.getOptionId()))) {
+                            value = execution.getParameter(step.getParameters().get(option.getOptionId()));
+                        } else {
+                            value = step.getTool().getParameter(option.getOptionId()).getValue();
+                        }
+                        if (option.isCommandline()) {
+                            // add the parameters
+                            if (option.getFlag() != null) {
+                                if (!option.getFlag().isEmpty()) {
+                                    command.add(option.getFlag());
+                                }
+                            }
+                            command.add(value);
+                            // parameters.add(option);
+                        } else if (!option.isCommandline() && option.getFlag() != null) {
+                            // TODO CMN : make this parameter of the HPC Executor,
+    // perhaps part of an HPCExecutorParameterPage
+                            if (option.getFlag().equals("-n")) {
+                                ncpuScriptVar = value;
+                            }
+                        } else {
+                            // add special parameters that are expected
+                            WorkflowToolParameter param = step.getTool().getParameter(option.getOptionId());
+    
+                            if (param.getTitle().equals("Target Username")) {
+                                targetUser = value;
+                            } else if (param.getTitle().equals("Target SSH")) {
+                                contactURI = value;
+                            } else if (param.getTitle().equals("Target Userhome")) {
+                                targetUserHome = value;
                             }
                         }
-                        command.add(value);
-                        // parameters.add(option);
-                    } else if (!option.isCommandline() && option.getFlag() != null) {
-                        // TODO CMN : make this parameter of the HPC Executor,
-// perhaps part of an HPCExecutorParameterPage
-                        if (option.getFlag().equals("-n")) {
-                            ncpuScriptVar = value;
-                        }
-                    } else {
-                        // add special parameters that are expected
-                        WorkflowToolParameter param = step.getTool().getParameter(option.getOptionId());
-
-                        if (param.getTitle().equals("Target Username")) {
-                            targetUser = value;
-                        } else if (param.getTitle().equals("Target SSH")) {
-                            contactURI = value;
-                        } else if (param.getTitle().equals("Target Userhome")) {
-                            targetUserHome = value;
-                        }
-                    }
-                    break;
-
-                case DATA:
-                    String filename = option.getFilename();
-                    if (filename == null) {
-                        try {
-                            filename = File.createTempFile("ci", ".tmp", cwd).getAbsolutePath();
-                        } catch (IOException exc) {
-                            throw (new FailedException("Could not create temp file.", exc));
-                        }
-                    }
-                    stagedFiles = cwd.getAbsolutePath() + NonNLSConstants.PATH_SEP + filename;
-                    if (option.getInputOutput() != InputOutput.OUTPUT) {
-
-                        String optionId = option.getOptionId();
-                        Map<String, String> inputs = step.getInputs();
-                        String key = inputs.get(optionId);
-                        Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(key));
-                        if (ds == null) {
-                            throw (new AbortException("Dataset is missing."));
-                        }
-                        try {
-                            InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
-                            FileOutputStream fos = new FileOutputStream(new File(cwd, filename));
-                            byte[] buf = new byte[10240];
-                            int len = 0;
-                            while ((len = is.read(buf)) > 0) {
-                                fos.write(buf, 0, len);
+                        break;
+    
+                    case DATA:
+                        String filename = option.getFilename();
+                        if (filename == null) {
+                            try {
+                                filename = File.createTempFile("ci", ".tmp", cwd).getAbsolutePath();
+                            } catch (IOException exc) {
+                                throw (new FailedException("Could not create temp file.", exc));
                             }
-                            is.close();
-                            fos.close();
-                        } catch (IOException e) {
-                            throw (new FailedException("Could not get input file.", e));
                         }
+                        stagedFiles = cwd.getAbsolutePath() + NonNLSConstants.PATH_SEP + filename;
+                        if (option.getInputOutput() != InputOutput.OUTPUT) {
+    
+                            String optionId = option.getOptionId();
+                            Map<String, String> inputs = step.getInputs();
+                            String key = inputs.get(optionId);
+                            Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(key));
+                            if (ds == null) {
+                                throw (new AbortException("Dataset is missing."));
+                            }
+                            try {
+                                InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                                FileOutputStream fos = new FileOutputStream(new File(cwd, filename));
+                                byte[] buf = new byte[10240];
+                                int len = 0;
+                                while ((len = is.read(buf)) > 0) {
+                                    fos.write(buf, 0, len);
+                                }
+                                is.close();
+                                fos.close();
+                            } catch (IOException e) {
+                                throw (new FailedException("Could not get input file.", e));
+                            }
+                        }
+                        break;
                     }
-                    break;
                 }
-            }
-
-            try {
-                session = SshUtils.maybeGetSession(new URI(contactURI), targetUser, home);
-            } catch (URISyntaxException e) {
-                logger.error("Failed to open ssh session.", e);
-                throw new FailedException("Failed to open ssh session.");
-            } catch (Exception e) {
-                logger.error("Failed to open ssh session.", e);
-                throw new FailedException("Failed to open ssh session.");
-            }
-
-            // Dataset id of log file to store as tool output
-            gondolaLogId = impl.getLog();
-            stdOutId = impl.getCaptureStdOut();
-            stdErrId = impl.getCaptureStdErr();
-
-            // Generate a unique id
-            String normUuid = normalize(UUID.randomUUID().toString());
-            String targetPathSep = NonNLSConstants.REMOTE_PATH_SEP;
-            String targetLineSep = NonNLSConstants.REMOTE_LINE_SEP;
-
-            String stagingDir = null;
-            if (targetUserHome.endsWith(targetPathSep)) {
-                stagingDir = targetUserHome + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid; // +
-// targetPathSep;
+    
+                try {
+                    session = SshUtils.maybeGetSession(new URI(contactURI), targetUser, home);
+                } catch (URISyntaxException e) {
+                    logger.error("Failed to open ssh session.", e);
+                    throw new FailedException("Failed to open ssh session.");
+                } catch (Exception e) {
+                    logger.error("Failed to open ssh session.", e);
+                    throw new FailedException("Failed to open ssh session.");
+                }
+    
+                // Dataset id of log file to store as tool output
+                gondolaLogId = impl.getLog();
+                stdOutId = impl.getCaptureStdOut();
+                stdErrId = impl.getCaptureStdErr();
+    
+                // Generate a unique id
+                String normUuid = normalize(UUID.randomUUID().toString());
+                String targetPathSep = NonNLSConstants.REMOTE_PATH_SEP;
+                String targetLineSep = NonNLSConstants.REMOTE_LINE_SEP;
+    
+                String stagingDir = null;
+                if (targetUserHome.endsWith(targetPathSep)) {
+                    stagingDir = targetUserHome + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid; // +
+    // targetPathSep;
+                } else {
+                    stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid; // +
+    // targetPathSep;
+                }
+    
+                standardOut = stagingDir + targetPathSep + "stdout";
+                standardErr = stagingDir + targetPathSep + "stderr";
+                // String stagingDir = targetUserHome + targetPathSep +
+                // NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid +
+                // targetPathSep;
+    
+                JAXBContext jc;
+                try {
+                    jc = JAXBContext.newInstance(new Class[] { edu.illinois.ncsa.gondola.types.submission.JobSubmissionType.class, edu.illinois.ncsa.gondola.types.submission.JobStatusListType.class,
+                            edu.illinois.ncsa.gondola.types.submission.JobStatusType.class, edu.illinois.ncsa.gondola.types.submission.ObjectFactory.class, });
+                } catch (JAXBException e) {
+                    logger.error("Failed to instantiate gondola classes.", e);
+                    // e.printStackTrace(pw);
+                    throw new FailedException("Failed to instantiate gondola classes.");
+                }
+    
+                File workflow = new File(cwd, impl.getTemplate());
+                // File executable = new File(cwd, impl.getExecutable());
+    
+                executablePath = impl.getExecutable(); // stageFile(executable,
+                                                       // stagingDir, session,
+                                                       // impl.getExecutable());
+    
+                job = createJob(workflow, command, stagingDir, jc);
+                jobParser = new JobInfoParser(job.getStatusHandler().getParser());
+    
+                // Generate job script locally
+                File tmpScript = writeLocalScript(cwd, job.getScript(), stagingDir, normUuid, targetLineSep);
+    
+                // copy job script to target machine
+                scriptPath = stageFile(tmpScript, stagingDir, session, NonNLSConstants.SCRIPT);
+    
+                // path to remote gondola log file
+                gondolaLogFile = stagingDir + targetPathSep + NonNLSConstants.LOG;
+                // remoteLogFile = stagingDir + NonNLSConstants.LOG;
+    
+                // quick check to see if we should stop
+                if (isJobStopped()) {
+                    throw (new AbortException("Job is stopped."));
+                }
+                
+                jobId = submit(job, scriptPath, session, targetLineSep);
+                createJobInfo();
             } else {
-                stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid; // +
-// targetPathSep;
+                // Job already setup, just try submitting it again
+                String targetLineSep = NonNLSConstants.REMOTE_LINE_SEP;
+                jobId = submit(job, scriptPath, session, targetLineSep);
+                createJobInfo();
             }
-
-            standardOut = stagingDir + targetPathSep + "stdout";
-            standardErr = stagingDir + targetPathSep + "stderr";
-            // String stagingDir = targetUserHome + targetPathSep +
-            // NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid +
-            // targetPathSep;
-
-            JAXBContext jc;
-            try {
-                jc = JAXBContext.newInstance(new Class[] { edu.illinois.ncsa.gondola.types.submission.JobSubmissionType.class, edu.illinois.ncsa.gondola.types.submission.JobStatusListType.class,
-                        edu.illinois.ncsa.gondola.types.submission.JobStatusType.class, edu.illinois.ncsa.gondola.types.submission.ObjectFactory.class, });
-            } catch (JAXBException e) {
-                logger.error("Failed to instantiate gondola classes.", e);
-                // e.printStackTrace(pw);
-                throw new FailedException("Failed to instantiate gondola classes.");
-            }
-
-            File workflow = new File(cwd, impl.getTemplate());
-            // File executable = new File(cwd, impl.getExecutable());
-
-            executablePath = impl.getExecutable(); // stageFile(executable,
-                                                   // stagingDir, session,
-                                                   // impl.getExecutable());
-
-            job = createJob(workflow, command, stagingDir, jc);
-            jobParser = new JobInfoParser(job.getStatusHandler().getParser());
-
-            // Generate job script locally
-            File tmpScript = writeLocalScript(cwd, job.getScript(), stagingDir, normUuid, targetLineSep);
-
-            // copy job script to target machine
-            String scriptPath = stageFile(tmpScript, stagingDir, session, NonNLSConstants.SCRIPT);
-
-            // path to remote gondola log file
-            gondolaLogFile = stagingDir + targetPathSep + NonNLSConstants.LOG;
-            // remoteLogFile = stagingDir + NonNLSConstants.LOG;
-
-            // quick check to see if we should stop
-            if (isJobStopped()) {
-                throw (new AbortException("Job is stopped."));
-            }
-
-            jobId = submit(job, scriptPath, session, targetLineSep);
-            createJobInfo();
             // findJobOutput();
 
         } catch (AbortException e) {
             throw e;
         } catch (FailedException e) {
-            throw e;
+            // Job could not be submitted, set state to waiting to try again
+            return State.WAITING;
+            //throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to get information about step.", e));
         } finally {
@@ -615,6 +626,18 @@ public class HPCExecutor extends RemoteExecutor {
             }
             for (String line : lines) {
 
+                // Determine if remote job queue is unresponsive
+                if(line.contains(CANNOT_CONNECT)) {
+                    State state = this.getState();
+                    if(state != State.WAITING) {
+                        // Job status not responding, return previous state
+                        return state;
+                    } else {
+                        // Job submitted, but we have not yet received a successful job status since, assume queued
+                        return State.QUEUED;
+                    }
+                }
+                
                 String[] data = jobParser.parseJobState(line);
                 if (data != null) {
                     if (data[0].equals(jobId)) {
