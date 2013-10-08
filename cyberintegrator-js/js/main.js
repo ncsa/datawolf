@@ -171,6 +171,7 @@ var AppRouter = Backbone.Router.extend({
         workflowToolCollection.fetch({success: function() {
             //console.log("tool collection size = "+workflowToolCollection.size());
             $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
+            $('#workflowToolButtons').html(new WorkflowToolButtonBar().render().el);
         }});
 
         personCollection.fetch({success: function() {

@@ -64,7 +64,9 @@ var WorkflowToolListItemView = Backbone.View.extend({
         inputs.each(function(workflowToolData) {
             popoverContentInputs += inputTemplate(workflowToolData.toJSON());
         });
-        var content = popoverContentTop(this.model.toJSON()) + popoverContentDesc(this.model.toJSON()) + popoverContentInputs;
+        var popoverContentOpen = _.template($('#workflow-tool-popover-content').html());
+        var popoverContentClose = _.template($('#workflow-tool-popover-content-close').html());
+        var content = popoverContentTop(this.model.toJSON()) + popoverContentOpen(null) + popoverContentDesc(this.model.toJSON()) + popoverContentInputs + popoverContentClose(null);
         $(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: content, trigger: 'manual'});
 
         return this;
@@ -83,7 +85,10 @@ var WorkflowToolListItemView = Backbone.View.extend({
         $('.highlight').removeClass('highlight');
         $(this.el).addClass('highlight');
 
-        $(this.el).popover('toggle');
+        if(showToolInfo) {
+            $(this.el).popover('toggle');
+        }
+        //$(this.el).popover('toggle');
     },
 
     hideDetails: function() {
@@ -99,5 +104,23 @@ var WorkflowToolInfoView = Backbone.View.extend({
 
     render: function() {
         return this;
+    }
+});
+
+var WorkflowToolButtonBar = Backbone.View.extend({
+    template: _.template($("#workflow-tool-buttons").html()),
+
+    events: {
+        "click button#workflow-tool-info-btn" : "workflowToolInfo",
+    },
+
+    render: function(e) {
+        $(this.el).html(this.template());
+
+        return this;
+    },
+
+    workflowToolInfo: function() {
+        showToolInfo = !showToolInfo;
     }
 });
