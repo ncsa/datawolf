@@ -514,6 +514,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   border-color : rgba(166, 168, 172, 1);
   border-width : 1px;
   max-width : 400px;
+  max-height : 489px;
   width: 323px;
   height : 489px;
   box-shadow : 2px 2px 1px rgba(35, 31, 32, 0.3);
@@ -608,6 +609,8 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 
 .info-content-body {
   padding: 10px;
+  overflow: auto;
+  height: 65px;
 }
 
 .info-content-subhead

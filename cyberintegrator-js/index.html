@@ -168,7 +168,8 @@
 
     <!-- Tool Info Scripts -->
     <script type="text/template" id="workflow-tool-popover-content-top">
-        <table class="table">
+        <div>
+            <table class="table">
                 <tbody>
                     <tr>
                         <td><font class="info-metadata-fontlabel">Date Created</font></td>
@@ -179,10 +180,9 @@
                         <td><font class="info-metadata-fontvalue">Unknown</font></td>
                     </tr>
                 </tbody>
-               </table>
+            </table>
     </script>
-
-    <script type="text/template" id="workflow-tool-popover-content">
+    <script type="text/template" id="workflow-tool-popover-content-open">
         <div class="info-accordian-border">
     </script>
     <script type="text/template" id="workflow-tool-popover-content-description">
@@ -202,15 +202,28 @@
             </div>
             <div id="collapseInputs" class="info-content-normal info-content-body collapse in">
     </script>
-    <script type="text/template" id="workflow-tool-popover-content-inputs">
-                <div class="info-content-normal">
-                    <font class="info-content-subhead"><%= title %></font>
-                    <br>
-                    <%= description %>
-                </div>
+    <script type="text/template" id="workflow-tool-popover-content-output-title">
+        <div id="tool-outputs">           
+            <div class="info-tab-bkgrd info-tab-div">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-outputs" href="#collapseOutputs"><font class="info-tab-font">OUTPUTS</font></a>
+            </div>
+            <div id="collapseOutputs" class="info-content-normal info-content-body collapse in">
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content">
+            <div class="info-content-normal">
+                <font class="info-content-subhead"><%= title %></font>
+                <br>
+                <%= description %>
+            </div>
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content-parameter-title">
+        <div id="tool-parameters">           
+            <div class="info-tab-bkgrd info-tab-div">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-parameters" href="#collapseParameters"><font class="info-tab-font">PARAMETERS</font></a>
+            </div>
+            <div id="collapseParameters" class="info-content-normal info-content-body collapse in">
     </script>
     <script type="text/template" id="workflow-tool-popover-content-close">
-                </div>
             </div>
         </div>
     </script>
@@ -249,10 +262,6 @@
                     <div class="Nav-2-Bkgrd nav-title">
                         <h3 class="cbi-title Nav-2-Text">
                             <span class="glyphicon glyphicon-link title-header"></span>
-                            <!--
-                            <button type="button" class="btn btn-default btn-sm tool-button">
-                                <span class="glyphicon glyphicon-link"></span>
-                            </button> -->
                             Workflows
                         </h3>
                     </div>
@@ -267,56 +276,6 @@
                     <div id="workflows"></div>
                     <div id="workflowbuttons"></div>
                 </div>
-                <!--
-                <div id="tool-parent">
-                    <legend class="cbi-legend">Tools</legend>
-                    <div id="workflow-tools"></div>                 
-                </div>
-                -->
-                <!--
-                <div id="tool-parent" class="panel panel-default my-header">
-                    <div class="panel-heading my-header">
-                        <h3 class="panel-title my-header">Tools</h3>
-                    </div>
-                    <div id="workflow-tools" class="panel-body my-header"></div>                 
-                </div> -->
-                <!--
-                <div id="workflow-parent">
-                    <legend class="cbi-legend">Workflows</legend>
-                    <div id="workflows"></div>
-                    <div id="workflowbuttons"></div>
-                    <div id="modalWorkflowView" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-                            <h3 id="newWorkflowDialogLabel">New Workflow</h3>
-                        </div>
-                        <div class="modal-body" id="modal-content">
-                            <div id="new-workflow-content"></div>
-                        </div>
-                        <div class="modal-footer">
-                        </div> 
-                    </div>
-                </div> -->
-                <!--
-                <div id="workflow-parent" class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Workflows</h3>
-                    </div>
-                    <div id="workflows" class="panel-body"></div>
-                </div> -->
-                <!--
-                <div id='workflow-tool-info'>
-                    <legend class="cbi-legend">Info</legend>
-                    <div id="infoview">
-                        <form id="form">
-                        </form>
-                    </div>
-                </div> -->
-                <!--
-                <div id="person-parent">
-                    <legend class="cbi-legend">Users</legend>
-                    <div id="persons"></div>
-                </div> -->
             </div>
             <div class="panel-right-bkgrd col-lg-10">
                 <div class="pull-right app-login">
@@ -338,79 +297,13 @@
                             <button class="close closeTab" type="button" >×</button><label id="lbl" class="canvastab-text-selected">Untitled</label>
                         </a>
                     </li>
-                    <!--
-                    <li class="">
-                        <a href="#pane2" data-toggle="tab" class="mytab"><button class="close closeTab" type="button" >×</button><label id="lbl1" class="canvastab-text-unselected">Untitled</label></a>
-                    </li> -->
-                    <!--
-                        <li class="active"><a href="#pane1" data-toggle="tab" title="my title"><button class="close closeTab" type="button" >×</button><label id="lbl">Tab 1</label></a></li>
-                        <li><a href="#pane2" data-toggle="tab"><button class="close closeTab" type="button" >×</button><label id="lbl2">Tab 2</label></a></li>
-                    -->
                 </ul>
-               
                 <div id="tab-content" class="tab-content">
-                    
                     <div id="pane1" class="tab-pane active dropzone canvas-selected">
-                        <!--
-                        <div class="canvas-button-bar">
-                            <button type="button" class="btn btn-default">
-                                <span class="glyphicon glyphicon-trash"></span>
-                            </button>
-                            <button type="button" class="btn btn-default">
-                                <span class="glyphicon glyphicon-search"></span>
-                            </button>
-                        </div> -->
                     </div>
-                    <!--
-                    <div id="pane2" class="tab-pane ">
-                        hello world
-                     </div> -->
                 </div>
-
-                <!--
-                <div id="tabs">
-                    <ul id="cbi-nav-tabs" class="nav nav-tabs">
-                        <li><a href="pane3" data-toggle="tab">+</a></li>
-                        <li class="active"><a href="#pane1" data-toggle="tab" title="my title"><button class="close closeTab" type="button" >×</button><label id="lbl">Tab 1</label></a></li>
-                        <li><a href="#pane2" data-toggle="tab"><button class="close closeTab" type="button" >×</button><label id="lbl2">Tab 2</label></a></li>
-                    </ul>
-                    <div id="tab-content" class="tab-content">
-                        <div id="pane1" class="active dropzone wgraph">
-                            hello world 2
-                            
-                        </div>
-                        <div id="pane2" class="wgraph">
-                            hello world
-                         </div> 
-                    </div>
-                </div> -->
             </div>
         </div>
-        <!--
-        <div class="row-fluid">
-            <div class="span2">
-                <div id='workflow-tool-info'>
-                    <legend class="cbi-legend">Info</legend>
-                    <div id="infoview">
-                        <form id="form">
-                             <div class="row-fluid">
-                                <div class="span4">
-                                    <label>Title:</label>
-                                    <label>Description:</label>
-                                    <label>Author:</label>
-                                    <label>Version:</label>
-                                </div>
-                                <div class="span4">
-                                    <label>the-title</label>
-                                    <text>the-description</text>
-                                    <label>the-author</label>
-                                    <label>the-version</label>
-                                </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div> -->
     </div>
     <script src="assets/jquery-1.9.0.js"></script>
     <script src="assets/jquery-ui-1.9.2-min.js"></script>
@@ -429,7 +322,6 @@
     <script src="js/views/workflowtoolview.js"></script>
     <script src="js/views/workflowview.js"></script>
     <script src="js/views/infoview.js"></script>
-    <!-- <script src="js/views/personview.js"></script> -->
 
     <!-- Models -->
     <script src="js/models/filedescriptormodel.js"></script>

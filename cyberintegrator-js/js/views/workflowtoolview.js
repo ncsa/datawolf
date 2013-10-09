@@ -57,16 +57,33 @@ var WorkflowToolListItemView = Backbone.View.extend({
 
         // Get Inputs
         var inputTitleTemplate = _.template($('#workflow-tool-popover-content-input-title').html());
-        var popoverContentInputs = inputTitleTemplate();
+        var popoverContentInputs = inputTitleTemplate(null);
         var inputs = new WorkflowToolDataCollection(this.model.get("inputs"));
 
-        var inputTemplate = _.template($('#workflow-tool-popover-content-inputs').html());
+        var tabContentTemplate = _.template($('#workflow-tool-popover-content').html());
         inputs.each(function(workflowToolData) {
-            popoverContentInputs += inputTemplate(workflowToolData.toJSON());
+            popoverContentInputs += tabContentTemplate(workflowToolData.toJSON());
         });
-        var popoverContentOpen = _.template($('#workflow-tool-popover-content').html());
+        var outputTitleTemplate = _.template($('#workflow-tool-popover-content-output-title').html());
+        var outputs = new WorkflowToolDataCollection(this.model.get("outputs"));
+        var popoverContentOutputs = outputTitleTemplate(null);
+        outputs.each(function(workflowToolData) {
+            popoverContentOutputs += tabContentTemplate(workflowToolData.toJSON());
+        });
+
+        var parameterTitleTemplate = _.template($('#workflow-tool-popover-content-parameter-title').html());
+        var popoverContentParameters = parameterTitleTemplate(null);
+        var parameters = new WorkflowToolParameterCollection(this.model.get('parameters'));
+        parameters.each(function(workflowToolParameter) {
+            popoverContentParameters += tabContentTemplate(workflowToolParameter.toJSON());
+        });
+
+        var popoverContentOpen = _.template($('#workflow-tool-popover-content-open').html());
         var popoverContentClose = _.template($('#workflow-tool-popover-content-close').html());
-        var content = popoverContentTop(this.model.toJSON()) + popoverContentOpen(null) + popoverContentDesc(this.model.toJSON()) + popoverContentInputs + popoverContentClose(null);
+
+        var content = popoverContentTop(this.model.toJSON()) + popoverContentOpen(null) + popoverContentDesc(this.model.toJSON()) 
+            + popoverContentInputs + popoverContentClose(null) + popoverContentOutputs + popoverContentClose(null) 
+            + popoverContentParameters + popoverContentClose(null);
         $(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: content, trigger: 'manual'});
 
         return this;

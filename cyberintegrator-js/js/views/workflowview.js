@@ -93,12 +93,11 @@ var WorkflowListItemView = Backbone.View.extend({
 	},
 
 	onDoubleClick: function(e) {
-		console.log("double click");
 		//var selection = $('#workflowSelector').val();
 		e.preventDefault();
 		var id = this.model.get('id');
-		console.log("selection is "+id);
-		console.log("add highlight");
+		//console.log("selection is "+id);
+		//console.log("add highlight");
 		$('.highlight').removeClass('highlight');
 		$(this.el).addClass('highlight');
 		eventBus.trigger("clicked:newopenworkflow", id);

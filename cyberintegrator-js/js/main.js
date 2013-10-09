@@ -21,6 +21,8 @@ var workflowListView = null;
 // TODO When the PersonView is created, select the first person as current user
 var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu"});
 
+// TODO CMN - implement this to save/restore opened workflows
+var openWorkflows = [];
 // Endpoint Types
 /*
 var exampleDropOptions = {
@@ -208,15 +210,9 @@ var AppRouter = Backbone.Router.extend({
 
         jsPlumb.bind("endpointClick", handleEndpointClick);
 
-        //var workflow = null;//new Workflow({id: generateUUID()});
-        //workflowCollection.each(function(w) {
-        //    workflow = w;
-        //});
+        //openWorkflows = JSON.parse(localStorage["openWorkflows"]);
+        //localStorage["openWorkflows"] = JSON.stringify(openWorkflows);
 
-        // fetch graph locations
-        /* temp removed since no url set, it gives error trying to sync  
-        */
-        //stepLocationCollection.syncDirtyAndDestroyed();
         stepLocationCollection.fetch();
         registerCloseEvent();
         registerOpenEvent();
@@ -446,7 +442,8 @@ eventBus.on('clicked:newopenworkflow', function(workflowId) {
 
 eventBus.on('clicked:newworkflow', function() {
     var workflow = new Workflow();
-    var id = generateUUID();
+    // let the server set the id
+    //var id = generateUUID();
     var title = "untitled";
     var date = new Date();
     var creator = currentUser.toJSON();
