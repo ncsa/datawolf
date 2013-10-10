@@ -657,3 +657,23 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   border-radius: 25px;
   color: #FFFFFF;
 }
+
+.btn-save-as {
+  float: right;
+  position: relative;
+}
+
+.btn-group-save {
+  padding-left: 5px;
+  float: right;
+  position: relative;
+}
+
+.save-as-title-bkgrd {
+  background: #3B5064;
+  text-align: center;
+}
+
+.save-as-body-bkgrd {
+  background: #DFE5E7
+}

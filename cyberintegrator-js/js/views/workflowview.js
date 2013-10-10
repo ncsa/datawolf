@@ -368,29 +368,29 @@ var WorkflowButtonView = Backbone.View.extend({
 
 });
 
-var AddWorkflowView = Backbone.View.extend({
+var SaveWorkflowView = Backbone.View.extend({
+	template: _.template($("#new-workflow").html()),
+
 	events: {
-		"click button#create-workflow" : "createWorkflow",
+		"click button#save-workflow" : "saveWorkflow",
 		"click button#cancel" : "cancelWorkflow"
 	},
 
-	template: _.template($("#new-workflow").html()),
-
 	render: function(e) {
+		console.log("title = "+this.model.get('title'));
 		$(this.el).html(this.template());
 		return this;
 	},
 
-	createWorkflow: function(e) {
+	saveWorkflow: function(e) {
 		e.preventDefault();
 
 		// TODO add validation that the input is correct
-		var id = generateUUID();
 		var title = this.$('input[name=workflow-title]').val();
-		var date = new Date();
-		var creator = currentUser.toJSON();
+		eventBus.trigger("clicked:saveworkflow", this.model.get('id'), title);
+		/*
 		var _this = this.model;
-		this.model.save({title: title, created: date, creator: creator}, {
+		this.model.save({title: title}, {
 			wait: true,
 
 			success: function(model, response) {
@@ -402,7 +402,7 @@ var AddWorkflowView = Backbone.View.extend({
 				//console.log(JSON.stringify(model, undefined, 2));
 				console.log("workflow not saved: "+error.responseText);
 			}
-		});
+		}); */
 
 		$('#modalWorkflowView').modal('hide');
 	},
@@ -411,5 +411,6 @@ var AddWorkflowView = Backbone.View.extend({
 		e.preventDefault();
 		$('#modalWorkflowView').modal('hide');
 	}
-});
 
+	
+});

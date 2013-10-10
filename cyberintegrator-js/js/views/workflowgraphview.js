@@ -103,19 +103,16 @@ var WorkflowGraphView = Backbone.View.extend({
 
     setWorkflow: function(workflowId) {
         $(this.el).empty();
-        $(this.el).append(new WorkflowGraphButtonBar().render().el);
         var workflow = getWorkflow(workflowId);
 
         if(workflow != null) {
             this.model = workflow;
+            $(this.el).append(new WorkflowGraphButtonBar({model: this.model}).render().el);
             classWorkflowId = this.model.get('id'); 
             if(this.model.get('title') != null) {
-                //console.log($('a[href$="#pane1"]').text(this.model.get('title')));
-                console.log($('label[id=lbl'+workflowId+ ']').text(this.model.get('title')));
-                //$('#workflow-legend').html("Workflow Graph - "+this.model.get('title'));
+                $('label[id=lbl'+workflowId+ ']').text(this.model.get('title'));
             } else {
                 console.log("workflow has no title");
-                //$('#workflow-legend').html("Workflow Graph - untitled");
             }
 
             if(DEBUG) {
@@ -128,6 +125,10 @@ var WorkflowGraphView = Backbone.View.extend({
             stepCollection.each(function(workflowStep) {
                 var workflowTool = workflowStep.getTool();
                 var toolId = workflowTool.get('id');
+                if(toolId == null) {
+                    console.log("tool null");
+                    toolId = workflowStep.get('tool');
+                }
                 var stepId = workflowStep.get('id');
                 var graphLocation = null;
                 stepLocationCollection.find(function(location) {
@@ -156,7 +157,14 @@ var WorkflowGraphView = Backbone.View.extend({
                     var targetStep = workflowStep;
                     var targetLabel = null;
 
-                    var workflowToolInputCollection = workflowStep.getTool().getInputs();
+
+                    var workflowToolInputCollection = null; // 
+                    if(workflowStep.getTool().get('id') != null) {
+                        workflowToolInputCollection = workflowStep.getTool().getInputs();
+                    } else {
+                        workflowToolInputCollection = getWorkflowTool(workflowStep.get('tool')).getInputs();
+                    }
+                    console.log();
                     var workflowToolInput = null;
                     workflowToolInputCollection.each(function(workflowToolData) {
                         if(workflowToolData.get('dataId') === key) {
@@ -176,7 +184,12 @@ var WorkflowGraphView = Backbone.View.extend({
                             }
                         }
 
-                        var sourceOutputs = sourceWorkflowStep.getTool().getOutputs();
+                        var sourceOutputs = null;
+                        if(sourceWorkflowStep.getTool().get('id') != null) {
+                            sourceOutputs = sourceWorkflowStep.getTool().getOutputs();
+                        } else {
+                            sourceOutputs = getWorkflowTool(sourceWorkflowStep.get('tool')).getOutputs();
+                        }
                         sourceOutputs.each(function(workflowToolOutputData) {
                             if(workflowToolOutputData.get('dataId') === outputDataId) {
                                 workflowToolOutput = workflowToolOutputData;
@@ -291,6 +304,7 @@ var WorkflowGraphView = Backbone.View.extend({
     addToolToGraph: function(toolId, stepId, x, y) {
         // console.log("x = " +x + ", y = "+y);
         var workflowTool = null;
+        console.log("tool id = "+toolId);
         workflowToolCollection.each(function(model) {
             if(model.get('id') === toolId) {
                 workflowTool = model;
@@ -414,6 +428,10 @@ var WorkflowGraphButtonBar = Backbone.View.extend({
 
     template: _.template($("#workflow-graph-button-bar").html()),
 
+    events: {
+        "click button#workflow-save-as" : "saveAs",
+    },
+
     initialize: function() {
 
     },
@@ -421,6 +439,12 @@ var WorkflowGraphButtonBar = Backbone.View.extend({
     render: function() {
         $(this.el).html(this.template());
         return this;
+    },
+
+    saveAs : function() {
+        console.log("save as");
+        $('#new-workflow-content').html(new SaveWorkflowView({model: this.model}).render().el);
+        $('#modalWorkflowView').modal('show');
     }
 
 });

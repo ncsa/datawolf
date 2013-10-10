@@ -410,6 +410,23 @@ eventBus.on('clicked:deleteworkflow', function() {
     //$('#workflows').html(workflowListView.render().el);
 });
 
+eventBus.on('clicked:saveworkflow', function(workflowId, title) {
+    console.log("title = "+title);
+    getWorkflow(workflowId).save({title: title}, {
+        wait: true,
+
+        success: function(model, response) {
+            console.log("workflow updated - success.");
+            $('label[id=lbl'+workflowId+ ']').text(title);
+        },
+        error: function(model, error) {
+                //console.log(JSON.stringify(model, undefined, 2));
+                console.log("workflow not saved: "+error.responseText);
+        }
+    });
+    
+});
+
 eventBus.on('clicked:newopenworkflow', function(workflowId) {
     //currentWorkflow = workflowId;
     //workflowGraphView.setWorkflow(workflowId);
@@ -420,7 +437,6 @@ eventBus.on('clicked:newopenworkflow', function(workflowId) {
     //$(this.el).addClass('highlight');
 
     var txt = '<li class="active"><a href="#'+workflowId +'" data-toggle="tab" class="mytab"><button class="close closeTab" type="button" >×</button><label class="canvastab-text-selected" id="lbl'+workflowId+'"></label></a></li>';
-    console.log(txt);
     
     $("#tabs").append(txt);
     var divTag = document.createElement("div");
@@ -480,7 +496,7 @@ eventBus.on('clicked:tab', function(selected) {
         } else if(this.id === 'add-workflow') {
             // Do nothing
         } else {
-            console.log("unselected label is "+$(this).find('label').text());
+            //console.log("unselected label is "+$(this).find('label').text());
             var child = $(this).find('label');
             child.removeClass('canvastab-text-selected');
             child.addClass('canvastab-text-unselected');
