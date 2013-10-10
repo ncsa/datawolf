@@ -1,6 +1,10 @@
 var Workflow = Backbone.Model.extend({
 	urlRoot: "/workflows/",
 
+	getDeleteUrl: function() {
+		return '/workflows/'+ this.id + '/delete';
+	},
+
 	getCreator: function() {
 		return new Person(this.get('creator'));
 	},
@@ -24,7 +28,17 @@ var Workflow = Backbone.Model.extend({
 		// We might be able to fix this if we store the steps in their own local storage
 		// Then we can call step.destroy()
 		this.set({steps: stepCollection });
-	}
+	},
+
+	sync: function(method, model, options) {
+    	
+    	if(method === 'delete') {
+			options = options || {};
+    		options.url = model.getDeleteUrl();
+    	}
+    	
+    	return Backbone.sync.apply(this, arguments);
+ 	}
 
 });
 
@@ -32,4 +46,7 @@ var WorkflowCollection = Backbone.Collection.extend({
 	model: Workflow,
 	//localStorage: new Backbone.LocalStorage('workflows'),
 	url: "/workflows/",
+	methodUrl: {
+		'delete' : '/workflows/'+this.id + '/delete/'
+	},
 });
