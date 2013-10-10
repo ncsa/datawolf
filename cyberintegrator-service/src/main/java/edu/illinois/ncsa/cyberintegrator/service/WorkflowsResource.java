@@ -94,21 +94,6 @@ public class WorkflowsResource {
         return tmp;
     }
 
-    @DELETE
-    @Path("{id}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public boolean removeWorkflow(@PathParam("id") String id) {
-        // TODO CMN : fix this, deleting workflow doesn't clean up references
-        log.debug("delete workflow with id " + id);
-        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
-        if (workflowDAO.exists(id)) {
-            workflowDAO.delete(id);
-
-            return true;
-        }
-        return false;
-    }
-
     /**
      * 
      * Create workflow via workflow JSON. Expects the following form:
@@ -202,7 +187,8 @@ public class WorkflowsResource {
 
     @DELETE
     @Path("{workflow-id}/delete")
-    public void deleteWorkflow(@PathParam("workflow-id") @DefaultValue("") String workflowId) throws Exception {
+    @Produces({ MediaType.APPLICATION_JSON })
+    public boolean deleteWorkflow(@PathParam("workflow-id") @DefaultValue("") String workflowId) throws Exception {
         if ("".equals(workflowId)) {
             throw (new Exception("Invalid id passed in."));
         }
@@ -213,6 +199,7 @@ public class WorkflowsResource {
         }
         workflow.setDeleted(true);
         workflowDao.save(workflow);
+        return true;
     }
 
     /**
