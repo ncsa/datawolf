@@ -283,6 +283,7 @@ var postWorkflow = function(workflow) {
 }
 
 var handleEndpointClick = function(endpoint, originalEvent) {
+    console.log("click");
     var workflow = getWorkflow(currentWorkflow);
     var step = null;
     var workflowStepCollection = workflow.getSteps();
@@ -492,6 +493,10 @@ eventBus.on('clicked:tab', function(selected) {
             var child = $(this).find('label');
             child.removeClass('canvastab-text-unselected');
             child.addClass('canvastab-text-selected');
+
+            // Set selected tab as current workflow
+            var lblId = child.attr('id');
+            currentWorkflow = lblId.substring(3, lblId.length);
 
         } else if(this.id === 'add-workflow') {
             // Do nothing
