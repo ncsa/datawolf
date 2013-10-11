@@ -167,6 +167,18 @@
                         <td><font class="info-metadata-fontlabel">Author</font></td>
                         <td><font class="info-metadata-fontvalue"><%= creator.firstName %> <%= creator.lastName %></font></td>
                     </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel"># of Steps</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= steps.length %></font></td>
+                    </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel"># of Executions</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= numExecutions %></font></td>
+                    </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Time / Execution</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= avgTime %></font></td>
+                    </tr>
                 </tbody>
                </table>
             </div>
@@ -193,6 +205,10 @@
                     <tr>
                         <td><font class="info-metadata-fontlabel">Author</font></td>
                         <td><font class="info-metadata-fontvalue">Unknown</font></td>
+                    </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Executor</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= executor %></font></td>
                     </tr>
                 </tbody>
             </table>

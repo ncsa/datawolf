@@ -71,8 +71,8 @@ var WorkflowListItemView = Backbone.View.extend({
 
 		var popoverTitle = _.template($('#workflow-popover').html())
 		var popoverContent = _.template($('#workflow-popover-content').html());
-		$(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: popoverContent(this.model.toJSON()), trigger: 'manual'});
-
+		//$(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: popoverContent(this.model.toJSON()), trigger: 'manual'});
+		getExecutions(this.model.get('id'));
 		return this;
 	},
 	close: function() {
@@ -86,6 +86,12 @@ var WorkflowListItemView = Backbone.View.extend({
 		$('.highlight').removeClass('highlight');
 		$(this.el).addClass('highlight');
 		if(showWorkflowInfo) {
+			var json = this.model.toJSON();
+			json.numExecutions = numExecutions[this.model.get('id')];
+			json.avgTime = "0.0 s";
+			var popoverTitle = _.template($('#workflow-popover').html())
+			var popoverContent = _.template($('#workflow-popover-content').html());
+			$(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: popoverContent(json), trigger: 'manual'});
 			$(this.el).popover('toggle');
 		}
 		//$(this.el).popover('show');

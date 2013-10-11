@@ -311,7 +311,6 @@ var WorkflowGraphView = Backbone.View.extend({
     addToolToGraph: function(toolId, stepId, x, y) {
         // console.log("x = " +x + ", y = "+y);
         var workflowTool = null;
-        console.log("tool id = "+toolId);
         workflowToolCollection.each(function(model) {
             if(model.get('id') === toolId) {
                 workflowTool = model;

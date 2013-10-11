@@ -21,6 +21,7 @@ var workflowListView = null;
 // TODO When the PersonView is created, select the first person as current user
 var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu"});
 
+var numExecutions = {};
 // TODO CMN - implement this to save/restore opened workflows
 var openWorkflows = [];
 // Endpoint Types
@@ -254,6 +255,38 @@ function registerCloseEvent() {
     });
 }
 
+var getExecutions = function(workflowId) {
+    var myurl = '/workflows/'+workflowId + '/executions';
+    $.ajax({
+            type: "GET",
+            beforeSend: function(request) {
+                request.setRequestHeader("Content-type", "application/json");
+                request.setRequestHeader("Accept", "application/json");
+            },
+            url: myurl,//'http://localhost:8001/workflows/',
+            dataType: "text",
+            //data: ,//JSON.stringify(workflowId)+'/executions',
+
+            success: function(msg) {
+                //var test = new WorkflowCollection(msg);
+                var obj = JSON.parse(msg);
+                //console.log(obj.length);
+                //console.log("remote workflow id="+msg);
+                //for(var i = 0; i < 10; i++) {
+                    //console.log(msg[i]);
+                //}
+                //console.log("returning value for "+workflowId);
+                numExecutions[workflowId] = obj.length;
+                //return obj.length;
+                //alert('success: '+msg);
+            },
+            error: function(msg) {
+                alert('error: '+JSON.stringify(msg));
+            }
+
+        }); 
+};
+
 var postWorkflow = function(workflow) {
     if(DEBUG) {
         console.log(JSON.stringify(workflow,undefined, 2));
@@ -283,7 +316,6 @@ var postWorkflow = function(workflow) {
 }
 
 var handleEndpointClick = function(endpoint, originalEvent) {
-    console.log("click");
     var workflow = getWorkflow(currentWorkflow);
     var step = null;
     var workflowStepCollection = workflow.getSteps();

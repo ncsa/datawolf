@@ -610,7 +610,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 .info-content-body {
   padding: 10px;
   overflow: auto;
-  height: 65px;
+  height: 55px;
 }
 
 .info-content-subhead
