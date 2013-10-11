@@ -31,10 +31,10 @@ var Workflow = Backbone.Model.extend({
 	},
 
 	sync: function(method, model, options) {
-    	
     	if(method === 'delete') {
 			options = options || {};
     		options.url = model.getDeleteUrl();
+    		console.log("url = "+options.url);
     	}
     	
     	return Backbone.sync.apply(this, arguments);
@@ -46,7 +46,4 @@ var WorkflowCollection = Backbone.Collection.extend({
 	model: Workflow,
 	//localStorage: new Backbone.LocalStorage('workflows'),
 	url: "/workflows/",
-	methodUrl: {
-		'delete' : '/workflows/'+this.id + '/delete/'
-	},
 });

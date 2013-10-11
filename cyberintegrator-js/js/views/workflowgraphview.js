@@ -285,6 +285,13 @@ var WorkflowGraphView = Backbone.View.extend({
             console.log("workflow is: "+JSON.stringify(this.model, undefined, 2));
         }
 
+        // Check if a tool is simply a reference ID, replace with full JSON if it is
+        for(var i = 0; i < steps.length; i++) {
+            if(_.isString(steps[i].tool)) {
+                steps[i].tool = getWorkflowTool(steps[i].tool).toJSON();
+            }
+        }
+
         this.model.save({steps: steps}, {
             wait: true,
 

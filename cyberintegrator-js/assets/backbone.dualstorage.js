@@ -285,7 +285,8 @@ as that.
             return store.destroyed(model);
           } else {
             if (model.id.toString().length === 36) {
-              return store.clean(model, 'dirty');
+              return store.clean(model, 'destroyed');
+              //return store.clean(model, 'dirty');
             } else {
               return store.clean(model, 'destroyed');
             }
@@ -394,6 +395,8 @@ as that.
           options.success = function(resp, status, xhr) {
             localsync('delete', originalModel, options);
             localsync('create', resp, options);
+            // CMN - without this, we still have _dirty which breaks storage, is there a better way?
+            localsync('update', resp, options);
             return success(resp, status, xhr);
           };
           options.error = function(resp) {
