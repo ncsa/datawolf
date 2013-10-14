@@ -67,6 +67,7 @@ import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/workflows")
@@ -186,7 +187,7 @@ public class WorkflowsResource {
     }
 
     @DELETE
-    @Path("{workflow-id}/delete")
+    @Path("{workflow-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public boolean deleteWorkflow(@PathParam("workflow-id") @DefaultValue("") String workflowId) throws Exception {
         if ("".equals(workflowId)) {
@@ -282,45 +283,60 @@ public class WorkflowsResource {
     }
 
     @GET
-    @Path("{workflow-id}/executions/{eid}")
+    @Path("{workflow-id}/steps")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Execution getExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-        // TODO implement getExecution
-        return null;
-    }
-
-    @GET
-    @Path("{workflow-id}/executions/{eid}/steps")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public List<WorkflowStep> getSteps(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
+    public List<WorkflowStep> getSteps(@PathParam("workflow-id") String workflowId) {
         // TODO implement getSteps
         return null;
     }
 
     @GET
-    @Path("{workflow-id}/executions/{eid}/steps/{stid}")
+    @Path("{workflow-id}/steps/{step-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public WorkflowStep getStep(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId, @PathParam("stid") String stepId) {
-        // TODO implement getStep
-        return null;
+    public WorkflowStep getStep(@PathParam("workflow-id") @DefaultValue("") String workflowId, @PathParam("step-id") @DefaultValue("") String stepId) throws Exception {
+        if ("".equals(workflowId) || "".equals(stepId)) {
+            throw (new Exception("Invalid id passed in."));
+        }
+
+        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
+        Workflow workflow = workflowDao.findOne(workflowId);
+        if (workflow == null) {
+            throw (new Exception("Invalid workflow id passed in."));
+        }
+
+        WorkflowStepDAO workflowStepDao = SpringData.getBean(WorkflowStepDAO.class);
+        WorkflowStep workflowStep = workflowStepDao.findOne(stepId);
+
+        if (workflowStep == null) {
+            throw (new Exception("Invalid step id passed in."));
+        }
+
+        return workflowStep;
     }
 
-    @PUT
-    @Path("{workflow-id}/executions/{eid}/start")
-    public void startExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-        // TODO implement startExecution
-    }
+    @DELETE
+    @Path("{workflow-id}/steps/{step-id}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public boolean deleteWorkflowStep(@PathParam("workflow-id") @DefaultValue("") String workflowId, @PathParam("step-id") @DefaultValue("") String stepId) throws Exception {
+        if ("".equals(workflowId) || "".equals(stepId)) {
+            throw (new Exception("Invalid id passed in."));
+        }
 
-    @PUT
-    @Path("{workflow-id}/executions/{eid}/pause")
-    public void pauseExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-        // TODO implement pauseExecution
-    }
+        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
+        Workflow workflow = workflowDao.findOne(workflowId);
+        if (workflow == null) {
+            throw (new Exception("Invalid workflow id passed in."));
+        }
 
-    @PUT
-    @Path("{workflow-id}/executions/{eid}/cancel")
-    public void cancelExecution(@PathParam("workflow-id") String workflowId, @PathParam("eid") String executionId) {
-        // TODO implement cancelExecution
-    }
+        WorkflowStepDAO workflowStepDao = SpringData.getBean(WorkflowStepDAO.class);
+        WorkflowStep workflowStep = workflowStepDao.findOne(stepId);
 
+        if (workflowStep == null) {
+            throw (new Exception("Invalid step id passed in."));
+        }
+
+        workflowStep.setDeleted(true);
+        workflowStepDao.save(workflowStep);
+        return true;
+    }
 }
