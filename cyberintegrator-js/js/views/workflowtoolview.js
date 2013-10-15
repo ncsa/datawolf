@@ -30,7 +30,7 @@ var WorkflowToolListView = Backbone.View.extend({
 var WorkflowToolListItemView = Backbone.View.extend({
     tagName: 'li',
 
-    template: _.template($('#workflow-list-item').html()),
+    template: _.template($('#workflow-tool-list-item').html()),
 
     events: {
         "click" : "onClick",
@@ -81,7 +81,17 @@ var WorkflowToolListItemView = Backbone.View.extend({
         var popoverContentOpen = _.template($('#workflow-tool-popover-content-open').html());
         var popoverContentClose = _.template($('#workflow-tool-popover-content-close').html());
 
-        var content = popoverContentTop(this.model.toJSON()) + popoverContentOpen(null) + popoverContentDesc(this.model.toJSON()) 
+        var modelJSON = this.model.toJSON();
+        if(_.contains(executors, this.model.get('executor'))) {
+            console.log("executor available");
+            modelJSON.executorAvail = 'info-metadata-executor-available';
+        } else {
+            console.log("executor unavailable: "+this.model.get('executor'));
+            modelJSON.executorAvail = 'info-metadata-executor-unavailable';
+        }
+        //if(this.model.executor)
+        
+        var content = popoverContentTop(modelJSON) + popoverContentOpen(null) + popoverContentDesc(this.model.toJSON()) 
             + popoverContentInputs + popoverContentClose(null) + popoverContentOutputs + popoverContentClose(null) 
             + popoverContentParameters + popoverContentClose(null);
         $(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: content, trigger: 'manual'});
@@ -138,6 +148,11 @@ var WorkflowToolButtonBar = Backbone.View.extend({
     },
 
     workflowToolInfo: function() {
-        showToolInfo = !showToolInfo;
+        var selectedTool = $('#workflowListItemView').find(".highlight");
+        if(selectedTool != null) {
+            selectedTool.popover('toggle');
+        }
+
+        //showToolInfo = !showToolInfo;
     }
 });

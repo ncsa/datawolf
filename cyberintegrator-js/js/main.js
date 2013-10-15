@@ -24,6 +24,9 @@ var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: 
 var numExecutions = {};
 // TODO CMN - implement this to save/restore opened workflows
 var openWorkflows = [];
+
+// List of available executors
+var executors = [];
 // Endpoint Types
 /*
 var exampleDropOptions = {
@@ -218,6 +221,7 @@ var AppRouter = Backbone.Router.extend({
         registerCloseEvent();
         registerOpenEvent();
         registerTabEvent();
+        getExecutors();
         //$('#persons').html(new PersonListView({model: personCollection}).render().el);
     }
 
@@ -253,6 +257,45 @@ function registerCloseEvent() {
         $(tabContentId).remove(); //remove respective tab content
 
     });
+}
+
+var getExecutors = function() {
+    var myurl = '/executors';
+    $.ajax({
+            type: "GET",
+            beforeSend: function(request) {
+                request.setRequestHeader("Content-type", "application/json");
+                request.setRequestHeader("Accept", "application/json");
+            },
+            url: myurl,//'http://localhost:8001/workflows/',
+            dataType: "text",
+            //data: ,//JSON.stringify(workflowId)+'/executions',
+
+            success: function(msg) {
+                //var test = new WorkflowCollection(msg);
+                var obj = JSON.parse(msg);
+                //console.log(obj[0]);
+                for(var index = 0; index < obj.length; index++) {
+                    executors[index] = obj[index].executorName;
+                }
+
+                //console.log("# of executors = "+obj.length);
+                //console.log(obj[0]);
+                //console.log(obj.length);
+                //console.log("remote workflow id="+msg);
+                //for(var i = 0; i < 10; i++) {
+                    //console.log(msg[i]);
+                //}
+                //console.log("returning value for "+workflowId);
+                //numExecutions[workflowId] = obj.length;
+                //return obj.length;
+                //alert('success: '+msg);
+            },
+            error: function(msg) {
+                alert('error: '+JSON.stringify(msg));
+            }
+
+        });
 }
 
 var getExecutions = function(workflowId) {

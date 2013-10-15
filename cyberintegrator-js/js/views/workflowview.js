@@ -86,13 +86,14 @@ var WorkflowListItemView = Backbone.View.extend({
 		$('.highlight').removeClass('highlight');
 		$(this.el).addClass('highlight');
 		if(showWorkflowInfo) {
+			/*
 			var json = this.model.toJSON();
 			json.numExecutions = numExecutions[this.model.get('id')];
 			json.avgTime = "0.0 s";
 			var popoverTitle = _.template($('#workflow-popover').html())
 			var popoverContent = _.template($('#workflow-popover-content').html());
 			$(this.el).popover({html: true, title: popoverTitle(this.model.toJSON()), content: popoverContent(json), trigger: 'manual'});
-			$(this.el).popover('toggle');
+			$(this.el).popover('toggle'); */
 		}
 		//$(this.el).popover('show');
 		//$(this.el).popover({html: true, title: "Hello", content: '<div class="my-popover-content">world</div>'});
@@ -368,8 +369,19 @@ var WorkflowButtonView = Backbone.View.extend({
 	},
 
 	workflowInfo : function() {
+		var selectedWorkflow = $('.highlight').attr('value');
+		if(selectedWorkflow != null) {
+			var model = getWorkflow(selectedWorkflow);
+			var json = model.toJSON();
+			json.numExecutions = numExecutions[model.get('id')];
+			json.avgTime = "0.0 s";
+			var popoverTitle = _.template($('#workflow-popover').html())
+			var popoverContent = _.template($('#workflow-popover-content').html());
+			$(this.el).popover({html: true, title: popoverTitle(model.toJSON()), content: popoverContent(json), trigger: 'manual'});
+			$(this.el).popover('toggle');
+		}
 		//console.log("clicked workflow info");
-		showWorkflowInfo = !showWorkflowInfo;
+		//showWorkflowInfo = !showWorkflowInfo;
 	}
 
 });
