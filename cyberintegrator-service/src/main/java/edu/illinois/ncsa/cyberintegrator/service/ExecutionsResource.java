@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -75,7 +74,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.cyberintegrator.Engine;
-import edu.illinois.ncsa.cyberintegrator.Executor;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution.State;
 import edu.illinois.ncsa.cyberintegrator.domain.HPCJobInfo;
@@ -547,17 +545,4 @@ public class ExecutionsResource {
         }
     }
 
-    /**
-     * 
-     * @return
-     *         Returns the set of available executors
-     * 
-     */
-    @GET
-    @Path("/executors")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Set<Executor> getExecutors() {
-        Engine engine = SpringData.getBean(Engine.class);
-        return engine.getExecutors();
-    }
 }
