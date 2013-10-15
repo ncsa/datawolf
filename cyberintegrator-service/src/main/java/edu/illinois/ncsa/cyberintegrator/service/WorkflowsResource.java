@@ -285,9 +285,13 @@ public class WorkflowsResource {
     @GET
     @Path("{workflow-id}/steps")
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<WorkflowStep> getSteps(@PathParam("workflow-id") String workflowId) {
-        // TODO implement getSteps
-        return null;
+    public List<WorkflowStep> getSteps(@PathParam("workflow-id") @DefaultValue("") String workflowId) throws Exception {
+        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
+        Workflow workflow = workflowDao.findOne(workflowId);
+        if (workflow == null) {
+            throw (new Exception("Invalid workflow id passed in."));
+        }
+        return workflow.getSteps();
     }
 
     @GET
@@ -314,29 +318,4 @@ public class WorkflowsResource {
         return workflowStep;
     }
 
-    @DELETE
-    @Path("{workflow-id}/steps/{step-id}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public boolean deleteWorkflowStep(@PathParam("workflow-id") @DefaultValue("") String workflowId, @PathParam("step-id") @DefaultValue("") String stepId) throws Exception {
-        if ("".equals(workflowId) || "".equals(stepId)) {
-            throw (new Exception("Invalid id passed in."));
-        }
-
-        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
-        Workflow workflow = workflowDao.findOne(workflowId);
-        if (workflow == null) {
-            throw (new Exception("Invalid workflow id passed in."));
-        }
-
-        WorkflowStepDAO workflowStepDao = SpringData.getBean(WorkflowStepDAO.class);
-        WorkflowStep workflowStep = workflowStepDao.findOne(stepId);
-
-        if (workflowStep == null) {
-            throw (new Exception("Invalid step id passed in."));
-        }
-
-        workflowStep.setDeleted(true);
-        workflowStepDao.save(workflowStep);
-        return true;
-    }
 }

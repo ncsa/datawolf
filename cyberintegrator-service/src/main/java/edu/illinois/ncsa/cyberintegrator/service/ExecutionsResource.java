@@ -74,10 +74,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.Executor;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
@@ -86,13 +82,11 @@ import edu.illinois.ncsa.cyberintegrator.domain.HPCJobInfo;
 import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 import edu.illinois.ncsa.cyberintegrator.domain.Submission;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
-import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.ssh.SSHInfo;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.ssh.SSHSession;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.NonNLSConstants;
 import edu.illinois.ncsa.cyberintegrator.executor.hpc.util.SshUtils;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
-import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionUtil;
 import edu.illinois.ncsa.cyberintegrator.springdata.HPCJobInfoDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
@@ -466,40 +460,6 @@ public class ExecutionsResource {
     }
 
     /**
-     * Get all steps belong to the execution
-     * 
-     * @param executionId
-     *            a execution Id
-     * @return
-     *         list of workflow steps
-     */
-    @GET
-    @Path("{execution-id}/steps")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public List<WorkflowStep> getSteps(@PathParam("execution-id") String executionId) {
-        // TODO implement getSteps
-        return null;
-    }
-
-    /**
-     * Get a step belong to the execution
-     * 
-     * @param executionId
-     *            a execution id
-     * @param stepId
-     *            a step id
-     * @return
-     *         a workflow step
-     */
-    @GET
-    @Path("{execution-id}/steps/{step-id}")
-    @Produces({ MediaType.APPLICATION_JSON })
-    public WorkflowStep getStep(@PathParam("execution-id") String executionId, @PathParam("step-id") String stepId) {
-        // TODO implement getStep
-        return null;
-    }
-
-    /**
      * Get all logfiles belonging to the execution
      * 
      * @param executionId
@@ -585,45 +545,6 @@ public class ExecutionsResource {
             String[] ids = stepIds.split(";");
             engine.stop(executionId, ids);
         }
-    }
-
-    /**
-     * 
-     * @param executionId
-     *            execution Id
-     * @param except
-     *            json array list of dataset id
-     * @return
-     */
-    @PUT
-    @Path("{execution-id}/delete")
-    public Response deleteExecution(@PathParam("execution-id") @DefaultValue("") String executionId, @QueryParam("except") @DefaultValue("") String except) {
-        if ("".equals(executionId)) {
-            return Response.status(500).entity("Must have execution Id").build();
-        }
-        List<String> exceptList = new ArrayList<String>();
-        if (!"".equals(except)) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode jsonObj = mapper.readTree(except);
-                for (int i = 0; i < jsonObj.size(); i++) {
-                    JsonNode f = jsonObj.get(i);
-                    exceptList.add(f.asText());
-                }
-            } catch (JsonProcessingException e) {
-                log.error("Fail to parse list of exception files in JSON: " + except, e);
-                return Response.status(500).entity("Fail to parse list of exception files in JSON: " + except).build();
-            } catch (IOException e) {
-                log.error("Fail to parse list of exception files in JSON: " + except, e);
-                return Response.status(500).entity("Fail to parse list of exception files in JSON: " + except).build();
-            }
-
-        }
-
-        if (ExecutionUtil.deleteExecution(executionId, exceptList))
-            return Response.ok().build();
-        else
-            return Response.status(500).entity("Can't delete execution id: " + executionId).build();
     }
 
     /**
