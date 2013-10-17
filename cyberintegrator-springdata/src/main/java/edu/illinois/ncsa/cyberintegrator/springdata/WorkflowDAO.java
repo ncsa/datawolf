@@ -74,23 +74,23 @@ public interface WorkflowDAO extends PagingAndSortingAndDeleteRepository<Workflo
 
     List<Workflow> findByCreator(Person person, Sort sort);
 
-    List<Workflow> findByCreatorAandDeleted(Person person, boolean deleted);
+    List<Workflow> findByCreatorAndDeleted(Person person, boolean deleted);
 
-    List<Workflow> findByCreatorAandDeleted(Person person, boolean deleted, Sort sort);
+    List<Workflow> findByCreatorAndDeleted(Person person, boolean deleted, Sort sort);
 
     Page<Workflow> findByCreator(Person person, Pageable pageable);
 
-    Page<Workflow> findByCreatorAandDeleted(Person person, boolean deleted, Pageable pageable);
+    Page<Workflow> findByCreatorAndDeleted(Person person, boolean deleted, Pageable pageable);
 
     List<Workflow> findByTitle(String title);
 
     List<Workflow> findByTitle(String title, Sort sort);
 
-    List<Workflow> findByTitleAandDeleted(String title, boolean deleted);
+    List<Workflow> findByTitleAndDeleted(String title, boolean deleted);
 
-    List<Workflow> findByTitleAandDeleted(String title, boolean deleted, Sort sort);
+    List<Workflow> findByTitleAndDeleted(String title, boolean deleted, Sort sort);
 
     Page<Workflow> findByTitle(String title, Pageable pageable);
 
-    Page<Workflow> findByTitleAandDeleted(String title, boolean deleted, Pageable pageable);
+    Page<Workflow> findByTitleAndDeleted(String title, boolean deleted, Pageable pageable);
 }

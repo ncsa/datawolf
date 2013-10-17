@@ -47,6 +47,10 @@ public interface ExecutionDAO extends PagingAndSortingAndDeleteRepository<Execut
 
     Page<Execution> findByWorkflowId(String workflowId, Pageable pageable);
 
+    List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted);
+
+    List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted, Sort sort);
+
     Page<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted, Pageable pageable);
 
     List<Execution> findByCreatorEmail(String email);
