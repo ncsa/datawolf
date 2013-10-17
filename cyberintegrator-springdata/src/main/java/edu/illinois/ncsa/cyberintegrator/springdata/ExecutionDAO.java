@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.springdata.PagingAndSortingAndDeleteRepository;
@@ -42,24 +43,34 @@ import edu.illinois.ncsa.springdata.PagingAndSortingAndDeleteRepository;
 public interface ExecutionDAO extends PagingAndSortingAndDeleteRepository<Execution, String> {
     List<Execution> findByWorkflowId(String workflowId);
 
+    List<Execution> findByWorkflowId(String workflowId, Sort sort);
+
     Page<Execution> findByWorkflowId(String workflowId, Pageable pageable);
 
     Page<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted, Pageable pageable);
 
     List<Execution> findByCreatorEmail(String email);
 
+    List<Execution> findByCreatorEmail(String email, Sort sort);
+
     Page<Execution> findByCreatorEmail(String email, Pageable pageable);
 
     List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted);
 
+    List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, Sort sort);
+
     Page<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, Pageable pageable);
 
+    @Deprecated
     List<Execution> findByCreatorEmailOrderByDateDesc(String email);
 
+    @Deprecated
     Page<Execution> findByCreatorEmailOrderByDateDesc(String email, Pageable pageable);
 
+    @Deprecated
     List<Execution> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted);
 
+    @Deprecated
     Page<Execution> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted, Pageable pageable);
 
 }
