@@ -14,7 +14,7 @@
     <fileSet>
       <fileMode>0644</fileMode>
       <directoryMode>0755</directoryMode>
-      <directory>src/bin</directory>
+      <directory>src/assembly/bin</directory>
       <lineEnding>dos</lineEnding>
       <outputDirectory>bin</outputDirectory>
       <includes>
@@ -24,11 +24,20 @@
     <fileSet>
       <fileMode>0755</fileMode>
       <directoryMode>0755</directoryMode>
-      <directory>src/bin</directory>
+      <directory>src/assembly/bin</directory>
       <lineEnding>unix</lineEnding>
       <outputDirectory>bin</outputDirectory>
       <includes>
         <include>cyberintegrator-service</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <fileMode>0644</fileMode>
+      <directoryMode>0755</directoryMode>
+      <directory>src/assembly/conf</directory>
+      <outputDirectory>conf</outputDirectory>
+      <includes>
+        <include>*</include>
       </includes>
     </fileSet>
     <fileSet>

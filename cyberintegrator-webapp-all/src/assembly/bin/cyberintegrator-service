@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd $(dirname $0)/..
+
+java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar ${PWD}/lib/jetty-runner.jar --port 8888 --out ${PWD}/log/yyyy_mm_dd.log ${PWD}/conf/jetty.xml
