@@ -31,8 +31,26 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.springdata;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.springdata.PagingAndSortingAndDeleteRepository;
 
 public interface WorkflowToolDAO extends PagingAndSortingAndDeleteRepository<WorkflowTool, String> {
+    List<WorkflowTool> findByCreatorEmail(String email);
+
+    List<WorkflowTool> findByCreatorEmail(String email, Sort sort);
+
+    Page<WorkflowTool> findByCreatorEmail(String email, Pageable pageable);
+
+    List<WorkflowTool> findByCreatorEmailAndDeleted(String email, boolean deleted);
+
+    List<WorkflowTool> findByCreatorEmailAndDeleted(String email, boolean deleted, Sort sort);
+
+    Page<WorkflowTool> findByCreatorEmailAndDeleted(String email, boolean deleted, Pageable pageable);
+
 }

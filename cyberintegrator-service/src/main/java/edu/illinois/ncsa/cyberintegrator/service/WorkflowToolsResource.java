@@ -31,6 +31,7 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.DELETE;
@@ -65,16 +66,49 @@ public class WorkflowToolsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<WorkflowTool> getWorkflowTools(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        WorkflowToolDAO toolDAO = SpringData.getBean(WorkflowToolDAO.class);
-        Page<WorkflowTool> results;
-        if (showdeleted) {
-            results = toolDAO.findByDeleted(showdeleted, new PageRequest(page, size));
+    public List<WorkflowTool> getWorkflowTools(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted, @QueryParam("email") @DefaultValue("") String email) {
+        WorkflowToolDAO toolDao = SpringData.getBean(WorkflowToolDAO.class);
+
+        if (size < 1) {
+            if (email.equals("")) {
+                Iterable<WorkflowTool> tmp;
+                if (showdeleted) {
+                    tmp = toolDao.findAll();
+                } else {
+                    tmp = toolDao.findByDeleted(false);
+                }
+                ArrayList<WorkflowTool> list = new ArrayList<WorkflowTool>();
+                for (WorkflowTool d : tmp) {
+                    list.add(d);
+                }
+                return list;
+            } else {
+                if (showdeleted) {
+                    return toolDao.findByCreatorEmail(email);
+                } else {
+                    return toolDao.findByCreatorEmailAndDeleted(email, false);
+                }
+            }
         } else {
-            results = toolDAO.findAll(new PageRequest(page, size));
+            Page<WorkflowTool> results = null;
+
+            if (email.equals("")) {
+                if (showdeleted) {
+                    results = toolDao.findAll(new PageRequest(page, size));
+                } else {
+                    results = toolDao.findByDeleted(false, new PageRequest(page, size));
+                }
+            } else {
+                if (showdeleted) {
+                    results = toolDao.findByCreatorEmail(email, new PageRequest(page, size));
+                } else {
+                    results = toolDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size));
+                }
+            }
+            return results.getContent();
+
         }
-        return results.getContent();
     }
 
     /**
