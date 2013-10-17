@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
+    <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyberintegrator Editor</title>
+    <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- TODO move this to main.css -->
+    <style type="text/css">
+		html, body {
+			background-color: #EEEEEE;
+		}
+		body {
+			padding-top: 40px; 
+			font-family : Open Sans;
+		}
+
+		.login-error {
+			color: #FF0000;
+		}
+
+		.container-liquid {
+			padding: 0 15px;
+			margin: 0 auto;
+		}
+
+    </style>
+
+</head>
+<body>
+	<script type="text/template" id="login-view-template">
+		<h2>Login</h2>
+		<form class="" role="form">
+			<div class="input-group input-group-lg">
+					<input id='username' name="username" type="text" class="form-control input-lg" placeholder="Username">
+			</div>
+			<br>
+			<div class="input-group input-group-lg">
+					<input id='password' type="text" class="form-control input-lg" placeholder="Password">
+			</div>
+			<br>
+			<button id="login-btn" class="btn btn-primary" type="submit">Sign in</button>
+		</form>
+		<div class="alert fade in" id="login-error" style="display:none;">
+		    			<p class="login-error">Incorrect username or password</p>
+					</div>
+	</script>
+
+	<div id='editor-login' class="container-liquid">
+			<div class="row">
+				<div class="col-lg-2 col-lg-offset-5">
+					<div id="login-form" class="testt"></div>
+				</div>
+			</div>
+	</div>
+	<script src="assets/jquery-1.9.0.js"></script>
+    
+    <script src="assets/underscore-min.js"></script>
+    <script src="assets/backbone-min.js"></script> 
+    <script src="assets/backbone.dualstorage.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+
+    <!-- Views -->
+	<script src="js/views/loginview.js"></script>
+    <!-- Models -->
+    <script src="js/models/personmodel.js"></script>
+
+	<script src="js/login.js"></script>
+</body>
+</html>
