@@ -172,11 +172,14 @@ public class ExecutionsResource {
                 }
                 return list;
             } else {
-                return exedao.findByCreatorEmailOrderByDateDesc(email);
+                if (showdeleted) {
+                    return exedao.findByCreatorEmailOrderByDateDesc(email);
+                } else {
+                    return exedao.findByCreatorEmailAndDeletedOrderByDateDesc(email, false);
+                }
             }
 
         } else { // with paging
-
             Page<Execution> results = null;
             if (email.equals("")) {
                 if (showdeleted) {
@@ -185,7 +188,11 @@ public class ExecutionsResource {
                     results = exedao.findByDeleted(false, new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
                 }
             } else {
-                results = exedao.findByCreatorEmail(email, new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
+                if (showdeleted) {
+                    results = exedao.findByCreatorEmailOrderByDateDesc(email, new PageRequest(page, size));
+                } else {
+                    results = exedao.findByCreatorEmailAndDeletedOrderByDateDesc(email, false, new PageRequest(page, size));
+                }
             }
             return results.getContent();
         }
