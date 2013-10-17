@@ -35,19 +35,44 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.domain.Dataset;
 
 public interface DatasetDAO extends PagingAndSortingAndDeleteRepository<Dataset, String> {
     List<Dataset> findByTitleLike(String titlePattern);
 
+    List<Dataset> findByTitleLike(String titlePattern, Sort sort);
+
     List<Dataset> findByCreatorEmail(String email);
 
+    List<Dataset> findByCreatorEmail(String email, Sort sort);
+
     List<Dataset> findByCreatorEmailAndTitleLike(String email, String pattern);
+
+    List<Dataset> findByCreatorEmailAndTitleLike(String email, String pattern, Sort sort);
 
     Page<Dataset> findByTitleLike(String titlePattern, Pageable page);
 
     Page<Dataset> findByCreatorEmail(String email, Pageable page);
 
     Page<Dataset> findByCreatorEmailAndTitleLike(String email, String pattern, Pageable page);
+
+    List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted);
+
+    List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted, Sort sort);
+
+    List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted);
+
+    List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted, Sort sort);
+
+    List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String pattern, boolean deleted);
+
+    List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String pattern, boolean deleted, Sort sort);
+
+    Page<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted, Pageable page);
+
+    Page<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted, Pageable page);
+
+    Page<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String pattern, boolean deleted, Pageable page);
 }
