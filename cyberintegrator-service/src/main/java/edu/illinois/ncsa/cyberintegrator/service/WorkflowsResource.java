@@ -162,7 +162,7 @@ public class WorkflowsResource {
         log.debug("get workflows");
 
         WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        Sort sort = new Sort(Sort.Direction.DESC, "date");
+        Sort sort = new Sort(Sort.Direction.DESC, "created");
         if (size < 1) {
             if (email.equals("")) {
                 Iterable<Workflow> tmp;

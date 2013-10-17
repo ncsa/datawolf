@@ -51,10 +51,10 @@ public interface WorkflowDAO extends PagingAndSortingAndDeleteRepository<Workflo
     Page<Workflow> findByCreatorEmail(String email, Pageable pageable);
 
     @Deprecated
-    List<Workflow> findByCreatorEmailOrderByDateDesc(String email);
+    List<Workflow> findByCreatorEmailOrderByCreatedDesc(String email);
 
     @Deprecated
-    Page<Workflow> findByCreatorEmailOrderByDateDesc(String email, Pageable pageable);
+    Page<Workflow> findByCreatorEmailOrderByCreatedDesc(String email, Pageable pageable);
 
     // return all workflows created by email and not-deleted (or deleted)
 
@@ -65,10 +65,10 @@ public interface WorkflowDAO extends PagingAndSortingAndDeleteRepository<Workflo
     Page<Workflow> findByCreatorEmailAndDeleted(String email, boolean deleted, Pageable pageable);
 
     @Deprecated
-    List<Workflow> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted);
+    List<Workflow> findByCreatorEmailAndDeletedOrderByCreatedDesc(String email, boolean deleted);
 
     @Deprecated
-    Page<Workflow> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted, Pageable pageable);
+    Page<Workflow> findByCreatorEmailAndDeletedOrderByCreatedDesc(String email, boolean deleted, Pageable pageable);
 
     List<Workflow> findByCreator(Person person);
 
