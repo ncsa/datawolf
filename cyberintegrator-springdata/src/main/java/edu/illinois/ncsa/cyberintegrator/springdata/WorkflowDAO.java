@@ -33,13 +33,51 @@ package edu.illinois.ncsa.cyberintegrator.springdata;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.PagingAndSortingAndDeleteRepository;
 
 public interface WorkflowDAO extends PagingAndSortingAndDeleteRepository<Workflow, String> {
 
+    // return all workflows created by email including deleted ones
+    List<Workflow> findByCreatorEmail(String email);
+
+    Page<Workflow> findByCreatorEmail(String email, Pageable pageable);
+
+    List<Workflow> findByCreatorEmailOrderByDateDesc(String email);
+
+    Page<Workflow> findByCreatorEmailOrderByDateDesc(String email, Pageable pageable);
+
+    // return all workflows created by email and not-deleted (or deleted)
+
+    List<Workflow> findByCreatorEmailAndDeleted(String email, boolean deleted);
+
+    Page<Workflow> findByCreatorEmailAndDeleted(String email, boolean deleted, Pageable pageable);
+
+    List<Workflow> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted);
+
+    Page<Workflow> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted, Pageable pageable);
+
+    @Deprecated
     List<Workflow> findByCreator(Person person);
 
+    List<Workflow> findByCreatorAandDeleted(Person person, boolean deleted);
+
+    @Deprecated
+    Page<Workflow> findByCreator(Person person, Pageable pageable);
+
+    Page<Workflow> findByCreatorAandDeleted(Person person, boolean deleted, Pageable pageable);
+
+    @Deprecated
     List<Workflow> findByTitle(String title);
+
+    List<Workflow> findByTitleAandDeleted(String title, boolean deleted);
+
+    @Deprecated
+    Page<Workflow> findByTitle(String title, Pageable pageable);
+
+    Page<Workflow> findByTitleAandDeleted(String title, boolean deleted, Pageable pageable);
 }
