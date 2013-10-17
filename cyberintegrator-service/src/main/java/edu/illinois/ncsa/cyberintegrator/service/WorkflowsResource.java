@@ -37,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.cyberintegrator.ImportExport;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
@@ -148,24 +150,57 @@ public class WorkflowsResource {
      * Get all workflows
      * 
      * @param size
-     *            number of workflows per page
+     *            number of workflows per page (default -1)
      * @param page
      *            page number starting 0
      * @return
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Workflow> getWorkflows(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
+    public List<Workflow> getWorkflows(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        Page<Workflow> results;
-        if (showdeleted) {
-            results = wfdao.findAll(new PageRequest(page, size));
-        } else {
-            results = wfdao.findByDeleted(false, new PageRequest(page, size));
-        }
         log.debug("get workflows");
-        return results.getContent();
+
+        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
+        Sort sort = new Sort(Sort.Direction.DESC, "created");
+        if (size < 1) {
+            if (email.equals("")) {
+                Iterable<Workflow> tmp;
+                if (showdeleted) {
+                    tmp = wfdao.findAll(sort);
+                } else {
+                    tmp = wfdao.findByDeleted(false, sort);
+                }
+                ArrayList<Workflow> list = new ArrayList<Workflow>();
+                for (Workflow d : tmp) {
+                    list.add(d);
+                }
+                return list;
+            } else {
+                if (showdeleted) {
+                    return wfdao.findByCreatorEmail(email, sort);
+                } else {
+                    return wfdao.findByCreatorEmailAndDeleted(email, false, sort);
+                }
+            }
+        } else {
+            Page<Workflow> results;
+            if (email.equals("")) {
+                if (showdeleted) {
+                    results = wfdao.findAll(new PageRequest(page, size));
+                } else {
+                    results = wfdao.findByDeleted(false, new PageRequest(page, size));
+                }
+            } else {
+                if (showdeleted) {
+                    results = wfdao.findByCreatorEmail(email, new PageRequest(page, size, sort));
+                } else {
+                    results = wfdao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
+                }
+
+            }
+            return results.getContent();
+        }
     }
 
     /**

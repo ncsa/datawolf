@@ -33,13 +33,64 @@ package edu.illinois.ncsa.cyberintegrator.springdata;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.springdata.PagingAndSortingAndDeleteRepository;
 
 public interface WorkflowDAO extends PagingAndSortingAndDeleteRepository<Workflow, String> {
 
+    // return all workflows created by email including deleted ones
+    List<Workflow> findByCreatorEmail(String email);
+
+    List<Workflow> findByCreatorEmail(String email, Sort sort);
+
+    Page<Workflow> findByCreatorEmail(String email, Pageable pageable);
+
+    @Deprecated
+    List<Workflow> findByCreatorEmailOrderByCreatedDesc(String email);
+
+    @Deprecated
+    Page<Workflow> findByCreatorEmailOrderByCreatedDesc(String email, Pageable pageable);
+
+    // return all workflows created by email and not-deleted (or deleted)
+
+    List<Workflow> findByCreatorEmailAndDeleted(String email, boolean deleted);
+
+    List<Workflow> findByCreatorEmailAndDeleted(String email, boolean deleted, Sort sort);
+
+    Page<Workflow> findByCreatorEmailAndDeleted(String email, boolean deleted, Pageable pageable);
+
+    @Deprecated
+    List<Workflow> findByCreatorEmailAndDeletedOrderByCreatedDesc(String email, boolean deleted);
+
+    @Deprecated
+    Page<Workflow> findByCreatorEmailAndDeletedOrderByCreatedDesc(String email, boolean deleted, Pageable pageable);
+
     List<Workflow> findByCreator(Person person);
 
+    List<Workflow> findByCreator(Person person, Sort sort);
+
+    List<Workflow> findByCreatorAndDeleted(Person person, boolean deleted);
+
+    List<Workflow> findByCreatorAndDeleted(Person person, boolean deleted, Sort sort);
+
+    Page<Workflow> findByCreator(Person person, Pageable pageable);
+
+    Page<Workflow> findByCreatorAndDeleted(Person person, boolean deleted, Pageable pageable);
+
     List<Workflow> findByTitle(String title);
+
+    List<Workflow> findByTitle(String title, Sort sort);
+
+    List<Workflow> findByTitleAndDeleted(String title, boolean deleted);
+
+    List<Workflow> findByTitleAndDeleted(String title, boolean deleted, Sort sort);
+
+    Page<Workflow> findByTitle(String title, Pageable pageable);
+
+    Page<Workflow> findByTitleAndDeleted(String title, boolean deleted, Pageable pageable);
 }
