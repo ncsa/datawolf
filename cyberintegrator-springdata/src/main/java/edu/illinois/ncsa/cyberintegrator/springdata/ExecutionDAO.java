@@ -48,8 +48,18 @@ public interface ExecutionDAO extends PagingAndSortingAndDeleteRepository<Execut
 
     List<Execution> findByCreatorEmail(String email);
 
+    Page<Execution> findByCreatorEmail(String email, Pageable pageable);
+
+    List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted);
+
+    Page<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, Pageable pageable);
+
     List<Execution> findByCreatorEmailOrderByDateDesc(String email);
 
-    Page<Execution> findByCreatorEmail(String email, Pageable pageable);
+    Page<Execution> findByCreatorEmailOrderByDateDesc(String email, Pageable pageable);
+
+    List<Execution> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted);
+
+    Page<Execution> findByCreatorEmailAndDeletedOrderByDateDesc(String email, boolean deleted, Pageable pageable);
 
 }
