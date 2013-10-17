@@ -27,21 +27,31 @@
         <filter-name>hibernateFilter</filter-name>
         <filter-class>org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter</filter-class>
     </filter>
-    
+    <!-- Cross origin resource sharing filter -->
+    <filter>
+		<filter-name>CORS</filter-name>
+		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+	</filter>
+	
     <filter-mapping>
     	<filter-name>hibernateFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 	
+	<filter-mapping>
+        <filter-name>CORS</filter-name>
+        <url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
 	<servlet>
-		<servlet-name>paw-service</servlet-name>
+		<servlet-name>all-service</servlet-name>
 		<servlet-class>
 			org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher
         </servlet-class>
 	</servlet>
  
 	<servlet-mapping>
-		<servlet-name>paw-service</servlet-name>
+		<servlet-name>all-service</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
  
