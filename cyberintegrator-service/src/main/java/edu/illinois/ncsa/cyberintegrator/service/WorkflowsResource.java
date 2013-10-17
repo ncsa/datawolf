@@ -162,13 +162,14 @@ public class WorkflowsResource {
         log.debug("get workflows");
 
         WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
+        Sort sort = new Sort(Sort.Direction.DESC, "date");
         if (size < 1) {
             if (email.equals("")) {
                 Iterable<Workflow> tmp;
                 if (showdeleted) {
-                    tmp = wfdao.findAll(new Sort(Sort.Direction.DESC, "date"));
+                    tmp = wfdao.findAll(sort);
                 } else {
-                    tmp = wfdao.findByDeleted(false, new Sort(Sort.Direction.DESC, "date"));
+                    tmp = wfdao.findByDeleted(false, sort);
                 }
                 ArrayList<Workflow> list = new ArrayList<Workflow>();
                 for (Workflow d : tmp) {
@@ -177,9 +178,9 @@ public class WorkflowsResource {
                 return list;
             } else {
                 if (showdeleted) {
-                    return wfdao.findByCreatorEmailOrderByDateDesc(email);
+                    return wfdao.findByCreatorEmail(email, sort);
                 } else {
-                    return wfdao.findByCreatorEmailAndDeletedOrderByDateDesc(email, false);
+                    return wfdao.findByCreatorEmailAndDeleted(email, false, sort);
                 }
             }
         } else {
@@ -192,9 +193,9 @@ public class WorkflowsResource {
                 }
             } else {
                 if (showdeleted) {
-                    results = wfdao.findByCreatorEmailOrderByDateDesc(email, new PageRequest(page, size));
+                    results = wfdao.findByCreatorEmail(email, new PageRequest(page, size, sort));
                 } else {
-                    results = wfdao.findByCreatorEmailAndDeletedOrderByDateDesc(email, false, new PageRequest(page, size));
+                    results = wfdao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
                 }
 
             }

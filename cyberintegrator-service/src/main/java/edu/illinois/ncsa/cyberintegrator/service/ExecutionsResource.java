@@ -157,14 +157,16 @@ public class ExecutionsResource {
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
 
+        Sort sort = new Sort(Sort.Direction.DESC, "date");
+
         // without paging
         if (size < 1) {
             if (email.equals("")) {
                 Iterable<Execution> tmp;
                 if (showdeleted) {
-                    tmp = exedao.findAll(new Sort(Sort.Direction.DESC, "date"));
+                    tmp = exedao.findAll(sort);
                 } else {
-                    tmp = exedao.findByDeleted(false, new Sort(Sort.Direction.DESC, "date"));
+                    tmp = exedao.findByDeleted(false, sort);
                 }
                 ArrayList<Execution> list = new ArrayList<Execution>();
                 for (Execution d : tmp) {
@@ -173,9 +175,9 @@ public class ExecutionsResource {
                 return list;
             } else {
                 if (showdeleted) {
-                    return exedao.findByCreatorEmailOrderByDateDesc(email);
+                    return exedao.findByCreatorEmail(email, sort);
                 } else {
-                    return exedao.findByCreatorEmailAndDeletedOrderByDateDesc(email, false);
+                    return exedao.findByCreatorEmailAndDeleted(email, false, sort);
                 }
             }
 
@@ -183,15 +185,15 @@ public class ExecutionsResource {
             Page<Execution> results = null;
             if (email.equals("")) {
                 if (showdeleted) {
-                    results = exedao.findAll(new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
+                    results = exedao.findAll(new PageRequest(page, size, sort));
                 } else {
-                    results = exedao.findByDeleted(false, new PageRequest(page, size, new Sort(Sort.Direction.DESC, "date")));
+                    results = exedao.findByDeleted(false, new PageRequest(page, size, sort));
                 }
             } else {
                 if (showdeleted) {
-                    results = exedao.findByCreatorEmailOrderByDateDesc(email, new PageRequest(page, size));
+                    results = exedao.findByCreatorEmail(email, new PageRequest(page, size, sort));
                 } else {
-                    results = exedao.findByCreatorEmailAndDeletedOrderByDateDesc(email, false, new PageRequest(page, size));
+                    results = exedao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
                 }
             }
             return results.getContent();
