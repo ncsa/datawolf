@@ -20,7 +20,7 @@
 		<property name="timeout" value="3600" />
 	</bean>
 
-	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorage">
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk">
 		<property name="levels" value="3" />
 		<property name="folder" value="data/files" />
 	</bean>
@@ -54,7 +54,7 @@
 		<property name="username" value="sa" />
 		<property name="password" value="" />
 		<property name="idleConnectionTestPeriod" value="60" />
-		<property name="idleMaxAge" value="240" />
+		<property name="idleMaxAgeInMinutes" value="5" />
 		<property name="maxConnectionsPerPartition" value="30" />
 		<property name="minConnectionsPerPartition" value="10" />
 		<property name="partitionCount" value="3" />
@@ -70,7 +70,7 @@
 		<property name="username" value="sa" />
 		<property name="password" value="" />
 		<property name="idleConnectionTestPeriod" value="60" />
-		<property name="idleMaxAge" value="240" />
+		<property name="idleMaxAgeInMinutes" value="5" />
 		<property name="maxConnectionsPerPartition" value="30" />
 		<property name="minConnectionsPerPartition" value="10" />
 		<property name="partitionCount" value="3" />
@@ -86,7 +86,7 @@
 		<property name="username" value="cyberintegrator" />
 		<property name="password" value="cyberintegrator" />
 		<property name="idleConnectionTestPeriod" value="60" />
-		<property name="idleMaxAge" value="240" />
+		<property name="idleMaxAgeInMinutes" value="5" />
 		<property name="maxConnectionsPerPartition" value="30" />
 		<property name="minConnectionsPerPartition" value="10" />
 		<property name="partitionCount" value="3" />
