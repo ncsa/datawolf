@@ -62,6 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.cyberintegrator.ImportExport;
 import edu.illinois.ncsa.domain.Dataset;
@@ -234,24 +235,38 @@ public class DatasetsResource {
             @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
 
+        Sort sort = new Sort(Sort.Direction.DESC, "date");
+
         // without paging
         if (size < 1) {
             Iterable<Dataset> results = null;
             if (email.equals("")) {
                 if (pattern.equals("")) {
                     if (showdeleted) {
-                        results = datasetDao.findAll();
+                        results = datasetDao.findAll(sort);
                     } else {
-                        results = datasetDao.findByDeleted(false);
+                        results = datasetDao.findByDeleted(false, sort);
                     }
                 } else {
-                    results = datasetDao.findByTitleLike(pattern);
+                    if (showdeleted) {
+                        results = datasetDao.findByTitleLike(pattern, sort);
+                    } else {
+                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, sort);
+                    }
                 }
             } else {
                 if (pattern.equals("")) {
-                    results = datasetDao.findByCreatorEmail(email);
+                    if (showdeleted) {
+                        results = datasetDao.findByCreatorEmail(email, sort);
+                    } else {
+                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, sort);
+                    }
                 } else {
-                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
+                    if (showdeleted) {
+                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, sort);
+                    } else {
+                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, sort);
+                    }
                 }
             }
 
@@ -267,18 +282,30 @@ public class DatasetsResource {
             if (email.equals("")) {
                 if (pattern.equals("")) {
                     if (showdeleted) {
-                        results = datasetDao.findAll(new PageRequest(page, size));
+                        results = datasetDao.findAll(new PageRequest(page, size, sort));
                     } else {
-                        results = datasetDao.findByDeleted(false, new PageRequest(page, size));
+                        results = datasetDao.findByDeleted(false, new PageRequest(page, size, sort));
                     }
                 } else {
-                    results = datasetDao.findByTitleLike(pattern, new PageRequest(page, size));
+                    if (showdeleted) {
+                        results = datasetDao.findByTitleLike(pattern, new PageRequest(page, size, sort));
+                    } else {
+                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, new PageRequest(page, size, sort));
+                    }
                 }
             } else {
                 if (pattern.equals("")) {
-                    results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size));
+                    if (showdeleted) {
+                        results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size, sort));
+                    } else {
+                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
+                    }
                 } else {
-                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, new PageRequest(page, size));
+                    if (showdeleted) {
+                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, new PageRequest(page, size, sort));
+                    } else {
+                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, new PageRequest(page, size, sort));
+                    }
                 }
             }
             return results.getContent();
