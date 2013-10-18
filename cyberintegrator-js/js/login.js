@@ -6,6 +6,7 @@ var AppRouter = Backbone.Router.extend({
         "":"list"
     },
     
+    // Show login form
     list:function() {
     	
     	personCollection.fetch({success: function() {

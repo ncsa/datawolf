@@ -13,10 +13,13 @@ var LoginView = Backbone.View.extend({
 		return this;
 	},
 
+	// TODO - Add better authentication using OpenID or other authentication method
 	userLogin: function(e) {
 		e.preventDefault();
 		var email = $('input[name=username]').val();
 		var user = null;
+
+		// Find if person exists
 		personCollection.each(function(person) {
 			if(person.get('email') === email) {
 				user = person;
@@ -24,6 +27,7 @@ var LoginView = Backbone.View.extend({
 			}
 		});
 
+		// Store user information in local storage
 		if(user != null) {
 			localStorage.currentUser = user.get('id');
 			location.replace("index.html");
