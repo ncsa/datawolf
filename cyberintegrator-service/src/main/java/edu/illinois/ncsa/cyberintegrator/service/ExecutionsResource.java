@@ -88,7 +88,6 @@ import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.HPCJobInfoDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
-import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
@@ -118,11 +117,12 @@ public class ExecutionsResource {
         Workflow workflow = workflowDAO.findOne(submission.getWorkflowId());
         if (workflow != null) {
             execution.setWorkflow(workflow);
+            execution.setTitle(submission.getTitle());
+            execution.setDescription(submission.getDescription());
             execution.setCreator(SpringData.getBean(PersonDAO.class).findOne(submission.getCreatorId()));
             for (Entry<String, String> param : submission.getParameters().entrySet()) {
                 execution.setParameter(param.getKey(), param.getValue());
             }
-            DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
             for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
                 execution.setDataset(dataset.getKey(), dataset.getValue());
             }
