@@ -47,6 +47,12 @@ public class Submission extends AbstractBean {
     /** Used for serialization of object */
     private static final long   serialVersionUID = 1L;
 
+    /** Title of the execution */
+    private String              title            = "";                           //$NON-NLS-1$
+
+    /** Description of the execution */
+    private String              description      = "";                           //$NON-NLS-1$
+
     /** Workflow that is executed */
     private String              workflowId       = null;
 
@@ -63,6 +69,46 @@ public class Submission extends AbstractBean {
      * Create a new instance of the execution.
      */
     public Submission() {}
+
+    /**
+     * Return the title of the execution.
+     * 
+     * @return title of the execution
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    /**
+     * Sets the title of the execution
+     * 
+     * @param title
+     *            sets the title of the execution.
+     * 
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    /**
+     * Return the description of the execution.
+     * 
+     * @return description of the execution
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the description of the execution
+     * 
+     * @param description
+     *            sets the description of the execution.
+     * 
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     /**
      * Return the workflow that was executed.

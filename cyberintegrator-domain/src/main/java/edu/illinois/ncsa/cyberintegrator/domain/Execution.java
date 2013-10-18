@@ -70,10 +70,10 @@ public class Execution extends AbstractBean {
     /** Marker for non existing dataset due to errrors. */
     public static final String  EMPTY_DATASET    = "ERROR";
 
-    /** Title of the workflow */
+    /** Title of the execution */
     private String              title            = "";                           //$NON-NLS-1$
 
-    /** Description of the workflow */
+    /** Description of the execution */
     private String              description      = "";                           //$NON-NLS-1$
 
     /** Workflow that is executed */
@@ -143,19 +143,19 @@ public class Execution extends AbstractBean {
     public Execution() {}
 
     /**
-     * Return the title of the workflow.
+     * Return the title of the execution.
      * 
-     * @return title of the workflow
+     * @return title of the execution
      */
     public String getTitle() {
         return title;
     }
 
     /**
-     * Sets the title of the workflow
+     * Sets the title of the execution
      * 
      * @param title
-     *            sets the title of the workflow.
+     *            sets the title of the execution.
      * 
      */
     public void setTitle(String title) {
@@ -163,19 +163,19 @@ public class Execution extends AbstractBean {
     }
 
     /**
-     * Return the description of the workflow.
+     * Return the description of the execution.
      * 
-     * @return description of the workflow
+     * @return description of the execution
      */
     public String getDescription() {
         return description;
     }
 
     /**
-     * Sets the description of the workflow
+     * Sets the description of the execution
      * 
      * @param description
-     *            sets the description of the workflow.
+     *            sets the description of the execution.
      * 
      */
     public void setDescription(String description) {
