@@ -703,3 +703,9 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   border-color: #395763;
 }
 
+.hello-lbl {
+  font-family : Open Sans;
+  font-size : 10px;
+  color: #808184;
+}
+

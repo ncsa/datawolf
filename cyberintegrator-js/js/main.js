@@ -154,74 +154,85 @@ var getWorkflowTool = function(toolId) {
 // Router
 var AppRouter = Backbone.Router.extend({
     routes:{
-        "":"list"
+        "":"list",
     },
-    
+
     list:function() {
-
-        jsPlumb.bind("ready", function() {
-            // chrome fix.
-            document.onselectstart = function () { return false; };             
-
-            $(".rmode").bind("click", function() {
-                var desiredMode = $(this).attr("mode");
-                if (jsPlumbDemo.reset) jsPlumbDemo.reset();
-                jsPlumb.reset();
-                resetRenderMode(desiredMode);                   
-            }); 
-
-            resetRenderMode(jsPlumb.SVG);
-        });
-
-        //var tempToolCollection = new WorkflowToolCollection();
-        workflowToolCollection.fetch({success: function() {
-            //console.log("tool collection size = "+workflowToolCollection.size());
-            $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
-            $('#workflowToolButtons').html(new WorkflowToolButtonBar().render().el);
-        }});
-
+        var id = localStorage.currentUser;
         personCollection.fetch({success: function() {
-            if(personCollection.size() > 0) {
-                currentUser = personCollection.first();
-            }
+            personCollection.each(function(person) {
+                if(person.get('id') === id) {
+                    currentUser = person;
+                    return false;
+                }
+            });
+            //if(personCollection.size() > 0) {
+            //    currentUser = personCollection.first();
+            //}
+            if(currentUser == null) {
+                location.replace('login.html');
+            } 
 
+            $('#current-user').text('Hello '+currentUser.get('firstName'));
+            
             if(DEBUG) {
                 console.log("current user: "+JSON.stringify(currentUser, undefined, 2));
             }
-        }});
+           
+            jsPlumb.bind("ready", function() {
+                // chrome fix.
+                document.onselectstart = function () { return false; };             
 
-        //var tmpCollection = new WorkflowCollection();
-        // Fetch the collection and check for dirty/destroyed
-        
-        workflowCollection.fetch({success: function() {
-            workflowCollection.syncDirtyAndDestroyed();
-            // Re-fetch after sync because fetch won't pull everything if there are dirty/destroyed records
-            // TODO CMN: is there a way to determine if everything was up to date? 
-            workflowCollection.fetch({success: function() {
-                //workflowCollection.each(function(workflow) {
-                //    if(_.isString(workflow.get('creator'))) {
-                        // Fixes a bug where not all the json for the model is returned
-                        //console.log("fetching again for id = "+workflow.get('id'));
-                //        workflow.fetch();
-                //    }
-                //}); 
-                workflowListView = new WorkflowListView({model: workflowCollection});
-                $('#workflows').html(workflowListView.render().el);
-                $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+                $(".rmode").bind("click", function() {
+                    var desiredMode = $(this).attr("mode");
+                    if (jsPlumbDemo.reset) jsPlumbDemo.reset();
+                    jsPlumb.reset();
+                    resetRenderMode(desiredMode);                   
+                }); 
 
+                resetRenderMode(jsPlumb.SVG);
+            });
+
+            //var tempToolCollection = new WorkflowToolCollection();
+            workflowToolCollection.fetch({success: function() {
+                //console.log("tool collection size = "+workflowToolCollection.size());
+                $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
+                $('#workflowToolButtons').html(new WorkflowToolButtonBar().render().el);
             }});
+
+            //var tmpCollection = new WorkflowCollection();
+            // Fetch the collection and check for dirty/destroyed
+            
+            workflowCollection.fetch({success: function() {
+                workflowCollection.syncDirtyAndDestroyed();
+                // Re-fetch after sync because fetch won't pull everything if there are dirty/destroyed records
+                // TODO CMN: is there a way to determine if everything was up to date? 
+                workflowCollection.fetch({success: function() {
+                    //workflowCollection.each(function(workflow) {
+                    //    if(_.isString(workflow.get('creator'))) {
+                            // Fixes a bug where not all the json for the model is returned
+                            //console.log("fetching again for id = "+workflow.get('id'));
+                    //        workflow.fetch();
+                    //    }
+                    //}); 
+                    workflowListView = new WorkflowListView({model: workflowCollection});
+                    $('#workflows').html(workflowListView.render().el);
+                    $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+
+                }});
+            }});
+
+            jsPlumb.bind("endpointClick", handleEndpointClick);
+
+            //openWorkflows = JSON.parse(localStorage["openWorkflows"]);
+            //localStorage["openWorkflows"] = JSON.stringify(openWorkflows);
+
+            stepLocationCollection.fetch();
+            registerCloseEvent();
+            registerOpenEvent();
+            registerTabEvent();
+            getExecutors();
         }});
-
-        jsPlumb.bind("endpointClick", handleEndpointClick);
-
-        //openWorkflows = JSON.parse(localStorage["openWorkflows"]);
-        //localStorage["openWorkflows"] = JSON.stringify(openWorkflows);
-
-        stepLocationCollection.fetch();
-        registerCloseEvent();
-        registerOpenEvent();
-        registerTabEvent();
-        getExecutors();
         //$('#persons').html(new PersonListView({model: personCollection}).render().el);
     }
 
