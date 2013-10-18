@@ -82,9 +82,10 @@ public class DatasetsResource {
     /**
      * 
      * Create dataset from zip file. It expects the following form:
-     * <form action="rest/workflows" method="post"
-     * enctype="multipart/form-data">
+     * <form action="/datasets" method="post" enctype="multipart/form-data">
      * <input type="file" name="uploadedFile" />
+     * <input type="text" name="title" />
+     * <input type="text" name="description" />
      * <input type="submit" value="Upload It" />
      * </form>
      * 
@@ -157,7 +158,7 @@ public class DatasetsResource {
                         return null;
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.error("Could not find user.", e);
                     return null;
                 }
             }
@@ -178,16 +179,35 @@ public class DatasetsResource {
                     if (fileDescriptor == null)
                         return null;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    log.warn("Could not parse the file", e);
                     return null;
                 }
 
             }
 
+            String title = fileDescriptor.getFilename();
+            String description = "";
+
+            for (InputPart val : uploadForm.get("title")) {
+                try {
+                    title = val.getBody(String.class, null);
+                } catch (IOException e) {
+                    log.warn("Could not getbody for title", e);
+                }
+            }
+            for (InputPart val : uploadForm.get("description")) {
+                try {
+                    description = val.getBody(String.class, null);
+                } catch (IOException e) {
+                    log.warn("Could not getbody for description", e);
+                }
+            }
+
             dataset = new Dataset();
             dataset.setCreator(creator);
             dataset.addFileDescriptor(fileDescriptor);
-            dataset.setTitle(fileDescriptor.getFilename());
+            dataset.setTitle(title);
+            dataset.setDescription(description);
 
             Dataset savedDataset = datasetDao.save(dataset);
 
