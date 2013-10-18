@@ -51,6 +51,7 @@ var WorkflowToolListItemView = Backbone.View.extend({
 
     render: function(e) {
         $(this.el).html(this.template(this.model.toJSON()));
+        $(this.el).find('.icon-wf-title').addClass(this.getToolClass(this.model.get('title')));
         var popoverTitle = _.template($('#workflow-popover').html())
         var popoverContentTop = _.template($('#workflow-tool-popover-content-top').html());
         var popoverContentDesc = _.template($('#workflow-tool-popover-content-description').html());
@@ -120,6 +121,20 @@ var WorkflowToolListItemView = Backbone.View.extend({
 
     hideDetails: function() {
 
+    },
+
+    getToolClass: function(title) {
+        if(title === 'eAIRS File-Transfer') {
+            return "icon-tool-green";
+        } else if(title === 'eAIRS CFD Parameters') {
+            return "icon-tool-yellow";
+        } else if(title === 'eAIRS Results') {
+            return "icon-tool-red";
+        } else if(title === 'eAIRS-CFD-Tachyon-MPI') {
+            return "icon-tool-blue";
+        } else {
+            return "icon-tool-green";
+        }
     } 
        
 });

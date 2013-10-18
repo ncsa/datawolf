@@ -15,10 +15,10 @@
         <%= firstName %> <%= lastName %> - <%= email %>
     </script>
     <script type="text/template" id="workflow-list-item">
-        <span class="icon-wf"><img src="assets/img/icon-wf.png" ></img></span><%= title %>
+        <div class="list-item"><span class="icon-wf"><img src="assets/img/icon-wf.png"></img></span><%= title %></div>
     </script>
     <script type="text/template" id="workflow-tool-list-item">
-        <%= title %>
+        <div class="list-item"><span class="icon-wf-2"><div class="icon-wf-title icon-wf"></div></span><%= title %></div>
     </script>
     <script type="text/template" id="workflow-info-view">
         <form class="form-inline">
@@ -69,6 +69,9 @@
     <script type="text/template" id="new-workflow-buttons">
         <div class="btn-toolbar nav-button-bar">
             <div class="btn-group pull-right cbi-btn-group">
+                <button id="workflow-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                    <span class=""><img src="assets/img/icon-toolbar-open-active.png"></img></span>
+                </button>
                 <button id="workflow-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
                     <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
                 </button>
