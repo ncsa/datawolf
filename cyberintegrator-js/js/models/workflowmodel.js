@@ -35,7 +35,7 @@ var Workflow = Backbone.Model.extend({
 			options = options || {};
     		options.url = model.getDeleteUrl();
     		console.log("url = "+options.url);
-    	}
+    	} 
     	
     	return Backbone.sync.apply(this, arguments);
  	}
@@ -46,4 +46,18 @@ var WorkflowCollection = Backbone.Collection.extend({
 	model: Workflow,
 	//localStorage: new Backbone.LocalStorage('workflows'),
 	url: "/workflows/",
+
+	getReadUrl: function() {
+		return '/workflows/'+ '?email=' + currentUser.get('email');
+	},
+
+	sync: function(method, model, options) {
+		// Filter by user
+    	if(method === 'read') {
+			options = options || {};
+    		options.url = model.getReadUrl();
+    	} 
+    	
+    	return Backbone.sync.apply(this, arguments);
+ 	}
 });
