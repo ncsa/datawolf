@@ -26,7 +26,7 @@ import edu.illinois.ncsa.springdata.SpringData;
 @Provider
 @ServerInterceptor
 public class AuthenticationInterceptor implements PreProcessInterceptor {
-    private Logger  log     = LoggerFactory.getLogger(DatasetsResource.class);
+    private Logger  log     = LoggerFactory.getLogger(AuthenticationInterceptor.class);
 
     private boolean enabled = Boolean.getBoolean("cyberintegrator.authentication");
 
@@ -90,7 +90,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
                 // TODO RK : password should really be encrypted
                 String password = tokenizer.nextToken();
                 Account account = SpringData.getBean(AccountDAO.class).findByUserid(user);
-                if ((account != null) && account.getPassword().equals(password)) {
+                if ((account != null) && !account.isDeleted() && account.getPassword().equals(password)) {
                     log.debug("REST Authentication successful");
                     return true;
                 } else {
