@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# port for the jetty server
+PORT=8080
+
 # change to folder of cyberintegrator
 cd $(dirname $0)/..
 
@@ -14,23 +17,19 @@ if [ ! -e data/files ]; then
   mkdir -p data/files
 fi
 
-# check to see if jetty.xml exists, if not this is first time starting
-if [ ! -e conf/jetty.xml ]; then
-  WAR=$( ls -1 lib/cyberintegrator*.war | tail -1 )
-  cat > conf/jetty.xml << EOF
+# setup for the server
+WAR=$( ls -1 lib/cyberintegrator-webapp-all*.war | tail -1 )
+cat > conf/jetty.xml << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">/</Set>
   <Set name="war">${PWD}/${WAR}</Set>
-
   <Call name="setInitParameter">
     <Arg>contextConfigLocation</Arg>
     <Arg>file://${PWD}/conf/applicationContext.xml</Arg>
   </Call>
 </Configure>
 EOF
-else
-  echo "Reusing exisiting conf/jetty.xml"
 fi
 
 # start actual webapp
-java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar ${PWD}/lib/jetty-runner.jar --port 8888 ${PWD}/conf/jetty.xml
+java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar ${PWD}/lib/jetty-runner.jar --port ${PORT} ${PWD}/conf/jetty.xml

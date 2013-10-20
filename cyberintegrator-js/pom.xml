@@ -1,37 +1,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<artifactId>cyberintegrator</artifactId>
-		<version>3.0.0-SNAPSHOT</version>
-		<groupId>edu.illinois.ncsa</groupId>
-	</parent>
+        <parent>
+                <groupId>edu.illinois.ncsa</groupId>
+                <artifactId>cyberintegrator</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
+        </parent>
 	<packaging>war</packaging>
-	<artifactId>cyberintegrator-webapp-all</artifactId>
-
-	<dependencies>
-		<dependency>
-			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>file-service</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>cyberintegrator-service</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>cyberintegrator-editor</artifactId>
-			<version>${project.version}</version>
-			<type>war</type>
-		</dependency>
-		<dependency>
-			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>paw-service</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
+	<artifactId>cyberintegrator-editor</artifactId>
 
 	<build>
 		<plugins>
@@ -59,13 +35,13 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			
 			<!-- create the zip file -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<descriptor>src/assembly/bin.xml</descriptor>
+					<descriptor>src/main/assembly/bin.xml</descriptor>
 				</configuration>
 				<executions>
 					<execution>
