@@ -20,22 +20,18 @@
 			<artifactId>cyberintegrator-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>cyberintegrator-editor</artifactId>
-			<version>${project.version}</version>
-			<type>war</type>
-		</dependency>
+<!--
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>paw-service</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+-->
 	</dependencies>
 
 	<build>
 		<plugins>
-			<!-- copy the jetty runer -->
+			<!-- copy the jetty runer and cyberintegrator editor-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -48,6 +44,12 @@
 						</goals>
 						<configuration>
 							<artifactItems>
+								<artifactItem>
+									<groupId>edu.illinois.ncsa</groupId>
+									<artifactId>cyberintegrator-editor</artifactId>
+									<version>${project.version}</version>
+									<type>war</type>
+								</artifactItem>
 								<artifactItem>
 									<groupId>org.mortbay.jetty</groupId>
 									<artifactId>jetty-runner</artifactId>

@@ -41,7 +41,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<descriptor>src/main/assembly/bin.xml</descriptor>
+					<descriptor>src/assembly/bin.xml</descriptor>
 				</configuration>
 				<executions>
 					<execution>

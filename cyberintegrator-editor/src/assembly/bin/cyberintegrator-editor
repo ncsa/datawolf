@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# port for the jetty server
+PORT=8080
+
+# change to folder of cyberintegrator
+cd "$(dirname $0)/.."
+
+# create some folders just in case
+if [ ! -e log ]; then
+  mkdir log
+fi
+
+# setup for the editor
+WAR=$( ls -1 lib/cyberintegrator-editor*.war | tail -1 )
+EDITOR=""
+if [ "${WAR}" != "" ]; then
+  EDITOR=${PWD}/conf/editor.xml
+  cat > "${EDITOR} << EOF
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">/editor</Set>
+  <Set name="war">${EDITOR}</Set>
+</Configure>
+EOF
+fi
+
+# start actual webapp
+java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} "${EDITOR}"

@@ -56,6 +56,7 @@
       <outputDirectory>lib</outputDirectory>
       <includes>
         <include>jetty-runner.jar</include>
+        <include>cyberintegrator-editor*.war</include>
       </includes>
     </fileSet>
   </fileSets>

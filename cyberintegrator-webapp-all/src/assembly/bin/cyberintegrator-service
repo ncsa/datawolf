@@ -4,7 +4,7 @@
 PORT=8080
 
 # change to folder of cyberintegrator
-cd $(dirname $0)/..
+cd "$(dirname $0)/.."
 
 # create some folders just in case
 if [ ! -e log ]; then
@@ -19,10 +19,13 @@ fi
 
 # setup for the server
 WAR=$( ls -1 lib/cyberintegrator-webapp-all*.war | tail -1 )
-cat > conf/jetty.xml << EOF
+SERVER=""
+if [ "${WAR}" != "" ]; then
+  SERVER=${PWD}/conf/server.xml
+  cat > "${SERVER} << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">/</Set>
-  <Set name="war">${PWD}/${WAR}</Set>
+  <Set name="war">${SERVER}</Set>
   <Call name="setInitParameter">
     <Arg>contextConfigLocation</Arg>
     <Arg>file://${PWD}/conf/applicationContext.xml</Arg>
@@ -31,5 +34,18 @@ cat > conf/jetty.xml << EOF
 EOF
 fi
 
+# setup for the editor
+WAR=$( ls -1 lib/cyberintegrator-editor*.war | tail -1 )
+EDITOR=""
+if [ "${WAR}" != "" ]; then
+  EDITOR=${PWD}/conf/editor.xml
+  cat > "${EDITOR} << EOF
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">/editor</Set>
+  <Set name="war">${EDITOR}</Set>
+</Configure>
+EOF
+fi
+
 # start actual webapp
-java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar ${PWD}/lib/jetty-runner.jar --port ${PORT} ${PWD}/conf/jetty.xml
+java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} "${SERVER}" "${EDITOR}"

@@ -14,7 +14,7 @@
     <fileSet>
       <fileMode>0644</fileMode>
       <directoryMode>0755</directoryMode>
-      <directory>src/main/assembly/bin</directory>
+      <directory>src/assembly/bin</directory>
       <lineEnding>dos</lineEnding>
       <outputDirectory>bin</outputDirectory>
       <includes>
@@ -24,7 +24,7 @@
     <fileSet>
       <fileMode>0755</fileMode>
       <directoryMode>0755</directoryMode>
-      <directory>src/main/assembly/bin</directory>
+      <directory>src/assembly/bin</directory>
       <lineEnding>unix</lineEnding>
       <outputDirectory>bin</outputDirectory>
       <includes>
@@ -34,7 +34,7 @@
     <fileSet>
       <fileMode>0644</fileMode>
       <directoryMode>0755</directoryMode>
-      <directory>src/main/assembly/conf</directory>
+      <directory>src/assembly/conf</directory>
       <outputDirectory>conf</outputDirectory>
       <includes>
         <include>*</include>
