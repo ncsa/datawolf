@@ -22,10 +22,10 @@ WAR=$( ls -1 lib/cyberintegrator-webapp-all*.war | tail -1 )
 SERVER=""
 if [ "${WAR}" != "" ]; then
   SERVER=${PWD}/conf/server.xml
-  cat > "${SERVER} << EOF
+  cat > "${SERVER}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">/</Set>
-  <Set name="war">${SERVER}</Set>
+  <Set name="war">${PWD}/${WAR}</Set>
   <Call name="setInitParameter">
     <Arg>contextConfigLocation</Arg>
     <Arg>file://${PWD}/conf/applicationContext.xml</Arg>
@@ -39,10 +39,10 @@ WAR=$( ls -1 lib/cyberintegrator-editor*.war | tail -1 )
 EDITOR=""
 if [ "${WAR}" != "" ]; then
   EDITOR=${PWD}/conf/editor.xml
-  cat > "${EDITOR} << EOF
+  cat > "${EDITOR}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">/editor</Set>
-  <Set name="war">${EDITOR}</Set>
+  <Set name="war">${PWD}/${WAR}</Set>
 </Configure>
 EOF
 fi
