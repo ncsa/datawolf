@@ -1,10 +1,13 @@
 #!/bin/sh
 
+# change to folder of cyberintegrator
+cd "$(dirname $0)/.."
+
 # port for the jetty server
 PORT=8080
 
-# change to folder of cyberintegrator
-cd "$(dirname $0)/.."
+# log file, leave blank for console
+#LOG="--out ${PWD}/log/cyberintegrator-yyyy_mm_dd.log
 
 # create some folders just in case
 if [ ! -e log ]; then
@@ -48,4 +51,4 @@ EOF
 fi
 
 # start actual webapp
-java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} "${SERVER}" "${EDITOR}"
+java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} ${LOG} "${SERVER}" "${EDITOR}"
