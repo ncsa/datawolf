@@ -1,5 +1,8 @@
+var previousWorkflow = null;
+
 var WorkflowListView = Backbone.View.extend({
 	tagName: "ul",
+	id: "workflowSelector",
 
 	className: 'workflowToolView',
 	events: {
@@ -63,10 +66,6 @@ var WorkflowListItemView = Backbone.View.extend({
 
 	onClick: function(e) {
 		var id = this.model.get('id');
-		currentDataset=null;
-		currentDatasetEl=null;
-		currentWorkflow=getWorkflow(id);
-		currentWorkflowEl=$(this.el);
 		$('.highlight').removeClass('highlight');
 		$(this.el).addClass('highlight');
 	},
@@ -116,15 +115,39 @@ var WorkflowButtonView = Backbone.View.extend({
 
 
 	workflowInfo : function() {
-		if(currentWorkflow != null) {
-			var json = currentWorkflow.toJSON();
-			json.numExecutions = "1.0";//numExecutions[model.get('id')]; //TODO
-			json.avgTime = "0.0 s";//TODO
+
+        var selectedWorkflow = $('#workflowSelector').find(".highlight");
+        // console.log(selectedWorkflow);
+        if(selectedWorkflow!=null && selectedWorkflow.length !=0){
+        	var wkid = selectedWorkflow.attr("value");
+        	var model = getWorkflow(wkid);
+			var json = model.toJSON();
+			json.numExecutions = "0";//TODO numExecutions[model.get('id')];
+			json.avgTime = "0.0 s"; //TODO
 			var popoverTitle = _.template($('#workflow-popover').html())
 			var popoverContent = _.template($('#workflow-popover-content').html());
-			currentWorkflowEl.popover({html: true, title: popoverTitle(json), content: popoverContent(json), trigger: 'manual'});
-			currentWorkflowEl.popover('toggle');
-		}
+			selectedWorkflow.popover({html: true, title: popoverTitle(model.toJSON()), content: popoverContent(json), trigger: 'manual'});
+
+            if(previousWorkflow==null){
+                selectedWorkflow.popover('toggle');
+                previousWorkflow=selectedWorkflow;                
+            }
+            else if(selectedWorkflow.attr("value")==previousWorkflow.attr("value")){
+                selectedWorkflow.popover('toggle');
+                previousWorkflow=null;    
+            }
+            else{
+                previousWorkflow.popover('toggle');
+                selectedWorkflow.popover('toggle');
+                previousWorkflow=selectedWorkflow;                                
+            }
+        }
+        else{
+            if(previousWorkflow !=null){
+                previousWorkflow.popover('toggle');
+                previousWorkflow=null;
+            }
+        }
 	}
 });
 

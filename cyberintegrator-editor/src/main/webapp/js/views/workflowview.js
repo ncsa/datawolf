@@ -1,3 +1,5 @@
+var previousWorkflow = null;
+
 var WorkflowListView = Backbone.View.extend({
 	tagName: "ul",
 	id: "workflowSelector",
@@ -369,19 +371,39 @@ var WorkflowButtonView = Backbone.View.extend({
 	},
 
 	workflowInfo : function() {
-		var selectedWorkflow = $('.highlight').attr('value');
-		if(selectedWorkflow != null) {
-			var model = getWorkflow(selectedWorkflow);
+
+        var selectedWorkflow = $('#workflowSelector').find(".highlight");
+        // console.log(selectedWorkflow);
+        if(selectedWorkflow!=null && selectedWorkflow.length !=0){
+        	var wkid = selectedWorkflow.attr("value");
+        	var model = getWorkflow(wkid);
 			var json = model.toJSON();
 			json.numExecutions = numExecutions[model.get('id')];
-			json.avgTime = "0.0 s";
+			json.avgTime = "0.0 s"; //TODO
 			var popoverTitle = _.template($('#workflow-popover').html())
 			var popoverContent = _.template($('#workflow-popover-content').html());
-			$(this.el).popover({html: true, title: popoverTitle(model.toJSON()), content: popoverContent(json), trigger: 'manual'});
-			$(this.el).popover('toggle');
-		}
-		//console.log("clicked workflow info");
-		//showWorkflowInfo = !showWorkflowInfo;
+			selectedWorkflow.popover({html: true, title: popoverTitle(model.toJSON()), content: popoverContent(json), trigger: 'manual'});
+
+            if(previousWorkflow==null){
+                selectedWorkflow.popover('toggle');
+                previousWorkflow=selectedWorkflow;                
+            }
+            else if(selectedWorkflow.attr("value")==previousWorkflow.attr("value")){
+                selectedWorkflow.popover('toggle');
+                previousWorkflow=null;    
+            }
+            else{
+                previousWorkflow.popover('toggle');
+                selectedWorkflow.popover('toggle');
+                previousWorkflow=selectedWorkflow;                                
+            }
+        }
+        else{
+            if(previousWorkflow !=null){
+                previousWorkflow.popover('toggle');
+                previousWorkflow=null;
+            }
+        }
 	}
 
 });

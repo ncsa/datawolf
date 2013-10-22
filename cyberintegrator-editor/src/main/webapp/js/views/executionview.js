@@ -1,5 +1,8 @@
+var previousExecution=null;
+
 var ExecutionListView = Backbone.View.extend({
 	tagName: "ul",
+	id: "executionSelector",
 
 	className: 'executionView',
 	events: {
@@ -62,8 +65,6 @@ var ExecutionListItemView = Backbone.View.extend({
 
 	onClick: function(e) {
 		var id = this.model.get('id');
-		currentExecution=getExecution(id);
-		currentExecutionEl=$(this.el);
 		$('.highlight').removeClass('highlight');
 		$(this.el).addClass('highlight');
 	},
@@ -92,30 +93,47 @@ var ExecutionButtonView = Backbone.View.extend({
 	},
 
 	executionInfo : function() {
-		if(currentExecution != null) {
-			if(currentExecution.get('creator') === null){
-				var creator = {
-					"firstName":"",
-					"lastName":""
-				};
-				currentExecution.set('creator', creator);
-			}
-			var execWorkflowId = currentExecution.get("workflowId");
+
+
+		var selectedExecution = $('#executionSelector').find(".highlight");
+        // console.log(selectedExecution);
+        if(selectedExecution!=null && selectedExecution.length !=0){
+        	var execid = selectedExecution.attr("value");
+        	var model = getExecution(execid);
+        	var execWorkflowId = model.get("workflowId");
 			var execWorkflow = getWorkflow(execWorkflowId);
 
-			addinfo={"wktitle": execWorkflow.get("title"),
-					 "numsteps": execWorkflow.get("steps").length
-					};
-
-			var json = currentExecution.toJSON();
-			
-			$.extend(json, addinfo);
+			var json = model.toJSON();
+			if(json.creator==null){
+                json.creator="";
+            }
+			json["wktitle"] = execWorkflow.get("title");
+			json["numsteps"]= execWorkflow.get("steps").length;
 
 			var popoverTitle = _.template($('#execution-popover').html())
 			var popoverContent = _.template($('#execution-popover-content').html());
-			currentExecutionEl.popover({html: true, title: popoverTitle(json), content: popoverContent(json), trigger: 'manual'});
-			currentExecutionEl.popover('toggle');
-		}
+			selectedExecution.popover({html: true, title: popoverTitle(model.toJSON()), content: popoverContent(json), trigger: 'manual'});
+
+            if(previousExecution==null){
+                selectedExecution.popover('toggle');
+                previousExecution=selectedExecution;                
+            }
+            else if(selectedExecution.attr("value")==previousExecution.attr("value")){
+                selectedExecution.popover('toggle');
+                previousExecution=null;    
+            }
+            else{
+                previousExecution.popover('toggle');
+                selectedExecution.popover('toggle');
+                previousExecution=selectedExecution;                                
+            }
+        }
+        else{
+            if(previousExecution !=null){
+                previousExecution.popover('toggle');
+                previousExecution=null;
+            }
+        }
 	}
 });
 

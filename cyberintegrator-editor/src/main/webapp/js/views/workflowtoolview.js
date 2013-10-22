@@ -1,3 +1,5 @@
+var previousTool = null;
+
 var WorkflowToolListView = Backbone.View.extend({
     tagName: 'ul',
     id: 'workflowListItemView',
@@ -113,9 +115,9 @@ var WorkflowToolListItemView = Backbone.View.extend({
         $('.highlight').removeClass('highlight');
         $(this.el).addClass('highlight');
 
-        if(showToolInfo) {
-            $(this.el).popover('toggle');
-        }
+        // if(showToolInfo) {
+        //     $(this.el).popover('toggle');
+        // }
         //$(this.el).popover('toggle');
     },
 
@@ -164,10 +166,27 @@ var WorkflowToolButtonBar = Backbone.View.extend({
 
     workflowToolInfo: function() {
         var selectedTool = $('#workflowListItemView').find(".highlight");
-        if(selectedTool != null) {
-            selectedTool.popover('toggle');
+        if(selectedTool!=null && selectedTool.length !=0){
+            if(previousTool==null){
+                selectedTool.popover('toggle');
+                previousTool=selectedTool;                
+            }
+            else if(selectedTool.attr("value")==previousTool.attr("value")){
+                selectedTool.popover('toggle');
+                previousTool=null;    
+            }
+            else{
+                previousTool.popover('toggle');
+                selectedTool.popover('toggle');
+                previousTool=selectedTool;                                
+            }
         }
-
+        else{
+            if(previousTool !=null){
+                previousTool.popover('toggle');
+                previousTool=null;
+            }
+        }
         //showToolInfo = !showToolInfo;
     }
 });

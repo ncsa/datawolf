@@ -1,6 +1,8 @@
+var previousDataset=null;
+
 var DatasetListView = Backbone.View.extend({
     tagName: 'ul',
-    id: 'workflowListItemView',
+    id: 'datasetListItemView',
     className: 'workflowDatasetView',
 
     initialize: function() {
@@ -36,7 +38,8 @@ var DatasetListItemView = Backbone.View.extend({
 
     attributes: function() {
         return {
-            value: this.model.get('title')
+            value: this.model.get('title'),
+            id: this.model.get('id')
         }
     },
 
@@ -61,13 +64,6 @@ var DatasetListItemView = Backbone.View.extend({
     },
 
     onClick: function(e) {
-        var id = this.model.get('id');
-
-        currentDataset=getDataset(id);
-        currentDatasetEl=$(this.el);
-
-        currentWorkflow=null;
-        currentWorkflowEl=null;
         e.preventDefault();
         $('.highlight').removeClass('highlight');
         $(this.el).addClass('highlight');
@@ -102,14 +98,42 @@ var DatasetButtonView = Backbone.View.extend({
 
     datasetInfo: function() {
 
-        if(currentDataset != null) {
-            var json = currentDataset.toJSON();
+
+        var selectedDataset = $('#datasetListItemView').find(".highlight");
+        // console.log(selectedDataset);
+        if(selectedDataset!=null && selectedDataset.length !=0){
+            var dsid = selectedDataset.attr("id");
+            var model = getDataset(dsid);
+            var json = model.toJSON();
+            if(json.creator==null){
+                json.creator="";
+            }
+
             var popoverTitle = _.template($('#dataset-popover').html())
             var popoverContent = _.template($('#dataset-popover-content').html());
+            selectedDataset.popover({html: true, title: popoverTitle(model.toJSON()), content: popoverContent(json), trigger: 'manual'});
 
-            currentDatasetEl.popover({html: true, title: popoverTitle(json), content: popoverContent(json), trigger: 'manual'});
-            currentDatasetEl.popover('toggle');
+            if(previousDataset==null){
+                selectedDataset.popover('toggle');
+                previousDataset=selectedDataset;                
+            }
+            else if(selectedDataset.attr("id")==previousDataset.attr("id")){
+                selectedDataset.popover('toggle');
+                previousDataset=null;    
+            }
+            else{
+                previousDataset.popover('toggle');
+                selectedDataset.popover('toggle');
+                previousDataset=selectedDataset;                                
+            }
         }
+        else{
+            if(previousDataset !=null){
+                previousDataset.popover('toggle');
+                previousDataset=null;
+            }
+        }
+
     },
 
     datasetCreate: function(e){
