@@ -2,7 +2,7 @@ var Workflow = Backbone.Model.extend({
 	urlRoot: "/workflows/",
 
 	getDeleteUrl: function() {
-		return '/workflows/'+ this.id + '/delete';
+		return '/workflows/'+ this.id;
 	},
 
 	getCreator: function() {
