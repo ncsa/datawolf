@@ -48,10 +48,12 @@
         <%= firstName %> <%= lastName %> - <%= email %>
     </script>
     <script type="text/template" id="workflow-list-item">
-        <span class="icon-wf"><img src="assets/img/icon-wf.png" ></img></span><%= title %>
+        <div class="list-item"><span class="icon-wf"><img src="assets/img/icon-wf.png"></img></span><%= title %></div>
+        <!-- <span class="icon-wf"><img src="assets/img/icon-wf.png" ></img></span><%= title %> -->
     </script>
     <script type="text/template" id="dataset-list-item">
-        <span class="icon-wf"><img src="assets/img/icon-exec.png" ></img></span><%= title %>
+        <div class="list-item"><span class="icon-wf"><img src="assets/img/icon-exec.png"></img></span><%= title %></div>
+        <!-- <span class="icon-wf"><img src="assets/img/icon-exec.png" ></img></span><%= title %> -->
     </script>
     <script type="text/template" id="workflow-info-view">
         <form class="form-inline">
@@ -401,10 +403,10 @@
             </div>
             <div class="panel-right-bkgrd col-lg-10">
                 <div class="pull-right app-login">
-                    <a href="">Hello Chris</a> 
+                    <label id="current-user" class="hello-lbl"></label> 
                     <label>|</label>
-                    <a href="">Logout</a>
-                     <span class=""><img src="assets/img/digiflow.png" height="25.776" width="105.273"></img></span>
+                    <a href="" class="hello-lbl">Logout</a>
+                    <span class=""><img src="assets/img/digiflow.png" height="25.776" width="105.273"></img></span>
                 </div> 
                 <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
                     

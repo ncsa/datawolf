@@ -33,7 +33,7 @@ var datasetListView=null;
 
 
 // TODO
-var currentUser = new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
+var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
 
 // Utility methods
 var getWorkflow = function(workflowId) {
@@ -82,16 +82,32 @@ var AppRouter = Backbone.Router.extend({
     },
     
     list:function() {
-        datasetCollection.fetch({success: function() {
-            datasetListView = new DatasetListView({model: datasetCollection});
-            $('#datasets').html(datasetListView.render().el);
-            $('#datasetbuttons').html(new DatasetButtonView().render().el);
-         }});
+        var id = localStorage.currentUser;
+        personCollection.fetch({success: function() {
+            personCollection.each(function(person) {
+                if(person.get('id') === id) {
+                    currentUser = person;
+                    return false;
+                }
+            });
 
-        workflowCollection.fetch({success: function() {
-            workflowListView = new WorkflowListView({model: workflowCollection});
-            $('#workflows').html(workflowListView.render().el);
-            $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+            if(currentUser == null) {
+                location.replace('login.html');
+            } 
+
+            $('#current-user').text('Hello '+currentUser.get('firstName'));
+
+            datasetCollection.fetch({success: function() {
+                datasetListView = new DatasetListView({model: datasetCollection});
+                $('#datasets').html(datasetListView.render().el);
+                $('#datasetbuttons').html(new DatasetButtonView().render().el);
+             }});
+
+            workflowCollection.fetch({success: function() {
+                workflowListView = new WorkflowListView({model: workflowCollection});
+                $('#workflows').html(workflowListView.render().el);
+                $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+            }});
         }});
 
     }
