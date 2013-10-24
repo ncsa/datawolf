@@ -804,6 +804,7 @@ public class HPCExecutor extends RemoteExecutor {
             try {
                 t.start();
                 HPCJobInfo info = new HPCJobInfo();
+                info.setExecutionId(this.getExecutionId());
                 if(jobId != null) {
                     info.setJobId(jobId);
                 } else {
@@ -862,7 +863,7 @@ public class HPCExecutor extends RemoteExecutor {
                         
                         if(!jobs.isEmpty()) {
                             HPCJobInfo info = jobs.get(0);
-                            info.setExecutionId(this.getExecutionId());
+                            //info.setExecutionId(this.getExecutionId());
                             info.setWorkingDir(workingDir);
        
                             SpringData.getBean(HPCJobInfoDAO.class).save(info);
