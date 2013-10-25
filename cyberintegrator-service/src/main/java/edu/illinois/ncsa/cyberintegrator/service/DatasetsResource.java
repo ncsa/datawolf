@@ -188,18 +188,29 @@ public class DatasetsResource {
             String title = fileDescriptor.getFilename();
             String description = "";
 
-            for (InputPart val : uploadForm.get("title")) {
-                try {
-                    title = val.getBody(String.class, null);
-                } catch (IOException e) {
-                    log.warn("Could not getbody for title", e);
+            // if upload the file without "title" in the form,
+            // use filename as title
+            List<InputPart> formTitle = uploadForm.get("title");
+            if (formTitle != null) {
+                for (InputPart val : formTitle) {
+                    try {
+                        title = val.getBody(String.class, null);
+                    } catch (IOException e) {
+                        log.warn("Could not getbody for title", e);
+                    }
                 }
             }
-            for (InputPart val : uploadForm.get("description")) {
-                try {
-                    description = val.getBody(String.class, null);
-                } catch (IOException e) {
-                    log.warn("Could not getbody for description", e);
+
+            // if upload the file without "description" in the form,
+            // use "" as description
+            List<InputPart> formDesc = uploadForm.get("description");
+            if (formDesc != null) {
+                for (InputPart val : formDesc) {
+                    try {
+                        description = val.getBody(String.class, null);
+                    } catch (IOException e) {
+                        log.warn("Could not getbody for description", e);
+                    }
                 }
             }
 
