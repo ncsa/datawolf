@@ -55,7 +55,7 @@ var sourceEndpoint = {
     overlays:[ [ "Label", { location:[2.0, 0.3], label:"Drop", cssClass:"in-output-text-default" } ] ]
 };
 
-var classWorkflowId = null;
+//var classWorkflowId = null;
 
 // TODO CMN: implement auto-layout algorithm
 var WorkflowGraphView = Backbone.View.extend({
@@ -76,6 +76,7 @@ var WorkflowGraphView = Backbone.View.extend({
         // Add Button Bar
         $(this.el).append(new WorkflowGraphButtonBar().render().el);
         // build the graph view the first time
+        /*
         if(currentWorkflow != null) {
             var workflow = null;
             workflowCollection.each(function(model) {
@@ -96,7 +97,7 @@ var WorkflowGraphView = Backbone.View.extend({
                 _this.addToolToGraph(toolId, workflowStep.get('id'), x, y);
                 //x = x + 200;
             });
-        } 
+        } */
         
         return this;
     },
@@ -106,15 +107,30 @@ var WorkflowGraphView = Backbone.View.extend({
         var workflow = getWorkflow(workflowId);
 
         if(workflow != null) {
+            // Sometimes creator/tools are just ids instead of entire object, this can cause issues saving the bean
+            if(_.isString(workflow.get('creator'))) {
+                workflow.set('creator', getPerson(workflow.get('creator')));
+            }
+
+            var index = 0;
+            workflow.getSteps().each(function(workflowStep) {
+                if(_.isString(workflowStep.get('tool'))) {
+                    console.log("fixing tools");
+                    workflow.get('steps')[index].tool = getWorkflowTool(workflowStep.get('tool')).toJSON()
+                }
+                index++;
+            });
+
+
             this.model = workflow;
             $(this.el).append(new WorkflowGraphButtonBar({model: this.model}).render().el);
-            classWorkflowId = this.model.get('id'); 
+            //classWorkflowId = this.model.get('id'); 
             if(this.model.get('title') != null) {
                 $('label[id=lbl'+workflowId+ ']').text(this.model.get('title'));
             } else {
                 console.log("workflow has no title");
             }
-
+            
             if(DEBUG) {
                 console.log(JSON.stringify(workflow, undefined, 2));
             }
@@ -126,7 +142,6 @@ var WorkflowGraphView = Backbone.View.extend({
                 var workflowTool = workflowStep.getTool();
                 var toolId = workflowTool.get('id');
                 if(toolId == null) {
-                    console.log("tool null");
                     toolId = workflowStep.get('tool');
                 }
                 var stepId = workflowStep.get('id');
@@ -164,7 +179,6 @@ var WorkflowGraphView = Backbone.View.extend({
                     } else {
                         workflowToolInputCollection = getWorkflowTool(workflowStep.get('tool')).getInputs();
                     }
-                    console.log();
                     var workflowToolInput = null;
                     workflowToolInputCollection.each(function(workflowToolData) {
                         if(workflowToolData.get('dataId') === key) {
@@ -494,8 +508,8 @@ var handleDragStop = function(e) {
 var mouseClick = function(e) {
     console.log("mouse click: "+e.target.id);
     var stepId = e.target.id;
-    console.log("workflow id = "+classWorkflowId);
-    var workflow = getWorkflow(classWorkflowId);
+    //console.log("workflow id = "+classWorkflowId);
+    var workflow = getWorkflow(currentWorkflow);
     var workflowStep = null;
     workflow.getSteps().each(function(step) {
         if(step.get('id') === stepId) {
@@ -516,7 +530,7 @@ var handleConnect = function(connection) {
     var sourceStepId = connection.sourceId;
     var targetStepId = connection.targetId;
 
-    var workflow = getWorkflow(classWorkflowId);
+    var workflow = getWorkflow(currentWorkflow);
     var workflowSteps = workflow.getSteps();
     var sourceStep = null;
     var targetStep = null;
@@ -526,7 +540,15 @@ var handleConnect = function(connection) {
         } else if(workflowStep.get('id') === targetStepId) {
             targetStep = workflowStep;
         }
-    })
+    });
+
+    if(_.isString(sourceStep.get('tool'))) {
+        sourceStep.set('tool', getWorkflowTool(sourceStep.get('tool')));
+    }
+
+    if(_.isString(targetStep.get('tool'))) {
+        targetStep.set('tool', getWorkflowTool(targetStep.get('tool')));
+    }
 
     var sourceEndpoint = connection.connection.endpoints[0];
     var targetEndpoint = connection.dropEndpoint;
@@ -593,7 +615,8 @@ var handleConnect = function(connection) {
 
 // Handles disconnecting steps
 var handleDisconnect = function(connection) {
-
+    //console.log("handle disconnnect: "+classWorkflowId);
+    console.log("currentworkflow: "+currentWorkflow);
     var workflow = getWorkflow(currentWorkflow);
     var workflowSteps = workflow.getSteps();
 
@@ -621,6 +644,7 @@ var handleDisconnect = function(connection) {
     });
 
     targetStep.setInput(workflowToolDataInput.get('dataId'), null);
+
     workflow.save(); 
 
     return true;

@@ -151,6 +151,18 @@ var getWorkflowTool = function(toolId) {
     return workflowTool;
 }
 
+var getPerson = function(personId) {
+    var user = null;
+    personCollection.each(function(person) {
+        if(person.get('id') === personId) {
+            user = person;
+            return false;
+        }
+    });
+
+    return user;
+}
+
 // Router
 var AppRouter = Backbone.Router.extend({
     routes:{
@@ -515,7 +527,6 @@ eventBus.on('clicked:saveworkflow', function(workflowId, title) {
 });
 
 eventBus.on('clicked:newopenworkflow', function(workflowId) {
-    //currentWorkflow = workflowId;
     //workflowGraphView.setWorkflow(workflowId);
     $('.active').removeClass('active');
 
@@ -540,7 +551,7 @@ eventBus.on('clicked:newopenworkflow', function(workflowId) {
     graphView.setWorkflow(workflowId);
     registerCloseEvent();
     $('.active').on('click', tabSelectionEvent);
-    
+    currentWorkflow = workflowId; 
 });
 
 eventBus.on('clicked:newworkflow', function() {

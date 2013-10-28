@@ -103,13 +103,14 @@ var WorkflowListItemView = Backbone.View.extend({
 
 	onDoubleClick: function(e) {
 		//var selection = $('#workflowSelector').val();
-		e.preventDefault();
-		var id = this.model.get('id');
+		//e.preventDefault();
+		//var id = this.model.get('id');
 		//console.log("selection is "+id);
 		//console.log("add highlight");
-		$('.highlight').removeClass('highlight');
-		$(this.el).addClass('highlight');
-		eventBus.trigger("clicked:newopenworkflow", id);
+		//$('.highlight').removeClass('highlight');
+		//$(this.el).addClass('highlight');
+		//console.log($(this.el));
+		//eventBus.trigger("clicked:newopenworkflow", id);
 	},
 
 	showDetails: function() {
@@ -128,9 +129,9 @@ var WorkflowButtonView = Backbone.View.extend({
 		"click button#workflow-info-btn" : "workflowInfo",
 		"click button#new-workflow" : "newWorkflow",
 		"click button#delete-workflow" : "deleteWorkflow",
-		"click button#open-workflow" : "openWorkflow",
+		"click button#workflow-open-btn" : "openWorkflow",
 		"click button#save-workflow" : "saveWorkflow",
-		"click button#copy-workflow" : "copyWorkflow"
+		"click button#copy-workflow" : "copyWorkflow",
 	},
 
 	template: _.template($("#new-workflow-buttons").html()),
@@ -194,8 +195,12 @@ var WorkflowButtonView = Backbone.View.extend({
 	},
 
 	openWorkflow: function(e) {
-		var selection = $('#workflowSelector').val();
-		eventBus.trigger("clicked:openworkflow", selection);
+		e.preventDefault();
+		var selectedWorkflow = $('#workflowSelector').find(".highlight");
+		if(selectedWorkflow != null && selectedWorkflow.length != 0) {
+			var wkid = selectedWorkflow.attr("value");
+			eventBus.trigger("clicked:newopenworkflow", wkid);
+		}
 	},
 
 	saveWorkflow: function(e) {
@@ -228,7 +233,6 @@ var WorkflowButtonView = Backbone.View.extend({
 		if(contributors == null) {
 			contributors = new Object();
 		}
-
 
 		var sameCreator = false;
 		if(originalCreator.get('email') != newCreator.get('email')) {
@@ -404,8 +408,7 @@ var WorkflowButtonView = Backbone.View.extend({
                 previousWorkflow=null;
             }
         }
-	}
-
+	},
 });
 
 var SaveWorkflowView = Backbone.View.extend({

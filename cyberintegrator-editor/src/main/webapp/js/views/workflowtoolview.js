@@ -86,10 +86,8 @@ var WorkflowToolListItemView = Backbone.View.extend({
 
         var modelJSON = this.model.toJSON();
         if(_.contains(executors, this.model.get('executor'))) {
-            console.log("executor available");
             modelJSON.executorAvail = 'info-metadata-executor-available';
         } else {
-            console.log("executor unavailable: "+this.model.get('executor'));
             modelJSON.executorAvail = 'info-metadata-executor-unavailable';
         }
         //if(this.model.executor)
