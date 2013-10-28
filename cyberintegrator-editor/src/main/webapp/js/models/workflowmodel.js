@@ -5,6 +5,10 @@ var Workflow = Backbone.Model.extend({
 		return '/workflows/'+ this.id;
 	},
 
+	getUpdateUrl: function() {
+		return '/workflows/' + this.id;
+	},
+
 	getCreator: function() {
 		return new Person(this.get('creator'));
 	},
@@ -36,6 +40,10 @@ var Workflow = Backbone.Model.extend({
     		options.url = model.getDeleteUrl();
     		console.log("url = "+options.url);
     	} 
+    	if(method === 'update') {
+    		options.url = model.getUpdateUrl();
+    		console.log("update url = "+options.url);
+    	}
     	
     	return Backbone.sync.apply(this, arguments);
  	}
@@ -56,6 +64,9 @@ var WorkflowCollection = Backbone.Collection.extend({
     	if(method === 'read') {
 			options = options || {};
     		options.url = model.getReadUrl();
+    	}
+    	if(method === 'update') {
+    		console.log("update urli collections = "+options.url);
     	} 
     	
     	return Backbone.sync.apply(this, arguments);
