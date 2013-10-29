@@ -1,4 +1,5 @@
 var currentExecution=null;
+// var logFiles=null;
 
 var WorkflowExecutionView = Backbone.View.extend({
 	tagName: "ol",
@@ -13,9 +14,13 @@ var WorkflowExecutionView = Backbone.View.extend({
 	render: function(e) {
 		$(this.el).empty();
 		currentExecution=this.model;
+		// logFiles=getLogFiles(currentExecution.get("id"));
+		// console.log("fetched log files");
+		// console.log(logFiles);
 
 		var execWorkflowId = this.model.get("workflowId");
 		var execWorkflow = getWorkflow(execWorkflowId);
+
 		this.model.set("wktitle", execWorkflow.get("title"));
 		$(this.el).html(this.template(this.model.attributes));
 
@@ -49,6 +54,9 @@ var WorkflowExecutionStepView = Backbone.View.extend({
 		// console.log(this.model);
 		$(this.el).append(new WorkflowExecutionParamListView({model: this.model}).render().el);
 		$(this.el).append(new WorkflowExecutionDatasetListView({model: this.model}).render().el);
+		$(this.el).append(new WorkflowExecutionOutputListView({model: this.model}).render().el);
+		$(this.el).append(new WorkflowExecutionLogFileView({model: {"stepid":this.model.id, "execid":currentExecution.get("id")}}).render().el);//, "logmap":logFiles
+		// $(this.el).append('<a href="/executions/'+currentExecution.get("id")+'/logfiles/'+'stepid'+'" class="cbi-execlogfile"> Log file </a>');
 		return this;
 	}
 });
@@ -170,6 +178,81 @@ var WorkflowExecutionDatasetView = Backbone.View.extend({
 });
 
 
+
+
+var WorkflowExecutionOutputListView = Backbone.View.extend({
+	tagName: "ol",
+
+	className: 'cbi-execoutputlist',
+
+	initialize: function() {
+		this.$el.attr('size', '10');
+	},
+
+    attributes: function() {
+		return {
+			id: this.model.id,
+		}
+	},
+
+	render: function(e) {
+		$(this.el).empty();
+
+		$(this.el).append("Generated outputs:");
+		_.each(_.keys(this.model.outputs), function(outputkey) {
+			var outputElementId = this.model.outputs[outputkey];
+// console.log(outputElementId);
+			var outputInfo = getBy('dataId', outputkey, this.model.tool.outputs);			
+// console.log(outputInfo);
+			if(outputInfo !== null){
+				var wedsv = new WorkflowExecutionOutputView({model: outputInfo});
+				var dsid = currentExecution.get("datasets")[outputElementId];
+				var ds = getDataset(dsid);
+// console.log(dsid);
+				var actualvalue = dsid;
+				wedsv.execvalue=actualvalue;
+				wedsv.datasetElementId=outputElementId;
+				$(this.el).append(wedsv.render().el);
+
+			}
+
+		}, this);
+
+		if($(this.el).children().length === 0){
+			$(this.el).append(" no outputs generated");
+		}
+
+		// setTimeout(this, 1000);
+		return this;
+	},
+
+});
+
+
+var WorkflowExecutionOutputView = Backbone.View.extend({
+	tagName: "li",
+	className: 'cbi-execoutput',
+
+	template: _.template($('#output-hist-list-item').html()),
+
+	render: function(e) {
+		$(this.el).html(this.template(this));
+		return this;
+	},
+});
+
+var WorkflowExecutionLogFileView = Backbone.View.extend({
+	tagName: "li",
+	className: 'cbi-execlogfile',
+
+	template: _.template($('#steplog-hist-list-item').html()),
+
+	render: function(e) {
+		// console.log(this.model);
+		$(this.el).html(this.template(this));
+		return this;
+	},
+});
 
 var WorkflowSubmitButtonView = Backbone.View.extend({
 	events: {

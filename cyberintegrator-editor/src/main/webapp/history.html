@@ -25,6 +25,7 @@
     </script>
 
 <!-- <p class="cbi-step-title">STEP <%= num %>: <%= title %></p> -->
+ <!-- [<a href="/executions/<%= id %>/logfiles/<%= stepid %>"> log file </a>]-->
     <script type="text/template" id="step-list-item">
             <table >
                 <tbody>
@@ -46,6 +47,28 @@
     <script type="text/template" id="dataset-hist-list-item">
         <%= model.title %>: <input ondragover="return false" value= "<%= execvalue %>"  name= <%= datasetElementId %> class="cbi-param-input" disabled>
     </script>
+
+        <!-- <%= model.title %>: -->
+        <!--<% xelse { %>
+            <a href="<%= execvalue %>"> <%= model.title %> </a>
+        <% } %> 
+        <a href="<%= execvalue %>"> <%= model.title %> </a> -->
+        <!-- <input ondragover="return false" value= "<%= execvalue %>"  name= <%= datasetElementId %> class="cbi-param-input" disabled> -->
+
+    <script type="text/template" id="output-hist-list-item">
+        <% if ( execvalue === 'ERROR') { %>
+            <%= model.title %> <font color="red">(error)</font>
+        <% }  else if ( execvalue === null) { %>
+            <%= model.title %> (unfinished)
+        <% }  else { %>
+            <a href="/datasets/<%= execvalue %>/zip"> <%= model.title %> </a>
+        <% } %>  
+    </script>
+
+    <script type="text/template" id="steplog-hist-list-item">
+        <a href="/executions/<%= model.execid %>/logfiles/<%= model.stepid %>"> Log file </a>
+    </script>
+
 
     <script type="text/template" id="resubmit-execution-button">
         <button id="execute-workflow" class="btn btn-default">Execute</button> 
@@ -214,9 +237,11 @@
             </div>
             <div class="panel-right-bkgrd col-lg-10">
                 <div class="pull-right app-login">
-                    <a href="">Hello Chris</a> 
+                    <label id="current-user" class="hello-lbl"></label> 
+                    <!--<a href="">Hello Chris</a>--> 
                     <label>|</label>
-                    <a href="">Logout</a>
+                    <a href="" class="hello-lbl">Logout</a>
+                    <!--<a href="">Logout</a>--> 
                      <span class=""><img src="assets/img/digiflow.png" height="25.776" width="105.273"></img></span>
                 </div> 
                 <ul id="tabs" class="nav nav-tabs" data-tabs="tabs"></ul>
