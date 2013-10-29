@@ -109,7 +109,7 @@ public class PersonWizard extends Wizard {
             Person person = new Person();
             person.setFirstName(txtFirstName.getText().trim());
             person.setLastName(txtFirstName.getText().trim());
-            person.setEmail(txtFirstName.getText().trim());
+            person.setEmail(txtEmail.getText().trim());
             return person;
         }
 
