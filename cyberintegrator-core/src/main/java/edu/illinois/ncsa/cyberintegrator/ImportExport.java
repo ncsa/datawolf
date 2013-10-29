@@ -27,11 +27,13 @@ import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
+import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.springdata.ExecutionDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.LogFileDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowDAO;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
@@ -47,6 +49,7 @@ public class ImportExport {
     private static Logger       logger         = LoggerFactory.getLogger(ImportExport.class);
 
     private static final String WORKFLOW_FILE  = "workflow.json";
+    private static final String TOOL_FILE      = "tool.json";
     private static final String EXECUTION_FILE = "execution.json";
     private static final String STEP_FILE      = "step.json";
     private static final String DATASET_FILE   = "dataset.json";
@@ -190,11 +193,10 @@ public class ImportExport {
      * return the workflow imported after it is persisted.
      * 
      * @param file
-     *            the zipfile where the workflow will be saved, this file will
-     *            be overwritten.
+     *            the zipfile where the workflow is saved.
      * @return the persisted workflow.
      * @throws Exception
-     *             an exception is thrown if the workflow could not be saved.
+     *             an exception is thrown if the workflow could not be loaded.
      */
     public static Workflow importWorkflow(File file) throws Exception {
         // create zipfile
@@ -272,7 +274,160 @@ public class ImportExport {
             }
             throw exc;
         }
+    }
 
+    /**
+     * Exports the given tool to a zip file. The complete tool will be
+     * exported as a JSON object, including people definitions.
+     * The blobs associated with the tools will be exported as well.
+     * 
+     * @param file
+     *            the zipfile where the tool will be saved, this file will
+     *            be overwritten.
+     * @param toolId
+     *            the id of the tool to export.
+     * @throws Exception
+     *             an exception is thrown if the tool could not be saved.
+     */
+    public static void exportTool(File file, String toolId) throws Exception {
+        // create zipfile
+        ZipOutputStream zipfile = null;
+
+        // create transaction
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start(true);
+            WorkflowTool tool = SpringData.getBean(WorkflowToolDAO.class).findOne(toolId);
+
+            zipfile = new ZipOutputStream(new FileOutputStream(file));
+
+            // export workflow
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            // this will close the outputstream, hence the byte array
+            ObjectMapper mapper = new ObjectMapper();
+            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
+            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+            mapper.writeValue(jsonGenerator, tool);
+
+            zipfile.putNextEntry(new ZipEntry(TOOL_FILE));
+            zipfile.write(baos.toByteArray());
+            zipfile.closeEntry();
+
+            // export blobs
+            Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
+            FileStorage fs = SpringData.getFileStorage();
+            byte[] buf = new byte[10240];
+            int len = 0;
+            for (FileDescriptor fd : tool.getBlobs()) {
+                if (!blobs.contains(fd)) {
+                    blobs.add(fd);
+
+                    zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
+                    InputStream is = fs.readFile(fd);
+                    while ((len = is.read(buf)) > 0) {
+                        zipfile.write(buf, 0, len);
+                    }
+                    is.close();
+                    zipfile.closeEntry();
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Error saving workflow.", e);
+        } finally {
+            if (zipfile != null) {
+                zipfile.close();
+            }
+            t.rollback();
+        }
+    }
+
+    /**
+     * Imports the tool from the zipfile. The complete tool will be
+     * imported, including people definitions.
+     * The blobs associated with the tool will be imported as well. This will
+     * return the tool imported after it is persisted.
+     * 
+     * @param file
+     *            the zipfile where the tool is saved
+     * @return the persisted tool.
+     * @throws Exception
+     *             an exception is thrown if the tool could not be loaded.
+     */
+    public static WorkflowTool importTool(File file) throws Exception {
+        // create zipfile
+        ZipFile zipfile = null;
+
+        // create transaction
+        Transaction t = SpringData.getTransaction();
+        try {
+            t.start();
+
+            zipfile = new ZipFile(file);
+
+            // get workflow
+            WorkflowTool tool = new ObjectMapper().readValue(zipfile.getInputStream(zipfile.getEntry(TOOL_FILE)), WorkflowTool.class);
+            fixPeople(tool);
+
+            WorkflowToolDAO workflowToolDAO = SpringData.getBean(WorkflowToolDAO.class);
+            if (workflowToolDAO.exists(tool.getId())) {
+                throw (new Exception("tool already imported."));
+            }
+
+            // import blobs
+            FileStorage fs = SpringData.getFileStorage();
+            FileDescriptorDAO fdDAO = SpringData.getBean(FileDescriptorDAO.class);
+            Enumeration<? extends ZipEntry> entries = zipfile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.isDirectory() || !entry.getName().startsWith(BLOBS_FOLDER)) {
+                    continue;
+                }
+                String[] pieces = entry.getName().split("/");
+                FileDescriptor blob = null;
+                if (fdDAO.exists(pieces[1])) {
+                    logger.info("Already have blob with id : " + pieces[1]);
+                    blob = fdDAO.findOne(pieces[1]);
+                } else {
+                    // save blob
+                    InputStream is = zipfile.getInputStream(entry);
+                    blob = fs.storeFile(pieces[1], pieces[2], is);
+                    is.close();
+                }
+
+                // fix workflow
+                for (FileDescriptor fd : tool.getBlobs()) {
+                    if (fd.getId().equals(pieces[1])) {
+                        fd.setDataURL(blob.getDataURL());
+                    }
+                }
+            }
+
+            // done with zipfile
+            zipfile.close();
+            zipfile = null;
+
+            // save workflow
+            tool = workflowToolDAO.save(tool);
+            t.commit();
+            t = null;
+
+            return tool;
+        } catch (Exception exc) {
+            try {
+                if (zipfile != null) {
+                    zipfile.close();
+                }
+            } catch (Exception e1) {
+                logger.error("Could not close zipfile.", e1);
+            }
+            try {
+                t.rollback();
+            } catch (Exception e1) {
+                logger.error("Could not rollback transaction.", e1);
+            }
+            throw exc;
+        }
     }
 
     /**

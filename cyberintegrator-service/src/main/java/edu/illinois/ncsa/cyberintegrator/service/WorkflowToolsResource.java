@@ -31,27 +31,40 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import edu.illinois.ncsa.cyberintegrator.ImportExport;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/workflowtools")
 public class WorkflowToolsResource {
+    private static Logger logger = LoggerFactory.getLogger(WorkflowToolsResource.class);
 
     /**
      * Get all workflow tools
@@ -109,6 +122,53 @@ public class WorkflowToolsResource {
             return results.getContent();
 
         }
+    }
+
+    /**
+     * 
+     * Create workflow via workflow JSON. Expects the following form:
+     * <form action="/workflowtools" method="post"
+     * enctype="multipart/form-data">
+     * <input type="tool" name="uploadedFile" />
+     * <input type="submit" value="Upload It" />
+     * </form>
+     * 
+     * @param input
+     *            a form posted
+     * @return
+     *         tool URI
+     */
+    @POST
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String[] createTool(MultipartFormDataInput input) {
+        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+        List<InputPart> inputParts = uploadForm.get("tool");
+        List<String> toolids = new ArrayList<String>();
+
+        for (InputPart inputPart : inputParts) {
+            try {
+                // convert the uploaded file to zipfile
+                InputStream inputStream = inputPart.getBody(InputStream.class, null);
+                File tempfile = File.createTempFile("tool", ".zip");
+                OutputStream outputStream = new FileOutputStream(tempfile);
+                byte[] buf = new byte[10240];
+                int len = 0;
+                while ((len = inputStream.read(buf)) > 0) {
+                    outputStream.write(buf, 0, len);
+                }
+                outputStream.close();
+                inputStream.close();
+
+                WorkflowTool tool = ImportExport.importTool(tempfile);
+                toolids.add(tool.getId());
+                tempfile.delete();
+
+            } catch (Exception e) {
+                logger.warn("Could not load tool.", e);
+            }
+        }
+        return toolids.toArray(new String[toolids.size()]);
     }
 
     /**
