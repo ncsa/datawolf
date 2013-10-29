@@ -13,6 +13,7 @@ var activeTabExecutionId = null;
 var executionCollection = new ExecutionCollection();
 var workflowCollection = new WorkflowCollection();
 var datasetCollection = new DatasetCollection();
+var personCollection = new PersonCollection();
 
 
 // Views
