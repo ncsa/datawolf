@@ -85,6 +85,8 @@ public class CommandLineValueDialog extends JDialog {
             }
         });
         buttons.add(btnCancel);
+
+        checkUI();
     }
 
     public boolean open() {
@@ -94,6 +96,9 @@ public class CommandLineValueDialog extends JDialog {
     }
 
     private void checkUI() {
+        if (btnOk == null) {
+            return;
+        }
         if ((txtValue.getText().trim().length() == 0) && (txtFlag.getText().trim().length() == 0)) {
             btnOk.setEnabled(false);
         } else {

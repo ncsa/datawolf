@@ -150,6 +150,8 @@ public class CommandLineDataDialog extends JDialog {
             }
         });
         buttons.add(btnCancel);
+
+        checkUI();
     }
 
     public boolean open() {
@@ -159,6 +161,9 @@ public class CommandLineDataDialog extends JDialog {
     }
 
     private void checkUI() {
+        if (btnOk == null) {
+            return;
+        }
         if ((txtName.getText().trim().length() == 0) || (txtMimeType.getText().trim().length() == 0)) {
             btnOk.setEnabled(false);
         }
