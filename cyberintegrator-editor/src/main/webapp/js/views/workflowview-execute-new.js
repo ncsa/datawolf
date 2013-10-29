@@ -71,12 +71,12 @@ var WorkflowListItemView = Backbone.View.extend({
 	},
 
 	onDoubleClick: function(e) {
-		e.preventDefault();
-		var id = this.model.get('id');
+		//e.preventDefault();
+		//var id = this.model.get('id');
 
-		$('.highlight').removeClass('highlight');
-		$(this.el).addClass('highlight');
-		eventBus.trigger("clicked:newopenworkflow", id);
+		//$('.highlight').removeClass('highlight');
+		//$(this.el).addClass('highlight');
+		//eventBus.trigger("clicked:newopenworkflow", id);
 	},
 
 	showDetails: function() {
@@ -109,8 +109,12 @@ var WorkflowButtonView = Backbone.View.extend({
 	},
 
 	openWorkflow: function(e) {
-		// var selection = $('#workflowSelector').val();
-		eventBus.trigger("clicked:openworkflow", selection);
+		e.preventDefault();
+		var selectedWorkflow = $('#workflowSelector').find(".highlight");
+		if(selectedWorkflow != null && selectedWorkflow.length != 0) {
+			var wkid = selectedWorkflow.attr("value");
+			eventBus.trigger("clicked:newopenworkflow", wkid);
+		}
 	},
 
 

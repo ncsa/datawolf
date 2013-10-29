@@ -153,7 +153,7 @@ var postWorkflow = function(workflow) {
                 request.setRequestHeader("Content-type", "application/json");
                 request.setRequestHeader("Accept", "application/json");
             },
-            url: "http://localhost:8001/workflows",
+            url: "/workflows",
             dataType: "text",
             data: JSON.stringify(workflow),
 
@@ -193,7 +193,7 @@ var postSubmission = function(workflowid, creatorid, title, description, paramet
             type: "POST",
             beforeSend: function(request) {
                 request.setRequestHeader("Content-type", "application/json");
-                request.setRequestHeader("Accept", "application/json");
+                //request.setRequestHeader("Accept", "application/json");
             },
             url: "/executions", //"http://localhost:8080/executions",
             dataType: "text",
