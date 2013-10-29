@@ -94,8 +94,14 @@ public class PersonsResource {
         if ("".equals(email))
             return null;
         PersonDAO personDao = SpringData.getBean(PersonDAO.class);
-        Person p = personDao.save(Person.createPerson(firstName, lastName, email));
-
+        Person p = personDao.findByEmail(email);
+        if (p == null) {
+            p = new Person();
+        }
+        p.setFirstName(firstName);
+        p.setLastName(lastName);
+        p.setEmail(email);
+        p = personDao.save(p);
         return p.getId();
     }
 
