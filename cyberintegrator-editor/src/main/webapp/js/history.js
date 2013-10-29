@@ -21,7 +21,7 @@ var executionButtonView = null;
 
 
 // TODO
-var currentUser = new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
+var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
 
 
 var isInputConnected = function(inputKey){
@@ -67,7 +67,7 @@ var getExecution = function(executionId) {
 
 var getWorkflow = function(workflowId) {
     var workflow = null;
-        workflowCollection.each(function(model) {
+    workflowCollection.each(function(model) {
         if(model.get('id') === workflowId) {
             workflow = model;
             return false;
@@ -79,13 +79,52 @@ var getWorkflow = function(workflowId) {
 
 var getDataset = function(datasetId) {
     var dataset = null;
-        datasetCollection.each(function(model) {
+    datasetCollection.each(function(model) {
         if(model.get('id') === datasetId) {
             dataset = model;
             return false;
         }
     });
     return dataset;
+}
+
+var getStep = function(workflow, stepid){
+    var steps=workflow.attributes.steps;
+    var step=null;
+    _.each(steps,function(steptest) {
+        if(steptest["id"] === stepid) {
+            step = steptest;
+            return false;
+        }
+    });
+    return step;
+}
+
+var getLogFiles = function(execid) {
+    var myurl = '/executions/'+execid+"/logfiles";
+    console.log(myurl);
+    $.ajax({
+            type: "GET",
+            beforeSend: function(request) {
+                request.setRequestHeader("Content-type", "application/json");
+                request.setRequestHeader("Accept", "application/json");
+            },
+            url: myurl,
+            dataType: "text",
+
+            success: function(msg) {
+                var obj = JSON.parse(msg);
+                console.log("log files:");
+                console.log(obj);
+                // for(var index = 0; index < obj.length; index++) {
+                // }
+                return obj;
+            },
+            error: function(msg) {
+                alert('error: '+JSON.stringify(msg));
+            }
+
+        });
 }
 
 
@@ -96,18 +135,35 @@ var AppRouter = Backbone.Router.extend({
     },
     
     list:function() {
-        workflowCollection.fetch({success: function() {
-            // console.log("workflows fetched");
-        }});
-        datasetCollection.fetch({success: function() {
-            // console.log("datasets fetched");
-        }});
-        executionCollection.fetch({success: function() {
-            executionListView = new ExecutionListView({model: executionCollection});
-            $('#executions').html(executionListView.render().el);
-            $('#executionbuttons').html(new ExecutionButtonView().render().el);
-         }});
 
+        var id = localStorage.currentUser;
+        personCollection.fetch({success: function() {
+            personCollection.each(function(person) {
+                if(person.get('id') === id) {
+                    currentUser = person;
+                    return false;
+                }
+            });
+
+            if(currentUser == null) {
+                location.replace('login.html');
+            } 
+
+            $('#current-user').text('Hello '+currentUser.get('firstName'));
+
+            workflowCollection.fetch({success: function() {
+                // console.log("workflows fetched");
+            }});
+            datasetCollection.fetch({success: function() {
+                // console.log("datasets fetched");
+            }});
+            executionCollection.fetch({success: function() {
+                executionListView = new ExecutionListView({model: executionCollection});
+                $('#executions').html(executionListView.render().el);
+                $('#executionbuttons').html(new ExecutionButtonView().render().el);
+             }});
+
+        }});
     }
 
 });
@@ -222,45 +278,103 @@ var getExecutionIdFromTabLabel = function(tabId) {
     return id;
 }
 
-var num=0;
 function updateExecutionStatus(){
     if($(".active").find(".cbi-execution-title")[0] !== undefined){
         var els = $(".active").find(".step-status-info");
         var elstatus = els.find(".step-status");
         var elsruntime = els.find(".step-runtime");
         var execid = $(".active").find(".cbi-execution-title")[0].id;
-        var exec = getExecution(execid);
-        var stepstats = exec.get("stepStates");
-        var starttimes = exec.get("stepsStart"); 
-        var endtimes = exec.get("stepsEnd"); 
-        
-        elstatus.each(function(index) {
-            var stepid=elstatus[index].id;
-            var stat = stepstats[stepid];
-            var st = starttimes[stepid];
-            var et = endtimes[stepid];
-            var runtime = "N/A";
-            if(st !== undefined && et !== undefined){
-                runtime = (et-st) + "";
-            }
-            $(elstatus[index]).html('<b>'+stat+'</b>');
-            if(stat === "ABORTED"){
-                $(elstatus[index]).css( "color", "red" );
-            }
-            else if(stat === "FINISHED"){
-                $(elstatus[index]).css( "color", "green" );
-            }
-            else{
-                $(elstatus[index]).css( "color", "#395763" );
-            }
-            $(elsruntime[index]).html(runtime);
-        });
+
+        executionCollection.fetch({success: function(){
+            var exec = getExecution(execid);
+            var stepstats = exec.get("stepStates");
+            var starttimes = exec.get("stepsStart"); 
+            var endtimes = exec.get("stepsEnd"); 
+            
+            elstatus.each(function(index) {
+                var stepid=elstatus[index].id;
+                var stat = stepstats[stepid];
+                var st = starttimes[stepid];
+                var et = endtimes[stepid];
+                var runtime = "N/A";
+                if(st !== undefined && et !== undefined){
+                    runtime = (et-st) + "";
+                }
+                $(elstatus[index]).html('<b>'+stat+'</b>');
+                if(stat === "ABORTED"){
+                    $(elstatus[index]).css( "color", "red" );
+                }
+                else if(stat === "FINISHED"){
+                    $(elstatus[index]).css( "color", "green" );
+                }
+                else{
+                    $(elstatus[index]).css( "color", "#395763" );
+                }
+                $(elsruntime[index]).html(runtime);
+            });
+        }});
     }
-    num=num+2;
     setTimeout(updateExecutionStatus, 1000);
 }
 
+function updateExecutionOutputs(){
+    // console.log("update execution outputs");
+    if($(".active").find(".cbi-execution-title")[0] !== undefined){
+        var execid = $(".active").find(".cbi-execution-title")[0].id;
+        
+
+        executionCollection.fetch({success: function() {
+            var exec = getExecution(execid);
+            var wkid = exec.get("workflowId");
+            var wk = getWorkflow(wkid);
+
+            var steps = $(".active").find(".cbi-execstep");
+
+            steps.each(function(index) {
+
+                var stepel=steps[index];
+                var outlist = $(stepel).find(".cbi-execoutputlist")[0];
+                var stepid=outlist.id;
+                var step=getStep(wk, stepid);
+                var stepoutputs=step.outputs;
+                var outitems = $(outlist).find(".cbi-execoutput");
+
+                var index=0;
+                _.each(_.keys(stepoutputs), function(outputkey) {
+                    var outputElementId = stepoutputs[outputkey];
+                    var outputInfo = getBy('dataId', outputkey, step.tool.outputs);           
+                    if(outputInfo !== null){
+
+                        var dsid = currentExecution.get("datasets")[outputElementId];
+                        var ds = getDataset(dsid);
+                        var actualvalue = dsid;
+                        var item=outitems[index];
+
+                        if (actualvalue === 'ERROR') {
+                            $(item).html(outputInfo.title+' <font color="red">(error)</font>');
+                        }
+                        else if ( actualvalue === null) {
+                            $(item).html(outputInfo.title+' (unfinished)');
+                        }  
+                        else {
+                            $(item).html('<a href="/datasets/'+actualvalue+'/zip">'+outputInfo.title+'</a>');
+                        }
+
+                        index = index+1;
+
+                    }
+
+                }, this);
+
+            });
+            
+        }});
+    }
+    setTimeout(updateExecutionOutputs, 2000);
+}
+
 updateExecutionStatus();
+updateExecutionOutputs();
 
 var app = new AppRouter();
 
