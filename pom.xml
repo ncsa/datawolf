@@ -80,6 +80,7 @@
 		<module>cyberintegrator-service</module>
 		<module>cyberintegrator-webapp</module>
 		<module>cyberintegrator-editor</module>
+                <module>cyberintegrator-tool-creator</module>
 <!--
 		<module>cyberintegrator-executor-java-ui</module>
                 <module>cyberintegrator-executor-commandline-ui</module>
