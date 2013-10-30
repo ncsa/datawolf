@@ -22,7 +22,6 @@ import javax.swing.JTextField;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter.ParameterType;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption;
-import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -166,7 +165,7 @@ public class CommandLineParameterDialog extends JDialog {
     }
 
     protected void okPressed() {
-        option.setType(Type.PARAMETER);
+        option.setType(edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type.PARAMETER);
         option.setFlag(txtFlag.getText().trim());
         option.setOptionId(param.getParameterId());
 

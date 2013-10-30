@@ -22,7 +22,6 @@ import javax.swing.JTextField;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.InputOutput;
-import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -174,7 +173,7 @@ public class CommandLineDataDialog extends JDialog {
     }
 
     protected void okPressed() {
-        option.setType(Type.DATA);
+        option.setType(edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type.DATA);
         option.setFlag(txtFlag.getText().trim());
         option.setInputOutput(InputOutput.valueOf(cmbInputOutput.getSelectedItem().toString()));
         option.setFilename(txtFilename.getText().trim());

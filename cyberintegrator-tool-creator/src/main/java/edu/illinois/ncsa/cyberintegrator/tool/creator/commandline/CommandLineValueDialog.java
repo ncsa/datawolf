@@ -18,7 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption;
-import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -107,7 +106,7 @@ public class CommandLineValueDialog extends JDialog {
     }
 
     protected void okPressed() {
-        option.setType(Type.VALUE);
+        option.setType(edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type.VALUE);
         option.setFlag(txtFlag.getText().trim());
         option.setValue(txtValue.getText().trim());
 

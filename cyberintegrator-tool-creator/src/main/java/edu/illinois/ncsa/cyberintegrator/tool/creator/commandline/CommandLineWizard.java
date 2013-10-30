@@ -1,6 +1,7 @@
 package edu.illinois.ncsa.cyberintegrator.tool.creator.commandline;
 
 import java.io.File;
+import java.util.Date;
 
 import javax.swing.JFrame;
 
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.cyberintegrator.ImportExport;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
+import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineExecutor;
 import edu.illinois.ncsa.cyberintegrator.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.cyberintegrator.tool.creator.ToolCreator;
 import edu.illinois.ncsa.cyberintegrator.tool.creator.Wizard;
@@ -49,8 +51,12 @@ public class CommandLineWizard extends Wizard {
         System.out.println("Creating Tool");
 
         try {
+            // create the tool
             WorkflowTool tool = new WorkflowTool();
+            tool.setDate(new Date());
             tool.setCreator(person);
+            tool.setExecutor(CommandLineExecutor.EXECUTOR_NAME);
+
             infoPage.updateTool(tool);
             cmdPage.updateTool(tool);
             resourcePage.updateTool(tool);
