@@ -81,6 +81,7 @@ public class WorkflowsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow createWorkflow(Workflow workflow) {
         log.debug("Creating new workflow with id " + workflow.getId());
+        workflow = SpringData.removeDuplicate(workflow);
         WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
         Workflow tmp = workflowDAO.save(workflow);
         return tmp;
@@ -91,9 +92,10 @@ public class WorkflowsResource {
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow updateWorkflow(Workflow workflow) {
+        log.debug("Updating workflow. workflow id " + workflow.getId());
+        workflow = SpringData.removeDuplicate(workflow);
         WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
         Workflow tmp = workflowDAO.save(workflow);
-        log.debug("Updating workflow. workflow id " + workflow.getId());
         return tmp;
     }
 

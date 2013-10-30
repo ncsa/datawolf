@@ -76,10 +76,9 @@ import org.eclipse.swt.widgets.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineImplementation;
+import edu.illinois.ncsa.springdata.SpringData;
 
 public class EnvWizardPage extends WizardPage {
     private static Logger             logger = LoggerFactory.getLogger(EnvWizardPage.class);
@@ -98,7 +97,7 @@ public class EnvWizardPage extends WizardPage {
 
         if (oldTool != null) {
             try {
-                env.putAll(new ObjectMapper().readValue(oldTool.getImplementation(), CommandLineImplementation.class).getEnv());
+                env.putAll(SpringData.JSONToObject(oldTool.getImplementation(), CommandLineImplementation.class).getEnv());
             } catch (IOException e) {
                 logger.error("Could not parse old env variable.", e);
             }
@@ -260,8 +259,8 @@ public class EnvWizardPage extends WizardPage {
     }
 
     public void updateTool(WorkflowTool tool) throws IOException {
-        CommandLineImplementation impl = new ObjectMapper().readValue(tool.getImplementation(), CommandLineImplementation.class);
+        CommandLineImplementation impl = SpringData.JSONToObject(tool.getImplementation(), CommandLineImplementation.class);
         impl.setEnv(env);
-        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
+        tool.setImplementation(SpringData.objectToJSON(impl));
     }
 }

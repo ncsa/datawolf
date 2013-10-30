@@ -73,8 +73,6 @@ import org.eclipse.swt.widgets.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolData;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowToolParameter;
@@ -404,7 +402,7 @@ public class CommandLineWizardPage extends WizardPage {
                 transaction = SpringData.getTransaction();
                 transaction.start();
 
-                CommandLineImplementation impl = new ObjectMapper().readValue(oldtool.getImplementation(), CommandLineImplementation.class);
+                CommandLineImplementation impl = SpringData.JSONToObject(oldtool.getImplementation(), CommandLineImplementation.class);
                 exec.setText(impl.getExecutable());
 //          waitGUICheck.setSelection(impl.isGuiwait());
                 if (impl.getCaptureStdOut() != null) {
@@ -647,6 +645,6 @@ public class CommandLineWizardPage extends WizardPage {
             }
         }
 
-        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
+        tool.setImplementation(SpringData.objectToJSON(impl));
     }
 }

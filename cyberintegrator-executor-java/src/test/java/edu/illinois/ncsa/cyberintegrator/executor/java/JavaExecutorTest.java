@@ -20,8 +20,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.AbortException;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
@@ -67,7 +65,7 @@ public class JavaExecutorTest {
 
         JavaToolImplementation impl = new JavaToolImplementation();
         impl.setToolClassName(dummy.getClass().getName());
-        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
+        tool.setImplementation(SpringData.objectToJSON(impl));
 
         dao.save(tool);
 
@@ -81,7 +79,7 @@ public class JavaExecutorTest {
         dao = SpringData.getBean(WorkflowToolDAO.class);
         WorkflowTool tool2 = dao.findOne(id);
 
-        JavaToolImplementation impl2 = new ObjectMapper().readValue(tool2.getImplementation(), JavaToolImplementation.class);
+        JavaToolImplementation impl2 = SpringData.JSONToObject(tool2.getImplementation(), JavaToolImplementation.class);
         assertEquals(impl.getToolClassName(), impl2.getToolClassName());
 
         t1.commit();
@@ -159,7 +157,7 @@ public class JavaExecutorTest {
         tool.setExecutor("java");
         JavaToolImplementation impl = new JavaToolImplementation();
         impl.setToolClassName(dummy.getClass().getName());
-        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
+        tool.setImplementation(SpringData.objectToJSON(impl));
 
         Dataset inputds = dummy.getInputs().iterator().next();
         WorkflowToolData input = new WorkflowToolData();

@@ -77,7 +77,6 @@ import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
@@ -88,6 +87,7 @@ import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Dataset;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.cyberintegrator.executor.java.tool.Parameter;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.springdata.SpringData;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -113,7 +113,7 @@ public class ToolSelectWizardPage extends WizardPage {
 
         if ((oldtool != null) && (oldtool.getImplementation() != null)) {
             try {
-                oldImplementation = new ObjectMapper().readValue(oldtool.getImplementation(), JavaToolImplementation.class);
+                oldImplementation = SpringData.JSONToObject(oldtool.getImplementation(), JavaToolImplementation.class);
             } catch (IOException e) {
                 logger.error("Could not get old java tool implementation.", e);
                 oldImplementation = null;
@@ -360,7 +360,7 @@ public class ToolSelectWizardPage extends WizardPage {
         // add tool implementation
         JavaToolImplementation jti = new JavaToolImplementation();
         jti.setToolClassName(item.getName());
-        tool.setImplementation(new ObjectMapper().writeValueAsString(jti));
+        tool.setImplementation(SpringData.objectToJSON(jti));
 
         return tool;
     }

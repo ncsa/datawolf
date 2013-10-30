@@ -61,8 +61,6 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.AbortException;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.LocalExecutor;
@@ -108,7 +106,7 @@ public class CommandLineExecutor extends LocalExecutor {
 
             WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
             Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-            CommandLineImplementation impl = new ObjectMapper().readValue(step.getTool().getImplementation(), CommandLineImplementation.class);
+            CommandLineImplementation impl = SpringData.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
 
             logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
 
@@ -322,7 +320,7 @@ public class CommandLineExecutor extends LocalExecutor {
             t.start();
             WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
             Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-            CommandLineImplementation impl = new ObjectMapper().readValue(step.getTool().getImplementation(), CommandLineImplementation.class);
+            CommandLineImplementation impl = SpringData.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
 
             // collect stdout/stderr
             boolean saveExecution = false;

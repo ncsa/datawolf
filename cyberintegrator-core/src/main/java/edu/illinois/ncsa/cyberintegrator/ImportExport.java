@@ -1,6 +1,5 @@
 package edu.illinois.ncsa.cyberintegrator;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -18,10 +17,6 @@ import java.util.zip.ZipOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.LogFile;
@@ -82,17 +77,9 @@ public class ImportExport {
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
-            // export workflow
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            // this will close the outputstream, hence the byte array
-            ObjectMapper mapper = new ObjectMapper();
-            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
-            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
-            mapper.writeValue(jsonGenerator, workflow);
-
+            // convert the workflow to JSON
             zipfile.putNextEntry(new ZipEntry(WORKFLOW_FILE));
-            zipfile.write(baos.toByteArray());
+            zipfile.write(SpringData.objectToJSON(workflow).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -210,7 +197,7 @@ public class ImportExport {
             zipfile = new ZipFile(file);
 
             // get workflow
-            Workflow workflow = new ObjectMapper().readValue(zipfile.getInputStream(zipfile.getEntry(WORKFLOW_FILE)), Workflow.class);
+            Workflow workflow = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(WORKFLOW_FILE)), Workflow.class);
             fixPeople(workflow);
 
             WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
@@ -301,17 +288,9 @@ public class ImportExport {
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
-            // export workflow
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            // this will close the outputstream, hence the byte array
-            ObjectMapper mapper = new ObjectMapper();
-            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
-            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
-            mapper.writeValue(jsonGenerator, tool);
-
+            // convert the tool to json and save it.
             zipfile.putNextEntry(new ZipEntry(TOOL_FILE));
-            zipfile.write(baos.toByteArray());
+            zipfile.write(SpringData.objectToJSON(tool).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -366,7 +345,7 @@ public class ImportExport {
             zipfile = new ZipFile(file);
 
             // get workflow
-            WorkflowTool tool = new ObjectMapper().readValue(zipfile.getInputStream(zipfile.getEntry(TOOL_FILE)), WorkflowTool.class);
+            WorkflowTool tool = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(TOOL_FILE)), WorkflowTool.class);
             fixPeople(tool);
 
             WorkflowToolDAO workflowToolDAO = SpringData.getBean(WorkflowToolDAO.class);
@@ -455,17 +434,9 @@ public class ImportExport {
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
-            // export dataset
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            // this will close the outputstream, hence the byte array
-            ObjectMapper mapper = new ObjectMapper();
-            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
-            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
-            mapper.writeValue(jsonGenerator, execution);
-
+            // convert the execution to JSON
             zipfile.putNextEntry(new ZipEntry(EXECUTION_FILE));
-            zipfile.write(baos.toByteArray());
+            zipfile.write(SpringData.objectToJSON(execution).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -542,17 +513,9 @@ public class ImportExport {
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
-            // export dataset
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            // this will close the outputstream, hence the byte array
-            ObjectMapper mapper = new ObjectMapper();
-            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
-            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
-            mapper.writeValue(jsonGenerator, step);
-
+            // this will export the step to JSON
             zipfile.putNextEntry(new ZipEntry(STEP_FILE));
-            zipfile.write(baos.toByteArray());
+            zipfile.write(SpringData.objectToJSON(step).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -633,17 +596,9 @@ public class ImportExport {
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
-            // export dataset
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            // this will close the outputstream, hence the byte array
-            ObjectMapper mapper = new ObjectMapper();
-            final JsonGenerator jsonGenerator = mapper.getJsonFactory().createJsonGenerator(baos);
-            jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
-            mapper.writeValue(jsonGenerator, dataset);
-
+            // convert the dataset to json
             zipfile.putNextEntry(new ZipEntry(DATASET_FILE));
-            zipfile.write(baos.toByteArray());
+            zipfile.write(SpringData.objectToJSON(dataset).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -697,7 +652,7 @@ public class ImportExport {
             zipfile = new ZipFile(file);
 
             // get workflow
-            Dataset dataset = new ObjectMapper().readValue(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
+            Dataset dataset = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
             fixPeople(dataset);
             DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
             if (datasetDAO.exists(dataset.getId())) {

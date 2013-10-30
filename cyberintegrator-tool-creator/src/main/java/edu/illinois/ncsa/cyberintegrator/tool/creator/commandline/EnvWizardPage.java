@@ -64,12 +64,11 @@ import javax.swing.table.AbstractTableModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowTool;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineImplementation;
 import edu.illinois.ncsa.cyberintegrator.tool.creator.Wizard;
 import edu.illinois.ncsa.cyberintegrator.tool.creator.WizardPage;
+import edu.illinois.ncsa.springdata.SpringData;
 
 public class EnvWizardPage extends WizardPage {
     private static Logger logger = LoggerFactory.getLogger(EnvWizardPage.class);
@@ -126,7 +125,7 @@ public class EnvWizardPage extends WizardPage {
 
         if (oldTool != null) {
             try {
-                for (Entry<String, String> entry : new ObjectMapper().readValue(oldTool.getImplementation(), CommandLineImplementation.class).getEnv().entrySet()) {
+                for (Entry<String, String> entry : SpringData.JSONToObject(oldTool.getImplementation(), CommandLineImplementation.class).getEnv().entrySet()) {
                     model.add(entry.getKey(), entry.getValue());
                 }
             } catch (IOException e) {
@@ -142,9 +141,9 @@ public class EnvWizardPage extends WizardPage {
     }
 
     public void updateTool(WorkflowTool tool) throws IOException {
-        CommandLineImplementation impl = new ObjectMapper().readValue(tool.getImplementation(), CommandLineImplementation.class);
+        CommandLineImplementation impl = SpringData.JSONToObject(tool.getImplementation(), CommandLineImplementation.class);
         impl.setEnv(model.getMap());
-        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
+        tool.setImplementation(SpringData.objectToJSON(impl));
     }
 
     class EnvModel extends AbstractTableModel {

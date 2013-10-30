@@ -25,8 +25,6 @@ import javax.xml.bind.JAXBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.AbortException;
 import edu.illinois.ncsa.cyberintegrator.FailedException;
 import edu.illinois.ncsa.cyberintegrator.RemoteExecutor;
@@ -148,7 +146,7 @@ public class HPCExecutor extends RemoteExecutor {
             if(scriptPath == null) {
                 WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
                 Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-                HPCToolImplementation impl = new ObjectMapper().readValue(step.getTool().getImplementation(), HPCToolImplementation.class);
+                HPCToolImplementation impl = SpringData.JSONToObject(step.getTool().getImplementation(), HPCToolImplementation.class);
     
                 for (CommandLineOption option : impl.getCommandLineOptions()) {
                     switch (option.getType()) {

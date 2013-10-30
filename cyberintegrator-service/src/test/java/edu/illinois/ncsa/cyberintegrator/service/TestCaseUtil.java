@@ -2,8 +2,6 @@ package edu.illinois.ncsa.cyberintegrator.service;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import edu.illinois.ncsa.cyberintegrator.domain.Execution;
 import edu.illinois.ncsa.cyberintegrator.domain.Workflow;
 import edu.illinois.ncsa.cyberintegrator.domain.WorkflowStep;
@@ -14,6 +12,7 @@ import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineImpleme
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption;
 import edu.illinois.ncsa.cyberintegrator.executor.commandline.CommandLineOption.Type;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.springdata.SpringData;
 
 public class TestCaseUtil {
     public static Execution createExecution(Person creator, Workflow workflow) {
@@ -87,7 +86,7 @@ public class TestCaseUtil {
         impl.setCaptureStdOut(STDOUT_ID);
         impl.getCommandLineOptions().add(option);
 
-        tool.setImplementation(new ObjectMapper().writeValueAsString(impl));
+        tool.setImplementation(SpringData.objectToJSON(impl));
 
         return tool;
     }
