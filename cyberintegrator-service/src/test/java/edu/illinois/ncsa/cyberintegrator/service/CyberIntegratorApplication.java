@@ -32,6 +32,7 @@ public class CyberIntegratorApplication extends Application {
         rrcs.add(FilesResource.class);
         rrcs.add(LogFilesResource.class);
         rrcs.add(ExecutorsResource.class);
+        rrcs.add(WorkflowToolsResource.class);
         return rrcs;
     }
 
