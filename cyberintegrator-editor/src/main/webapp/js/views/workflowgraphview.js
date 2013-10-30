@@ -366,6 +366,7 @@ var WorkflowGraphView = Backbone.View.extend({
             var title = workflowToolData.get('title');
             var length = title.length;
             //console.log("length = "+title.length);
+            //var xLocation = -0.0006 * length * length * length + 0.0162 * length * length + 0.048 * length + 1.275;
             var xLocation = -0.0023 * length * length * length + 0.063 * length * length - 0.6474 * length + 0.7278;
 
             endpoint.overlays[0][1].location[0] = xLocation;
@@ -384,8 +385,8 @@ var WorkflowGraphView = Backbone.View.extend({
             var title = workflowToolData.get('title');
 
             var length = title.length;
-            //console.log("length = "+title.length);
-            var xLocation = -0.0306 * length * length + 0.9652 * length - 4.0247;
+            var xLocation = 0.00007 * length * length * length - 0.0029 * length * length + 0.1975 * length + 1.0617;
+            //console.log("length = "+title.length + " location = "+xLocation);
             endpoint.overlays[0][1].location[0] = xLocation;
             endpoint.overlays[0][1].label = title;
             jsPlumb.addEndpoint(id, { anchor: outputAnchors[index], beforeDetach: handleDisconnect }, endpoint); 
