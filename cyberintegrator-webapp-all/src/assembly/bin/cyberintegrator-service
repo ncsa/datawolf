@@ -7,7 +7,7 @@ cd "$(dirname $0)/.."
 PORT=8080
 
 # log file, leave blank for console
-#LOG="--out ${PWD}/log/cyberintegrator-yyyy_mm_dd.log
+#LOG="--out ${PWD}/log/cyberintegrator-yyyy_mm_dd.log"
 
 # create some folders just in case
 if [ ! -e log ]; then
@@ -25,10 +25,11 @@ WAR=$( ls -1 lib/cyberintegrator-webapp-all*.war | tail -1 )
 SERVER=""
 if [ "${WAR}" != "" ]; then
   SERVER=${PWD}/conf/server.xml
+  WAR="${PWD}/${WAR}"
   cat > "${SERVER}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">/</Set>
-  <Set name="war">${PWD}/${WAR}</Set>
+  <Set name="war">${WAR}</Set>
   <Call name="setInitParameter">
     <Arg>contextConfigLocation</Arg>
     <Arg>file://${PWD}/conf/applicationContext.xml</Arg>
@@ -42,10 +43,11 @@ WAR=$( ls -1 lib/cyberintegrator-editor*.war | tail -1 )
 EDITOR=""
 if [ "${WAR}" != "" ]; then
   EDITOR=${PWD}/conf/editor.xml
+  WAR="${PWD}/${WAR}"
   cat > "${EDITOR}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">/editor</Set>
-  <Set name="war">${PWD}/${WAR}</Set>
+  <Set name="war">${WAR}</Set>
 </Configure>
 EOF
 fi
