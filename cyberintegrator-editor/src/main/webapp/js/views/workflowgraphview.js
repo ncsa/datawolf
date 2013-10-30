@@ -271,6 +271,10 @@ var WorkflowGraphView = Backbone.View.extend({
         var outputs = new Object();
         var parameters = new Object();
 
+        workflowTool.getInputs().each(function(workflowToolData) {
+            inputs[workflowToolData.get('dataId')] = generateUUID();
+        });
+
         workflowTool.getOutputs().each(function(workflowToolData) {
             outputs[workflowToolData.get('dataId')] = generateUUID();
         });

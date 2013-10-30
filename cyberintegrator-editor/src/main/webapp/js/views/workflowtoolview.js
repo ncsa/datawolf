@@ -85,6 +85,7 @@ var WorkflowToolListItemView = Backbone.View.extend({
         var popoverContentClose = _.template($('#workflow-tool-popover-content-close').html());
 
         var modelJSON = this.model.toJSON();
+        var executors = JSON.parse(localStorage["executors"]);
         if(_.contains(executors, this.model.get('executor'))) {
             modelJSON.executorAvail = 'info-metadata-executor-available';
         } else {

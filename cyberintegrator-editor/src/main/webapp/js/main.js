@@ -212,26 +212,12 @@ var AppRouter = Backbone.Router.extend({
                 $('#workflowToolButtons').html(new WorkflowToolButtonBar().render().el);
             }});
 
-            //var tmpCollection = new WorkflowCollection();
-            // Fetch the collection and check for dirty/destroyed
-            
+            // Sync dirty/destroyed models with server, then fetch           
+            workflowCollection.syncDirtyAndDestroyed(); 
             workflowCollection.fetch({success: function() {
-                workflowCollection.syncDirtyAndDestroyed();
-                // Re-fetch after sync because fetch won't pull everything if there are dirty/destroyed records
-                // TODO CMN: is there a way to determine if everything was up to date? 
-                workflowCollection.fetch({success: function() {
-                    //workflowCollection.each(function(workflow) {
-                    //    if(_.isString(workflow.get('creator'))) {
-                            // Fixes a bug where not all the json for the model is returned
-                            //console.log("fetching again for id = "+workflow.get('id'));
-                    //        workflow.fetch();
-                    //    }
-                    //}); 
                     workflowListView = new WorkflowListView({model: workflowCollection});
                     $('#workflows').html(workflowListView.render().el);
                     $('#workflowbuttons').html(new WorkflowButtonView().render().el);
-
-                }});
             }});
 
             jsPlumb.bind("endpointClick", handleEndpointClick);
@@ -302,6 +288,7 @@ var getExecutors = function() {
                     executors[index] = obj[index].executorName;
                 }
 
+                localStorage["executors"] = JSON.stringify(executors); 
                 //console.log("# of executors = "+obj.length);
                 //console.log(obj[0]);
                 //console.log(obj.length);
