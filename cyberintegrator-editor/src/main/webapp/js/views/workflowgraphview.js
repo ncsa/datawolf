@@ -266,14 +266,6 @@ var WorkflowGraphView = Backbone.View.extend({
             }
         });
 
-        // POJO's can only appear once in JSON so other instances should just include a reference
-        if(workflow.getCreator().get('id') === currentUser.get('id')) {
-            creator = currentUser.get('id');
-        } else {
-            creator = currentUser;
-        }
-        currentUser;
-
         // Create new input/output table
         var inputs = new Object();
         var outputs = new Object();
@@ -287,7 +279,7 @@ var WorkflowGraphView = Backbone.View.extend({
             parameters[workflowToolParameter.get('parameterId')] = generateUUID();
         });
 
-        var workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: creator, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
+        var workflowStep = new WorkflowStep({id: stepId, title: title, createDate: date, creator: currentUser, tool: workflowTool, inputs: inputs, outputs: outputs, parameters: parameters});
 
         var steps = workflow.get('steps');
         var newstep = workflowStep.toJSON();
