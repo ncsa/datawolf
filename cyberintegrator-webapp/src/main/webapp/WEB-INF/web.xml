@@ -29,10 +29,15 @@
     </filter>
     
     <!-- Cross origin resource sharing filter -->
-    <!-- 
-    <filter>
+    <!--
+	<filter>
 		<filter-name>CORS</filter-name>
 		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+
+		<init-param>
+			<param-name>cors.supportedMethods</param-name>
+			<param-value>GET, POST, HEAD, PUT, DELETE</param-value>
+		</init-param>
 	</filter>
     -->
     
@@ -45,14 +50,12 @@
 	<filter-mapping>
         <filter-name>CORS</filter-name>
         <url-pattern>/*</url-pattern>
-	</filter-mapping>
-	-->	
-	
+	</filter-mapping>	
+	-->
+	 
 	<servlet>
 		<servlet-name>cyberintegrator</servlet-name>
-		<servlet-class>
-			org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher
-        </servlet-class>
+		<servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
 	</servlet>
  
 	<servlet-mapping>

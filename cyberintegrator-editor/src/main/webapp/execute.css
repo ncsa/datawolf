@@ -22,18 +22,21 @@
     width: 100%;
 }
 
-.cbi-execparamlist, .cbi-execdatasetlist{
+.cbi-execparamlist, .cbi-execdatasetlist, .cbi-execoutputlist{
     color:#395763;
     width: 100%;
     margin-left: -20px;
 }
 
-.cbi-execparam, .cbi-execdataset{
+.cbi-execparam, .cbi-execdataset, .cbi-execoutput{
     /*color:#000;*/
     /*width: 100%;*/
     margin-left: 40px;
 }
 
+.cbi-execlogfile{
+    margin-left: 20px;    
+}
 
 .even{
     /*background: #bbbbff;*/
