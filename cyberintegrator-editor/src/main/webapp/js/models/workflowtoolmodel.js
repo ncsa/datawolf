@@ -15,6 +15,10 @@ var WorkflowTool = Backbone.Model.extend({
 
 	getBlobs: function() {
 		return new FileDescriptorCollection(this.get('blobs'));
+	},
+
+	getExecutor: function() {
+		return this.get('executor');
 	}
 });
 

@@ -23,7 +23,8 @@ var deleteEndpoint = {
     isTarget:false,
     maxConnections:1,
     dropOptions : exampleDropOptions,
-    overlays:[ [ "Label", { location:[0.54, 0.55], label:"X", cssClass:"endpointTargetLabel" } ] ]
+    //overlays:[ [ "Label", { location:[0.54, 0.55], label:"X", cssClass:"endpointTargetLabel" } ] ]
+    overlays:[ [ "Label", { location:[0.51, 0.54], label:"X", cssClass:"endpointTargetLabel" } ] ]
 }
 
 var targetEndpoint = {
@@ -327,13 +328,12 @@ var WorkflowGraphView = Backbone.View.extend({
                 return false;
             }
         });
-         // TODO: CMN fix graph objects to get width/height dynamically instead of using static values from CSS
-        //var myapp = $("#editor-app");
         
         var id = stepId;
         var innerText = workflowTool.get('title');
+        var toolExecutor = workflowTool.getExecutor(); //workflowTool.get('title');
         var shapeClass = "shape";
-        var dataShapeClass = getShape(innerText); //"Rectangle";
+        var dataShapeClass = getShapeByExecutor(toolExecutor); //"Rectangle";
         var divTag = document.createElement("div");
 
         divTag.id = id;
@@ -465,6 +465,18 @@ var WorkflowGraphButtonBar = Backbone.View.extend({
     }
 
 });
+
+var getShapeByExecutor = function(executor) {
+    if(executor === 'commandline') {
+        return "Rectangle-1";
+    } else if(executor === 'hpc') {
+        return "Rectangle-2";
+    } else if(executor === 'java') {
+        return "Rectangle-4";
+    } else {
+         return "Rectangle-3";
+    }
+}
 
 var getShape = function(title) {
     
