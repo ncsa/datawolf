@@ -9,6 +9,10 @@ var Dataset = Backbone.Model.extend({
 		return new Person(this.get('creator'));
 	},
 
+	getFileDescriptors: function() {
+		return new FileDescriptorCollection(this.get('fileDescriptors'));
+	},
+
 });
 
 var DatasetCollection = Backbone.Collection.extend({

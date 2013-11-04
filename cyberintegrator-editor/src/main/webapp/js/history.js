@@ -367,6 +367,9 @@ function updateExecutionOutputs(){
                         else if ( actualvalue === null) {
                             $(item).html(outputInfo.title+' (unfinished)');
                         }  
+                        else if ( ds.get("fileDescriptors").length == 1 ) {
+                            $(item).html('<a href="/datasets/'+actualvalue+'/'+ds.get("fileDescriptors")[0].id+'/file">'+outputInfo.title+'</a>');
+        				}
                         else {
                             $(item).html('<a href="/datasets/'+actualvalue+'/zip">'+outputInfo.title+'</a>');
                         }

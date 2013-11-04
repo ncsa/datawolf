@@ -201,19 +201,23 @@ var WorkflowExecutionOutputListView = Backbone.View.extend({
 		$(this.el).append("Generated outputs:");
 		_.each(_.keys(this.model.outputs), function(outputkey) {
 			var outputElementId = this.model.outputs[outputkey];
-// console.log(outputElementId);
+//console.log(outputElementId);
 			var outputInfo = getBy('dataId', outputkey, this.model.tool.outputs);			
-// console.log(outputInfo);
+//console.log(outputInfo);
 			if(outputInfo !== null){
 				var wedsv = new WorkflowExecutionOutputView({model: outputInfo});
 				var dsid = currentExecution.get("datasets")[outputElementId];
 				var ds = getDataset(dsid);
-// console.log(dsid);
-				var actualvalue = dsid;
-				wedsv.execvalue=actualvalue;
+//console.log(ds.get("fileDescriptors"));
+//console.log(dsid);
+				if (ds.get("fileDescriptors").length == 1) {
+//console.log(ds.get("fileDescriptors")[0].id);
+					wedsv.fileid=ds.get("fileDescriptors")[0].id;
+				}
+				wedsv.execvalue=dsid;
 				wedsv.datasetElementId=outputElementId;
+//console.log(wedsv);
 				$(this.el).append(wedsv.render().el);
-
 			}
 
 		}, this);

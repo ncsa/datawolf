@@ -60,7 +60,9 @@
             <%= model.title %> <font color="red">(error)</font>
         <% }  else if ( execvalue === null) { %>
             <%= model.title %> (unfinished)
-        <% }  else { %>
+        <% }  else if ( fileid != null ) { %>
+            <a href="/datasets/<%= execvalue %>/<%= fileid %>/file"> <%= model.title %> </a>
+        <% } else { %>
             <a href="/datasets/<%= execvalue %>/zip"> <%= model.title %> </a>
         <% } %>  
     </script>
