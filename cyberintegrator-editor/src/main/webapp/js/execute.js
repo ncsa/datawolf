@@ -109,7 +109,6 @@ var AppRouter = Backbone.Router.extend({
                 $('#workflowbuttons').html(new WorkflowButtonView().render().el);
             }});
         }});
-
     }
 
 });

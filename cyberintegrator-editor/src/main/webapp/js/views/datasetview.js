@@ -205,29 +205,28 @@ var NewDatasetView = Backbone.View.extend({
 
     uploadDataset: function(e) {
         e.preventDefault();
-        // this.$('[name=useremail]').val(currentUser.get('email'));
-        //TODO upload the dataset
+        $("#dataset-upload-form").submit();
 
-            console.log('post dataset:');
-            console.log($("#dataset-upload-form").serialize());
-            $.ajax({
-                type: "POST",
-                beforeSend: function(request) {
-                    request.setRequestHeader("Content-type", "multipart/form-data");
-                },
-                url: "/datasets", //"http://localhost:8080/executions",
-                // dataType: "",
-                data: $("#dataset-upload-form").serialize(),
+            // console.log('post dataset:');
+            // console.log($("#dataset-upload-form").serialize());
+            // $.ajax({
+            //     type: "POST",
+            //     beforeSend: function(request) {
+            //         request.setRequestHeader("Content-type", "multipart/form-data");
+            //     },
+            //     url: "/datasets", //"http://localhost:8080/executions",
+            //     // dataType: "",
+            //     data: $("#dataset-upload-form").serialize(),
                 
-                success: function(msg) {
-                    console.log("remote dataset id="+msg);
-                    alert('success: '+msg);
-                },
-                error: function(msg) {
-                    alert('error: '+JSON.stringify(msg));
-                }
+            //     success: function(msg) {
+            //         console.log("remote dataset id="+msg);
+            //         alert('success: '+msg);
+            //     },
+            //     error: function(msg) {
+            //         alert('error: '+JSON.stringify(msg));
+            //     }
 
-            }); 
+            // }); 
 
 // e.preventDefault();
         
