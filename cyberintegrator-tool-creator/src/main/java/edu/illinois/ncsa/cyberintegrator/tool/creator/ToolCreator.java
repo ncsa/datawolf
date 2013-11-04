@@ -40,7 +40,7 @@ public class ToolCreator extends JFrame {
         JPanel panel = new JPanel(new GridLayout(0, 1));
         add(panel, BorderLayout.CENTER);
 
-        final JTextField txtURL = new JTextField("http://localhost:8080/");
+        final JTextField txtURL = new JTextField("http://localhost:8888/");
         add(txtURL, BorderLayout.NORTH);
 
         JButton button = new JButton("Add Person");
