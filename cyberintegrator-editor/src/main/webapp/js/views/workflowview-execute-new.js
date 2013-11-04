@@ -111,6 +111,7 @@ var WorkflowButtonView = Backbone.View.extend({
 	openWorkflow: function(e) {
 		e.preventDefault();
 		var selectedWorkflow = $('#workflowSelector').find(".highlight");
+		$('.highlight').removeClass('highlight');
 		if(selectedWorkflow != null && selectedWorkflow.length != 0) {
 			var wkid = selectedWorkflow.attr("value");
 			eventBus.trigger("clicked:newopenworkflow", wkid);

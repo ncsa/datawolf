@@ -89,12 +89,53 @@ var DatasetButtonView = Backbone.View.extend({
     events: {
         "click button#dataset-info-btn" : "datasetInfo",
         "click button#new-dataset" : "datasetCreate",
+        "click button#delete-dataset" : "datasetDelete",
+        "click button#dataset-download-btn" : "datasetDownload",
     },
 
     render: function(e) {
         $(this.el).html(this.template());
         return this;
     },
+
+    datasetDownload: function(e) {
+        e.preventDefault();
+        var selectedDataset = $('#datasetListItemView').find(".highlight");
+        $('.highlight').removeClass('highlight');
+
+        // console.log(selectedDataset);
+        if(selectedDataset!=null && selectedDataset.length !=0){
+            var dsid = selectedDataset.attr("id");
+            // var model = getDataset(dsid);
+            window.open('/datasets/'+dsid+'/zip');
+        }
+    },
+
+    datasetDelete: function(e) {
+        // TODO implement delete workflow completely (both REST service and client)
+        e.preventDefault();
+        var selectedDataset = $('#datasetListItemView').find(".highlight");
+        // console.log(selectedDataset);
+        if(selectedDataset!=null && selectedDataset.length !=0){
+            var dsid = selectedDataset.attr("id");
+            var model = getDataset(dsid);
+            model.destroy({
+                wait: true,
+            
+                success: function(model, response) {
+                    console.log("deleted dataset - success");
+                    eventBus.trigger('clicked:updateDatasets', null);
+
+                },
+
+                error: function(model, response) {
+                    console.log("deleted dataset - failed"+response);
+                }
+
+            });
+        }
+    },
+
 
     datasetInfo: function() {
 
@@ -138,7 +179,11 @@ var DatasetButtonView = Backbone.View.extend({
 
     datasetCreate: function(e){
         $('.highlight').removeClass('highlight');
-
+        // console.log(currentUser.get('email'));
+        // console.log($("#dataset-upload-form"));
+        // $("#dataset-upload-form").find('[name=useremail]').val(currentUser.get('email'));
+        // console.log('rendering');
+        // console.log($("#dataset-upload-form").serialize());
         e.preventDefault();
         eventBus.trigger("clicked:newdataset", null);  
     },
@@ -154,14 +199,39 @@ var NewDatasetView = Backbone.View.extend({
     },
 
     render: function(e) {
-        $(this.el).html(this.template());
+        $(this.el).html(this.template(this.model.toJSON()));
         return this;
     },
 
     uploadDataset: function(e) {
         e.preventDefault();
-        this.$('[name=useremail]').val(currentUser.get('email'));
+        // this.$('[name=useremail]').val(currentUser.get('email'));
         //TODO upload the dataset
+
+            console.log('post dataset:');
+            console.log($("#dataset-upload-form").serialize());
+            $.ajax({
+                type: "POST",
+                beforeSend: function(request) {
+                    request.setRequestHeader("Content-type", "multipart/form-data");
+                },
+                url: "/datasets", //"http://localhost:8080/executions",
+                // dataType: "",
+                data: $("#dataset-upload-form").serialize(),
+                
+                success: function(msg) {
+                    console.log("remote dataset id="+msg);
+                    alert('success: '+msg);
+                },
+                error: function(msg) {
+                    alert('error: '+JSON.stringify(msg));
+                }
+
+            }); 
+
+// e.preventDefault();
+        
+        console.log("triggering update datasets");
         eventBus.trigger("clicked:updateDatasets", null);
         $('#modalDatasetView').modal('hide');
     },

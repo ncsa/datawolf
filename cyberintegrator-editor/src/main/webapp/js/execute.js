@@ -316,7 +316,7 @@ eventBus.on('clicked:newopenworkflow', function(workflowId) {
 });
 
 eventBus.on('clicked:newdataset', function() {
-    $('#new-dataset-content').html(new NewDatasetView().render().el);
+    $('#new-dataset-content').html(new NewDatasetView({model: currentUser}).render().el);
     $('#modalDatasetView').modal('show');
 });
 

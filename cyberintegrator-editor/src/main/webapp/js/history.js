@@ -33,7 +33,7 @@ var isInputConnected = function(inputKey){
 var buildInputOutputMap = function(wf){
     var outputMap = new Object();
     var inputMap = new Object();
-
+if(wf!==null){
     _.each(wf.attributes.steps, function(step) {
         _.each(_.keys(step.outputs), function(outputkey) {
             outputMap[step.outputs[outputkey]]=outputkey;
@@ -42,6 +42,7 @@ var buildInputOutputMap = function(wf){
             inputMap[step.inputs[inputkey]]=inputkey;
         });
     });
+}
 
     var map = new Object();
     _.each(_.keys(inputMap),function(key){
@@ -271,6 +272,15 @@ eventBus.on('clicked:tab', function(selected) {
             child.addClass('canvastab-text-unselected');
         }
     });
+});
+
+eventBus.on("clicked:updateExecutions", function(){
+    // console.log("EVENTBUS updating executions");
+    executionCollection.fetch({success: function() {
+        executionListView = new ExecutionListView({model: executionCollection});
+        $('#executions').html(executionListView.render().el);
+     }});
+ 
 });
 
 var getExecutionIdFromTabLabel = function(tabId) {

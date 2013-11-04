@@ -82,6 +82,8 @@ var ExecutionListItemView = Backbone.View.extend({
 var ExecutionButtonView = Backbone.View.extend({
 	events: {
 		"click button#execution-info-btn" : "executionInfo",
+		"click button#execution-open-btn" : "executionOpen",
+		"click button#execution-delete-btn" : "executionDelete",
 	},
 
 	template: _.template($("#execution-buttons").html()),
@@ -91,6 +93,42 @@ var ExecutionButtonView = Backbone.View.extend({
 
 		return this;
 	},
+
+	executionOpen: function() {
+		var selectedExecution = $('#executionSelector').find(".highlight");
+		if(selectedExecution!=null && selectedExecution.length !=0){
+			var id = selectedExecution.attr("value");
+			$('.highlight').removeClass('highlight');
+			eventBus.trigger("clicked:newopenexecution", id);			
+		}
+	},
+
+	executionDelete: function() {
+        // TODO implement delete workflow completely (both REST service and client)
+		var selectedExecution = $('#executionSelector').find(".highlight");
+        if(selectedExecution!=null && selectedExecution.length !=0){
+        	var execid = selectedExecution.attr("value");
+        	var model = getExecution(execid);
+			$('.highlight').removeClass('highlight');
+            
+            model.destroy({
+                wait: true,
+            
+                success: function(model, response) {
+                    console.log("deleted dataset - success");
+                    eventBus.trigger('clicked:updateExecutions', null);
+
+                },
+
+                error: function(model, response) {
+                    console.log("deleted dataset - failed"+response);
+                }
+
+            });
+        }
+    },
+
+
 
 	executionInfo : function() {
 

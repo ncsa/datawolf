@@ -105,22 +105,11 @@
         <div class="btn-toolbar nav-button-bar">
             <div class="btn-group pull-right cbi-btn-group">
                 <button id="workflow-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-open-active.png"></img></span>
+                   <span class=""><img src="assets/img/icon-toolbar-open-active.png"></img></span>
                 </button>
                 <button id="workflow-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
                     <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
                 </button>
-    <!--
-                <button id="workflow-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                   <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></img></span>
-                </button>
-                <button id="delete-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-trash-inactive.png"></img></span>
-                </button> 
-                <button id="new-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></img></span>
-                </button>
-    --> 
             </div>
         </div>
     </script>
@@ -134,8 +123,8 @@
                 <button id="dataset-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
                     <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
                 </button>
-                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></img></span>
+                <button id="dataset-download-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                    <span class=""><img src="assets/img/icon-toolbar-download-inactive.png"></img></span>
                 </button>
                 <!-- TODO implement del dataset, this is just a UI placeholder --> 
                 <button id="delete-dataset" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
@@ -151,7 +140,7 @@
 
 
     <script type="text/template" id="new-dataset">
-        <form enctype="multipart/form-data" role="form">
+        <form enctype="multipart/form-data" role="form" id="dataset-upload-form">
             <div class="row">
                 <label class="col-xs-2" for="dataset-title"><font color='#6D6E70'>Title</font></label>
                 <div class="col-xs-10">
@@ -173,7 +162,7 @@
                 </div>
             </div>
             <br>
-            <input type="hidden" class="form-control" name="useremail"/>
+            <input type="hidden" class="form-control" name="useremail" value="<%= email %>"/>
             <div class="row">
                 <div class="col-xs-12">
                     <div class="btn-group btn-group-save">
