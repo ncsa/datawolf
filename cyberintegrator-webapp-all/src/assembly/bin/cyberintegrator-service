@@ -4,7 +4,7 @@
 cd "$(dirname $0)/.."
 
 # port for the jetty server
-PORT=8080
+PORT=8888
 
 # log file, leave blank for console
 #LOG="--out ${PWD}/log/cyberintegrator-yyyy_mm_dd.log"
