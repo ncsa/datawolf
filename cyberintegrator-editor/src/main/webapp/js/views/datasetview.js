@@ -204,33 +204,29 @@ var NewDatasetView = Backbone.View.extend({
     },
 
     uploadDataset: function(e) {
+        // $("#dataset-upload-form").submit();
         e.preventDefault();
-        $("#dataset-upload-form").submit();
+        var data=new FormData();
+        data.append("uploadedFile", $('#dataset-upload-form')[0][2].files[0]);
+        data.append("useremail","john.doe@ncsa.uiuc.edu");
+        data.append("datasetDescription","blu");
+        data.append("datasetTitle","bla");
+        $.ajax({
+            type: "POST",
+            url: "/datasets",
+            // dataType: "",
+            data: data,
+            contentType: false,
+            processData: false,
+            // success: function(msg) {
+            //     console.log("remote dataset id="+msg);
+            //     alert('success: '+msg);
+            // },
+            // error: function(msg) {
+            //     alert('error: '+JSON.stringify(msg));
+            // }
 
-            // console.log('post dataset:');
-            // console.log($("#dataset-upload-form").serialize());
-            // $.ajax({
-            //     type: "POST",
-            //     beforeSend: function(request) {
-            //         request.setRequestHeader("Content-type", "multipart/form-data");
-            //     },
-            //     url: "/datasets", //"http://localhost:8080/executions",
-            //     // dataType: "",
-            //     data: $("#dataset-upload-form").serialize(),
-                
-            //     success: function(msg) {
-            //         console.log("remote dataset id="+msg);
-            //         alert('success: '+msg);
-            //     },
-            //     error: function(msg) {
-            //         alert('error: '+JSON.stringify(msg));
-            //     }
-
-            // }); 
-
-// e.preventDefault();
-        
-        console.log("triggering update datasets");
+        }); 
         eventBus.trigger("clicked:updateDatasets", null);
         $('#modalDatasetView').modal('hide');
     },

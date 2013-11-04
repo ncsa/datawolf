@@ -109,6 +109,7 @@ var AppRouter = Backbone.Router.extend({
                 $('#workflowbuttons').html(new WorkflowButtonView().render().el);
             }});
         }});
+
     }
 
 });
@@ -270,8 +271,7 @@ var buildInputOutputMap = function(wf){
 
 var eventBus = _.extend({}, Backbone.Events);
 
-eventBus.on("clicked:updateDatasets", function(){
-    // console.log("EVENTBUS updating datasets");
+eventBus.on("clicked:updateDatasets", function(n){
     datasetCollection.fetch({success: function() {
         datasetListView = new DatasetListView({model: datasetCollection});
         $('#datasets').html(datasetListView.render().el);
