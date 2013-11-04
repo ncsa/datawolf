@@ -17,5 +17,22 @@ var Dataset = Backbone.Model.extend({
 
 var DatasetCollection = Backbone.Collection.extend({
 	model: Dataset,
-	url: "/datasets" //"http://localhost:8080/datasets"
+	url: "/datasets", //"http://localhost:8080/datasets"
+	remote: true,
+	
+	getReadUrl: function() {
+		return '/datasets/'+ '?email=' + currentUser.get('email');
+	},
+
+	sync: function(method, model, options) {
+		// Filter by user
+    	if(method === 'read') {
+			options = options || {};
+    		options.url = model.getReadUrl();
+    	}
+    	
+    	return Backbone.sync.apply(this, arguments);
+ 	}
 });
+
+
