@@ -7,7 +7,6 @@ import java.net.URLEncoder;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import org.apache.http.client.HttpClient;
@@ -77,7 +76,8 @@ public class PersonWizard extends Wizard {
         private JTextField        txtFirstName;
         private JTextField        txtLastName;
         private JTextField        txtEmail;
-        private JPasswordField    txtPassword;
+
+//        private JPasswordField    txtPassword;
 
         public PersonPage(Wizard wizard) {
             super(wizard);
@@ -97,10 +97,10 @@ public class PersonWizard extends Wizard {
             txtEmail.addKeyListener(this);
             add(txtEmail, 1, 2, GridBagConstraints.HORIZONTAL);
 
-            add(new JLabel("Password :"), 0, 3);
-            txtPassword = new JPasswordField();
-            txtPassword.addKeyListener(this);
-            add(txtPassword, 1, 3, GridBagConstraints.HORIZONTAL);
+//            add(new JLabel("Password :"), 0, 3);
+//            txtPassword = new JPasswordField();
+//            txtPassword.addKeyListener(this);
+//            add(txtPassword, 1, 3, GridBagConstraints.HORIZONTAL);
 
             checkUI();
         }
@@ -116,7 +116,7 @@ public class PersonWizard extends Wizard {
         public Account getAccount() {
             Account account = new Account();
             account.setUserid(txtFirstName.getText().trim());
-            account.setPassword(txtPassword.getText().trim());
+//            account.setPassword(txtPassword.getText().trim());
             account.setPerson(getPerson());
             return account;
         }
@@ -134,10 +134,10 @@ public class PersonWizard extends Wizard {
                 setStepComplete(false);
                 return;
             }
-            if (txtPassword.getText().trim().equals("")) {
-                setStepComplete(false);
-                return;
-            }
+//            if (txtPassword.getText().trim().equals("")) {
+//                setStepComplete(false);
+//                return;
+//            }
 
             setStepComplete(true);
         }
