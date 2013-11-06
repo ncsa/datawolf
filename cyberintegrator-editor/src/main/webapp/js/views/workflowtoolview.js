@@ -164,6 +164,7 @@ var WorkflowToolButtonBar = Backbone.View.extend({
 
     events: {
         "click button#workflow-tool-info-btn" : "workflowToolInfo",
+        "click button#new-workflow-tool-btn" : "createWorkflowTool"
     },
 
     render: function(e) {
@@ -196,5 +197,15 @@ var WorkflowToolButtonBar = Backbone.View.extend({
             }
         }
         //showToolInfo = !showToolInfo;
+    },
+
+    createWorkflowTool: function() {
+        console.log("show new tool dialog");
+        commandLineBasicView = new CommandLineBasicTab();
+        commandLineOptionView = new CommandLineOptionTab();
+        $('#wizard-pane1').html(commandLineBasicView.render().el);
+        $('#wizard-pane2').html(commandLineOptionView.render().el);
+        $('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
+        $('#modalWorkflowToolView').modal('show');
     }
 });
