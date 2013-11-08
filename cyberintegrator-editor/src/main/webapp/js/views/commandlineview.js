@@ -3,7 +3,8 @@ var CommandLineView = Backbone.View.extend({
 	template: _.template($('#command-line-form').html()),
 
 	events: {
-		"click button#new-tool-create-btn" : "createTool"
+		"click button#new-tool-create-btn" : "createTool",
+		"click button#new-tool-cancel-btn" : "cancel"
 	},
 
 	render: function() {
@@ -92,15 +93,61 @@ var CommandLineView = Backbone.View.extend({
 
         });
 
+        // Update Environment
+        commandLineImpl.setEnv(commandLineEnvView.getEnvironmentMap());
+
+        tool.set('implementation', JSON.stringify(commandLineImpl));
         tool.set('inputs', inputs);
         tool.set('outputs', outputs);
         tool.set('parameters', parameters);
         tool.set('blobs', blobs);
 
-        console.log(JSON.stringify(tool, undefined, 2));
-        //var zipfile = new JSZip();
-        //zipfile.file('tool.json', JSON.stringify(tool));
+        var files = $('#tool-file-form')[0][0].files;
+        this.numFiles = files.length;
+        this.fileCounter = 0;
+        var zipfile = new JSZip();
+        var instance = this;
+
+        if(this.numFiles > 0) {
+			var blobFolder = zipfile.folder('blobs');
+	        for(var index = 0; index < files.length; index++) {
+
+		        var reader = new FileReader();
+		        reader.onload = (function(file) {
+		        	return function(e) {
+			        	var fileDescriptor = {};
+						fileDescriptor.id = generateUUID();
+				        fileDescriptor.filename = file.name;
+				        fileDescriptor.mimeType = file.type;
+				        fileDescriptor.size = file.size;
+				        blobFolder.file(fileDescriptor.id + '/' + file.name, e.target.result);
+						blobs.push(fileDescriptor)
+
+			        	instance.fileCounter++;
+				        // Check if ready to upload tool
+			        	instance.checkReadyState(tool, zipfile);
+		        	};
+		        })(files[index]);
+		        reader.readAsArrayBuffer(files[index]);
+		    }
+		} else {
+			this.checkReadyState(tool, zipfile);
+		}
+	    $('#modalWorkflowToolView').modal('hide');
+	    console.log("exit create tool");
+        
+	},
+
+	cancel: function(e) {
 		$('#modalWorkflowToolView').modal('hide');
+	},
+
+	checkReadyState: function(tool, zipfile) {
+		if(this.fileCounter == this.numFiles) {
+			zipfile.file('tool.json', JSON.stringify(tool));
+			//console.log(JSON.stringify(tool, undefined, 2));
+			postTool(zipfile);
+		}
 	}
 });
 
@@ -122,7 +169,11 @@ var CommandLineOptionTab = Backbone.View.extend({
 	events: {
 		"click button#add-tool-param-btn" : "showAddToolParameter",
 		"click button#add-tool-data-btn" : "showAddToolData",
-		"click button#add-tool-value-btn" : "showAddToolValue"
+		"click button#add-tool-value-btn" : "showAddToolValue",
+		"click button#move-cloption-up-btn" : "commandLineOptionUp",
+		"click button#move-cloption-down-btn" : "commandLineOptionDown",
+		"click button#delete-cloption-btn" : "deleteCommandlineOption"
+
 	},
 	initialize: function() {
 		// key is command line option, value is workflow parameter
@@ -146,7 +197,6 @@ var CommandLineOptionTab = Backbone.View.extend({
 	},
 
 	showAddToolParameter: function() {
-		console.log("adding parameter");
 		$('#newCommandLineOptionLabel').text("CommandLine Parameter");
         $('#add-parameter-view').html(new CommandLineParameterView().render().el);
         $('#modalParameterView').modal('show');
@@ -165,13 +215,12 @@ var CommandLineOptionTab = Backbone.View.extend({
 	},
 
 	addParameter: function(cmdLineOption, wfParameter) {
-		this.parameters[cmdLineOption] = wfParameter;
+		this.parameters[cmdLineOption.getOptionId()] = wfParameter;
 		this.addCommandLineOption(cmdLineOption);
-		console.log("how many options: "+this.optionModel.size());
 	},
 
 	addData: function(cmdLineOption, wfToolData) {
-		this.data[cmdLineOption] = wfToolData;
+		this.data[cmdLineOption.getOptionId()] = wfToolData;
 		this.addCommandLineOption(cmdLineOption);
 	},
 
@@ -184,11 +233,48 @@ var CommandLineOptionTab = Backbone.View.extend({
 	},
 
 	getParameter: function(cmdLineOption) {
-		return this.parameters[cmdLineOption];
+		return this.parameters[cmdLineOption.getOptionId()];
 	},
 
 	getData: function(cmdLineOption) {
-		return this.data[cmdLineOption];
+		return this.data[cmdLineOption.getOptionId()];
+	},
+
+	commandLineOptionUp: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			if(index > 0) {
+				this.getOptionModel().swapElements(index, index-1);
+				this.clOptionsView.render();
+			}
+		}
+	},
+
+	commandLineOptionDown: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			if(index < this.getOptionModel().size()-1) {
+				this.getOptionModel().swapElements(index, index+1);
+				this.clOptionsView.render();
+			}
+		}
+	},
+
+	deleteCommandlineOption: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			var model = this.optionModel.at(index);
+			if(model in this.parameters) {
+				delete this.parameters[model];	
+			}
+			this.optionModel.remove(model);
+		} else {
+			console.log('nothing selected');
+		}
+		
 	}
 
 });
@@ -202,7 +288,6 @@ var CommandLineParameterView = Backbone.View.extend({
 	},
 
 	render: function() {
-		console.log("render parameter template");
 		$(this.el).html(this.template());
 		return this;
 	},
@@ -226,12 +311,10 @@ var CommandLineParameterView = Backbone.View.extend({
         param.set('parameterId', generateUUID());
         param.set('value', value);
 
-        console.log('hidden = '+hidden);
-
         var clOption = new CommandLineOption();
         clOption.setType('PARAMETER');
         clOption.setFlag(flag);
-        clOption.setOptionId(generateUUID());
+        clOption.setOptionId(param.get('parameterId'));
 
         commandLineOptionView.addParameter(clOption, param);
         $('#modalParameterView').modal('hide');
@@ -322,21 +405,35 @@ var CommandLineAddValueView = Backbone.View.extend({
 var CommandLineOptionListView = Backbone.View.extend({
 	tagName: "select",
 	className: "wf-options-list-select",
+	id: "commandLineOptionListView",
 
 	initialize: function() {
 		//console.log('initialize option list');
 		this.$el.attr('size', '15');
+		this.clOptionViews = [];
 		var self = this;
 		this.model.bind("add", function(option) {
-			console.log('option add: '+JSON.stringify(option, undefined, 2));
-			$(self.el).append(new CommandLineOptionListItemView({model: option}).render().el);
+			var clOptionView = new CommandLineOptionListItemView({model: option});
+			self.clOptionViews.push(clOptionView);
+			$(self.el).append(clOptionView.render().el);
+		});
+
+		this.model.bind("remove", function(option) {
+			console.log("remove option");
+			var viewToRemove = _(self.clOptionViews).select(function(cv) {
+				return cv.model === option;
+			})[0];
+			$(viewToRemove.el).remove();
 		});
 	},
 
 	render: function() {
 		$(this.el).empty();
+		this.clOptionViews = [];
 		_.each(this.model.models, function(option) {
-			$(this.el).append(new CommandLineOptionListItemView({model: option}).render().el);
+			var clOptionView = new CommandLineOptionListItemView({model: option});
+			this.clOptionViews.push(clOptionView);
+			$(this.el).append(clOptionView.render().el);
 		}, this);
 
 		return this;
@@ -347,10 +444,14 @@ var CommandLineOptionListItemView = Backbone.View.extend({
 	tagName: "option",
 	template: _.template($('#tool-option-list-item').html()),
 
-	render: function() {
-		console.log("render a option item");
-		var optionAsString = "";
+	attributes: function() {
+		return {
+			value: JSON.stringify(this.model)
+		}
+	},
 
+	render: function() {
+		var optionAsString = "";
 		if(this.model.getFlag() != null && !_.isEmpty(this.model.getFlag())) {
 			optionAsString += this.model.getFlag().trim() + " ";
 		}
@@ -384,7 +485,7 @@ var CommandLineOptionListItemView = Backbone.View.extend({
 					}
 
 					if((this.model.getFilename() != null) && (this.model.getFilename().trim().length > 0)) {
-						optionAsString += option.getFilename().trim();
+						optionAsString += this.model.getFilename().trim();
 					} else {
 						optionAsString += "AUTO";
 					}
@@ -402,3 +503,144 @@ var CommandLineOptionListItemView = Backbone.View.extend({
 		return this;
 	}
 });
+
+var CommandLineFileTab = Backbone.View.extend({
+	template: _.template($('#new-tool-file-tab').html()),
+	events: {
+		"change input.tool-file-select" : "fileChange"
+	},
+
+	initialize: function() {
+		
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	fileChange: function(e) {
+		e.preventDefault();
+		if(!e.target.files) {
+			return;
+		}
+		var div = document.querySelector("#selected-files");
+		var myfile = $('#tool-file-form')[0][0].files[0];
+
+		var files = e.target.files;
+		var index;
+		for(index = 0; index < files.length; index++) {
+			var file = files[index];
+			div.innerHTML += file.name + "<br/>";
+		}
+	}
+
+});
+
+var CommandLineEnvTab = Backbone.View.extend({
+	template: _.template($('#new-tool-env-tab').html()),
+	events: {
+		"click button#add-tool-env-btn" : "addEnvironmentVariable",
+	},
+
+	initialize: function() {
+		this.envModel = new EnvironmentCollection();
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+
+		this.clTableView = new CommandLineEnvTable({model: this.envModel});
+		$(this.el).find('#env-table').html(this.clTableView.render().el);
+		return this;
+	},
+
+	addEnvironmentVariable: function(e) {
+		e.preventDefault();
+		this.envModel.add(new EnvironmentModel());
+	},
+
+	getEnvironmentMap: function() {
+		var envMap = {};
+		var rows = this.clTableView.getTableRows()
+		for(var index = 0; index < rows.length; rows++) {
+			var row = rows[0];
+			var envRow = row.getRowValue();
+			envMap[envRow[0]] = envRow[1];
+		}
+
+		return envMap;
+	},
+});
+
+var CommandLineEnvTable = Backbone.View.extend({
+	tagName: 'table',
+	className: 'table',
+	template: _.template($('#env-tab-table-header').html()),
+
+	initialize: function() {
+		var self = this;
+		this.tableRows = [];
+		this.model.bind("add", function(envModel) {
+			var tableRow = new CommandLineEnvRow({model: envModel});
+			$(self.el).append(tableRow.render().el);
+			self.tableRows.push(tableRow);
+		});
+
+		this.model.bind("remove", function(envModel) {
+			var viewToRemove = _(self.tableRows).select(function(cv) {
+				return cv.model === envModel;
+			})[0];
+			$(viewToRemove.el).remove();
+		});
+	},
+
+	render: function() {
+		// Without trimming the white space, the header is spaced incorrectly
+		$(this.el).append(this.template().trim());
+		return this;
+	},
+
+	getTableRows: function() {
+		return this.tableRows;
+	}
+});
+
+var CommandLineEnvRow = Backbone.View.extend({
+	template: _.template($('#env-tab-row').html()),
+	events: {
+		"click" : "highlightRow",
+		"click button#remove-env-btn" : "clear"
+	},
+
+	initialize: function() {
+
+	},
+
+	attributes: function() {
+        return {
+            value: this.model
+        }
+    },
+
+	render: function() {
+		this.setElement(this.template().trim());
+		return this;
+	},
+
+	getRowValue: function() {
+		var env = [];
+		env[0] = $(this.el).find('#variable').val().trim();
+		env[1] = $(this.el).find('#value').val().trim();
+		return env;
+	},
+
+	highlightRow: function(e) {
+		$('.highlight').removeClass('highlight');
+        $(this.el).addClass('highlight');
+	},
+
+	clear: function(e) {
+		this.model.destroy();
+	}
+}); 

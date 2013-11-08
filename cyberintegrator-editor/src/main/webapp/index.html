@@ -293,13 +293,13 @@
                     <div id="wizard-pane1" class="tab-pane active tool-wizard-pane-bkgrd"></div>
                     <div id="wizard-pane2" class="tab-pane tool-wizard-pane-bkgrd"></div>
                     <div id="wizard-pane3" class="tab-pane tool-wizard-pane-bkgrd"></div>
-                    <div id="wizard-pane4" class="tab-pane tool-wizard-pane-bkgrd"></div>
+                    <div id="wizard-pane4" class="tab-pane tool-wizard-pane-bkgrd"></div>                   
                 </div>
             </div>
             <div>
                 <br>
                 <div class="col-lg-offset-9 col-lg-12">
-                    <button type="button" class="btn btn-default">Cancel</button>
+                    <button id="new-tool-cancel-btn" type="button" class="btn btn-default">Cancel</button>
                     <button id="new-tool-create-btn" type="button" class="btn btn-default">Create</button>
                 </div>
             </div>
@@ -377,10 +377,10 @@
                         <button type="button" id="add-tool-value-btn" class="btn btn-default">Add Value</button>
                         <button type="button" id="add-tool-param-btn" class="btn btn-default">Add Parameter</button>
                         <button type="button" id="add-tool-data-btn" class="btn btn-default">Add Data</button>
-                        <button type="button" class="btn btn-default">Edit</button>
-                        <button type="button" class="btn btn-default" disabled>Delete</button>
-                        <button type="button" class="btn btn-default" disabled>Up</button>
-                        <button type="button" class="btn btn-default" disabled>Down</button>
+                        <button type="button" id="edit-cloption-btn" class="btn btn-default">Edit</button>
+                        <button type="button" id="delete-cloption-btn" class="btn btn-default">Delete</button>
+                        <button type="button" id="move-cloption-up-btn" class="btn btn-default">Up</button>
+                        <button type="button" id="move-cloption-down-btn" class="btn btn-default">Down</button>
                     </div>
                 </div>
             </div>
@@ -552,6 +552,53 @@
                 </div>
             </div>
         </form>
+    </script>
+    <!-- New Tool File Tab -->
+    <script type="text/template" id="new-tool-file-tab">
+        <form enctype="multipart/form-data" id="tool-file-form" class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="tool-file" class="col-lg-3 control-label">Files</label>
+                <div class="col-lg-9">
+                        <input type="file" class="form-control tool-file-select" id="tool-files" multiple /> 
+                </div>
+            </div>
+            <div class="form-group"> 
+                <div class="col-lg-offset-3 col-lg-9">
+                    <div id="selected-files"></div>
+                </div>
+            </div>
+        </form>
+    </script>
+    <!-- New Tool Environment Tab -->
+    <script type="text/template" id="new-tool-env-tab">
+        <div class="tool-wizard-content">
+            <div class="form-group">
+                <div class="col-lg-10">
+                    <div class="panel panel-default">
+                        <div id="env-table"></div>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="btn-group-vertical">
+                        <button type="button" id="add-tool-env-btn" class="btn btn-default">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </script>
+    <script type="text/template" id="env-tab-table-header">
+        <tr>
+            <th>Variable</th>
+            <th>Value</th>
+        </tr>
+    </script>
+    <!-- New Tool Environment Tab Table Row Template -->
+    <script type="text/template" id="env-tab-row">
+        <tr>
+            <td><input type='text' class='env-table-input' id='variable' value=''/></td>
+            <td><input type='text' class='env-table-input' id='value' value=''/></td>
+            <td><button type="button" id="remove-env-btn" class="btn btn-default btn-xs">x</button>
+        </tr>
     </script>
     <div id='editor-app' class="container-liquid">
         <div class="row">

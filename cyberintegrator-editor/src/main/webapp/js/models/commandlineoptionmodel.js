@@ -62,15 +62,19 @@ var CommandLineOption = Backbone.Model.extend({
 
 var CommandLineOptionCollection = Backbone.Collection.extend({
 	model: CommandLineOption,
+
+	swapElements: function(index0, index1) {
+		this.models[index0] = this.models.splice(index1, 1, this.models[index0])[0];
+	}
 });
 
 var CommandLineImplementation = Backbone.Model.extend({
 	initialize: function() {
-		this.commandLineOptions = [];
-		this.env = {};
-		this.captureStdOut = null;
-		this.captureStdErr = null;
-		this.joinStdOutStdErr = false;
+		this.set('commandLineOptions', []);
+		this.set('env', {});
+		this.set('captureStdOut', null);
+		this.set('captureStdErr', null);
+		this.set('joinStdOutStdErr', false);
 	},
 
 	setExecutable: function(exec) {
@@ -82,24 +86,33 @@ var CommandLineImplementation = Backbone.Model.extend({
 	},
 
 	addCommandLineOption: function(commandLineOption) {
-		this.commandLineOptions.push(commandLineOption);
+		this.get('commandLineOptions').push(commandLineOption);
+		console.log("option length = "+this.get('commandLineOptions').length);
 	},
 
 	setEnv: function(env) {
-		this.env = env;
+		this.set('env', env);
 	},
 
 	setCaptureStdOut: function(captureStdOut) {
-		this.captureStdOut = captureStdOut;
+		this.set('captureStdOut', captureStdOut);
 	},
 
 	setCaptureStdErr: function(captureStdErr) {
-		this.captureStdErr = captureStdErr;
+		this.set('captureStdErr', captureStdErr);
 	},
 
 	setJoinStdOutStdErr: function(joinStdOutStdErr) {
-		this.joinStdOutStdErr = joinStdOutStdErr;
+		this.set('joinStdOutStdErr', joinStdOutStdErr);
 	},
 
 	
+});
+
+var EnvironmentModel = Backbone.Model.extend({
+
+});
+
+var EnvironmentCollection = Backbone.Collection.extend({
+	model: EnvironmentModel
 });

@@ -812,3 +812,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 .wf-options-list-select {
   width: 100%;
 }
+
+.env-table-input {
+  border: none;
+}
