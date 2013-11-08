@@ -17,6 +17,10 @@ var stepLocationCollection = new GraphStepLocationCollection();
 // Views
 var workflowGraphView = null;
 var workflowListView = null;
+var commandLineBasicView = null;
+var commandLineOptionView = null;
+var commandLineFileView = null;
+var commandLineEnvView = null;
 
 // TODO When the PersonView is created, select the first person as current user
 var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu"});
@@ -230,6 +234,7 @@ var AppRouter = Backbone.Router.extend({
             registerOpenEvent();
             registerTabEvent();
             getExecutors();
+            //$('#tool-modal-content').html(new CommandLineView().render().el);
         }});
         //$('#persons').html(new PersonListView({model: personCollection}).render().el);
     }
@@ -366,6 +371,16 @@ var postWorkflow = function(workflow) {
 
         }); 
 
+}
+
+var postTool = function(zip) {
+    console.log('post tool');
+    var blob = zip.generate({type:"blob"});
+    var data = new FormData();
+    data.append('tool', blob);
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", "/workflowtools");
+    oReq.send(data);
 }
 
 var handleEndpointClick = function(endpoint, originalEvent) {

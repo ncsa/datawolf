@@ -10,260 +10,595 @@
     <link href="main.css" rel="stylesheet">
 </head>
 <body>
-</script>
-    <script type="text/template" id="person-list-item">
-        <%= firstName %> <%= lastName %> - <%= email %>
     </script>
-    <script type="text/template" id="workflow-list-item">
-        <div class="list-item"><span class="icon-wf"><img src="assets/img/icon-wf.png"></img></span><%= title %></div>
-    </script>
-    <script type="text/template" id="workflow-tool-list-item">
-        <div class="list-item"><span class="icon-wf-2"><div class="icon-wf-title icon-wf"></div></span><%= title %></div>
-    </script>
-    <script type="text/template" id="workflow-info-view">
-        <form class="form-inline">
-            <div class="control-group">
-                <label class="control-label" for="workflow-title">Title:</label>
-                <div class="controls">
-                    <input type="text" name="workflow-title" id="workflow-title" placeholder="enter title" value="<%= title %>"/>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="workflow-date">Date:</label>
-                <div class="controls">
-                    <input type="text" name="workflow-date" id="workflow-date" placeholder="no date" value="<%= created %>" readonly/>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="workflow-creator">Creator:</label>
-                <div class="controls">
-                    <input type="text" name="workflow-creator" id="workflow-creator" placeholder="no creator" value="<%= creator.firstName %> <%= creator.lastName %>" readonly/>
-                </div>
-            </div>
-        </form>
-    </script>
-     <script type="text/template" id="tool-data-info-view">
-        <form class="form-inline">
-            <div class="control-group">
-                <label class="control-label" for="tooldata-title">Title:</label>
-                <div class="controls">
-                    <input type="text" name="tooldata-title" id="tooldata-title" placeholder="enter title" value="<%= title %>" readonly/>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="tooldata-description">Description:</label>
-                <div class="controls">
-                    <input type="text" name="tooldata-description" id="tooldata-description" placeholder="no date" value="<%= description %>" readonly/>
-                </div>
-            </div>
-            <div class="control-group">
-                <label class="control-label" for="tooldata-mimetype">Mime-Type:</label>
-                <div class="controls">
-                    <input type="text" name="tooldata-mimetype" id="tooldata-mimetype" placeholder="no creator" value="<%= mimeType %>" readonly/>
-                </div>
-            </div>
-        </form>
-    </script>
-    <script type="text/template" id="workflow-step-info-view">
-    </script>
-    <script type="text/template" id="new-workflow-buttons">
-        <div class="btn-toolbar nav-button-bar">
-            <div class="btn-group pull-right cbi-btn-group">
-                <button id="workflow-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-open-active.png"></img></span>
-                </button>
-                <button id="workflow-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
-                </button>
-                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></img></span>
-                </button>
-                <button id="delete-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-trash-inactive.png"></img></span>
-                </button> 
-                <button id="new-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></img></span>
-                </button> 
-            </div>
-        </div>
-    <!--
-        <div class="btn-group">
-            <button id="new-workflow" class="btn btn-default">New</button>
-            <button id="open-workflow" class="btn btn-default">Open</button>
-            <button id="delete-workflow" class="btn btn-default">Delete</button>
-            <button id="copy-workflow" class="btn btn-default">Copy</button>
-            
-        <div> -->    
-    </script>
-    <script type="text/template" id="workflow-tool-buttons">
-        <div class="btn-toolbar nav-button-bar">
-            <div class="btn-group pull-right cbi-btn-group">
-                <button id="workflow-tool-info-btn" type="button" /* data-toggle="buttons"*/ class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
-                </button>
-                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
-                    <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></img></span>
-                </button>
-                <!-- TODO implement add tool, this is just a UI placeholder --> 
-                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd open">
-                    <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></img></span>
-                </button>
-            </div>
-        </div>   
-    </script>
-    <script type="text/template" id="new-workflow">
-        <form role="form">
-            <div class="row">
-                <label class="col-xs-2" for="workflow-title"><font color='#6D6E70'>Save As</font></label>
-                <div class="col-xs-10">
-                    <input type="text" class="form-control" name="workflow-title" id="workflow-title" placeholder="enter title"/>
-                </div>
-            </div>
-            <br>
-            <div class="row">
-                <div class="col-xs-12">
-                    <div class="btn-group btn-group-save">
-                        <button class="btn btn-default" id="save-workflow">Save</button>
-                    </div>
-                    <div class="btn-group btn-group-save">
-                        <button class="btn btn-default" id="cancel">Cancel</button>
+        <script type="text/template" id="person-list-item">
+            <%= firstName %> <%= lastName %> - <%= email %>
+        </script>
+        <script type="text/template" id="workflow-list-item">
+            <div class="list-item"><span class="icon-wf"><img src="assets/img/icon-wf.png"></img></span><%= title %></div>
+        </script>
+        <script type="text/template" id="workflow-tool-list-item">
+            <div class="list-item"><span class="icon-wf-2"><div class="icon-wf-title icon-wf"></div></span><%= title %></div>
+        </script>
+        <script type="text/template" id="workflow-info-view">
+            <form class="form-inline">
+                <div class="control-group">
+                    <label class="control-label" for="workflow-title">Title:</label>
+                    <div class="controls">
+                        <input type="text" name="workflow-title" id="workflow-title" placeholder="enter title" value="<%= title %>"/>
                     </div>
                 </div>
-            </div>
-            
-            <!--
-            <div class="control-group">
-                <label class="control-label" for="workflow-title">Title:</label>
-                <div class="controls">
-                    <input type="text" name="workflow-title" id="workflow-title" placeholder="enter title"/>
+                <div class="control-group">
+                    <label class="control-label" for="workflow-date">Date:</label>
+                    <div class="controls">
+                        <input type="text" name="workflow-date" id="workflow-date" placeholder="no date" value="<%= created %>" readonly/>
+                    </div>
                 </div>
-            </div> -->
-        </form>
-    </script>
-    <script type="text/template" id="workflow-graph-button-bar">
-        <div class="canvas-button-bar">
-            <button type="button" class="btn btn-default">
-                <span class="glyphicon glyphicon-trash"></span>
-            </button>
-            <button type="button" class="btn btn-default">
-                <span class="glyphicon glyphicon-search"></span>
-            </button>
-            <!-- <a data-toggle="modal" href="#modalWorkflowView" class="btn btn-primary btn-lg">Launch demo modal</a> -->
-            <button id="workflow-save-as" type="button" class="btn btn-default btn-save-as">Save As</button>
-        </div> 
-    </script>
-    <script type="text/template" id="addshape-button-template">
-        <button id="addshape-button" class="btn btn-primary">Add Shape</button>
-    </script>
-    <script type="text/template" id="workflow-popover">
-        <div class="info-title-bkgrd info-title-font">
-            <span class="glyphicon glyphicon-info-sign info-popover-title"></span>
-            <%= title %>
-        </div>
-    </script>
-    <script type="text/template" id="workflow-popover-content">
-        <div>
+                <div class="control-group">
+                    <label class="control-label" for="workflow-creator">Creator:</label>
+                    <div class="controls">
+                        <input type="text" name="workflow-creator" id="workflow-creator" placeholder="no creator" value="<%= creator.firstName %> <%= creator.lastName %>" readonly/>
+                    </div>
+                </div>
+            </form>
+        </script>
+         <script type="text/template" id="tool-data-info-view">
+            <form class="form-inline">
+                <div class="control-group">
+                    <label class="control-label" for="tooldata-title">Title:</label>
+                    <div class="controls">
+                        <input type="text" name="tooldata-title" id="tooldata-title" placeholder="enter title" value="<%= title %>" readonly/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="tooldata-description">Description:</label>
+                    <div class="controls">
+                        <input type="text" name="tooldata-description" id="tooldata-description" placeholder="no date" value="<%= description %>" readonly/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label" for="tooldata-mimetype">Mime-Type:</label>
+                    <div class="controls">
+                        <input type="text" name="tooldata-mimetype" id="tooldata-mimetype" placeholder="no creator" value="<%= mimeType %>" readonly/>
+                    </div>
+                </div>
+            </form>
+        </script>
+        <script type="text/template" id="workflow-step-info-view">
+        </script>
+        <script type="text/template" id="new-workflow-buttons">
+            <div class="btn-toolbar nav-button-bar">
+                <div class="btn-group pull-right cbi-btn-group">
+                    <button id="workflow-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                        <span class=""><img src="assets/img/icon-toolbar-open-active.png"></img></span>
+                    </button>
+                    <button id="workflow-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                        <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
+                    </button>
+                    <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                        <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></img></span>
+                    </button>
+                    <button id="delete-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                        <span class=""><img src="assets/img/icon-toolbar-trash-inactive.png"></img></span>
+                    </button> 
+                    <button id="new-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                        <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></img></span>
+                    </button> 
+                </div>
+            </div>
+        <!--
+            <div class="btn-group">
+                <button id="new-workflow" class="btn btn-default">New</button>
+                <button id="open-workflow" class="btn btn-default">Open</button>
+                <button id="delete-workflow" class="btn btn-default">Delete</button>
+                <button id="copy-workflow" class="btn btn-default">Copy</button>
+                
+            <div> -->    
+        </script>
+        <script type="text/template" id="workflow-tool-buttons">
+            <div class="btn-toolbar nav-button-bar">
+                <div class="btn-group pull-right cbi-btn-group">
+                    <button id="workflow-tool-info-btn" type="button" /* data-toggle="buttons"*/ class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                        <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
+                    </button>
+                    <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                        <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></img></span>
+                    </button>
+                    <!-- TODO implement add tool, this is just a UI placeholder --> 
+                    <button id="new-workflow-tool-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd open">
+                        <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></img></span>
+                    </button>
+                </div>
+            </div>   
+        </script>
+        <script type="text/template" id="new-workflow">
+            <form role="form">
+                <div class="row">
+                    <label class="col-xs-2" for="workflow-title"><font color='#6D6E70'>Save As</font></label>
+                    <div class="col-xs-10">
+                        <input type="text" class="form-control" name="workflow-title" id="workflow-title" placeholder="enter title"/>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="btn-group btn-group-save">
+                            <button class="btn btn-default" id="save-workflow">Save</button>
+                        </div>
+                        <div class="btn-group btn-group-save">
+                            <button class="btn btn-default" id="cancel">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!--
+                <div class="control-group">
+                    <label class="control-label" for="workflow-title">Title:</label>
+                    <div class="controls">
+                        <input type="text" name="workflow-title" id="workflow-title" placeholder="enter title"/>
+                    </div>
+                </div> -->
+            </form>
+        </script>
+        <script type="text/template" id="workflow-graph-button-bar">
+            <div class="canvas-button-bar">
+                <button type="button" class="btn btn-default">
+                    <span class="glyphicon glyphicon-trash"></span>
+                </button>
+                <button type="button" class="btn btn-default">
+                    <span class="glyphicon glyphicon-search"></span>
+                </button>
+                <!-- <a data-toggle="modal" href="#modalWorkflowView" class="btn btn-primary btn-lg">Launch demo modal</a> -->
+                <button id="workflow-save-as" type="button" class="btn btn-default btn-save-as">Save As</button>
+            </div> 
+        </script>
+        <script type="text/template" id="addshape-button-template">
+            <button id="addshape-button" class="btn btn-primary">Add Shape</button>
+        </script>
+        <script type="text/template" id="workflow-popover">
+            <div class="info-title-bkgrd info-title-font">
+                <span class="glyphicon glyphicon-info-sign info-popover-title"></span>
+                <%= title %>
+            </div>
+        </script>
+        <script type="text/template" id="workflow-popover-content">
             <div>
-               <table class="table">
-                <tbody>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel">Date Created</font></td>
-                        <td><font class="info-metadata-fontvalue"><%= created %></font></td>
-                    </tr>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel">Author</font></td>
-                        <td><font class="info-metadata-fontvalue"><%= creator.firstName %> <%= creator.lastName %></font></td>
-                    </tr>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel"># of Steps</font></td>
-                        <td><font class="info-metadata-fontvalue"><%= steps.length %></font></td>
-                    </tr>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel"># of Executions</font></td>
-                        <td><font class="info-metadata-fontvalue"><%= numExecutions %></font></td>
-                    </tr>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel">Time / Execution</font></td>
-                        <td><font class="info-metadata-fontvalue"><%= avgTime %></font></td>
-                    </tr>
-                </tbody>
-               </table>
-            </div>
-            <div class="">
-               <div class="info-tab-bkgrd info-tab-div">
-                    <font class="info-tab-font">Description</font>
+                <div>
+                   <table class="table">
+                    <tbody>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel">Date Created</font></td>
+                            <td><font class="info-metadata-fontvalue"><%= created %></font></td>
+                        </tr>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel">Author</font></td>
+                            <td><font class="info-metadata-fontvalue"><%= creator.firstName %> <%= creator.lastName %></font></td>
+                        </tr>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel"># of Steps</font></td>
+                            <td><font class="info-metadata-fontvalue"><%= steps.length %></font></td>
+                        </tr>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel"># of Executions</font></td>
+                            <td><font class="info-metadata-fontvalue"><%= numExecutions %></font></td>
+                        </tr>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel">Time / Execution</font></td>
+                            <td><font class="info-metadata-fontvalue"><%= avgTime %></font></td>
+                        </tr>
+                    </tbody>
+                   </table>
                 </div>
-                <div class="info-content-normal">
+                <div class="">
+                   <div class="info-tab-bkgrd info-tab-div">
+                        <font class="info-tab-font">Description</font>
+                    </div>
+                    <div class="info-content-normal">
+                        <%= description %>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <!-- Tool Info Scripts -->
+        <script type="text/template" id="workflow-tool-popover-content-top">
+            <div>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel">Date Created</font></td>
+                            <td><font class="info-metadata-fontvalue"><%= date %></font></td>
+                        </tr>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel">Author</font></td>
+                            <td><font class="info-metadata-fontvalue">Unknown</font></td>
+                        </tr>
+                        <tr>
+                            <td><font class="info-metadata-fontlabel">Executor</font></td>
+                            <td><font class="info-metadata-fontvalue <%= executorAvail%>"><%= executor %></font></td>
+                        </tr>
+                    </tbody>
+                </table>
+        </script>
+        <script type="text/template" id="workflow-tool-popover-content-open">
+            <div class="info-accordian-border">
+        </script>
+        <script type="text/template" id="workflow-tool-popover-content-description">
+            <div id="description">
+                <div class="info-tab-bkgrd info-tab-div">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#description" href="#collapseDesc"><font class="info-tab-font">DESCRIPTION</font></a>
+                </div>
+                <div id="collapseDesc" class="info-content-normal info-content-body collapse in">
                     <%= description %>
                 </div>
             </div>
-        </div>
-    </script>
-
-    <!-- Tool Info Scripts -->
-    <script type="text/template" id="workflow-tool-popover-content-top">
-        <div>
-            <table class="table">
-                <tbody>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel">Date Created</font></td>
-                        <td><font class="info-metadata-fontvalue"><%= date %></font></td>
-                    </tr>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel">Author</font></td>
-                        <td><font class="info-metadata-fontvalue">Unknown</font></td>
-                    </tr>
-                    <tr>
-                        <td><font class="info-metadata-fontlabel">Executor</font></td>
-                        <td><font class="info-metadata-fontvalue <%= executorAvail%>"><%= executor %></font></td>
-                    </tr>
-                </tbody>
-            </table>
-    </script>
-    <script type="text/template" id="workflow-tool-popover-content-open">
-        <div class="info-accordian-border">
-    </script>
-    <script type="text/template" id="workflow-tool-popover-content-description">
-        <div id="description">
-            <div class="info-tab-bkgrd info-tab-div">
-                <a class="accordion-toggle" data-toggle="collapse" data-parent="#description" href="#collapseDesc"><font class="info-tab-font">DESCRIPTION</font></a>
+        </script> 
+        <script type="text/template" id="workflow-tool-popover-content-input-title">
+            <div id="tool-inputs">           
+                <div class="info-tab-bkgrd info-tab-div">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-inputs" href="#collapseInputs"><font class="info-tab-font">INPUTS</font></a>
+                </div>
+                <div id="collapseInputs" class="info-content-normal info-content-body collapse in">
+        </script>
+        <script type="text/template" id="workflow-tool-popover-content-output-title">
+            <div id="tool-outputs">           
+                <div class="info-tab-bkgrd info-tab-div">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-outputs" href="#collapseOutputs"><font class="info-tab-font">OUTPUTS</font></a>
+                </div>
+                <div id="collapseOutputs" class="info-content-normal info-content-body collapse in">
+        </script>
+        <script type="text/template" id="workflow-tool-popover-content">
+                <div class="info-content-normal">
+                    <font class="info-content-subhead"><%= title %></font>
+                    <br>
+                    <%= description %>
+                </div>
+        </script>
+        <script type="text/template" id="workflow-tool-popover-content-parameter-title">
+            <div id="tool-parameters">           
+                <div class="info-tab-bkgrd info-tab-div">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-parameters" href="#collapseParameters"><font class="info-tab-font">PARAMETERS</font></a>
+                </div>
+                <div id="collapseParameters" class="info-content-normal info-content-body collapse in">
+        </script>
+        <script type="text/template" id="workflow-tool-popover-content-close">
+                </div>
             </div>
-            <div id="collapseDesc" class="info-content-normal info-content-body collapse in">
-                <%= description %>
+        </script>
+        <script type="text/template" id="command-line-form">
+            <div id="new-workflow-tool-content">
+                <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+                    <li class="active">
+                        <a href="#wizard-pane1" data-toggle="tab" class="mytab">
+                            <label id="lbl" class="canvastab-text-selected">Basics</label>
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="#wizard-pane2" data-toggle="tab" class="mytab">
+                            <label id="lbl" class="canvastab-text-selected">Options</label>
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="#wizard-pane3" data-toggle="tab" class="mytab">
+                            <label id="lbl" class="canvastab-text-selected">Files</label>
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="#wizard-pane4" data-toggle="tab" class="mytab">
+                            <label id="lbl" class="canvastab-text-selected">Environment</label>
+                        </a>
+                    </li>
+                </ul>
+                <div id="tab-content" class="tab-content">
+                    <div id="wizard-pane1" class="tab-pane active tool-wizard-pane-bkgrd"></div>
+                    <div id="wizard-pane2" class="tab-pane tool-wizard-pane-bkgrd"></div>
+                    <div id="wizard-pane3" class="tab-pane tool-wizard-pane-bkgrd"></div>
+                    <div id="wizard-pane4" class="tab-pane tool-wizard-pane-bkgrd"></div>                   
+                </div>
             </div>
-        </div>
-    </script> 
-    <script type="text/template" id="workflow-tool-popover-content-input-title">
-        <div id="tool-inputs">           
-            <div class="info-tab-bkgrd info-tab-div">
-                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-inputs" href="#collapseInputs"><font class="info-tab-font">INPUTS</font></a>
-            </div>
-            <div id="collapseInputs" class="info-content-normal info-content-body collapse in">
-    </script>
-    <script type="text/template" id="workflow-tool-popover-content-output-title">
-        <div id="tool-outputs">           
-            <div class="info-tab-bkgrd info-tab-div">
-                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-outputs" href="#collapseOutputs"><font class="info-tab-font">OUTPUTS</font></a>
-            </div>
-            <div id="collapseOutputs" class="info-content-normal info-content-body collapse in">
-    </script>
-    <script type="text/template" id="workflow-tool-popover-content">
-            <div class="info-content-normal">
-                <font class="info-content-subhead"><%= title %></font>
+            <div>
                 <br>
-                <%= description %>
+                <div class="col-lg-offset-9 col-lg-12">
+                    <button id="new-tool-cancel-btn" type="button" class="btn btn-default">Cancel</button>
+                    <button id="new-tool-create-btn" type="button" class="btn btn-default">Create</button>
+                </div>
             </div>
+        </script>
+        <script type="text/template" id="new-tool-basic-tab">
+            <form class="form-horizontal tool-wizard-content" role="form">
+                <div class="form-group">
+                    <label for="tool-title" class="col-lg-2 control-label">Name</label>
+                    <div class="col-lg-10">
+                        <input type="text" class="form-control" id="tool-title" placeholder=""/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="tool-version" class="col-lg-2 control-label">Version</label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="tool-version" placeholder=""/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="tool-description" class="col-lg-2 control-label">Description</label>
+                    <div class="col-lg-10">
+                      <textarea class="form-control" id="tool-description" placeholder="" rows="6"/>
+                    </div>
+                </div>
+            </form>
+        </script>
+        <script type="text/template" id="new-tool-option-tab">
+        <form class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="tool-executable" class="col-lg-3 control-label">Executable</label>
+                <div class="col-lg-6">
+                    <input type="text" class="form-control" id="tool-executable" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-3">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="capture-stdout"/>Capture stdout?
+                        </label>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <input type="text" class="form-control" id="stdout-title" value="stdout" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-3">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name=""/>Capture stderr?
+                        </label>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <input type="text" class="form-control" id="stderr-title" value="stderr"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-12">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="join-stdout-stderr" />Join stdout/stderr?
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-options" class="col-lg-3 control-label">Options</label>
+                <div class="col-lg-6">
+                    <div id="wf-options-list" class="wf-options-list"></div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="btn-group-vertical">
+                        <button type="button" id="add-tool-value-btn" class="btn btn-default">Add Value</button>
+                        <button type="button" id="add-tool-param-btn" class="btn btn-default">Add Parameter</button>
+                        <button type="button" id="add-tool-data-btn" class="btn btn-default">Add Data</button>
+                        <button type="button" id="edit-cloption-btn" class="btn btn-default">Edit</button>
+                        <button type="button" id="delete-cloption-btn" class="btn btn-default">Delete</button>
+                        <button type="button" id="move-cloption-up-btn" class="btn btn-default">Up</button>
+                        <button type="button" id="move-cloption-down-btn" class="btn btn-default">Down</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-12">
+                    <input type="text" class="form-control" id="tool-execution-line" readonly placeholder=""/>
+                </div>
+            </div>
+        </form>
     </script>
-    <script type="text/template" id="workflow-tool-popover-content-parameter-title">
-        <div id="tool-parameters">           
-            <div class="info-tab-bkgrd info-tab-div">
-                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-parameters" href="#collapseParameters"><font class="info-tab-font">PARAMETERS</font></a>
+    <!-- Add Parameter Popup dialog -->
+    <script type="text/template" id="new-parameter-view">
+        <form class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="tool-parameter-flag" class="col-lg-4 control-label">Flag</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-parameter-flag" placeholder=""/>
+                </div>
             </div>
-            <div id="collapseParameters" class="info-content-normal info-content-body collapse in">
+            <div class="form-group">
+                <label for="tool-parameter-name" class="col-lg-4 control-label">Name</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-parameter-name" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-parameter-description" class="col-lg-4 control-label">Description</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-parameter-description" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-parameter-type" class="col-lg-4 control-label">Type</label>
+                <div class="col-lg-8">
+                    <select id="tool-parameter-type">
+                        <option value="BOOLEAN">BOOLEAN</option>
+                        <option value="STRING" selected>STRING</option>
+                        <option value="NUMBER">NUMBER</option>
+                        <option value="OPTION">OPTION</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-parameter-default" class="col-lg-4 control-label">Default value</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-parameter-default" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-12">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="tool-parameter-hidden" />Hidden Parameter?
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-12">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="tool-parameter-empty" />Can be empty?
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div class="btn-group btn-group-save">
+                        <button class="btn btn-default" id="add-parameter-btn">OK</button>
+                    </div>
+                    <div class="btn-group btn-group-save">
+                        <button class="btn btn-default" id="cancel-parameter-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
     </script>
-    <script type="text/template" id="workflow-tool-popover-content-close">
+    <script type="text/template" id="tool-option-list-item">
+        <%= optionAsString %>
+    </script>
+    <!-- Add Data popup dialog -->
+    <script type="text/template" id="add-data-view">
+        <form class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="tool-data-type" class="col-lg-4 control-label">Input/Output</label>
+                <div class="col-lg-8">
+                    <select id="tool-data-type">
+                        <option value="INPUT" selected>INPUT</option>
+                        <option value="OUTPUT">OUTPUT</option>
+                        <option value="BOTH">BOTH</option>
+                    </select>
+                </div>
             </div>
-        </div>
+            <div class="form-group">
+                <label for="tool-data-flag" class="col-lg-4 control-label">Flag</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-data-flag" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-data-name" class="col-lg-4 control-label">Name</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-data-name" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-data-description" class="col-lg-4 control-label">Description</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-data-description" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-data-content" class="col-lg-4 control-label">Content Type</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-data-content" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-12">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="tool-data-commandline" checked />Commandline?
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-data-filename" class="col-lg-4 control-label">Filename</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-data-filename" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div class="btn-group btn-group-save">
+                        <button class="btn btn-default" id="add-data-btn">OK</button>
+                    </div>
+                    <div class="btn-group btn-group-save">
+                        <button class="btn btn-default" id="cancel-data-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </script>
+    <!-- Add Value popup dialog -->
+    <script type="text/template" id="add-value-view">
+        <form class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="tool-data-flag" class="col-lg-4 control-label">Flag</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-value-flag" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-value" class="col-lg-4 control-label">Value</label>
+                <div class="col-lg-8">
+                    <input type="text" class="form-control" id="tool-value" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-xs-12">
+                    <div class="btn-group btn-group-save">
+                        <button class="btn btn-default" id="add-value-btn">OK</button>
+                    </div>
+                    <div class="btn-group btn-group-save">
+                        <button class="btn btn-default" id="cancel-value-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </script>
+    <!-- New Tool File Tab -->
+    <script type="text/template" id="new-tool-file-tab">
+        <form enctype="multipart/form-data" id="tool-file-form" class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="tool-file" class="col-lg-3 control-label">Files</label>
+                <div class="col-lg-9">
+                        <input type="file" class="form-control tool-file-select" id="tool-files" multiple /> 
+                </div>
+            </div>
+            <div class="form-group"> 
+                <div class="col-lg-offset-3 col-lg-9">
+                    <div id="selected-files"></div>
+                </div>
+            </div>
+        </form>
+    </script>
+    <!-- New Tool Environment Tab -->
+    <script type="text/template" id="new-tool-env-tab">
+        <div class="tool-wizard-content">
+            <div class="form-group">
+                <div class="col-lg-10">
+                    <div class="panel panel-default">
+                        <div id="env-table"></div>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="btn-group-vertical">
+                        <button type="button" id="add-tool-env-btn" class="btn btn-default">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </script>
+    <script type="text/template" id="env-tab-table-header">
+        <tr>
+            <th>Variable</th>
+            <th>Value</th>
+        </tr>
+    </script>
+    <!-- New Tool Environment Tab Table Row Template -->
+    <script type="text/template" id="env-tab-row">
+        <tr>
+            <td><input type='text' class='env-table-input' id='variable' value=''/></td>
+            <td><input type='text' class='env-table-input' id='value' value=''/></td>
+            <td><button type="button" id="remove-env-btn" class="btn btn-default btn-xs">x</button>
+        </tr>
     </script>
     <div id='editor-app' class="container-liquid">
         <div class="row">
@@ -356,6 +691,30 @@
                 </div> 
             </div>
         </div>
+        <div id="modalWorkflowToolView" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog tool-modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header save-as-title-bkgrd">
+                        <h5 class="modal-title" id="newWorkflowToolDialogLabel">NEW TOOL</h5>
+                    </div>
+                    <div class="modal-body save-as-body-bkgrd" id="tool-modal-content">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="modalParameterView" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog parameter-modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header save-as-title-bkgrd">
+                        <h5 class="modal-title" id="newCommandLineOptionLabel"></h5>
+                    </div>
+                    <div class="modal-body save-as-body-bkgrd" id="modal-content">
+                        <div id="add-parameter-view" class="parameter-modal-bkgrd"></div>
+                    </div>
+                </div> 
+            </div>
+        </div>
+
     </div>
     <script src="assets/jquery-1.9.0.js"></script>
     <script src="assets/jquery-ui-1.9.2-min.js"></script>
@@ -368,12 +727,14 @@
     <!-- <script src="assets/backbone.localStorage.js"></script> -->
 
     <script src="assets/jquery.jsPlumb-1.4.1-all-min.js"></script>
+    <script src="assets/jszip.js"></script>
 
     <!-- Views -->
     <script src="js/views/workflowgraphview.js"></script>
     <script src="js/views/workflowtoolview.js"></script>
     <script src="js/views/workflowview.js"></script>
     <script src="js/views/infoview.js"></script>
+    <script src="js/views/commandlineview.js"></script>
 
     <!-- Models -->
     <script src="js/models/filedescriptormodel.js"></script>
@@ -383,6 +744,7 @@
     <script src="js/models/workflowstepmodel.js"></script>
     <script src="js/models/workflowtoolmodel.js"></script>
     <script src="js/models/workflowmodel.js"></script>
+    <script src="js/models/commandlineoptionmodel.js"></script>
 
     <!-- main application -->
     <script src="js/main.js"></script>

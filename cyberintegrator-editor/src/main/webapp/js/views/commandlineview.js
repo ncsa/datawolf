@@ -1,0 +1,646 @@
+// Modal Dialog displaying tabs to provide information about a new command line tool
+var CommandLineView = Backbone.View.extend({
+	template: _.template($('#command-line-form').html()),
+
+	events: {
+		"click button#new-tool-create-btn" : "createTool",
+		"click button#new-tool-cancel-btn" : "cancel"
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		
+		return this;
+	},
+
+	createTool: function(e) {
+		e.preventDefault();
+		console.log("create tool");
+
+		var inputs = [];
+		var outputs = [];
+		var parameters = [];
+		var blobs = [];
+
+		var tool = new WorkflowTool();
+        tool.set('id', generateUUID());
+        tool.set('date', new Date());
+        tool.set('executor', 'commandline');
+        tool.set('creator', currentUser.toJSON());
+
+		var title = $('#tool-title').val();
+		var version = $('#tool-version').val();
+		var description = $('#tool-description').val();
+        tool.set('title', title);
+        tool.set('description', description);
+        tool.set('version', version);
+
+        var exec = $('#tool-executable').val();
+        var commandLineImpl = new CommandLineImplementation();
+        commandLineImpl.setExecutable(exec);
+
+        if($('#capture-stdout').is(":checked")) {
+        	var title = $('#stdout-title').val();
+        	var stdout = new WorkflowToolData();
+        	stdout.set('id', generateUUID());	
+        	stdout.set('title', title);
+        	stdout.set('description', 'stdout of external tool.');
+        	stdout.set('mimeType', 'text/plain');
+        	stdout.set('dataId', 'stdout');
+        	outputs.push(stdout);
+
+       		commandLineImpl.setCaptureStdOut(stdout.get('dataId'));
+       		if($('#join-stdout-stderr').is(":checked")) {
+       			commandLineImpl.setJoinStdOutStdErr(true);
+       		} 
+        }
+
+        if(!$('#join-stdout-stderr').is(":checked") && $('#capture-stderr').is(":checked")) {
+        	var stderr = new WorkflowToolData();
+        	stderr.set('id', generateUUID());
+        	stderr.set('title', $('#stderr-title'));
+        	stderr.set('description', "stderr of external tool.");
+        	stderr.set('mimeType', 'text/plain');
+        	stderr.set('dataId', 'stderr');
+        	outputs.push(stderr);
+
+        	commandLineImpl.setCaptureStdErr(stderr.get('dataId'));
+        }
+
+        commandLineOptionView.getOptionModel().each(function(option) {
+        	commandLineImpl.addCommandLineOption(option);
+        	switch(option.getType()) {
+        		case 'VALUE':
+        			break;
+        		case 'PARAMETER':
+        			parameters.push(commandLineOptionView.getParameter(option));
+        			break;
+        		case 'DATA':
+        			switch(option.getInputOutput()) {
+        				case 'INPUT':
+        					inputs.push(commandLineOptionView.getData(option));
+        					break;
+        				case 'OUTPUT':
+        					outputs.push(commandLineOptionView.getData(option));
+        					break;
+        				case 'BOTH':
+        					inputs.push(commandLineOptionView.getData(option));
+        					outputs.push(commandLineOptionView.getData(option));
+        					break;
+        			}
+        			break;
+        	}
+
+        });
+
+        // Update Environment
+        commandLineImpl.setEnv(commandLineEnvView.getEnvironmentMap());
+
+        tool.set('implementation', JSON.stringify(commandLineImpl));
+        tool.set('inputs', inputs);
+        tool.set('outputs', outputs);
+        tool.set('parameters', parameters);
+        tool.set('blobs', blobs);
+
+        var files = $('#tool-file-form')[0][0].files;
+        this.numFiles = files.length;
+        this.fileCounter = 0;
+        var zipfile = new JSZip();
+        var instance = this;
+
+        if(this.numFiles > 0) {
+			var blobFolder = zipfile.folder('blobs');
+	        for(var index = 0; index < files.length; index++) {
+
+		        var reader = new FileReader();
+		        reader.onload = (function(file) {
+		        	return function(e) {
+			        	var fileDescriptor = {};
+						fileDescriptor.id = generateUUID();
+				        fileDescriptor.filename = file.name;
+				        fileDescriptor.mimeType = file.type;
+				        fileDescriptor.size = file.size;
+				        blobFolder.file(fileDescriptor.id + '/' + file.name, e.target.result);
+						blobs.push(fileDescriptor)
+
+			        	instance.fileCounter++;
+				        // Check if ready to upload tool
+			        	instance.checkReadyState(tool, zipfile);
+		        	};
+		        })(files[index]);
+		        reader.readAsArrayBuffer(files[index]);
+		    }
+		} else {
+			this.checkReadyState(tool, zipfile);
+		}
+	    $('#modalWorkflowToolView').modal('hide');
+	    console.log("exit create tool");
+        
+	},
+
+	cancel: function(e) {
+		$('#modalWorkflowToolView').modal('hide');
+	},
+
+	checkReadyState: function(tool, zipfile) {
+		if(this.fileCounter == this.numFiles) {
+			zipfile.file('tool.json', JSON.stringify(tool));
+			//console.log(JSON.stringify(tool, undefined, 2));
+			postTool(zipfile);
+		}
+	}
+});
+
+var CommandLineBasicTab = Backbone.View.extend({
+	template: _.template($('#new-tool-basic-tab').html()),
+
+	initialize: function() {
+	},
+
+	render: function() {
+		$(this.el).empty();
+		$(this.el).html(this.template());
+		return this;
+	}
+});
+
+var CommandLineOptionTab = Backbone.View.extend({
+	template: _.template($('#new-tool-option-tab').html()),
+	events: {
+		"click button#add-tool-param-btn" : "showAddToolParameter",
+		"click button#add-tool-data-btn" : "showAddToolData",
+		"click button#add-tool-value-btn" : "showAddToolValue",
+		"click button#move-cloption-up-btn" : "commandLineOptionUp",
+		"click button#move-cloption-down-btn" : "commandLineOptionDown",
+		"click button#delete-cloption-btn" : "deleteCommandlineOption"
+
+	},
+	initialize: function() {
+		// key is command line option, value is workflow parameter
+		this.parameters = {};
+		// key is command line option, value is workflow tool data
+		this.data = {};
+		// ordered array of command line options
+		this.optionModel = new CommandLineOptionCollection();
+	},
+
+	render: function() {
+		$(this.el).empty();
+		$(this.el).html(this.template());
+		this.clOptionsView = new CommandLineOptionListView({model: this.optionModel});
+		// TODO add command line options list view
+		return this;
+	},
+
+	getCommandLineOptionsListView: function() {
+		return this.clOptionsView;
+	},
+
+	showAddToolParameter: function() {
+		$('#newCommandLineOptionLabel').text("CommandLine Parameter");
+        $('#add-parameter-view').html(new CommandLineParameterView().render().el);
+        $('#modalParameterView').modal('show');
+	},
+
+	showAddToolData: function() {
+		$('#newCommandLineOptionLabel').text("CommandLine Input/Output");
+		$('#add-parameter-view').html(new CommandLineAddDataView().render().el);
+        $('#modalParameterView').modal('show');
+	},
+
+	showAddToolValue: function() {
+		$('#newCommandLineOptionLabel').text("CommandLine Value");
+		$('#add-parameter-view').html(new CommandLineAddValueView().render().el);
+        $('#modalParameterView').modal('show');
+	},
+
+	addParameter: function(cmdLineOption, wfParameter) {
+		this.parameters[cmdLineOption.getOptionId()] = wfParameter;
+		this.addCommandLineOption(cmdLineOption);
+	},
+
+	addData: function(cmdLineOption, wfToolData) {
+		this.data[cmdLineOption.getOptionId()] = wfToolData;
+		this.addCommandLineOption(cmdLineOption);
+	},
+
+	addCommandLineOption: function(cmdLineOption) {
+		this.optionModel.add(cmdLineOption);
+	},
+
+	getOptionModel: function() {
+		return this.optionModel;
+	},
+
+	getParameter: function(cmdLineOption) {
+		return this.parameters[cmdLineOption.getOptionId()];
+	},
+
+	getData: function(cmdLineOption) {
+		return this.data[cmdLineOption.getOptionId()];
+	},
+
+	commandLineOptionUp: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			if(index > 0) {
+				this.getOptionModel().swapElements(index, index-1);
+				this.clOptionsView.render();
+			}
+		}
+	},
+
+	commandLineOptionDown: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			if(index < this.getOptionModel().size()-1) {
+				this.getOptionModel().swapElements(index, index+1);
+				this.clOptionsView.render();
+			}
+		}
+	},
+
+	deleteCommandlineOption: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			var model = this.optionModel.at(index);
+			if(model in this.parameters) {
+				delete this.parameters[model];	
+			}
+			this.optionModel.remove(model);
+		} else {
+			console.log('nothing selected');
+		}
+		
+	}
+
+});
+
+// View displayed when Add Parameter button pressed
+var CommandLineParameterView = Backbone.View.extend({
+	template: _.template($('#new-parameter-view').html()),
+
+	events: {
+		"click button#add-parameter-btn" : "addToolParameter"
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	addToolParameter: function(e) {
+		e.preventDefault();
+		var flag = $('#tool-parameter-flag').val();
+		var title = $('#tool-parameter-name').val();
+		var desc = $('#tool-parameter-description').val();
+		var type = $('#tool-parameter-type').val();
+		var value = $('#tool-parameter-default').val();
+		var hidden = $('#tool-parameter-hidden').is(':checked');
+		var allowNull = $('#tool-parameter-empty').is(':checked');
+
+		var param = new WorkflowToolParameter();
+        param.set('id', generateUUID());
+        param.set('title', title);
+        param.set('type', type);
+        param.set('hidden', hidden);
+        param.set('allowNull', allowNull);
+        param.set('parameterId', generateUUID());
+        param.set('value', value);
+
+        var clOption = new CommandLineOption();
+        clOption.setType('PARAMETER');
+        clOption.setFlag(flag);
+        clOption.setOptionId(param.get('parameterId'));
+
+        commandLineOptionView.addParameter(clOption, param);
+        $('#modalParameterView').modal('hide');
+	}
+});
+
+// View displayed when Add Data button is pressed
+var CommandLineAddDataView = Backbone.View.extend({
+	template: _.template($('#add-data-view').html()),
+
+	events: {
+		"click button#add-data-btn" : "addToolData",
+	},
+
+	initialize: function() {
+
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	addToolData: function(e) {
+		e.preventDefault();
+
+		var title = $('#tool-data-name').val();
+		var description = $('#tool-data-description').val();
+		var mimeType = $('#tool-data-content').val();
+
+		var data = new WorkflowToolData();
+		data.set('id', generateUUID());
+		data.set('title', title);
+		data.set('description', description);
+		data.set('mimeType', mimeType);
+		data.set('dataId', generateUUID());
+
+		var flag = $('#tool-data-flag').val();
+		var inputOutput = $('#tool-data-type').val();
+		var fileName = $('#tool-data-filename').val();
+		var commandLine = $('#tool-data-commandline').is(':checked');
+
+		var option = new CommandLineOption();
+		option.setType('DATA');
+		option.setFlag(flag);
+		option.setInputOutput(inputOutput);
+		option.setFilename(fileName);
+		option.setCommandline(commandLine);
+		option.setOptionId(data.get('dataId'));
+
+		commandLineOptionView.addData(option, data);
+		$('#modalParameterView').modal('hide');
+	}
+
+});
+
+var CommandLineAddValueView = Backbone.View.extend({
+	template: _.template($("#add-value-view").html()),
+
+	events: {
+		"click button#add-value-btn" : "addValue",
+	},
+
+	initialize: function() {
+
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	addValue: function(e) {
+		e.preventDefault();
+
+		var flag = $('#tool-value-flag').val();
+		var value = $('#tool-value').val();
+		var option = new CommandLineOption();
+		option.setType('VALUE');
+		option.setFlag(flag);
+		option.setValue(value);
+
+		commandLineOptionView.addCommandLineOption(option);
+		$('#modalParameterView').modal('hide');
+	}
+});
+
+var CommandLineOptionListView = Backbone.View.extend({
+	tagName: "select",
+	className: "wf-options-list-select",
+	id: "commandLineOptionListView",
+
+	initialize: function() {
+		//console.log('initialize option list');
+		this.$el.attr('size', '15');
+		this.clOptionViews = [];
+		var self = this;
+		this.model.bind("add", function(option) {
+			var clOptionView = new CommandLineOptionListItemView({model: option});
+			self.clOptionViews.push(clOptionView);
+			$(self.el).append(clOptionView.render().el);
+		});
+
+		this.model.bind("remove", function(option) {
+			console.log("remove option");
+			var viewToRemove = _(self.clOptionViews).select(function(cv) {
+				return cv.model === option;
+			})[0];
+			$(viewToRemove.el).remove();
+		});
+	},
+
+	render: function() {
+		$(this.el).empty();
+		this.clOptionViews = [];
+		_.each(this.model.models, function(option) {
+			var clOptionView = new CommandLineOptionListItemView({model: option});
+			this.clOptionViews.push(clOptionView);
+			$(this.el).append(clOptionView.render().el);
+		}, this);
+
+		return this;
+	}
+});
+
+var CommandLineOptionListItemView = Backbone.View.extend({
+	tagName: "option",
+	template: _.template($('#tool-option-list-item').html()),
+
+	attributes: function() {
+		return {
+			value: JSON.stringify(this.model)
+		}
+	},
+
+	render: function() {
+		var optionAsString = "";
+		if(this.model.getFlag() != null && !_.isEmpty(this.model.getFlag())) {
+			optionAsString += this.model.getFlag().trim() + " ";
+		}
+
+		switch(this.model.getType()) {
+			case 'PARAMETER': 
+				var param = commandLineOptionView.getParameter(this.model);
+				optionAsString += param.get('title');
+				optionAsString += '[';
+				optionAsString += param.get('type');
+				optionAsString += '] = ';
+				optionAsString += param.get('value');
+				break;
+			case 'VALUE':
+				if((this.model.getValue() != null) && (this.model.getValue().trim().length > 0)) {
+					optionAsString += this.model.getValue().trim();
+				}	
+				break;
+			case 'DATA':
+				optionAsString += "file(";
+					switch(this.model.getInputOutput()) {
+						case 'INPUT':
+							optionAsString += "in:";
+							break;
+						case 'OUTPUT':
+							optionAsString += "out:";
+							break;
+						case 'BOTH':
+							optionAsString += "in/out:";
+							break;
+					}
+
+					if((this.model.getFilename() != null) && (this.model.getFilename().trim().length > 0)) {
+						optionAsString += this.model.getFilename().trim();
+					} else {
+						optionAsString += "AUTO";
+					}
+
+					if(this.model.isCommandline()) {
+						optionAsString += '[not passed]';
+					}
+
+					optionAsString += ")";
+
+				break;
+		}
+
+		$(this.el).html(this.template({optionAsString: optionAsString}));	
+		return this;
+	}
+});
+
+var CommandLineFileTab = Backbone.View.extend({
+	template: _.template($('#new-tool-file-tab').html()),
+	events: {
+		"change input.tool-file-select" : "fileChange"
+	},
+
+	initialize: function() {
+		
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	fileChange: function(e) {
+		e.preventDefault();
+		if(!e.target.files) {
+			return;
+		}
+		var div = document.querySelector("#selected-files");
+		var myfile = $('#tool-file-form')[0][0].files[0];
+
+		var files = e.target.files;
+		var index;
+		for(index = 0; index < files.length; index++) {
+			var file = files[index];
+			div.innerHTML += file.name + "<br/>";
+		}
+	}
+
+});
+
+var CommandLineEnvTab = Backbone.View.extend({
+	template: _.template($('#new-tool-env-tab').html()),
+	events: {
+		"click button#add-tool-env-btn" : "addEnvironmentVariable",
+	},
+
+	initialize: function() {
+		this.envModel = new EnvironmentCollection();
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+
+		this.clTableView = new CommandLineEnvTable({model: this.envModel});
+		$(this.el).find('#env-table').html(this.clTableView.render().el);
+		return this;
+	},
+
+	addEnvironmentVariable: function(e) {
+		e.preventDefault();
+		this.envModel.add(new EnvironmentModel());
+	},
+
+	getEnvironmentMap: function() {
+		var envMap = {};
+		var rows = this.clTableView.getTableRows()
+		for(var index = 0; index < rows.length; rows++) {
+			var row = rows[0];
+			var envRow = row.getRowValue();
+			envMap[envRow[0]] = envRow[1];
+		}
+
+		return envMap;
+	},
+});
+
+var CommandLineEnvTable = Backbone.View.extend({
+	tagName: 'table',
+	className: 'table',
+	template: _.template($('#env-tab-table-header').html()),
+
+	initialize: function() {
+		var self = this;
+		this.tableRows = [];
+		this.model.bind("add", function(envModel) {
+			var tableRow = new CommandLineEnvRow({model: envModel});
+			$(self.el).append(tableRow.render().el);
+			self.tableRows.push(tableRow);
+		});
+
+		this.model.bind("remove", function(envModel) {
+			var viewToRemove = _(self.tableRows).select(function(cv) {
+				return cv.model === envModel;
+			})[0];
+			$(viewToRemove.el).remove();
+		});
+	},
+
+	render: function() {
+		// Without trimming the white space, the header is spaced incorrectly
+		$(this.el).append(this.template().trim());
+		return this;
+	},
+
+	getTableRows: function() {
+		return this.tableRows;
+	}
+});
+
+var CommandLineEnvRow = Backbone.View.extend({
+	template: _.template($('#env-tab-row').html()),
+	events: {
+		"click" : "highlightRow",
+		"click button#remove-env-btn" : "clear"
+	},
+
+	initialize: function() {
+
+	},
+
+	attributes: function() {
+        return {
+            value: this.model
+        }
+    },
+
+	render: function() {
+		this.setElement(this.template().trim());
+		return this;
+	},
+
+	getRowValue: function() {
+		var env = [];
+		env[0] = $(this.el).find('#variable').val().trim();
+		env[1] = $(this.el).find('#value').val().trim();
+		return env;
+	},
+
+	highlightRow: function(e) {
+		$('.highlight').removeClass('highlight');
+        $(this.el).addClass('highlight');
+	},
+
+	clear: function(e) {
+		this.model.destroy();
+	}
+}); 

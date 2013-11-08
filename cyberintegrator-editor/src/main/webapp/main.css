@@ -769,3 +769,50 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   font-size : 10px;
   color: #808184;
 }
+
+.tool-wizard-content {
+  font-family : Open Sans;
+  font-size : 12px;
+  color : #595A5C;
+  color : rgb(89, 90, 92);
+}
+
+.tool-wizard-pane-bkgrd
+{
+    background : #FFFFFF;
+    background : rgba(255, 255, 255, 1);
+    border-style : Solid;
+    border-color : #A6A8AB;
+    border-color : rgba(166, 168, 171, 1);
+    border-width : 1px;
+    width : 700px; 
+    height : 500px;
+    box-shadow : 2px 2px 2px rgba(35, 31, 32, 0.3);
+    filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='#231F20') ;
+    padding: 5px;
+}
+
+.tool-modal-dialog {
+  width: 750px;
+}
+
+.parameter-modal-bkgrd {
+  background : #FFFFFF;
+  background : rgba(255, 255, 255, 1);
+  border-style : Solid;
+  border-color : #A6A8AB;
+  border-color : rgba(166, 168, 171, 1);
+  border-width : 1px;
+  height : 375px;
+  box-shadow : 2px 2px 2px rgba(35, 31, 32, 0.3);
+  filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='#231F20') ;
+  padding: 5px;
+}
+
+.wf-options-list-select {
+  width: 100%;
+}
+
+.env-table-input {
+  border: none;
+}

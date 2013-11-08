@@ -164,6 +164,7 @@ var WorkflowToolButtonBar = Backbone.View.extend({
 
     events: {
         "click button#workflow-tool-info-btn" : "workflowToolInfo",
+        "click button#new-workflow-tool-btn" : "createWorkflowTool"
     },
 
     render: function(e) {
@@ -196,5 +197,25 @@ var WorkflowToolButtonBar = Backbone.View.extend({
             }
         }
         //showToolInfo = !showToolInfo;
+    },
+
+    createWorkflowTool: function() {
+        console.log("show new tool dialog");
+        $('#tool-modal-content').html(new CommandLineView().render().el);
+        commandLineBasicView = new CommandLineBasicTab();
+        commandLineOptionView = new CommandLineOptionTab();
+        commandLineFileView = new CommandLineFileTab();
+        commandLineEnvView = new CommandLineEnvTab();
+        $('#tool-modal-content').find('#wizard-pane1').html(commandLineBasicView.render().el);
+        $('#tool-modal-content').find('#wizard-pane2').html(commandLineOptionView.render().el);
+        $('#tool-modal-content').find('#wizard-pane3').html(commandLineFileView.render().el);
+        $('#tool-modal-content').find('#wizard-pane4').html(commandLineEnvView.render().el);
+        $('#tool-modal-content').find('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
+        //$('#wizard-pane1').html(commandLineBasicView.render().el);
+        //$('#wizard-pane2').html(commandLineOptionView.render().el);
+        //$('#wizard-pane3').html(commandLineFileView.render().el);
+        //$('#wizard-pane4').html(commandLineEnvView.render().el);
+        //$('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
+        $('#modalWorkflowToolView').modal('show');
     }
 });
