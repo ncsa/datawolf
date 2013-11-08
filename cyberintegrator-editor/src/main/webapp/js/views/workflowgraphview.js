@@ -339,7 +339,7 @@ var WorkflowGraphView = Backbone.View.extend({
         divTag.id = id;
         divTag.setAttribute("class", shapeClass);
         divTag.setAttribute("data-shape", dataShapeClass);
-        divTag.innerText = innerText;
+        divTag.innerHTML = innerText;
         divTag.style.position = "absolute";
         divTag.style.left = x;
         divTag.style.top = y;
@@ -424,8 +424,17 @@ var WorkflowGraphView = Backbone.View.extend({
                     workflowTool = model;
                 }
             });
-            var x = e.originalEvent.offsetX - 62 + 'px';
-            var y = e.originalEvent.offsetY - 32 + 'px';
+
+            var x = '150px';
+            var y = '150px';
+            // Firefox does not have offsetX
+            if(!e.originalEvent.offsetX) {
+                x = e.originalEvent.layerX - 62 + 'px';
+                y = e.originalEvent.layerY + 'px';
+            } else {
+                x = e.originalEvent.offsetX - 62 + 'px';
+                y = e.originalEvent.offsetY + 'px';
+            }
             var stepId = this.createWorkflowStep(workflowTool.get('id'));
 
             // temp removed for url issue with rest
