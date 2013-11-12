@@ -588,7 +588,7 @@ eventBus.on('clearWorkflow', function() {
 eventBus.on('clicked:tab', function(selected) {
     $("#tabs").children('li').each(function() {
         if(this === selected) {
-            console.log("selected label is "+$(this).find('label').text());
+            //console.log("selected label is "+$(this).find('label').text());
             var child = $(this).find('label');
             child.removeClass('canvastab-text-unselected');
             child.addClass('canvastab-text-selected');

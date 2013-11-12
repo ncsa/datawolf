@@ -343,7 +343,7 @@ var WorkflowGraphView = Backbone.View.extend({
         divTag.style.position = "absolute";
         divTag.style.left = x;
         divTag.style.top = y;
-        divTag.onmousedown = mouseClick;
+        //divTag.onmousedown = mouseClick;
 
         //$('#wgraph').append(divTag);
         $(this.el).append(divTag);
@@ -415,16 +415,9 @@ var WorkflowGraphView = Backbone.View.extend({
 
     handleDrop: function(e) {
         e.preventDefault();
-
         if(toolDrop) {
+            toolDrop = false;
             var toolId = e.originalEvent.dataTransfer.getData('Text');
-            var workflowTool = null;
-            workflowToolCollection.each(function(model) {
-                if(model.get('id') === toolId) {
-                    workflowTool = model;
-                }
-            });
-
             var x = '150px';
             var y = '150px';
             // Firefox does not have offsetX
@@ -435,19 +428,72 @@ var WorkflowGraphView = Backbone.View.extend({
                 x = e.originalEvent.offsetX - 62 + 'px';
                 y = e.originalEvent.offsetY + 'px';
             }
-            var stepId = this.createWorkflowStep(workflowTool.get('id'));
 
-            // temp removed for url issue with rest
-            var graphLocation = new GraphStepLocation({id: stepId, x: x, y: y});
-            stepLocationCollection.create(graphLocation);
-            this.addToolToGraph(toolId, stepId, x, y);
+            if(this.model != null) {
+                this.handleAddTool(toolId, x, y);
+            } else {
+                console.log("No workflow associated with view - creating a new workflow");
+                var workflow = new Workflow();
+                var title = "untitled";
+                var date = new Date();
+                var creator = currentUser.toJSON();
+                var self = this;
 
-            //console.log("workflow has");
-            //console.log(JSON.stringify(getWorkflow(currentWorkflow), undefined, 2));
+                workflow.save({title: title, created: date, creator: creator}, {
+                    wait: true,
 
-            toolDrop = false;
+                    success: function(model, response) {
+                        var modelId = model.get('id');
+
+                        // Replace href link with new id
+                        var link = '#' + modelId;
+                        $("a[href='#pane1']").attr('href', link);
+
+                        // Replace this.el and div.id with new id
+                        $(self).attr('id', modelId);
+                        $('#pane1').attr('id', modelId);
+
+                        // Replace lbl.id with new id
+                        var lblId = 'lbl'+modelId;
+                        $("label[id='lbl-pane1']").attr('id', lblId);
+
+                        $('.active').on('click', tabSelectionEvent);
+
+                        workflowCollection.add(workflow);
+                        currentWorkflow = modelId;
+                        self.model = model;
+                        self.setWorkflow(modelId);
+                        self.handleAddTool(toolId, x, y);
+                    },
+                    error: function(model, error) {
+                        //console.log(JSON.stringify(model, undefined, 2));
+                        console.log("workflow not saved: "+error.responseText);
+                    }
+                }); 
+            }
         }
+
     },
+
+    handleAddTool: function(toolId, x, y) {
+        console.log("tool id = "+toolId);
+        var workflowTool = null;
+        workflowToolCollection.each(function(model) {
+            if(model.get('id') === toolId) {
+                workflowTool = model;
+            }
+        });
+
+        var stepId = this.createWorkflowStep(workflowTool.get('id'));
+
+        // temp removed for url issue with rest
+        var graphLocation = new GraphStepLocation({id: stepId, x: x, y: y});
+        stepLocationCollection.create(graphLocation);
+        this.addToolToGraph(toolId, stepId, x, y);
+
+        //console.log("workflow has");
+        //console.log(JSON.stringify(getWorkflow(currentWorkflow), undefined, 2));
+    }
 });
 
 var WorkflowGraphButtonBar = Backbone.View.extend({
