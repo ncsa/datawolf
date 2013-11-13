@@ -88,7 +88,6 @@ var CommandLineView = Backbone.View.extend({
         tool.set('blobs', blobs);
 
         var files = $('#tool-file-form')[0][0].files;
-        console.log($('#tool-file-form'));
         this.numFiles = files.length;
         this.fileCounter = 0;
         var zipfile = new JSZip();
@@ -291,11 +290,9 @@ var CommandLineParameterView = Backbone.View.extend({
 
 		var param = createWorkflowToolParameter(title, desc, allowNull, type, hidden, value);
 
-        var clOption = new CommandLineOption();
-        clOption.setType('PARAMETER');
+		var clOption = createCommandLineOption('PARAMETER', commandline);
         clOption.setFlag(flag);
         clOption.setOptionId(param.getParameterId());
-        clOption.setCommandline(commandline);
 
         commandLineOptionView.addParameter(clOption, param);
         $('#modalParameterView').modal('hide');
@@ -332,24 +329,17 @@ var CommandLineAddDataView = Backbone.View.extend({
 		var description = $('#tool-data-description').val();
 		var mimeType = $('#tool-data-content').val();
 
-		var data = new WorkflowToolData();
-		data.set('id', generateUUID());
-		data.set('title', title);
-		data.set('description', description);
-		data.set('mimeType', mimeType);
-		data.set('dataId', generateUUID());
+		var data = createWorkflowToolData(title, description, mimeType);
 
 		var flag = $('#tool-data-flag').val();
 		var inputOutput = $('#tool-data-type').val();
 		var fileName = $('#tool-data-filename').val();
 		var commandLine = $('#tool-data-commandline').is(':checked');
 
-		var option = new CommandLineOption();
-		option.setType('DATA');
+		var option = createCommandLineOption('DATA', commandLine);
 		option.setFlag(flag);
 		option.setInputOutput(inputOutput);
 		option.setFilename(fileName);
-		option.setCommandline(commandLine);
 		option.setOptionId(data.get('dataId'));
 
 		commandLineOptionView.addData(option, data);
@@ -385,8 +375,7 @@ var CommandLineAddValueView = Backbone.View.extend({
 
 		var flag = $('#tool-value-flag').val();
 		var value = $('#tool-value').val();
-		var option = new CommandLineOption();
-		option.setType('VALUE');
+		var option = createCommandLineOption('VALUE', true);
 		option.setFlag(flag);
 		option.setValue(value);
 
@@ -703,20 +692,16 @@ var HPCToolView = Backbone.View.extend({
         // Add username parameter
         var username = createWorkflowToolParameter('Target Username', 'Username on remote host', false, 'STRING', false, '');
 
-        var usernameOption = new CommandLineOption();
-        usernameOption.setType('PARAMETER');
+        var usernameOption = createCommandLineOption('PARAMETER', false);
         usernameOption.setOptionId(username.getParameterId());
-        usernameOption.setCommandline(false);
         parameters.push(username);
 
         hpcImpl.addCommandLineOption(usernameOption);
 
         // Add HPC Target User Home
         var userhome = createWorkflowToolParameter('Target Userhome', 'User home directory on remote host.', false, 'STRING', false, '');
-        var userhomeOption = new CommandLineOption();
-        userhomeOption.setType('PARAMETER');
+        var userhomeOption = createCommandLineOption('PARAMETER', false);
         userhomeOption.setOptionId(userhome.getParameterId());
-        userhomeOption.setCommandline(false);
         parameters.push(userhome);
 
         hpcImpl.addCommandLineOption(userhomeOption);
@@ -724,10 +709,8 @@ var HPCToolView = Backbone.View.extend({
         // Add HPC Target URI
         var targetUri = createWorkflowToolParameter('Target SSH', 'Remote host SSH URI.', false, 'STRING', false, '');
 
-        var targetUriOption = new CommandLineOption();
-        targetUriOption.setType('PARAMETER');
+        var targetUriOption = createCommandLineOption('PARAMETER', false);
         targetUriOption.setOptionId(targetUri.getParameterId());
-        targetUriOption.setCommandline(false);
         parameters.push(targetUri);
 
         hpcImpl.addCommandLineOption(targetUriOption);
@@ -802,7 +785,7 @@ var HPCToolView = Backbone.View.extend({
 	checkReadyState: function(tool, zipfile) {
 		if(this.fileCounter == this.numFiles) {
 			zipfile.file('tool.json', JSON.stringify(tool));
-			console.log(JSON.stringify(tool, undefined, 2));
+			//console.log(JSON.stringify(tool, undefined, 2));
 			postTool(zipfile);
 		}
 	}
@@ -959,3 +942,8 @@ var createWorkflowToolParameter = function(title, description, allowNull, type, 
     param.setValue(value);
     return param;
 };
+
+var createCommandLineOption = function(type, commandline) {
+	var option = new CommandLineOption({type: type, commandline: commandline});
+	return option;
+}

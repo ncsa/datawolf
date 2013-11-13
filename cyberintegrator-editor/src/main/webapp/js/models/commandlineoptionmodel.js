@@ -87,7 +87,6 @@ var CommandLineImplementation = Backbone.Model.extend({
 
 	addCommandLineOption: function(commandLineOption) {
 		this.get('commandLineOptions').push(commandLineOption);
-		console.log("option length = "+this.get('commandLineOptions').length);
 	},
 
 	setEnv: function(env) {
