@@ -116,3 +116,40 @@ var EnvironmentModel = Backbone.Model.extend({
 var EnvironmentCollection = Backbone.Collection.extend({
 	model: EnvironmentModel
 });
+
+var HPCToolImplementation = Backbone.Model.extend({
+	initialize: function() {
+		this.set('commandLineOptions', []);
+		this.set('captureStdOut', null);
+		this.set('captureStdErr', null);
+	},
+
+	setExecutable: function(exec) {
+		this.set('executable', exec);	
+	},
+
+	setTemplate: function(template) {
+		this.set('template', template);
+	},
+
+	setLog: function(log) {
+		this.set('log', log);
+	},
+
+	setCaptureStdOut: function(captureStdOut) {
+		this.set('captureStdOut', captureStdOut);
+	},
+
+	setCaptureStdErr: function(captureStdErr) {
+		this.set('captureStdErr', captureStdErr);
+	},
+
+	setCommandLineOptions: function(commandLineOptions) {
+		this.commandLineOptions = commandLineOptions;
+	},
+
+	addCommandLineOption: function(commandLineOption) {
+		this.get('commandLineOptions').push(commandLineOption);
+	},
+
+});

@@ -448,6 +448,15 @@
                 </div>
             </div>
             <div class="form-group">
+                <div class="col-lg-12">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="tool-parameter-commandline" checked/>Commandline?
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
                 <div class="col-xs-12">
                     <div class="btn-group btn-group-save">
                         <button class="btn btn-default" id="add-parameter-btn">OK</button>
@@ -559,7 +568,7 @@
             <div class="form-group">
                 <label for="tool-file" class="col-lg-3 control-label">Files</label>
                 <div class="col-lg-9">
-                        <input type="file" class="form-control tool-file-select" id="tool-files" multiple /> 
+                    <input type="file" class="form-control tool-file-select" id="tool-files" multiple /> 
                 </div>
             </div>
             <div class="form-group"> 
@@ -599,6 +608,93 @@
             <td><input type='text' class='env-table-input' id='value' value=''/></td>
             <td><button type="button" id="remove-env-btn" class="btn btn-default btn-xs">x</button>
         </tr>
+    </script>
+    <!-- New HPC Tool Template -->
+    <script type="text/template" id="hpc-tool-form">
+        <div id="new-workflow-tool-content">
+            <ul id="cl-form-tabs" class="nav nav-tabs" data-tabs="tabs">
+                <li class="active">
+                    <a href="#wizard-pane1" data-toggle="tab" class="mytab">
+                        <label id="lbl" class="canvastab-text-selected">Basics</label>
+                    </a>
+                </li>
+                <li class="">
+                    <a href="#wizard-pane2" data-toggle="tab" class="mytab">
+                        <label id="lbl" class="canvastab-text-selected">Options</label>
+                    </a>
+                </li>
+            </ul>
+            <div id="tab-content" class="tab-content">
+                <div id="wizard-pane1" class="tab-pane active tool-wizard-pane-bkgrd"></div>
+                <div id="wizard-pane2" class="tab-pane tool-wizard-pane-bkgrd"></div>
+            </div>
+        </div>
+        <div>
+            <br>
+            <div class="col-lg-offset-9 col-lg-12">
+                <button id="new-tool-cancel-btn" type="button" class="btn btn-default">Cancel</button>
+                <button id="new-tool-create-btn" type="button" class="btn btn-default">Create</button>
+            </div>
+        </div>
+    </script>
+    <!-- HPC Tool Options Tab -->
+    <script type="text/template" id="new-hpc-tool-option-tab">
+        <form id='hpc-tool-option-form' enctype="multipart/form-data" class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="tool-executable" class="col-lg-3 control-label">Executable</label>
+                <div class="col-lg-6">
+                    <input type="text" class="form-control" id="tool-executable" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="hpc-template" class="col-lg-3 control-label">HPC Template</label>
+                <div class="col-lg-6">
+                    <input type="file" class="form-control" id="hpc-template" placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tool-options" class="col-lg-3 control-label">Options</label>
+                <div class="col-lg-6">
+                    <div id="wf-options-list" class="wf-options-list"></div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="btn-group-vertical">
+                        <button type="button" id="add-tool-value-btn" class="btn btn-default">Add Value</button>
+                        <button type="button" id="add-tool-param-btn" class="btn btn-default">Add Parameter</button>
+                        <button type="button" id="add-tool-data-btn" class="btn btn-default">Add Data</button>
+                        <button type="button" id="edit-cloption-btn" class="btn btn-default">Edit</button>
+                        <button type="button" id="delete-cloption-btn" class="btn btn-default">Delete</button>
+                        <button type="button" id="move-cloption-up-btn" class="btn btn-default">Up</button>
+                        <button type="button" id="move-cloption-down-btn" class="btn btn-default">Down</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-12">
+                    <input type="text" class="form-control" id="tool-execution-line" readonly placeholder=""/>
+                </div>
+            </div>
+        </form>
+    </script>
+
+    <!-- New Tool Type Selection Popover -->
+    <script type="text/template" id="workflow-tool-popover">
+        <div class="tool-selection-popover-bkgrd info-title-font">
+            <span class="glyphicon glyphicon-plus-sign info-popover-title"></span>
+            <%= title %>
+        </div>
+    </script>
+    <script type="text/template" id="select-tool-type">
+        <div class="form-group">
+            <div class="col-lg-12">
+                <select id='tool-select' class='tool-select'>
+                    <option value=""></option>
+                    <option value="commandline">Command Line</option>
+                    <option value="java">Java</option>
+                    <option value="hpc">HPC</option>
+                </div>
+            </select>
+        </div>
     </script>
     <div id='editor-app' class="container-liquid">
         <div class="row">

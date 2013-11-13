@@ -164,11 +164,23 @@ var WorkflowToolButtonBar = Backbone.View.extend({
 
     events: {
         "click button#workflow-tool-info-btn" : "workflowToolInfo",
-        "click button#new-workflow-tool-btn" : "createWorkflowTool"
+        "click button#new-workflow-tool-btn" : "createWorkflowTool",
+        "select .tool-select" : "handleSelection"
+    },
+
+    initialize: function() {
+        this.popoverVisible = false;
     },
 
     render: function(e) {
         $(this.el).html(this.template());
+        
+        var popoverTitle = _.template($('#workflow-tool-popover').html());
+        var toolTypes = _.template($('#select-tool-type').html());
+        //var popover = $(this.el).popover({html: true, title: popoverTitle({title: 'Select Tool Type'}), content: toolTypes(), trigger: 'manual'});
+        $(this.el).popover({html: true, title: popoverTitle({title: 'Select Tool Type'}), content: toolTypes(), trigger: 'manual'});
+               
+
 
         return this;
     },
@@ -201,21 +213,73 @@ var WorkflowToolButtonBar = Backbone.View.extend({
 
     createWorkflowTool: function() {
         console.log("show new tool dialog");
-        $('#tool-modal-content').html(new CommandLineView().render().el);
-        commandLineBasicView = new CommandLineBasicTab();
-        commandLineOptionView = new CommandLineOptionTab();
-        commandLineFileView = new CommandLineFileTab();
-        commandLineEnvView = new CommandLineEnvTab();
-        $('#tool-modal-content').find('#wizard-pane1').html(commandLineBasicView.render().el);
-        $('#tool-modal-content').find('#wizard-pane2').html(commandLineOptionView.render().el);
-        $('#tool-modal-content').find('#wizard-pane3').html(commandLineFileView.render().el);
-        $('#tool-modal-content').find('#wizard-pane4').html(commandLineEnvView.render().el);
-        $('#tool-modal-content').find('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
-        //$('#wizard-pane1').html(commandLineBasicView.render().el);
-        //$('#wizard-pane2').html(commandLineOptionView.render().el);
-        //$('#wizard-pane3').html(commandLineFileView.render().el);
-        //$('#wizard-pane4').html(commandLineEnvView.render().el);
-        //$('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
-        $('#modalWorkflowToolView').modal('show');
+        //$('#tool-modal-content').html(new SelectToolTypeView().render().el);
+        //$('#modalWorkflowToolView').modal('show');
+        if(this.popoverVisible) {
+            $(this.el).popover('hide');
+            this.popoverVisible = false;
+        } else {
+            this.popoverVisible = true;
+            $(this.el).popover('show');
+            var self = this;
+            $('#tool-select').change(function(e) {
+                var selection = $('#tool-select').find(':selected').val();
+                if(!_.isEmpty(selection.trim())) {
+                    $(self.el).popover('hide');
+                    self.popoverVisible = false;
+                }
+
+                switch(selection) {
+                    case 'commandline':
+                        showCommandLineToolWizard();
+                        break;
+                    case 'java':
+                        showJavaToolWizard(); 
+                        break;
+                    case 'hpc':
+                        showHPCToolWizard();
+                        break;
+                }
+
+            });
+        }
+
+        /*
+        
+        */
     }
 });
+
+var showCommandLineToolWizard = function() {
+    $('#tool-modal-content').html(new CommandLineView().render().el);
+    commandLineBasicView = new CommandLineBasicTab();
+    commandLineOptionView = new CommandLineOptionTab();
+    commandLineFileView = new CommandLineFileTab();
+    commandLineEnvView = new CommandLineEnvTab();
+    $('#tool-modal-content').find('#wizard-pane1').html(commandLineBasicView.render().el);
+    $('#tool-modal-content').find('#wizard-pane2').html(commandLineOptionView.render().el);
+    $('#tool-modal-content').find('#wizard-pane3').html(commandLineFileView.render().el);
+    $('#tool-modal-content').find('#wizard-pane4').html(commandLineEnvView.render().el);
+    $('#tool-modal-content').find('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
+    //$('#wizard-pane1').html(commandLineBasicView.render().el);
+    //$('#wizard-pane2').html(commandLineOptionView.render().el);
+    //$('#wizard-pane3').html(commandLineFileView.render().el);
+    //$('#wizard-pane4').html(commandLineEnvView.render().el);
+    //$('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
+    $('#modalWorkflowToolView').modal('show');
+};
+
+var showJavaToolWizard = function() {
+    alert("Tool wizard not yet implemented");
+    // TODO CMN - implement java tool wizard
+};
+
+var showHPCToolWizard = function() {
+    $('#tool-modal-content').html(new HPCToolView().render().el);
+    commandLineBasicView = new CommandLineBasicTab();
+    commandLineOptionView = new HPCToolOptionTab();
+    $('#tool-modal-content').find('#wizard-pane1').html(commandLineBasicView.render().el);
+    $('#tool-modal-content').find('#wizard-pane2').html(commandLineOptionView.render().el);
+    $('#tool-modal-content').find('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
+    $('#modalWorkflowToolView').modal('show');
+};

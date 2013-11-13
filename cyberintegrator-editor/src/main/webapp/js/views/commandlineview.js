@@ -21,19 +21,11 @@ var CommandLineView = Backbone.View.extend({
 		var outputs = [];
 		var parameters = [];
 		var blobs = [];
-
-		var tool = new WorkflowTool();
-        tool.set('id', generateUUID());
-        tool.set('date', new Date());
-        tool.set('executor', 'commandline');
-        tool.set('creator', currentUser.toJSON());
-
 		var title = $('#tool-title').val();
 		var version = $('#tool-version').val();
 		var description = $('#tool-description').val();
-        tool.set('title', title);
-        tool.set('description', description);
-        tool.set('version', version);
+
+		var tool = createWorkflowTool(title, description, version, "commandline");
 
         var exec = $('#tool-executable').val();
         var commandLineImpl = new CommandLineImplementation();
@@ -41,11 +33,7 @@ var CommandLineView = Backbone.View.extend({
 
         if($('#capture-stdout').is(":checked")) {
         	var title = $('#stdout-title').val();
-        	var stdout = new WorkflowToolData();
-        	stdout.set('id', generateUUID());	
-        	stdout.set('title', title);
-        	stdout.set('description', 'stdout of external tool.');
-        	stdout.set('mimeType', 'text/plain');
+        	var stdout = createWorkflowToolData(title, 'stdout of external tool', 'text/plain');
         	stdout.set('dataId', 'stdout');
         	outputs.push(stdout);
 
@@ -56,11 +44,8 @@ var CommandLineView = Backbone.View.extend({
         }
 
         if(!$('#join-stdout-stderr').is(":checked") && $('#capture-stderr').is(":checked")) {
-        	var stderr = new WorkflowToolData();
-        	stderr.set('id', generateUUID());
-        	stderr.set('title', $('#stderr-title'));
-        	stderr.set('description', "stderr of external tool.");
-        	stderr.set('mimeType', 'text/plain');
+        	var title = $('#stderr-title').val();
+        	var stderr = createWorkflowToolData(title, 'stderr of external tool.', 'text/plain');
         	stderr.set('dataId', 'stderr');
         	outputs.push(stderr);
 
@@ -103,11 +88,12 @@ var CommandLineView = Backbone.View.extend({
         tool.set('blobs', blobs);
 
         var files = $('#tool-file-form')[0][0].files;
+        console.log($('#tool-file-form'));
         this.numFiles = files.length;
         this.fileCounter = 0;
         var zipfile = new JSZip();
         var instance = this;
-
+        
         if(this.numFiles > 0) {
 			var blobFolder = zipfile.folder('blobs');
 	        for(var index = 0; index < files.length; index++) {
@@ -132,7 +118,7 @@ var CommandLineView = Backbone.View.extend({
 		    }
 		} else {
 			this.checkReadyState(tool, zipfile);
-		}
+		} 
 	    $('#modalWorkflowToolView').modal('hide');
 	    console.log("exit create tool");
         
@@ -188,7 +174,6 @@ var CommandLineOptionTab = Backbone.View.extend({
 		$(this.el).empty();
 		$(this.el).html(this.template());
 		this.clOptionsView = new CommandLineOptionListView({model: this.optionModel});
-		// TODO add command line options list view
 		return this;
 	},
 
@@ -284,7 +269,8 @@ var CommandLineParameterView = Backbone.View.extend({
 	template: _.template($('#new-parameter-view').html()),
 
 	events: {
-		"click button#add-parameter-btn" : "addToolParameter"
+		"click button#add-parameter-btn" : "addToolParameter",
+		"click button#cancel-parameter-btn" : "close"
 	},
 
 	render: function() {
@@ -301,23 +287,23 @@ var CommandLineParameterView = Backbone.View.extend({
 		var value = $('#tool-parameter-default').val();
 		var hidden = $('#tool-parameter-hidden').is(':checked');
 		var allowNull = $('#tool-parameter-empty').is(':checked');
+		var commandline = $('#tool-parameter-commandline').is(':checked');
 
-		var param = new WorkflowToolParameter();
-        param.set('id', generateUUID());
-        param.set('title', title);
-        param.set('type', type);
-        param.set('hidden', hidden);
-        param.set('allowNull', allowNull);
-        param.set('parameterId', generateUUID());
-        param.set('value', value);
+		var param = createWorkflowToolParameter(title, desc, allowNull, type, hidden, value);
 
         var clOption = new CommandLineOption();
         clOption.setType('PARAMETER');
         clOption.setFlag(flag);
-        clOption.setOptionId(param.get('parameterId'));
+        clOption.setOptionId(param.getParameterId());
+        clOption.setCommandline(commandline);
 
         commandLineOptionView.addParameter(clOption, param);
         $('#modalParameterView').modal('hide');
+	},
+
+	close: function(e) {
+		e.preventDefault();
+		$('#modalParameterView').modal('hide');
 	}
 });
 
@@ -327,6 +313,7 @@ var CommandLineAddDataView = Backbone.View.extend({
 
 	events: {
 		"click button#add-data-btn" : "addToolData",
+		"click button#cancel-data-btn" : "close"
 	},
 
 	initialize: function() {
@@ -367,6 +354,11 @@ var CommandLineAddDataView = Backbone.View.extend({
 
 		commandLineOptionView.addData(option, data);
 		$('#modalParameterView').modal('hide');
+	},
+
+	close: function(e) {
+		e.preventDefault();
+		$('#modalParameterView').modal('hide');
 	}
 
 });
@@ -376,6 +368,7 @@ var CommandLineAddValueView = Backbone.View.extend({
 
 	events: {
 		"click button#add-value-btn" : "addValue",
+		"click button#cancel-value-btn" : "close"
 	},
 
 	initialize: function() {
@@ -398,6 +391,11 @@ var CommandLineAddValueView = Backbone.View.extend({
 		option.setValue(value);
 
 		commandLineOptionView.addCommandLineOption(option);
+		$('#modalParameterView').modal('hide');
+	},
+
+	close: function(e) {
+		e.preventDefault();
 		$('#modalParameterView').modal('hide');
 	}
 });
@@ -644,3 +642,320 @@ var CommandLineEnvRow = Backbone.View.extend({
 		this.model.destroy();
 	}
 }); 
+
+// New HPC Tool
+var HPCToolView = Backbone.View.extend({
+	template: _.template($('#hpc-tool-form').html()),
+
+	events: {
+		"click button#new-tool-create-btn" : "createTool",
+		"click button#new-tool-cancel-btn" : "cancel"
+	},
+
+	initialize: function() {
+
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	cancel: function(e) {
+		$('#modalWorkflowToolView').modal('hide');
+	},
+
+	createTool: function(e) {
+		console.log("create tool");
+		var inputs = [];
+		var outputs = [];
+		var parameters = [];
+		var blobs = [];
+		var title = $('#tool-title').val();
+		var version = $('#tool-version').val();
+		var description = $('#tool-description').val();
+
+		var tool = createWorkflowTool(title, description, version, "hpc");
+
+        var exec = $('#tool-executable').val();
+        var hpcImpl = new HPCToolImplementation();
+        hpcImpl.setExecutable(exec);	
+
+        // Capture Gondola-Log
+        var gondolaLog = createWorkflowToolData('gondola-log', 'Gondola log file from remote execution.', 'text/plain');
+        gondolaLog.setDataId('gondola-log');
+        outputs.push(gondolaLog);
+
+        hpcImpl.setLog(gondolaLog.getDataId());
+
+        // Capture Standard out
+        var stdout = createWorkflowToolData('standard-out', 'standard output of remote tool execution.', 'text/plain');
+        outputs.push(stdout);
+
+        hpcImpl.setCaptureStdOut(stdout.getDataId());
+
+        // Capture Standard error
+        var stderr = createWorkflowToolData('standard-err', 'standard error of remote tool execution.', 'text/plain');
+        outputs.push(stderr);
+
+        hpcImpl.setCaptureStdErr(stderr.getDataId());
+
+        // Add username parameter
+        var username = createWorkflowToolParameter('Target Username', 'Username on remote host', false, 'STRING', false, '');
+
+        var usernameOption = new CommandLineOption();
+        usernameOption.setType('PARAMETER');
+        usernameOption.setOptionId(username.getParameterId());
+        usernameOption.setCommandline(false);
+        parameters.push(username);
+
+        hpcImpl.addCommandLineOption(usernameOption);
+
+        // Add HPC Target User Home
+        var userhome = createWorkflowToolParameter('Target Userhome', 'User home directory on remote host.', false, 'STRING', false, '');
+        var userhomeOption = new CommandLineOption();
+        userhomeOption.setType('PARAMETER');
+        userhomeOption.setOptionId(userhome.getParameterId());
+        userhomeOption.setCommandline(false);
+        parameters.push(userhome);
+
+        hpcImpl.addCommandLineOption(userhomeOption);
+
+        // Add HPC Target URI
+        var targetUri = createWorkflowToolParameter('Target SSH', 'Remote host SSH URI.', false, 'STRING', false, '');
+
+        var targetUriOption = new CommandLineOption();
+        targetUriOption.setType('PARAMETER');
+        targetUriOption.setOptionId(targetUri.getParameterId());
+        targetUriOption.setCommandline(false);
+        parameters.push(targetUri);
+
+        hpcImpl.addCommandLineOption(targetUriOption);
+
+        // Add User specified options
+        commandLineOptionView.getOptionModel().each(function(option) {
+        	hpcImpl.addCommandLineOption(option);
+        	switch(option.getType()) {
+        		case 'VALUE':
+        			break;
+        		case 'PARAMETER':
+        			parameters.push(commandLineOptionView.getParameter(option));
+        			break;
+        		case 'DATA':
+        			switch(option.getInputOutput()) {
+        				case 'INPUT':
+        					inputs.push(commandLineOptionView.getData(option));
+        					break;
+        				case 'OUTPUT':
+        					outputs.push(commandLineOptionView.getData(option));
+        					break;
+        				case 'BOTH':
+        					inputs.push(commandLineOptionView.getData(option));
+        					outputs.push(commandLineOptionView.getData(option));
+        					break;
+        			}
+        			break;
+        	}
+
+        });
+
+        var files = $('#hpc-tool-option-form')[0][1].files;
+        this.numFiles = files.length;
+        this.fileCounter = 0;
+        var zipfile = new JSZip();
+        var instance = this;
+
+        if(this.numFiles > 0) {
+        	hpcImpl.setTemplate(files[0].name);
+	        tool.set('inputs', inputs);
+	        tool.set('outputs', outputs);
+	        tool.set('parameters', parameters);
+	        tool.set('blobs', blobs);
+	        tool.set('implementation', JSON.stringify(hpcImpl));
+			var blobFolder = zipfile.folder('blobs');
+	        for(var index = 0; index < files.length; index++) {
+
+		        var reader = new FileReader();
+		        reader.onload = (function(file) {
+		        	return function(e) {
+			        	var fileDescriptor = {};
+						fileDescriptor.id = generateUUID();
+				        fileDescriptor.filename = file.name;
+				        fileDescriptor.mimeType = file.type;
+				        fileDescriptor.size = file.size;
+				        blobFolder.file(fileDescriptor.id + '/' + file.name, e.target.result);
+						blobs.push(fileDescriptor)
+
+			        	instance.fileCounter++;
+				        // Check if ready to upload tool
+			        	instance.checkReadyState(tool, zipfile);
+		        	};
+		        })(files[index]);
+		        reader.readAsArrayBuffer(files[index]);
+		    }
+		} else {
+			this.checkReadyState(tool, zipfile);
+		} 
+	    $('#modalWorkflowToolView').modal('hide');
+	},
+
+	checkReadyState: function(tool, zipfile) {
+		if(this.fileCounter == this.numFiles) {
+			zipfile.file('tool.json', JSON.stringify(tool));
+			console.log(JSON.stringify(tool, undefined, 2));
+			postTool(zipfile);
+		}
+	}
+});
+
+var HPCToolOptionTab = Backbone.View.extend({
+	template: _.template($('#new-hpc-tool-option-tab').html()),
+	events: {
+		"click button#add-tool-param-btn" : "showAddToolParameter",
+		"click button#add-tool-data-btn" : "showAddToolData",
+		"click button#add-tool-value-btn" : "showAddToolValue",
+		"click button#move-cloption-up-btn" : "commandLineOptionUp",
+		"click button#move-cloption-down-btn" : "commandLineOptionDown",
+		"click button#delete-cloption-btn" : "deleteCommandlineOption"
+
+	},
+	initialize: function() {
+		// key is command line option, value is workflow parameter
+		this.parameters = {};
+		// key is command line option, value is workflow tool data
+		this.data = {};
+		// ordered array of command line options
+		this.optionModel = new CommandLineOptionCollection();
+	},
+
+	render: function() {
+		$(this.el).empty();
+		$(this.el).html(this.template());
+		this.clOptionsView = new CommandLineOptionListView({model: this.optionModel});
+		return this;
+	},
+
+	getCommandLineOptionsListView: function() {
+		return this.clOptionsView;
+	},
+
+	showAddToolParameter: function() {
+		$('#newCommandLineOptionLabel').text("CommandLine Parameter");
+        $('#add-parameter-view').html(new CommandLineParameterView().render().el);
+        $('#modalParameterView').modal('show');
+	},
+
+	showAddToolData: function() {
+		$('#newCommandLineOptionLabel').text("CommandLine Input/Output");
+		$('#add-parameter-view').html(new CommandLineAddDataView().render().el);
+        $('#modalParameterView').modal('show');
+	},
+
+	showAddToolValue: function() {
+		$('#newCommandLineOptionLabel').text("CommandLine Value");
+		$('#add-parameter-view').html(new CommandLineAddValueView().render().el);
+        $('#modalParameterView').modal('show');
+	},
+
+	addParameter: function(cmdLineOption, wfParameter) {
+		this.parameters[cmdLineOption.getOptionId()] = wfParameter;
+		this.addCommandLineOption(cmdLineOption);
+	},
+
+	addData: function(cmdLineOption, wfToolData) {
+		this.data[cmdLineOption.getOptionId()] = wfToolData;
+		this.addCommandLineOption(cmdLineOption);
+	},
+
+	addCommandLineOption: function(cmdLineOption) {
+		this.optionModel.add(cmdLineOption);
+	},
+
+	getOptionModel: function() {
+		return this.optionModel;
+	},
+
+	getParameter: function(cmdLineOption) {
+		return this.parameters[cmdLineOption.getOptionId()];
+	},
+
+	getData: function(cmdLineOption) {
+		return this.data[cmdLineOption.getOptionId()];
+	},
+
+	commandLineOptionUp: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			if(index > 0) {
+				this.getOptionModel().swapElements(index, index-1);
+				this.clOptionsView.render();
+			}
+		}
+	},
+
+	commandLineOptionDown: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			if(index < this.getOptionModel().size()-1) {
+				this.getOptionModel().swapElements(index, index+1);
+				this.clOptionsView.render();
+			}
+		}
+	},
+
+	deleteCommandlineOption: function(e) {
+		e.preventDefault();
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			var model = this.optionModel.at(index);
+			if(model in this.parameters) {
+				delete this.parameters[model];	
+			}
+			this.optionModel.remove(model);
+		} else {
+			console.log('nothing selected');
+		}
+		
+	}
+
+});
+
+// Helper functions
+var createWorkflowTool = function(title, description, version, executor) {
+	var tool = new WorkflowTool();
+    tool.set('id', generateUUID());
+    tool.set('title', title);
+    tool.set('date', new Date());
+    tool.set('description', description);
+    tool.set('version', version);
+    tool.set('executor', executor);
+    tool.set('creator', currentUser.toJSON());
+
+    return tool;
+};
+
+var createWorkflowToolData = function(title, description, mimeType) {
+	var toolData = new WorkflowToolData();
+	toolData.setId(generateUUID());
+	toolData.setDataId(generateUUID());
+	toolData.setTitle(title);
+	toolData.setDescription(description);
+	toolData.setMimeType(mimeType);
+
+	return toolData;
+};
+
+var createWorkflowToolParameter = function(title, description, allowNull, type, hidden, value) {
+	var param = new WorkflowToolParameter();
+    param.setId(generateUUID());
+    param.setParameterId(generateUUID());
+    param.setTitle(title);
+    param.setDescription(description);
+    param.setAllowNull(allowNull);
+    param.setType(type);
+    param.setHidden(hidden);
+    param.setValue(value);
+    return param;
+};

@@ -21,6 +21,7 @@ var commandLineBasicView = null;
 var commandLineOptionView = null;
 var commandLineFileView = null;
 var commandLineEnvView = null;
+var hpcOptionView = null;
 
 // TODO When the PersonView is created, select the first person as current user
 var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu"});
