@@ -291,7 +291,7 @@ var getExecutors = function() {
                 var obj = JSON.parse(msg);
                 //console.log(obj[0]);
                 for(var index = 0; index < obj.length; index++) {
-                    executors[index] = obj[index].executorName;
+                    executors[index] = obj[index];
                 }
 
                 localStorage["executors"] = JSON.stringify(executors); 

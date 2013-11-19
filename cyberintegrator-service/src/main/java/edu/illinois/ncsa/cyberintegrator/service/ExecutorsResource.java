@@ -81,11 +81,18 @@ public class ExecutorsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public Set<Executor> getExecutors() throws Exception {
+    public List<String> getExecutors() throws Exception {
         Engine engine = SpringData.getBean(Engine.class);
         if (engine == null)
             throw (new Exception("Can't retrive CI engine and executors"));
-        return engine.getExecutors();
+
+        Iterator<Executor> iterator = engine.getExecutors().iterator();
+        List<String> executorNames = new ArrayList<String>();
+        while (iterator.hasNext()) {
+            Executor exec = iterator.next();
+            executorNames.add(exec.getExecutorName());
+        }
+        return executorNames;
     }
 
     /**
