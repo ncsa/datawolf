@@ -31,19 +31,48 @@
  ******************************************************************************/
 package edu.illinois.ncsa.cyberintegrator.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.reflections.ReflectionUtils;
+import org.reflections.Reflections;
+import org.reflections.util.ConfigurationBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableSet;
+
 import edu.illinois.ncsa.cyberintegrator.Engine;
 import edu.illinois.ncsa.cyberintegrator.Executor;
+import edu.illinois.ncsa.cyberintegrator.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/executors")
 public class ExecutorsResource {
+
+    private static final Logger log = LoggerFactory.getLogger(ExecutorsResource.class);
 
     /**
      * 
@@ -59,4 +88,118 @@ public class ExecutorsResource {
         return engine.getExecutors();
     }
 
+    /**
+     * Discovers available JavaTools included in set of Jar files
+     * 
+     * @param input
+     *            FormData that includes zip file of jars
+     * @return List of JavaTools and their basic information
+     */
+    @POST
+    @Consumes({ MediaType.MULTIPART_FORM_DATA })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public List<String[]> findJavaTools(MultipartFormDataInput input) {
+        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+        List<InputPart> inputParts = uploadForm.get("tool");
+        for (InputPart inputPart : inputParts) {
+            try {
+                InputStream inputStream = inputPart.getBody(InputStream.class, null);
+                File tempfile = File.createTempFile("tool", ".zip");
+                OutputStream outputStream = new FileOutputStream(tempfile);
+                byte[] buf = new byte[1024];
+                int len = 0;
+                while ((len = inputStream.read(buf)) > 0) {
+                    outputStream.write(buf);
+                }
+                outputStream.close();
+                inputStream.close();
+
+                Set<Class<? extends JavaTool>> tools = readJarFiles(tempfile);
+                List<String[]> javaTools = new ArrayList<String[]>();
+                if (tools != null) {
+                    Iterator<Class<? extends JavaTool>> it = tools.iterator();
+                    while (it.hasNext()) {
+                        try {
+                            Class<? extends JavaTool> obj = it.next();
+                            JavaTool tool = obj.newInstance();
+
+                            String[] toolInfo = new String[4];
+                            toolInfo[0] = obj.getCanonicalName();
+                            toolInfo[1] = tool.getName();
+                            toolInfo[2] = Integer.toString(tool.getVersion());
+                            toolInfo[3] = tool.getDescription();
+
+                            javaTools.add(toolInfo);
+                        } catch (InstantiationException e) {
+                            log.error("Error creating instance of JavaTool.", e);
+                        } catch (IllegalAccessException e) {
+                            log.error("Error creating instance of JavaTool.", e);
+                        }
+                    }
+                }
+                return javaTools;
+            } catch (IOException e) {
+                log.error("Error creating zip file from form data.", e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds all available JavaTools in set of jar files
+     * 
+     * @param file
+     *            Zip file containing jars
+     * @return Set of java tools
+     */
+    public static Set<Class<? extends JavaTool>> readJarFiles(File file) {
+        ZipFile zipfile = null;
+        try {
+            zipfile = new ZipFile(file);
+            Enumeration<? extends ZipEntry> entries = zipfile.entries();
+            ConfigurationBuilder cb = new ConfigurationBuilder();
+            List<URL> urlList = new ArrayList<URL>();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                InputStream is = zipfile.getInputStream(entry);
+                String[] pieces = entry.getName().split("/");
+                File output = File.createTempFile(pieces[1], ".jar");
+                FileOutputStream fos = null;
+                try {
+                    fos = new FileOutputStream(output);
+                    byte[] buf = new byte[10240];
+                    int len = 0;
+                    while ((len = is.read(buf)) >= 0) {
+                        fos.write(buf, 0, len);
+                    }
+                } finally {
+                    if (fos != null) {
+                        fos.close();
+                    }
+                    is.close();
+                }
+
+                urlList.add(new URL(output.toURI().toURL().toString()));
+            }
+
+            URL[] urls = urlList.toArray(new URL[urlList.size()]);
+            cb.addUrls(urls);
+            Reflections reflections = new Reflections(cb);
+            Set<String> classnames = reflections.getStore().getSubTypesOf(JavaTool.class.getName());
+            return ImmutableSet.copyOf(ReflectionUtils.<JavaTool> forNames(classnames, new URLClassLoader(urls, Thread.currentThread().getContextClassLoader())));
+        } catch (Exception e) {
+            log.error("Error reading jar files from zip.", e);
+            try {
+                if (zipfile != null) {
+                    zipfile.close();
+                }
+            } catch (Exception e1) {
+                log.error("Error closing zip file.", e1);
+            }
+        }
+        return null;
+    }
 }
