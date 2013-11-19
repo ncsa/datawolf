@@ -105,5 +105,24 @@
 			<artifactId>cors-filter</artifactId>
 			<version>1.6</version>
 		</dependency>
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.5</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>xml-apis</artifactId>
+					<groupId>xml-apis</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>dom4j</artifactId>
+					<groupId>dom4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>javassist</artifactId>
+					<groupId>javassist</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 </project>
