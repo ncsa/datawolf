@@ -13,6 +13,7 @@ var workflowCollection = new WorkflowCollection();
 var workflowStepCollection = new WorkflowStepCollection();
 var workflowToolCollection = new WorkflowToolCollection();
 var stepLocationCollection = new GraphStepLocationCollection();
+var javaToolCollection = null;
 
 // Views
 var workflowGraphView = null;

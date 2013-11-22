@@ -696,6 +696,57 @@
             </select>
         </div>
     </script>
+    <script type="text/template" id="java-tool-jar-tab">
+        <form id='java-tool-option-form' enctype="multipart/form-data" class="form-horizontal tool-wizard-content" role="form">
+            <div class="form-group">
+                <label for="java-template" class="col-lg-3 control-label">Jar</label>
+                <div class="col-lg-6">
+                    <input type="file" class="form-control" id="java-tool-files" multiple/>
+                </div>
+                <div class="col-lg-3">
+                    <button type="button" id="check-jars-btn" class="btn btn-default">Find Tools</button>
+                </div>
+            </div>
+            <div class="form-group"> 
+                <div class="col-lg-offset-3 col-lg-9">
+                    <div id="selected-jar-files"></div>
+                </div>
+            </div>
+            <div class="form-group"> 
+                <div class="col-lg-offset-3 col-lg-9"
+                <div id="jar-tools">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="java-tool-name" class="col-lg-3 control-label">Tool Name</label>
+                <div class="col-lg-9">
+                    <input type="text" class="form-control" id="java-tool-name" readonly placeholder=""/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="java-tool-version" class="col-lg-3 control-label">Tool Version</label>
+                 <div class="col-lg-9">
+                    <input type="text" class="form-control" id="java-tool-version" readonly placeholder=""/>
+                 </div>
+            </div>
+            <div class="form-group">
+                <label for="java-tool-description" class="col-lg-3 control-label">Tool Description</label>
+                <div class="col-lg-9">
+                    <textarea class="form-control" id="java-tool-description" placeholder="" rows="2" readonly/>
+                </div>
+            </div>
+            <div class="form-group"> 
+                <div class="col-lg-offset-9 col-lg-12">
+                    <button id="java-tool-cancel-btn" type="button" class="btn btn-default">Cancel</button>
+                    <button id="java-tool-create-btn" type="button" class="btn btn-default">Create</button>
+                </div>
+            </div>
+        </form>
+    </script>
+    <!-- Java Tool List Item - show just the tool package and class -->
+    <script type="text/template" id="java-tool-list-item">
+        <%= toolClass %>
+    </script>
     <div id='editor-app' class="container-liquid">
         <div class="row">
             <div class="col-lg-2 panel-left-bkgrd">
@@ -841,6 +892,7 @@
     <script src="js/models/workflowtoolmodel.js"></script>
     <script src="js/models/workflowmodel.js"></script>
     <script src="js/models/commandlineoptionmodel.js"></script>
+    <script src="js/models/javatoolmodel.js"></script>
 
     <!-- main application -->
     <script src="js/main.js"></script>

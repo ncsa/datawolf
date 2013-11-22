@@ -40,6 +40,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -105,13 +106,14 @@ public class ExecutorsResource {
     @POST
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<String[]> findJavaTools(MultipartFormDataInput input) {
+    public Map<String, JavaTool> findJavaTools(MultipartFormDataInput input) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
         List<InputPart> inputParts = uploadForm.get("tool");
         for (InputPart inputPart : inputParts) {
+            File tempfile = null;
             try {
                 InputStream inputStream = inputPart.getBody(InputStream.class, null);
-                File tempfile = File.createTempFile("tool", ".zip");
+                tempfile = File.createTempFile("tool", ".zip");
                 OutputStream outputStream = new FileOutputStream(tempfile);
                 byte[] buf = new byte[1024];
                 int len = 0;
@@ -122,7 +124,8 @@ public class ExecutorsResource {
                 inputStream.close();
 
                 Set<Class<? extends JavaTool>> tools = readJarFiles(tempfile);
-                List<String[]> javaTools = new ArrayList<String[]>();
+                List<JavaTool> javaTools = new ArrayList<JavaTool>();
+                Map<String, JavaTool> map = new HashMap<String, JavaTool>();
                 if (tools != null) {
                     Iterator<Class<? extends JavaTool>> it = tools.iterator();
                     while (it.hasNext()) {
@@ -136,7 +139,9 @@ public class ExecutorsResource {
                             toolInfo[2] = Integer.toString(tool.getVersion());
                             toolInfo[3] = tool.getDescription();
 
-                            javaTools.add(toolInfo);
+                            // javaTools.add(toolInfo);
+                            map.put(obj.getName(), tool);
+                            javaTools.add(tool);
                         } catch (InstantiationException e) {
                             log.error("Error creating instance of JavaTool.", e);
                         } catch (IllegalAccessException e) {
@@ -144,9 +149,14 @@ public class ExecutorsResource {
                         }
                     }
                 }
-                return javaTools;
+                return map;
+                // return javaTools;
             } catch (IOException e) {
                 log.error("Error creating zip file from form data.", e);
+            } finally {
+                if (tempfile != null) {
+                    tempfile.delete();
+                }
             }
         }
         return null;
@@ -161,6 +171,7 @@ public class ExecutorsResource {
      */
     public static Set<Class<? extends JavaTool>> readJarFiles(File file) {
         ZipFile zipfile = null;
+        List<File> fileList = new ArrayList<File>();
         try {
             zipfile = new ZipFile(file);
             Enumeration<? extends ZipEntry> entries = zipfile.entries();
@@ -174,6 +185,7 @@ public class ExecutorsResource {
                 InputStream is = zipfile.getInputStream(entry);
                 String[] pieces = entry.getName().split("/");
                 File output = File.createTempFile(pieces[1], ".jar");
+                fileList.add(output);
                 FileOutputStream fos = null;
                 try {
                     fos = new FileOutputStream(output);
@@ -205,6 +217,10 @@ public class ExecutorsResource {
                 }
             } catch (Exception e1) {
                 log.error("Error closing zip file.", e1);
+            }
+        } finally {
+            for (File f : fileList) {
+                f.delete();
             }
         }
         return null;

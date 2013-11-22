@@ -212,7 +212,6 @@ var WorkflowToolButtonBar = Backbone.View.extend({
     },
 
     createWorkflowTool: function() {
-        console.log("show new tool dialog");
         //$('#tool-modal-content').html(new SelectToolTypeView().render().el);
         //$('#modalWorkflowToolView').modal('show');
         if(this.popoverVisible) {
@@ -243,10 +242,6 @@ var WorkflowToolButtonBar = Backbone.View.extend({
 
             });
         }
-
-        /*
-        
-        */
     }
 });
 
@@ -261,17 +256,12 @@ var showCommandLineToolWizard = function() {
     $('#tool-modal-content').find('#wizard-pane3').html(commandLineFileView.render().el);
     $('#tool-modal-content').find('#wizard-pane4').html(commandLineEnvView.render().el);
     $('#tool-modal-content').find('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
-    //$('#wizard-pane1').html(commandLineBasicView.render().el);
-    //$('#wizard-pane2').html(commandLineOptionView.render().el);
-    //$('#wizard-pane3').html(commandLineFileView.render().el);
-    //$('#wizard-pane4').html(commandLineEnvView.render().el);
-    //$('#wf-options-list').html(commandLineOptionView.getCommandLineOptionsListView().render().el);
     $('#modalWorkflowToolView').modal('show');
 };
 
 var showJavaToolWizard = function() {
-    alert("Tool wizard not yet implemented");
-    // TODO CMN - implement java tool wizard
+    $('#tool-modal-content').html(new JavaToolSelectionTab().render().el);
+    $('#modalWorkflowToolView').modal('show');
 };
 
 var showHPCToolWizard = function() {

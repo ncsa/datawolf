@@ -124,6 +124,7 @@ var CommandLineView = Backbone.View.extend({
 	},
 
 	cancel: function(e) {
+		e.preventDefault();
 		$('#modalWorkflowToolView').modal('hide');
 	},
 
@@ -651,6 +652,7 @@ var HPCToolView = Backbone.View.extend({
 	},
 
 	cancel: function(e) {
+		e.preventDefault();
 		$('#modalWorkflowToolView').modal('hide');
 	},
 
@@ -904,6 +906,247 @@ var HPCToolOptionTab = Backbone.View.extend({
 	}
 
 });
+
+var JavaToolSelectionTab = Backbone.View.extend({
+	template: _.template($('#java-tool-jar-tab').html()),
+	events: {
+		"change input#java-tool-files" : "fileChange",
+		"click button#check-jars-btn" : "findTools",
+		"click button#java-tool-cancel-btn" : "cancel",
+		"click button#java-tool-create-btn" : "createTool"
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	fileChange: function(e) {
+		e.preventDefault();
+		if(!e.target.files) {
+			return;
+		}
+		var div = document.querySelector("#selected-jar-files");
+		var myfile = $('#java-tool-option-form')[0][0].files[0];
+
+		var files = e.target.files;
+		var index;
+		for(index = 0; index < files.length; index++) {
+			var file = files[index];
+			div.innerHTML += file.name + "<br/>";
+		}
+	},
+
+	findTools: function(e) {
+		e.preventDefault();
+		var files = $('#java-tool-option-form')[0][0].files;
+		this.numFiles = files.length;
+		this.fileCounter = 0;
+		var instance = this;
+		var zipfile = new JSZip();
+		var blobFolder = zipfile.folder('blobs');
+		for(var index = 0; index < files.length; index++) {
+            var reader = new window.FileReader();
+            reader.onload = (function(file) {
+		        return function(e) {
+		        	var filename = file.name;
+		        	filename = filename.substring(0, filename.length - 4);
+	                blobFolder.file(filename, e.target.result);
+
+	                instance.fileCounter++;
+	                instance.checkReadyState(zipfile);
+            	};
+		    })(files[index]);
+		    reader.readAsArrayBuffer(files[index]);
+        }
+	},
+
+	createTool: function(e) {
+		e.preventDefault();
+		var selection = $("#jar-tools option:selected").val();
+
+		// TODO CMN - allow multiple tools to be uploaded
+		//console.log("# of tools = "+selections.length);
+		//console.log("first tool = "+$(selections[0]).val());
+		//console.log("2nd tool = "+$(selections[1]).val());
+		//$("#jar-tools option:selected").each(function() {
+
+		var model = null;
+		javaToolCollection.each(function(javatool) {
+			if(javatool.get('toolClass') === selection) {
+				model = javatool;
+				return false;
+			}
+		});
+
+		var inputs = [];
+		var outputs = [];
+		var parameters = [];
+		var blobs = [];
+		var title = model.get('name');
+		var version = model.get('version');
+		var description = model.get('description');
+
+		var tool = createWorkflowTool(title, description, version, "java");
+
+		// Add Inputs
+		var modelInputs = model.get('inputs');
+		for(var index = 0; index < modelInputs.length; index++) {
+			var inputTitle = modelInputs[index].name;
+			var inputDesc = modelInputs[index].description;
+			var mimeType = modelInputs[index].type;
+			var toolData = createWorkflowToolData(inputTitle, inputDesc, mimeType);
+			toolData.set('dataId', modelInputs[index].id);
+
+			inputs.push(toolData);
+		}
+
+		// Add Outputs
+		var modelOutputs = model.get('outputs');
+		for(var index = 0; index < modelOutputs.length; index++) {
+			var outputTitle = modelOutputs[index].name;
+			var outputDesc = modelOutputs[index].description;
+			var mimeType = modelOutputs[index].type;
+			var toolData = createWorkflowToolData(outputTitle, outputDesc, mimeType);
+			toolData.set('dataId', modelOutputs[index].id);
+
+			outputs.push(toolData);
+		}
+
+		// Add Parameters
+		var modelParams = model.get('parameters');
+		for(var index = 0; index < modelParams.length; index++) {
+			var title = modelParams[index].name;
+			var description = modelParams[index].description;
+			var allowNull = modelParams[index].allowEmpty;
+			var type = modelParams[index].type;
+			var hidden = modelParams[index].hidden;
+			var value = modelParams[index].value;
+
+			var toolParam = createWorkflowToolParameter(title, description, allowNull, type, hidden, value);
+			toolParam.setParameterId(modelParams[index].id);
+			toolParam.set('options', modelParams[index].options);
+			parameters.push(toolParam);
+		}
+
+		var javaToolImpl = new JavaToolImplementation();
+		javaToolImpl.setToolClassName(model.get('toolClass'));
+
+		tool.set('implementation', JSON.stringify(javaToolImpl));
+		tool.set('inputs', inputs);
+		tool.set('outputs', outputs);
+		tool.set('parameters', parameters);
+		tool.set('blobs', blobs);
+
+		// TODO add Blobs
+		var files = $('#java-tool-option-form')[0][0].files;
+		this.numFiles = files.length;
+		this.fileCounter = 0;
+		var zipfile = new JSZip();
+		var instance = this;
+		var blobFolder = zipfile.folder('blobs');
+		for(var index = 0; index < files.length; index++) {
+
+		    var reader = new FileReader();
+		    reader.onload = (function(file) {
+		    	return function(e) {
+		        	var fileDescriptor = {};
+					fileDescriptor.id = generateUUID();
+			        fileDescriptor.filename = file.name;
+			        fileDescriptor.mimeType = file.type;
+			        fileDescriptor.size = file.size;
+			        blobFolder.file(fileDescriptor.id + '/' + file.name, e.target.result);
+					blobs.push(fileDescriptor)
+
+		        	instance.fileCounter++;
+			        // Check if ready to upload tool
+		        	instance.checkPostReadyState(tool, zipfile);
+		    	};
+		    })(files[index]);
+		    reader.readAsArrayBuffer(files[index]);
+		}
+		$('#modalWorkflowToolView').modal('hide');
+	},
+
+	cancel: function(e) {
+		e.preventDefault();
+		$('#modalWorkflowToolView').modal('hide');
+	},
+
+	checkReadyState: function(zipfile) {
+		if(this.fileCounter == this.numFiles) {
+			findJavaTools(zipfile);
+		}
+	},
+	checkPostReadyState: function(tool, zipfile) {
+		if(this.fileCounter == this.numFiles) {
+			zipfile.file('tool.json', JSON.stringify(tool));
+			//console.log(JSON.stringify(tool, undefined, 2));
+			postTool(zipfile);
+		}
+	}
+});
+
+var JavaToolListView = Backbone.View.extend({
+	tagName: 'select',
+
+	initialize: function() {
+		this.$el.attr('size', 8);
+		//this.$el.attr('multiple', 'multiple');
+	},
+
+	render: function() {
+		_.each(this.model.models, function(javatool) {
+			$(this.el).append(new JavaToolListItemView({model: javatool}).render().el);
+		}, this);
+		return this;
+	}
+});
+
+var JavaToolListItemView = Backbone.View.extend({
+	template: _.template($('#java-tool-list-item').html()),
+	tagName: 'option',
+	events: {
+		"click" : "onClick"
+	},
+
+	render: function() {
+		$(this.el).html(this.template(this.model.toJSON()));
+		return this;
+	},
+
+	onClick: function(e) {
+		e.preventDefault();
+		$('#java-tool-name').val(this.model.get('name'));
+		$('#java-tool-version').val(this.model.get('version'));
+		$('#java-tool-description').val(this.model.get('description'));
+	}
+
+});
+
+function findJavaTools(zip) {
+    var blob = zip.generate({type:"blob"});
+    var data = new FormData();
+    data.append('tool', blob);
+    
+    var oReq = new XMLHttpRequest();
+    oReq.open("POST", "/executors");
+    oReq.onreadystatechange = function() {
+        if (oReq.readyState == 4) {
+            var map = JSON.parse(this.responseText);
+
+           	javaToolCollection = new JavaToolCollection();
+            for(var key in map) {
+            	var javatool = new JavaTool(map[key]);
+            	javatool.set('toolClass', key);
+	            //console.log(JSON.stringify(javatool, undefined, 2));
+	            javaToolCollection.add(javatool);
+            }
+           	$('#jar-tools').html(new JavaToolListView({model: javaToolCollection}).render().el);
+        }
+    }
+    oReq.send(data); 
+}
 
 // Helper functions
 var createWorkflowTool = function(title, description, version, executor) {
