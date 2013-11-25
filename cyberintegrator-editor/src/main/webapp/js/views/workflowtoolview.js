@@ -7,6 +7,10 @@ var WorkflowToolListView = Backbone.View.extend({
 
     initialize: function() {
        this.$el.attr('size', '25');
+       var self = this;
+       this.model.bind("add", function(workflowTool) {
+            $(self.el).append(new WorkflowToolListItemView({model: workflowTool}).render().el);
+       });
        //this.$el.attr('draggable', 'true');
        //this.$el.bind('dragstart', _.bind(this.handleDragStart, this));
     },

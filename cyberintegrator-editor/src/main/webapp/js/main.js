@@ -347,6 +347,27 @@ var getExecutions = function(workflowId) {
         }); 
 };
 
+var addWorkflowTool = function(toolId) {
+    $.ajax({
+        type: "GET",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: '/workflowtools/'+toolId,
+        dataType: "text",
+
+        success: function(msg) {
+            var workflowTool = new WorkflowTool(JSON.parse(msg));
+            workflowToolCollection.add(workflowTool);
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+
+    });
+}
+
 var postWorkflow = function(workflow) {
     if(DEBUG) {
         console.log(JSON.stringify(workflow,undefined, 2));
@@ -382,6 +403,12 @@ var postTool = function(zip) {
     data.append('tool', blob);
     var oReq = new XMLHttpRequest();
     oReq.open("POST", "/workflowtools");
+    oReq.onreadystatechange = function() {
+        if (oReq.readyState == 4 && oReq.status == 200 ) {
+            var tool = JSON.parse(this.responseText);
+            addWorkflowTool(tool[0]);
+        } 
+    }
     oReq.send(data);
 }
 
