@@ -132,13 +132,6 @@ public class ExecutorsResource {
                         try {
                             Class<? extends JavaTool> obj = it.next();
                             JavaTool tool = obj.newInstance();
-
-                            String[] toolInfo = new String[4];
-                            toolInfo[0] = obj.getCanonicalName();
-                            toolInfo[1] = tool.getName();
-                            toolInfo[2] = Integer.toString(tool.getVersion());
-                            toolInfo[3] = tool.getDescription();
-
                             // javaTools.add(toolInfo);
                             map.put(obj.getName(), tool);
                             javaTools.add(tool);
