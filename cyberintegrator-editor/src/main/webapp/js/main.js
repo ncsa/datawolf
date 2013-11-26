@@ -33,14 +33,6 @@ var openWorkflows = [];
 
 // List of available executors
 var executors = [];
-// Endpoint Types
-/*
-var exampleDropOptions = {
-                tolerance:"touch",
-                hoverClass:"dropHover",
-                activeClass:"dragActive"
-            }; */
-
 
 // Helps determine whether a connection is being made or a tool is dropped
 var toolDrop = false;
@@ -55,56 +47,6 @@ function generateUUID() {
     });
     return uuid;
 };
-
-/*
-    This code will add a shape to the canvas, left here as an example
-
-var AddShapeButtonView = Backbone.View.extend({
-    events: {
-        'click button#addshape-button' : 'addShape'
-    },
-
-    template: _.template($('#addshape-button-template').html()),
-
-    render: function(e) {
-        //console.log("render add shape button");
-        $(this.el).html(this.template());
-
-        return this;
-    },
-
-    addShape: function() {
-        var myapp = $("#editor-app");
-        //console.log("find .wgraph");
-        //console.log(myapp.find('.wgraph'));
-
-        var id = "my-id" + incr;
-        var innerText = "Analysis"+incr;
-        incr++;
-        var shapeClass = "shape";
-        var dataShapeClass = "Rectangle";
-        var divTag = document.createElement("div");
-        divTag.id = id;
-        divTag.setAttribute("class", shapeClass);
-        divTag.setAttribute("data-shape", dataShapeClass);
-        divTag.innerText = innerText;
-        
-        $('#wgraph').append(divTag);
-
-        var shapes = $(".shape");
-        console.log(shapes);
-        var anchors = [[1, 0.2, 1, 0], [0.8, 1, 0, 1], [0, 0.8, -1, 0], [0.2, 0, 0, -1] ]
-        // make everything draggable
-        jsPlumb.draggable(shapes);
-        jsPlumb.addEndpoint(id, {anchor: "RightMiddle"}, inputEndpoint);        
-        jsPlumb.addEndpoint(id, { anchor:"LeftMiddle" }, inputEndpoint); 
-
-        //jsPlumb.addEndpoint(id, { anchor:"LeftMiddle" }, exampleEndpoint2); 
-        //jsPlumb.connect({ source: "rec1", target: id, anchors: ["RightMiddle", "LeftMiddle"]});
-
-
-    }
-});  */
 
 var resetRenderMode = function(desiredMode) {
         var newMode = jsPlumb.setRenderMode(desiredMode);
@@ -278,73 +220,51 @@ function registerCloseEvent() {
 var getExecutors = function() {
     var myurl = '/executors';
     $.ajax({
-            type: "GET",
-            beforeSend: function(request) {
-                request.setRequestHeader("Content-type", "application/json");
-                request.setRequestHeader("Accept", "application/json");
-            },
-            url: myurl,//'http://localhost:8001/workflows/',
-            dataType: "text",
-            //data: ,//JSON.stringify(workflowId)+'/executions',
+        type: "GET",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: myurl,//'http://localhost:8001/workflows/',
+        dataType: "text",
+        //data: ,//JSON.stringify(workflowId)+'/executions',
 
-            success: function(msg) {
-                //var test = new WorkflowCollection(msg);
-                var obj = JSON.parse(msg);
-                //console.log(obj[0]);
-                for(var index = 0; index < obj.length; index++) {
-                    executors[index] = obj[index];
-                }
-
-                localStorage["executors"] = JSON.stringify(executors); 
-                //console.log("# of executors = "+obj.length);
-                //console.log(obj[0]);
-                //console.log(obj.length);
-                //console.log("remote workflow id="+msg);
-                //for(var i = 0; i < 10; i++) {
-                    //console.log(msg[i]);
-                //}
-                //console.log("returning value for "+workflowId);
-                //numExecutions[workflowId] = obj.length;
-                //return obj.length;
-                //alert('success: '+msg);
-            },
-            error: function(msg) {
-                alert('error: '+JSON.stringify(msg));
+        success: function(msg) {
+            //var test = new WorkflowCollection(msg);
+            var obj = JSON.parse(msg);
+            //console.log(obj[0]);
+            for(var index = 0; index < obj.length; index++) {
+                executors[index] = obj[index];
             }
 
-        });
+            localStorage["executors"] = JSON.stringify(executors); 
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    });
 }
 
 var getExecutions = function(workflowId) {
     var myurl = '/workflows/'+workflowId + '/executions';
     $.ajax({
-            type: "GET",
-            beforeSend: function(request) {
-                request.setRequestHeader("Content-type", "application/json");
-                request.setRequestHeader("Accept", "application/json");
-            },
-            url: myurl,//'http://localhost:8001/workflows/',
-            dataType: "text",
-            //data: ,//JSON.stringify(workflowId)+'/executions',
+        type: "GET",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: myurl,//'http://localhost:8001/workflows/',
+        dataType: "text",
+        //data: ,//JSON.stringify(workflowId)+'/executions',
 
-            success: function(msg) {
-                //var test = new WorkflowCollection(msg);
-                var obj = JSON.parse(msg);
-                //console.log(obj.length);
-                //console.log("remote workflow id="+msg);
-                //for(var i = 0; i < 10; i++) {
-                    //console.log(msg[i]);
-                //}
-                //console.log("returning value for "+workflowId);
-                numExecutions[workflowId] = obj.length;
-                //return obj.length;
-                //alert('success: '+msg);
-            },
-            error: function(msg) {
-                alert('error: '+JSON.stringify(msg));
-            }
-
-        }); 
+        success: function(msg) {
+            var obj = JSON.parse(msg);
+            numExecutions[workflowId] = obj.length;
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    }); 
 };
 
 var addWorkflowTool = function(toolId) {
@@ -364,7 +284,6 @@ var addWorkflowTool = function(toolId) {
         error: function(msg) {
             alert('error: '+JSON.stringify(msg));
         }
-
     });
 }
 
@@ -374,26 +293,24 @@ var postWorkflow = function(workflow) {
     }
     
     $.ajax({
-            type: "POST",
-            beforeSend: function(request) {
-                request.setRequestHeader("Content-type", "application/json");
-                request.setRequestHeader("Accept", "application/json");
-            },
-            url: "http://localhost:8001/workflows",
-            dataType: "text",
-            data: JSON.stringify(workflow),
+        type: "POST",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: "http://localhost:8001/workflows",
+        dataType: "text",
+        data: JSON.stringify(workflow),
 
-            success: function(msg) {
-                
-                console.log("remote workflow id="+msg);
-                alert('success: '+msg);
-            },
-            error: function(msg) {
-                alert('error: '+JSON.stringify(msg));
-            }
-
-        }); 
-
+        success: function(msg) {
+            
+            console.log("remote workflow id="+msg);
+            alert('success: '+msg);
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    }); 
 }
 
 var postTool = function(zip) {
@@ -423,8 +340,6 @@ var handleEndpointClick = function(endpoint, originalEvent) {
         }
     });    
     if(endpoint.overlays[0].getLabel() === 'X') {
-        //alert("click on endpoint on element " + endpoint.elementId);
-        
         var confirmDelete = confirm("delete "+step.get('title') + "?");
 
         if(confirmDelete) {
@@ -507,7 +422,6 @@ var handleEndpointClick = function(endpoint, originalEvent) {
             $('#infoview').empty();
             $('#infoview').append(new ToolDataInfoView({model: toolData}).render().el);
         } 
-        //$('#infoview').append(endpoint.overlays[0].getLabel());
     }
 }
 
@@ -558,31 +472,32 @@ eventBus.on('clicked:saveworkflow', function(workflowId, title) {
 });
 
 eventBus.on('clicked:newopenworkflow', function(workflowId) {
-    //workflowGraphView.setWorkflow(workflowId);
-    $('.active').removeClass('active');
+    // Check if workflow is already displayed in a tab
+    if($('#'+workflowId).length === 0) {
+        $('.active').removeClass('active');
+        var divLink = '<li class="active"><a href="#'+workflowId +'" data-toggle="tab" class="mytab"><button class="close closeTab" type="button" >×</button><label class="canvastab-text-selected" id="lbl'+workflowId+'"></label></a></li>';
+        
+        $("#tabs").append(divLink);
+        var divTag = document.createElement("div");
 
-    // Clear out selected tab CSS before adding new active tab
-    eventBus.trigger('clicked:tab', null);
-    //$(this.el).addClass('highlight');
+        divTag.id = workflowId;
+        divTag.setAttribute("class", "tab-pane active dropzone canvas-selected");
 
-    var txt = '<li class="active"><a href="#'+workflowId +'" data-toggle="tab" class="mytab"><button class="close closeTab" type="button" >×</button><label class="canvastab-text-selected" id="lbl'+workflowId+'"></label></a></li>';
-    
-    $("#tabs").append(txt);
-    var divTag = document.createElement("div");
-
-    divTag.id = workflowId;
-    divTag.setAttribute("class", "tab-pane active dropzone canvas-selected");
-
-    $("#tab-content").append(divTag);
-    //$("#"+workflowId).append("I'm the new pane");    
-    var graphView = new WorkflowGraphView({
-        el: '#'+workflowId
-    });
-    graphView.render();
-    graphView.setWorkflow(workflowId);
-    registerCloseEvent();
-    $('.active').on('click', tabSelectionEvent);
-    currentWorkflow = workflowId; 
+        $("#tab-content").append(divTag);
+        var graphView = new WorkflowGraphView({
+            el: '#'+workflowId
+        });
+        graphView.render();
+        graphView.setWorkflow(workflowId);
+        registerCloseEvent();
+        $('.active').on('click', tabSelectionEvent);
+        eventBus.trigger('clicked:tab', $('.active')[0]);
+        currentWorkflow = workflowId; 
+    } else {
+        // Workflow already open, show the tab
+        $('#tabs a[href="#'+workflowId+'"]').tab('show');
+        eventBus.trigger('clicked:tab', $('#tabs a[href="#'+workflowId+'"]').parent()[0]);
+    }
 });
 
 eventBus.on('clicked:newworkflow', function() {
@@ -615,27 +530,34 @@ eventBus.on('clearWorkflow', function() {
 });
 
 eventBus.on('clicked:tab', function(selected) {
-    $("#tabs").children('li').each(function() {
-        if(this === selected) {
-            //console.log("selected label is "+$(this).find('label').text());
-            var child = $(this).find('label');
-            child.removeClass('canvastab-text-unselected');
-            child.addClass('canvastab-text-selected');
+    if(selected.nodeName === 'LI') {
+        $("#tabs").children('li').each(function() {
+            if(this.id === 'add-workflow') {
+                // Do nothing
+            } else if(this === selected) {
+                //console.log("selected label is "+$(this).find('label').text());
+                var child = $(this).find('label');
+                child.removeClass('canvastab-text-unselected');
+                child.addClass('canvastab-text-selected');
 
-            // Set selected tab as current workflow
-            var lblId = child.attr('id');
-            currentWorkflow = lblId.substring(3, lblId.length);
+                // Set selected tab as current workflow
+                var lblId = child.attr('id');
+                currentWorkflow = lblId.substring(3, lblId.length);
 
-        } else if(this.id === 'add-workflow') {
-            // Do nothing
-        } else {
-            //console.log("unselected label is "+$(this).find('label').text());
-            var child = $(this).find('label');
-            child.removeClass('canvastab-text-selected');
-            child.addClass('canvastab-text-unselected');
-        }
-    });
+            } else {
+                //console.log("unselected label is "+$(this).find('label').text());
+                var child = $(this).find('label');
+                child.removeClass('canvastab-text-selected');
+                child.addClass('canvastab-text-unselected');
+            }
+        });
+    }
 });
+
+function selectTab(tabName) {
+    console.log("select tab at index: "+$(tabName).index());
+    $("#tab-content").tabs("option", "active", $(tabName).index());
+}
 
 var app = new AppRouter();
 
