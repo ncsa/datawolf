@@ -1089,6 +1089,9 @@ var JavaToolSelectionTab = Backbone.View.extend({
 
 var JavaToolListView = Backbone.View.extend({
 	tagName: 'select',
+	events: {
+		"change" : "onChange"	
+	},
 
 	initialize: function() {
 		this.$el.attr('size', 8);
@@ -1096,32 +1099,42 @@ var JavaToolListView = Backbone.View.extend({
 	},
 
 	render: function() {
+		//$(this.el).append(new JavaToolListItemView({model: new JavaTool({toolClass: "", name: ""})}).render().el);
 		_.each(this.model.models, function(javatool) {
 			$(this.el).append(new JavaToolListItemView({model: javatool}).render().el);
 		}, this);
 		return this;
+	},
+
+	onChange: function(e) {
+		e.preventDefault();
+		var selected = $(this.el).val();
+		javaToolCollection.each(function(javatool) {
+			if(javatool.get('toolClass') === selected) {
+				$('#java-tool-name').val(javatool.get('name'));
+				$('#java-tool-version').val(javatool.get('version'));
+				$('#java-tool-description').val(javatool.get('description'));	
+				return false;
+			}
+		})
 	}
+
 });
 
 var JavaToolListItemView = Backbone.View.extend({
 	template: _.template($('#java-tool-list-item').html()),
 	tagName: 'option',
-	events: {
-		"click" : "onClick"
+
+	attributes: function() {
+		return {
+			value: this.model.get('toolClass')
+		}
 	},
 
 	render: function() {
 		$(this.el).html(this.template(this.model.toJSON()));
 		return this;
 	},
-
-	onClick: function(e) {
-		e.preventDefault();
-		$('#java-tool-name').val(this.model.get('name'));
-		$('#java-tool-version').val(this.model.get('version'));
-		$('#java-tool-description').val(this.model.get('description'));
-	}
-
 });
 
 function findJavaTools(zip) {
