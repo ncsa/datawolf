@@ -119,7 +119,7 @@ var AppRouter = Backbone.Router.extend({
 
     list:function() {
         var id = localStorage.currentUser;
-        personCollection.fetch({success: function() {
+        personCollection.fetch({cache: false, success: function() {
             personCollection.each(function(person) {
                 if(person.get('id') === id) {
                     currentUser = person;
