@@ -2,59 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
-    <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+
     <title>Cyberintegrator Editor</title>
+    
     <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <!-- TODO move this to main.css -->
-    <style type="text/css">
-		html, body {
-			background-color: #EEEEEE;
-		}
-		body {
-			padding-top: 40px; 
-			font-family : Open Sans;
-		}
-
-		.login-error {
-			color: #FF0000;
-		}
-
-		.container-liquid {
-			padding: 0 15px;
-			margin: 0 auto;
-		}
-
-    </style>
-
+    <!-- Custom styling for login/registration page -->
+    <link href="signin.css" rel="stylesheet">
 </head>
 <body>
 	<script type="text/template" id="login-view-template">
-		<h2>Login</h2>
-		<form class="" role="form">
-			<div class="input-group input-group-lg">
-					<input id='username' name="username" type="text" class="form-control input-lg" placeholder="Username">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<form class="form-signin" role="form">
+					<input id='username' name="username" type="text" class="form-control" placeholder="Email">
+					<input id='password' type="password" class="form-control" placeholder="Password">
+					<button id="login-btn" class="btn btn-primary pull-right" type="submit">Sign in</button>
+					<br>
+					<div class="alert fade in" id="login-error" style="display:none;">
+						<p class="login-error">Incorrect username or password</p>
+					</div>
+				</form>
 			</div>
-			<br>
-			<div class="input-group input-group-lg">
-					<input id='password' type="password" class="form-control input-lg" placeholder="Password">
-			</div>
-			<br>
-			<button id="login-btn" class="btn btn-primary" type="submit">Sign in</button>
-		</form>
-		<div class="alert fade in" id="login-error" style="display:none;">
-			<p class="login-error">Incorrect username or password</p>
-		</div>
+		</div> 
 	</script>
-
-	<div id='editor-login' class="container-liquid">
-			<div class="row">
-				<div class="col-lg-2 col-lg-offset-5">
-					<div id="login-form" class="testt"></div>
+	<script type="text/template" id="register-view-template">
+		<div class="panel panel-default">
+			<div class="panel-heading"><strong>New to Cyberintegrator?</strong> Register</div>
+			<div class="panel-body">
+				<form class="form-signin" role="form">
+					<input id='firstname' name="firstname" type="text" class="form-control" placeholder="First Name">
+					<input id='lastname' name="lastname" type="text" class="form-control" placeholder="Last Name">
+					<input id='email' name="email" type="text" class="form-control" placeholder="Email" autocomplete="off">
+					<input id='newpassword' type="password" class="form-control" placeholder="Password" autocomplete="off">
+					<button id="register-btn" class="btn btn-default pull-right" type="submit">Register</button> 
+				</form>
+				<div class="alert fade in" id="registration-error" style="display:none;">
+					<p class="login-error">An account is already registered to that email address</p>
 				</div>
 			</div>
-	</div>
+		</div>
+	</script>
+	<div id='editor-login' class="container">
+		<div class="form-div">
+			<div id="login-form" class="login"></div>
+		</div>
+		<div class="form-div">
+			<div id="register-form" class="register"></div>
+		</div>
+	</div> 
 
 	<!-- Libraries -->
 	<script src="assets/jquery-1.9.0.js"></script>
