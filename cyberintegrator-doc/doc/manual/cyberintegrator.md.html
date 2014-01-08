@@ -24,13 +24,13 @@ A workflow step consists of several parts:
 
 By stringing together one or more steps you can create a workflow as illustrated by the simple two step workflow below:
 
-![Graphical represention of a 2 step workflow](images/definition-workflow.png)
+![Graphical representation of a 2 step workflow](images/definition-workflow.png)
 
 * **Workflow** - sequence of steps
 * **Executor** - code to execute a type of tool (e.g. a Java executor knows how to execute Java tools)
 * **Engine** - code to execute a workflow
 
-A workflow does not have to be a sequential set of steps since the workflow engine will manage whether a step is ready to execute (e.g. all inputs are satisified). In the above example, step 2 will not execute until the data has been produced by step 1. The types of executors that Cyberintegrator supports will be discussed in the architecture section. 
+A workflow does not have to be a sequential set of steps since the workflow engine will manage whether a step is ready to execute (e.g. all inputs are satisfied). In the above example, step 2 will not execute until the data has been produced by step 1. The types of executors that Cyberintegrator supports will be discussed in the architecture section. 
 
 ## Architecture
 
@@ -62,25 +62,44 @@ The Java Executor is a local executor capable of executing Java code. Models tha
 
 ```
 public interface JavaTool {
+    public String getName();
+    public int getVersion();
+    public String getDescription();
+
+    public Collection<Dataset> getInputs();
     public void setInput(String id, InputStream input);
-    public void setParameter(String id, String value);
-    public void execute() throws AbortException, FailedException;
+
+    public Collection<Dataset> getOutputs();
     public InputStream getOutput(String id);
+
+    public Collection<Parameter> getParameters();
+    public void setParameter(String id, String value);
+    
+    public void setTempFolder(File tempfolder);
+
+    public void execute() throws AbortException, FailedException;
 }
 ```
 
+* **getName** - returns a short name of the tool
+* **getVersion** - returns the version number of the tool
+* **getDescription** - returns a longer description of the tool
+* **getInputs** - returns a collection of input descriptions for the algorithm
 * **setInput** - provides an input to the algorithm
+* **getOutputs** - returns a collection of output descriptions of the algorithm
+* **getOutput** - provides the outputs produced by the algorithm
+* **getParameters** - returns a collection of parameter descriptions of the algorithm
 * **setParameter** - provides a parameter to the algorithm
+* **setTempFolder** - tells the algorithm where it can store temp files
 * **execute** - is where the algorithm is implemented
-* **getOutput** - provides the data produced by the algorithm
 
 If you are interested, you can find the source code for a simple Java tool that implements Grep here: https://opensource.ncsa.illinois.edu/stash/users/cnavarro/repos/grep-demo. In the Web Editor section, we'll discuss creating a Java tool in Cyberintegrator using a compiled version of this Grep tool.  
 
 #### Command Line Executor
 
-The Command Line executor is a local executor capable of executing command line tools that are available on the local machine. A few examples are Netstat, Grep, ls, etc. The command line executor executes command line tools in a temporary folder and depending on how the tool is configured, it can capture both standard out and standard error. Inputs that are specified when the tool is created will be copied to the temporary folder before executing and outputs that are generated will be copied to the location specified when Cyberintegrator is setup (e.g. metadata might be in MySQL and data might be on disk). This will be discussed in the section that discusses setting up Cyberintegrator. 
+The Command Line executor is a local executor capable of executing command line tools that are available on the local machine. A few examples are `netstat`, `grep`, `ls`, etc. The command line executor executes command line tools in a temporary folder and depending on how the tool is configured, it can capture both standard out and standard error. Inputs that are specified when the tool is created will be copied to the temporary folder before executing and outputs that are generated will be copied to the location specified when Cyberintegrator is setup (e.g. metadata might be in MySQL and data might be on disk). This will be discussed in the section that discusses setting up Cyberintegrator. 
 
-If you already have an executable (e.g. your model is written in C/C++/etc) and you just want to run it in Cyberintegrator, the Command Line Executor makes it very easy to add your tool to Cyberintegrator without any modification to your code. The Web Editor provides a step by step process that guides you through specifying information about your tool (e.g. input flags, input data, output data, etc) to assist in importing it into Cyberintegrator. Once your tool is imported, it can be used by itself in a workflow or as a step in a larger workflow. In the Web Editor section, we'll discuss creating a command line tool for executing Netstat as part of a two step workflow and demonstrate the step by step process for importing a command line tool. 
+If you already have an executable (e.g. your model is written in C/C++/etc) and you just want to run it in Cyberintegrator, the Command Line Executor makes it very easy to add your tool to Cyberintegrator without any modification to your code. The Web Editor provides a step by step process that guides you through specifying information about your tool (e.g. input flags, input data, output data, etc) to assist in importing it into Cyberintegrator. Once your tool is imported, it can be used by itself in a workflow or as a step in a larger workflow. In the Web Editor section, we'll discuss creating a command line tool for executing `netstat` as part of a two step workflow and demonstrate the step by step process for importing a command line tool. 
 
 #### HPC Executor
 
@@ -90,6 +109,7 @@ The HPC Executor is a Remote Executor that uses SSH Channels to communicate with
 Cyberintegrator provides a thin service layer that wraps around the Cyberintegrator Engine and exposes all primary functionality through a REST API that clients can program against. Below are all of Cyberintegrator's REST endpoints and a brief description about them. For a more information on how to use each endpoint, please see the javadoc associated with the service layer. If you are interested in an example that uses the the REST API, checkout the source code for the web editor. Instructions are included in the Source Code section.
 
 **People**
+
 request method | URL | Description
 -------------- | --- | -----------
 GET | persons | get a list of people
@@ -97,7 +117,8 @@ GET | persons/{person-id} | get a user by id
 POST | persons | create a new user
 DELETE | persons/{person-id} | id of user to delete
 
-** Workflows**
+**Workflows**
+
 request method | URL | Description
 -------------- | --- | -----------
 GET | workflows | get all workflows
@@ -111,6 +132,7 @@ PUT | workflows/{workflow-id} | update a workflow
 DELETE | workflows/{workflow-id} | delete a workflow by id
 
 **Datasets**
+
 request method | URL | Description
 -------------- | --- | -----------
 GET | datasets | get all datasets
@@ -124,12 +146,14 @@ DELETE | datasets/{dataset-id} | mark dataset as deleted
 DELETE | datasets/{dataset-id}/{filedescriptor-id}/delete | delete the filedescriptor by dataset id and file descriptor id
 
 **LogFiles**
+
 request method | URL | Description
 -------------- | --- | -----------
 GET | logfiles | get all logfiles
 GET | logfiles/{logfile-id} | get a logfile by id
 
 **WorkflowTools**
+
 request method | URL | Description
 -------------- | --- | -----------
 GET | workflowtools | get all workflow tools
@@ -138,6 +162,7 @@ POST | workflowtools | create a workflow tool
 DELETE | workflowtools/{tool-id} | delete workflow tool by id
 
 **Executions**
+
 request method | URL | Description
 -------------- | --- | -----------
 GET | executions | get all executions
@@ -151,6 +176,7 @@ PUT | executions/{execution-id}/start | start an execution
 PUT | executions/{execution-id}/cancel | cancel an execution
 
 **Executors**
+
 request method | URL | Description
 -------------- | --- | -----------
 GET | executors | get all available executors
@@ -225,6 +251,7 @@ Open the folder that was created by unzipping the installation zip file and go i
   * **timeout** - time, in seconds, before a workflow execution times out
 
 The next part of the application context to look at is where we specify file storage:
+
 ```
 <bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk">
 	<property name="levels" value="3" />
@@ -238,7 +265,7 @@ This statement specifies that file storage will be on disk with the following pr
   * **levels** - indicates the number of levels to use, this prevents too many files in a single folder.
   * **folder** - indicates the location on disk to store the files.
 
-Cyberintegrator has a **FileStorage** interface that allows users to implement different storage options to meet their application needs if the provided ones are insuffcient. One planned storage option is **FileStorageMedici** to use Medici for storing files. 
+Cyberintegrator has a **FileStorage** interface that allows users to implement different storage options to meet their application needs if the provided ones are insufficient. One planned storage option is **FileStorageMedici** to use Medici for storing files. 
 
 The next part of the file to look at is where object information will be stored as seen in the snippet below:  	
 
@@ -294,7 +321,7 @@ The important parts are **dataSource** and the bean it refers to **hsqldata**. T
 ```
 
 Another alternative and one that we have tested in production is storing object information in a MySQL database. 
-	 
+
 ```	 
 <!-- mysql setting -->
 <bean id="mysql" class="com.jolbox.bonecp.BoneCPDataSource">
@@ -312,6 +339,7 @@ Another alternative and one that we have tested in production is storing object 
 		<property name="releaseHelperThreads" value="3" />
 </bean>
 ```
+
 As mentioned previously, this is not the default because additional setup would be required by the user to install MySQL and is beyond the scope of this manual.
 
 #### Launch Scripts
@@ -546,7 +574,7 @@ Your form page should look similar to the following:
 
 ![Completed submission form page](images/execute-workflow-form.png)
 
-For the **netstat** tool, since we specified **-an** as the default, it is displayed in the parameter input box and there was no need to enter it. After checking that all input fields are satisified, click **Execute** to submit the workflow for execution. You should see a small popup indicating that your workflow was submitted successfully. 
+For the **netstat** tool, since we specified **-an** as the default, it is displayed in the parameter input box and there was no need to enter it. After checking that all input fields are satisfied, click **Execute** to submit the workflow for execution. You should see a small popup indicating that your workflow was submitted successfully. 
 
 ### Execution History
 
@@ -609,7 +637,7 @@ Cyberintegrator is an open source project and you can obtain the source code fro
 ### Acknowledgments 
 
 We would like to acknowledge multiple funding agencies for the support including NCSA, NSF, NASA, NARA and TRECC. The main creators of Cyberintegrator are Rob Kooper, Luigi Marini, Chris Navarro, Jong Lee, and Liana Diesendruck with support from Peter Bajcsy, Barbara Minsker, Jim Myers, and Tim Nee.
-
 </xmp>
 <script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
 </html>
+
