@@ -218,6 +218,13 @@ public class ExecutionsResource {
         return exedao.findOne(executionId);
     }
 
+    /**
+     * Delete execution by id
+     * 
+     * @param executionId
+     *            execution id
+     * @throws Exception
+     */
     @DELETE
     @Path("{execution-id}")
     public void deleteExecution(@PathParam("execution-id") @DefaultValue("") String executionId) throws Exception {
@@ -293,6 +300,7 @@ public class ExecutionsResource {
 
     }
 
+    // TODO Move this per CBI-486
     @GET
     @Path("{execution-id}/hpcfile")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
@@ -422,7 +430,6 @@ public class ExecutionsResource {
 
             xValues.add(x);
             yValues.add(y);
-            // System.out.println("iteration = "+x + " value = "+y);
         }
         reader.close();
 
@@ -500,6 +507,13 @@ public class ExecutionsResource {
         return logfileDao.findLogByExecutionIdAndStepId(executionId, stepId);
     }
 
+    /**
+     * Get the state all steps in an execution
+     * 
+     * @param executionId
+     *            execution id
+     * @return step id and state
+     */
     @GET
     @Path("{execution-id}/state")
     @Produces({ MediaType.APPLICATION_JSON })
@@ -533,7 +547,7 @@ public class ExecutionsResource {
     @PUT
     @Path("{execution-id}/pause")
     public void pauseExecution(@PathParam("execution-id") String executionId) {
-        // TODO implement pauseExecution
+        // TODO implement pauseExecution per CBI-488
     }
 
     /**

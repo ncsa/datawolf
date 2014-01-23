@@ -126,8 +126,6 @@ public class DatasetsResource {
 
                     log.debug("Zipped dataset uploaded");
 
-//                    SpringData.getBean(DatasetDAO.class).save(dataset);
-
                 } catch (Exception e) {
                     log.error("Could not save dataset.", e);
                     return e.getMessage();
@@ -152,9 +150,6 @@ public class DatasetsResource {
                     creator = personDao.findByEmail(useremail);
                     if (creator == null) {
                         log.error("Couldn't find a person with id: " + useremail);
-                        // TODO: need to remove; it's testing purpose
-//                        Person person = Person.createPerson("Jong", "Lee", "jonglee1@illinois.edu");
-//                        creator = personDao.save(person);
                         return null;
                     }
                 } catch (IOException e) {
@@ -348,7 +343,7 @@ public class DatasetsResource {
      * Get a dataset by Id
      * 
      * @param datasetId
-     *            dataset Id
+     *            id of dataset to retrieve
      * @return
      *         a dataset in JSON
      */
@@ -362,6 +357,13 @@ public class DatasetsResource {
         return findOne;
     }
 
+    /**
+     * Mark dataset as deleted
+     * 
+     * @param datasetId
+     *            id of dataset to delete
+     * @throws Exception
+     */
     @DELETE
     @Path("{dataset-id}")
     public void deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
@@ -377,6 +379,13 @@ public class DatasetsResource {
         datasetDao.save(dataset);
     }
 
+    /**
+     * Delete dataset from repository
+     * 
+     * @param datasetId
+     *            id of dataset to delete from repository
+     * @return response message from delete operation
+     */
     @PUT
     @Path("{dataset-id}/purge")
     public Response purgeDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) {
@@ -482,7 +491,6 @@ public class DatasetsResource {
                 response.type(fileDescriptor.getMimeType());
             }
             response.header("Content-Disposition", "attachment; filename=\"" + fileDescriptor.getFilename() + "\"");
-            // logger.debug("Downloading dataset " + decoded);
             return response.build();
         } catch (IOException e) {
             e.printStackTrace();

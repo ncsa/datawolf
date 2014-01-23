@@ -76,6 +76,13 @@ import edu.illinois.ncsa.springdata.SpringData;
 public class WorkflowsResource {
     private static final Logger log = LoggerFactory.getLogger(WorkflowsResource.class);
 
+    /**
+     * Create a new workflow
+     * 
+     * @param workflow
+     *            Workflow to create
+     * @return created workflow
+     */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
@@ -87,8 +94,15 @@ public class WorkflowsResource {
         return tmp;
     }
 
+    /**
+     * Update workflow by id
+     * 
+     * @param workflow
+     *            Updated workflow
+     * @return Updated workflow
+     */
     @PUT
-    @Path("{id}")
+    @Path("{workflow-id}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow updateWorkflow(Workflow workflow) {
@@ -223,6 +237,14 @@ public class WorkflowsResource {
         return wfdao.findOne(workflowId);
     }
 
+    /**
+     * Delete a workflow by Id
+     * 
+     * @param workflowId
+     *            id of workflow to delete
+     * @return true if delete successful, false otherwise
+     * @throws Exception
+     */
     @DELETE
     @Path("{workflow-id}")
     @Produces({ MediaType.APPLICATION_JSON })
@@ -319,6 +341,14 @@ public class WorkflowsResource {
         return results.getContent();
     }
 
+    /**
+     * Get steps associated with a workflow
+     * 
+     * @param workflowId
+     *            id of workflow to get steps for
+     * @return workflow steps for the workflow requested
+     * @throws Exception
+     */
     @GET
     @Path("{workflow-id}/steps")
     @Produces({ MediaType.APPLICATION_JSON })
@@ -331,6 +361,16 @@ public class WorkflowsResource {
         return workflow.getSteps();
     }
 
+    /**
+     * Get a workflow step associated with a workflow
+     * 
+     * @param workflowId
+     *            id of workflow to get step for
+     * @param stepId
+     *            id of the step to get
+     * @return requested workflow step
+     * @throws Exception
+     */
     @GET
     @Path("{workflow-id}/steps/{step-id}")
     @Produces({ MediaType.APPLICATION_JSON })

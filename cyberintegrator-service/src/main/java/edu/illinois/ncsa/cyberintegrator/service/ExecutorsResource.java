@@ -76,6 +76,7 @@ public class ExecutorsResource {
     private static final Logger log = LoggerFactory.getLogger(ExecutorsResource.class);
 
     /**
+     * Get all available executors
      * 
      * @return
      *         Returns the set of available executors
@@ -132,7 +133,6 @@ public class ExecutorsResource {
                         try {
                             Class<? extends JavaTool> obj = it.next();
                             JavaTool tool = obj.newInstance();
-                            // javaTools.add(toolInfo);
                             map.put(obj.getName(), tool);
                             javaTools.add(tool);
                         } catch (InstantiationException e) {
@@ -143,7 +143,6 @@ public class ExecutorsResource {
                     }
                 }
                 return map;
-                // return javaTools;
             } catch (IOException e) {
                 log.error("Error creating zip file from form data.", e);
             } finally {

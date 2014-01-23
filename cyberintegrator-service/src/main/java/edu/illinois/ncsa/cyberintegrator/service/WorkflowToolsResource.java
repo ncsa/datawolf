@@ -208,5 +208,4 @@ public class WorkflowToolsResource {
         toolDao.save(tool);
     }
 
-    // TODO add endpoint for creating a workflow tool
 }

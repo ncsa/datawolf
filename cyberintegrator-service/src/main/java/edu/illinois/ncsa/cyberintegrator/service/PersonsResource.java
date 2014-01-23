@@ -55,10 +55,10 @@ import edu.illinois.ncsa.springdata.SpringData;
 public class PersonsResource {
 
     /**
-     * Get all datasets
+     * Get all users
      * 
      * @param size
-     *            number of datasets per page
+     *            number of users per page
      * @param page
      *            page number starting 0
      * @param showdeleted
@@ -87,6 +87,16 @@ public class PersonsResource {
 
     }
 
+    /**
+     * 
+     * @param firstName
+     *            given name of user to create
+     * @param lastName
+     *            surname of user to create
+     * @param email
+     *            email address of user to create
+     * @return id of generated user
+     */
     @POST
     @Produces({ MediaType.TEXT_PLAIN })
     public String createPerson(@QueryParam("firstname") @DefaultValue("") String firstName, @QueryParam("lastname") @DefaultValue("") String lastName,

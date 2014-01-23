@@ -59,15 +59,13 @@ public class LoginResource {
     private Logger log = LoggerFactory.getLogger(LoginResource.class);
 
     /**
-     * Get all datasets
+     * Login a user by email and authorization string
      * 
-     * @param size
-     *            number of datasets per page
-     * @param page
-     *            page number starting 0
-     * @param showdeleted
-     *            should we return deleted person.
-     * @return
+     * @param email
+     *            email of the user attempting to authenticate
+     * @param auth
+     *            authentication string/token
+     * @return the user if authentication is successful
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
@@ -96,6 +94,16 @@ public class LoginResource {
         return null;
     }
 
+    /**
+     * Create a user account
+     * 
+     * @param email
+     *            email of the account to create
+     * @param password
+     *            password for the user account
+     * @throws Exception
+     *             If email/password not specified or if user does not exist
+     */
     @POST
     @Produces({ MediaType.TEXT_PLAIN })
     public void createAccount(@QueryParam("email") String email, @QueryParam("password") String password) throws Exception {
