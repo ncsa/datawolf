@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
-    <!-- <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css"> -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyberintegrator Editor</title>
     <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -103,7 +101,6 @@
                 <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
                     <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></span>
                 </button>
-                <!-- TODO implement add tool, this is just a UI placeholder --> 
                 <button id="new-workflow-tool-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd open">
                     <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></span>
                 </button>
@@ -129,7 +126,6 @@
                     </div>
                 </div>
             </div>
-            
             <!--
             <div class="control-group">
                 <label class="control-label" for="workflow-title">Title:</label>
@@ -198,7 +194,6 @@
             </div>
         </div>
     </script>
-
     <!-- Tool Info Scripts -->
     <script type="text/template" id="workflow-tool-popover-content-top">
         <div>
@@ -218,6 +213,7 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
     </script>
     <script type="text/template" id="workflow-tool-popover-content-open">
         <div class="info-accordian-border">
@@ -675,7 +671,6 @@
             </div>
         </form>
     </script>
-
     <!-- New Tool Type Selection Popover -->
     <script type="text/template" id="workflow-tool-popover">
         <div class="tool-selection-popover-bkgrd info-title-font">
@@ -749,15 +744,14 @@
     <div id='editor-app' class="container-liquid">
         <div class="row">
             <div class="col-lg-2 panel-left-bkgrd">
-<!--                 <div id="spacer" class=""></div> -->
-                <div id="my-nav">
+                <div class="build-nav"id="my-nav">
                     <ul class="nav nav-pills nav-stacked">
                         <li class="Nav-1-link"><a href="#"><label class="Nav-1-Selected">Build</label></a></li>
                         <li class="Nav-1-link"><a href="execute.html"><label class="Nav-1-Default">Execute</label></a></li>
                         <li class="Nav-1-link"><a href="history.html"><label class="Nav-1-Default">History</label></a></li>
                     </ul>
                 </div> 
-                <div id="tool-parent">
+                <div class="tool-parent" id="tool-parent">
                     <div class="Nav-2-Bkgrd nav-title">
                         <h3 class="cbi-title Nav-2-Text">
                              <span class="icon-wf-title"><img src="assets/img/wrench.png"></span>
@@ -774,11 +768,10 @@
                             </div>
                         </form>
                     </div>
-                    <div id="workflow-tools"></div>
+                    <div class="workflow-tools-view" id="workflow-tools"></div>
                     <div id="workflowToolButtons"></div>              
                 </div>
-                <br/>
-                <div id="workflow-parent">
+                <div class="workflow-parent" id="workflow-parent">
                     <div class="Nav-2-Bkgrd nav-title">
                         <h3 class="cbi-title Nav-2-Text">
                             <span class="icon-wf-title"><img src="assets/img/wf.png"></span>
@@ -793,7 +786,7 @@
                             </div>
                         </div>
                     </form>
-                    <div id="workflows"></div>
+                    <div class="workflows-view" id="workflows"></div>
                     <div id="workflowbuttons"></div>
                 </div>
             </div>
@@ -864,23 +857,18 @@
     <script src="assets/jquery-1.9.0.js"></script>
     <script src="assets/jquery-ui-1.9.2-min.js"></script>
     <script src="assets/json2.js"></script>
-    
     <script src="assets/underscore-min.js"></script>
     <script src="assets/backbone-min.js"></script> 
     <script src="assets/backbone.dualstorage.js"></script>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <!-- <script src="assets/backbone.localStorage.js"></script> -->
-
     <script src="assets/jquery.jsPlumb-1.4.1-all-min.js"></script>
     <script src="assets/jszip.js"></script>
-
     <!-- Views -->
     <script src="js/views/workflowgraphview.js"></script>
     <script src="js/views/workflowtoolview.js"></script>
     <script src="js/views/workflowview.js"></script>
     <script src="js/views/infoview.js"></script>
     <script src="js/views/commandlineview.js"></script>
-
     <!-- Models -->
     <script src="js/models/filedescriptormodel.js"></script>
     <script src="js/models/workflowtoolparametermodel.js"></script>
@@ -891,7 +879,6 @@
     <script src="js/models/workflowmodel.js"></script>
     <script src="js/models/commandlineoptionmodel.js"></script>
     <script src="js/models/javatoolmodel.js"></script>
-
     <!-- main application -->
     <script src="js/main.js"></script>
 </body>

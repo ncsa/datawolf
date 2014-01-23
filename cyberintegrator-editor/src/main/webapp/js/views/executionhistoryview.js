@@ -213,6 +213,9 @@ var WorkflowExecutionOutputListView = Backbone.View.extend({
 				if (ds.get("fileDescriptors").length == 1) {
 //console.log(ds.get("fileDescriptors")[0].id);
 					wedsv.fileid=ds.get("fileDescriptors")[0].id;
+				} else {
+					// TODO CBI-490 Fix case where multiple file descriptors assigned to 1 output
+					wedsv.fileid=null;
 				}
 				wedsv.execvalue=dsid;
 				wedsv.datasetElementId=outputElementId;

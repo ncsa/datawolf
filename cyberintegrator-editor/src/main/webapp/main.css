@@ -826,3 +826,16 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   height : 21px;
   margin: 0 auto;
 }
+
+.build-nav {
+  height: 17%;
+}
+
+.tool-parent, .workflow-parent {
+  height: 38%;
+}
+
+.workflow-tools-view, .workflows-view {
+    height: 58%;
+    overflow: auto;
+}

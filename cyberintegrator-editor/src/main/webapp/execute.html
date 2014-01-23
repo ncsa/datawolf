@@ -4,18 +4,13 @@
     <meta charset="utf-8">
     <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyberintegrator Editor</title>
     <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="main.css" rel="stylesheet">
     <link href="execute.css" rel="stylesheet">
 </head>
 <body>
-
-
 </script>
-
     <script type="text/template" id="submission-header">
         <div class="cbi-submission-header">
             <p class="cbi-workflow-title"> WORKFLOW: <%= title %> </p>
@@ -23,27 +18,19 @@
             <p>Submission Description: <input ondragover="return false" value= ""  name="submission-description" class="cbi-submission-description"></p>
         </div>
     </script>
-
     <script type="text/template" id="step-list-item">
         <p class="cbi-step-title"> STEP <%= num %>: <b>  <%= title %></b> </p>
     </script>
-
-
     <script type="text/template" id="dataset-select-item">
         <%= model.title %>: <div class="cbi-dataset-selection" id= <%= datasetElementId %> value=" " > <p> drop dataset here </p> </div>
     </script>
-
     <script type="text/template" id="param-list-item">
         <%= model.title %>: <input ondragover="return false" value= "<%= model.value %>"  name= <%= inputboxId %> class="cbi-param-input">
     </script>
-
     <script type="text/template" id="execute-workflow-button">
         <br></br>
         <button id="execute-workflow" class="btn btn-default cbi-exec-btn">Execute</button> 
     </script>
-
-
-
     <script type="text/template" id="person-list-item">
         <%= firstName %> <%= lastName %> - <%= email %>
     </script>
@@ -114,10 +101,6 @@
         </div>
     </script>
     <script type="text/template" id="dataset-buttons">
-    <!-- 
-    <div></div>
-    --> 
-    
         <div class="btn-toolbar nav-button-bar">
             <div class="btn-group pull-right cbi-btn-group">
                 <button id="dataset-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
@@ -137,8 +120,6 @@
             </div>
         </div>   
     </script>
-
-
     <script type="text/template" id="new-dataset">
         <form enctype="multipart/form-data" role="form" id="dataset-upload-form" action="/datasets" method="POST" >
             <div class="row">
@@ -175,9 +156,6 @@
             </div>
         </form>
     </script>
-
-
-
     <script type="text/template" id="workflow-graph-button-bar">
         <div class="canvas-button-bar">
             <button type="button" class="btn btn-default">
@@ -193,7 +171,6 @@
     <script type="text/template" id="addshape-button-template">
         <button id="addshape-button" class="btn btn-primary">Add Shape</button>
     </script>
-
     <!-- workflow info popover -->
     <script type="text/template" id="workflow-popover">
         <div class="info-title-bkgrd info-title-font">
@@ -239,8 +216,6 @@
             </div>
         </div>
     </script>
-
-
     <!-- dataset info popover -->
     <script type="text/template" id="dataset-popover">
         <div class="info-title-bkgrd info-title-font">
@@ -275,7 +250,6 @@
             </div>
         </div>
     </script>
-
     <!-- Tool Info Scripts -->
     <script type="text/template" id="workflow-tool-popover-content-top">
         <div>
@@ -344,15 +318,14 @@
     <div id='editor-app' class="container-liquid">
         <div class="row">
             <div class="col-lg-2 panel-left-bkgrd">
-                <!-- <div id="spacer" class=""></div> -->
-                <div id="my-nav">
+                <div class="execute-nav" id="my-nav">
                     <ul class="nav nav-pills nav-stacked">
                         <li class="Nav-1-link"><a href="index.html"><label class="Nav-1-Default">Build</label></a></li>
                         <li class="Nav-1-link"><a href="#"><label class=" Nav-1-Selected">Execute</label></a></li>
                         <li class="Nav-1-link"><a href="history.html"><label class="Nav-1-Default">History</label></a></li>
                     </ul>
                 </div> 
-                <div id="workflow-parent">
+                <div class="workflow-parent" id="workflow-parent">
                     <div class="Nav-2-Bkgrd nav-title">
                         <h3 class="cbi-title Nav-2-Text">
                             <span class="icon-wf-title"><img src="assets/img/wf.png"></img></span>
@@ -367,15 +340,13 @@
                             </div>
                         </div>
                     </form>
-                    <div id="workflows"></div>
-                    <div id="workflowbuttons"></div>
+                    <div class="workflows-view" id="workflows"></div>
+                    <div class="workflow-buttons" id="workflowbuttons"></div>
                 </div>
-                <br/>
-                <div id="dataset-parent">
+                <div class="dataset-parent" id="dataset-parent">
                     <div class="Nav-2-Bkgrd nav-title">
                         <h3 class="cbi-title Nav-2-Text">
                             <span class="icon-wf-title"><img src="assets/img/ds-icon.png"></img></span>
-<!--                             <span class="glyphicon glyphicon-file title-header"></span> -->
                             Datasets
                         </h3>
                     </div>
@@ -389,8 +360,8 @@
                             </div>
                         </form>
                     </div>
-                    <div id="datasets"></div>
-                    <div id="datasetbuttons"></div>              
+                    <div class="datasets-view" id="datasets"></div>
+                    <div class="dataset-buttons" id="datasetbuttons"></div>           
                 </div>
             </div>
             <div class="panel-right-bkgrd col-lg-10">
@@ -401,8 +372,6 @@
                     <span class=""><img src="assets/img/digiflow.png" height="25.776" width="105.273"></img></span>
                 </div> 
                 <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
-                    
-                    
                 </ul>
                 <div id="tab-content" class="tab-content">
                     <div id="pane1" class="tab-pane active dropzone canvas-selected">
@@ -427,31 +396,13 @@
     <script src="assets/jquery-1.9.0.js"></script>
     <script src="assets/jquery-ui-1.9.2-min.js"></script>
     <script src="assets/json2.js"></script>
-    
     <script src="assets/underscore-min.js"></script>
     <script src="assets/backbone-min.js"></script> 
     <script src="assets/backbone.dualstorage.js"></script>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <!-- <script src="assets/backbone.localStorage.js"></script> -->
-
-    <!--<script src="assets/jquery.jsPlumb-1.4.1-all-min.js"></script>-->
-
-    <!-- Views -->
-    <!--<script src="js/views/workflowgraphview.js"></script>-->
-    <!-- <script src="js/views/workflowtoolview.js"></script> -->
-    <!--<script src="js/views/infoview.js"></script>-->
-
-
     <script src="js/views/datasetview.js"></script>    
     <script src="js/views/workflowexecutionformview.js"></script>
     <script src="js/views/workflowview-execute-new.js"></script>
-
-    
-    <!-- 
-    <script src="js/views/workflowview-execute.js"></script> 
-    -->
-    
-    
     <!-- Models -->
     <script src="js/models/filedescriptormodel.js"></script>
     <script src="js/models/workflowtoolparametermodel.js"></script>
@@ -460,13 +411,8 @@
     <script src="js/models/workflowstepmodel.js"></script>
     <script src="js/models/workflowtoolmodel.js"></script>
     <script src="js/models/workflowmodel.js"></script>
-
     <script src="js/models/datasetmodel.js"></script>
     <script src="js/models/submissionmodel.js"></script>
-    
-    <!--  -->
-
-    
     <!-- main application -->
     <script src="js/execute.js"></script>
 </body>

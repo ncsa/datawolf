@@ -7,15 +7,11 @@
   float: left;
 }
 
-
-
 .cbi-execstep{
     color:#395763;
     width: 100%;
     list-style-type: none;
 }
-
-
 
 .cbi-execlist{
     color:#395763;
@@ -94,7 +90,6 @@
     overflow:scroll;
 }
 
-
 /*.cbi-submission-header {
   background : #EDE9DC;
   background : rgba(237, 233, 220, 1);
@@ -116,24 +111,26 @@
     background-color: #DCE2E5;
     text-indent: 15px;
     width: 100%;
-
-
-/*
-  background : #89792F;
-  background : rgba(137, 121, 47, 1);  */
 }
 
-/*.cbi-execstep{
-      background : #FFFFFF;
-  background : rgb(255, 255, 255);
-    border-style : Solid;
-    border-color : #A6A8AB;
-    border-color : rgba(166, 168, 171, 1);
-    border-width : 1px;
-
-
+.execute-nav, .history-nav {
+    height: 17%;
 }
-*/
 
+.workflow-parent, .dataset-parent {
+    height: 38%;
+}
 
+.workflows-view, .datasets-view {
+    height: 58%;
+    overflow: auto;
+}
 
+.executions-parent {
+    height: 80%;
+}
+
+.executions-view {
+    height: 74%;
+    overflow: auto;
+}
