@@ -19,7 +19,6 @@ var WorkflowListView = Backbone.View.extend({
 			$(self.el).append(new WorkflowListItemView({model: workflow}).render().el);
 		});
 		
-		//this.model.fetch();
 	},
 
 	render: function(e) {
@@ -33,13 +32,12 @@ var WorkflowListView = Backbone.View.extend({
 
 	onChange: function(e) {
 		var selection = $('#workflowSelector').val();
-		console.log("selection is "+console);
+		//console.log("selection is "+console);
 		eventBus.trigger("clicked:openworkflow", selection);
 		//var workflow = getWorkflow(selection);
 		//console.log(JSON.stringify(workflow, undefined, 2));
 		//$('#infoview').html(new WorkflowInfoView({model: workflow}).render().el);
 		//selection.log(JSON.stringify(getWorkflow(selection), undefined, 2));
-
 	}
 
 });

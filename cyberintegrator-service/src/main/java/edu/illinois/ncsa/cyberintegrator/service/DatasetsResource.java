@@ -96,7 +96,7 @@ public class DatasetsResource {
      */
     @POST
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.TEXT_PLAIN })
     public String createDataset(MultipartFormDataInput input) {
 
         log.trace("POST /datasets received");
@@ -366,7 +366,8 @@ public class DatasetsResource {
      */
     @DELETE
     @Path("{dataset-id}")
-    public void deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
+    @Produces({ MediaType.APPLICATION_JSON })
+    public boolean deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
         if ("".equals(datasetId)) {
             throw (new Exception("Invalid id passed in."));
         }
@@ -377,6 +378,8 @@ public class DatasetsResource {
         }
         dataset.setDeleted(true);
         datasetDao.save(dataset);
+
+        return true;
     }
 
     /**

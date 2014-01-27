@@ -6,11 +6,13 @@ var DatasetListView = Backbone.View.extend({
     className: 'workflowDatasetView',
 
     initialize: function() {
-       this.$el.attr('size', '25');
+        var self = this;
+        this.model.bind("add", function(dataset) {
+            $(self.el).append(new DatasetListItemView({model: dataset}).render().el);
+        });
     },
 
     render: function(e) {
-        //console.log('render list of datasets');
         $(this.el).empty();
         _.each(this.model.models, function(workflowDataset) {
             $(this.el).append(new DatasetListItemView({model: workflowDataset}).render().el);
@@ -23,7 +25,6 @@ var DatasetListView = Backbone.View.extend({
 
 var DatasetListItemView = Backbone.View.extend({
     tagName: 'li',
-
     template: _.template($('#dataset-list-item').html()),
 
     events: {
@@ -31,9 +32,11 @@ var DatasetListItemView = Backbone.View.extend({
     },
 
     initialize: function() {
-       this.$el.attr('draggable', 'true');
-       this.$el.bind('dragstart', _.bind(this.handleDragStart, this));
-       this.$el.bind('dragend', _.bind(this.handleDragEnd, this));
+        this.$el.attr('draggable', 'true');
+        this.$el.bind('dragstart', _.bind(this.handleDragStart, this));
+        this.$el.bind('dragend', _.bind(this.handleDragEnd, this));
+        this.model.bind("change", this.render, this);
+        this.model.bind("destroy", this.close, this);
     },
 
     attributes: function() {
@@ -45,8 +48,12 @@ var DatasetListItemView = Backbone.View.extend({
 
     render: function(e) {
         $(this.el).html(this.template(this.model.toJSON()));
-
         return this;
+    },
+
+    close: function() {
+        $(this.el).unbind();
+        $(this.el).remove();
     },
 
     handleDragStart: function(e) {
@@ -68,7 +75,6 @@ var DatasetListItemView = Backbone.View.extend({
         $('.highlight').removeClass('highlight');
         $(this.el).addClass('highlight');
     }
-
        
 });
 
@@ -123,9 +129,7 @@ var DatasetButtonView = Backbone.View.extend({
                 wait: true,
             
                 success: function(model, response) {
-                    console.log("deleted dataset - success");
-                    eventBus.trigger('clicked:updateDatasets', null);
-
+                    console.log("deleted dataset - success: ");
                 },
 
                 error: function(model, response) {
@@ -136,10 +140,7 @@ var DatasetButtonView = Backbone.View.extend({
         }
     },
 
-
     datasetInfo: function() {
-
-
         var selectedDataset = $('#datasetListItemView').find(".highlight");
         // console.log(selectedDataset);
         if(selectedDataset!=null && selectedDataset.length !=0){
@@ -206,28 +207,31 @@ var NewDatasetView = Backbone.View.extend({
     uploadDataset: function(e) {
         // $("#dataset-upload-form").submit();
         e.preventDefault();
+
+        var title = $('input[name=datasetTitle]').val();
+        var description = $('input[name=datasetDescription]').val();
+        var email = currentUser.get('email');
+
         var data=new FormData();
         data.append("uploadedFile", $('#dataset-upload-form')[0][2].files[0]);
-        data.append("useremail","john.doe@ncsa.uiuc.edu");
-        data.append("datasetDescription","blu");
-        data.append("datasetTitle","bla");
+        data.append("useremail", email);
+        data.append("description", description);
+        data.append("title", title);
         $.ajax({
             type: "POST",
             url: "/datasets",
-            // dataType: "",
             data: data,
             contentType: false,
             processData: false,
-            // success: function(msg) {
-            //     console.log("remote dataset id="+msg);
-            //     alert('success: '+msg);
-            // },
+            success: function(msg) {
+                addDataset(msg);
+            },
             // error: function(msg) {
             //     alert('error: '+JSON.stringify(msg));
             // }
 
         }); 
-        eventBus.trigger("clicked:updateDatasets", null);
+        //eventBus.trigger("clicked:updateDatasets", null);
         $('#modalDatasetView').modal('hide');
     },
 

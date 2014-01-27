@@ -9,14 +9,9 @@ var currentWorkflow = null;
 var currentWorkflowEl = null;
 var currentDataset = null;
 var currentDatasetEl = null;
-
-
 var datasetDrop=false;
-
 var inputOutputMap = null;
-
 var numTabs = 0;
-
 
 // Collections
 var personCollection = new PersonCollection();
@@ -25,12 +20,9 @@ var workflowStepCollection = new WorkflowStepCollection();
 var workflowToolCollection = new WorkflowToolCollection();
 var datasetCollection = new DatasetCollection();
 
-
 // Views
 var workflowListView = null;
 var datasetListView=null;
-
-
 
 // TODO
 var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
@@ -72,8 +64,6 @@ var getBy = function(field, val, all_elements) {
     });
     return found_element;
 };
-
-
 
 // Router
 var AppRouter = Backbone.Router.extend({
@@ -142,34 +132,25 @@ function registerCloseEvent() {
     });
 }
 
-var postWorkflow = function(workflow) {
-    if(DEBUG) {
-        console.log(JSON.stringify(workflow,undefined, 2));
-    }
-    
+var addDataset = function(datasetId) {
     $.ajax({
-            type: "POST",
-            beforeSend: function(request) {
-                request.setRequestHeader("Content-type", "application/json");
-                request.setRequestHeader("Accept", "application/json");
-            },
-            url: "/workflows",
-            dataType: "text",
-            data: JSON.stringify(workflow),
+        type: "GET",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: '/datasets/'+datasetId,
+        dataType: "text",
 
-            success: function(msg) {
-                
-                console.log("remote workflow id="+msg);
-                alert('success: '+msg);
-            },
-            error: function(msg) {
-                alert('error: '+JSON.stringify(msg));
-            }
-
-        }); 
-
+        success: function(msg) {
+            var dataset = new Dataset(JSON.parse(msg));
+            datasetCollection.add(dataset);
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    });
 }
-
 
 var getDataset = function(datasetId) {
     var dataset = null;
@@ -190,25 +171,24 @@ var postSubmission = function(workflowid, creatorid, title, description, paramet
     console.log(JSON.stringify(submission,undefined, 2));
     
     $.ajax({
-            type: "POST",
-            beforeSend: function(request) {
-                request.setRequestHeader("Content-type", "application/json");
-                //request.setRequestHeader("Accept", "application/json");
-            },
-            url: "/executions", //"http://localhost:8080/executions",
-            dataType: "text",
-            data: JSON.stringify(submission),
+        type: "POST",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            //request.setRequestHeader("Accept", "application/json");
+        },
+        url: "/executions", 
+        dataType: "text",
+        data: JSON.stringify(submission),
 
-            success: function(msg) {
-                console.log("remote submission id="+msg);
-                alert('success: '+msg);
-            },
-            error: function(msg) {
-                alert('error: '+JSON.stringify(msg));
-            }
+        success: function(msg) {
+            console.log("remote submission id="+msg);
+            alert('success: '+msg);
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
 
-        }); 
-
+    }); 
 }
 
 var prepareSubmission = function(workflowid, creatorid, title, description, parameters, datasets){
@@ -228,7 +208,6 @@ var prepareSubmission = function(workflowid, creatorid, title, description, para
         submission.set('parameters',x);
     }, this);
 
-
     //datasets 
     _.each(datasets,function(input){
         var y=submission.get('datasets');        
@@ -238,7 +217,6 @@ var prepareSubmission = function(workflowid, creatorid, title, description, para
     
     return submission;            
 }
-
 
 var isInputConnected = function(inputKey){
     return ((inputOutputMap[inputKey] !== undefined));
@@ -267,8 +245,6 @@ var buildInputOutputMap = function(wf){
     return map;
 }
 
-
-
 var eventBus = _.extend({}, Backbone.Events);
 
 eventBus.on("clicked:updateDatasets", function(n){
@@ -278,7 +254,6 @@ eventBus.on("clicked:updateDatasets", function(n){
      }});
  
 });
-
 
 eventBus.on('clicked:newopenworkflow', function(workflowId) {
     numTabs=numTabs+1;
@@ -318,7 +293,6 @@ eventBus.on('clicked:newdataset', function() {
     $('#new-dataset-content').html(new NewDatasetView({model: currentUser}).render().el);
     $('#modalDatasetView').modal('show');
 });
-
 
 eventBus.on('clicked:tab', function(selected) {
     $("#tabs").children('li').each(function() {

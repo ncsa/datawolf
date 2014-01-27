@@ -1,9 +1,14 @@
 var Dataset = Backbone.Model.extend({
-	
+	urlRoot: "/datasets",
+
 	defaults: {
         title: null, 			/** title of the dataset **/
         description: null, 		/** description of the dataset **/
     },
+
+    getDeleteUrl: function() {
+		return '/datasets/'+ this.id;
+	},
 
 	getCreator: function() {
 		return new Person(this.get('creator'));
@@ -13,11 +18,21 @@ var Dataset = Backbone.Model.extend({
 		return new FileDescriptorCollection(this.get('fileDescriptors'));
 	},
 
+	sync: function(method, model, options) {
+    	if(method === 'delete') {
+    		console.log("set delete url");
+			options = options || {};
+    		options.url = model.getDeleteUrl();
+    	} 
+
+    	return Backbone.sync.apply(this, arguments);
+ 	}
+
 });
 
 var DatasetCollection = Backbone.Collection.extend({
 	model: Dataset,
-	url: "/datasets", //"http://localhost:8080/datasets"
+	url: "/datasets", 
 	remote: true,
 	
 	getReadUrl: function() {

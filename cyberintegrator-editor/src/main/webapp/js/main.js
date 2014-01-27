@@ -62,7 +62,6 @@ var resetRenderMode = function(desiredMode) {
 
 var init = function() {
     workflowGraphView = new WorkflowGraphView({
-        //el: '#wgraph'
         el: '#pane1'
     });
 
@@ -70,7 +69,6 @@ var init = function() {
     jsPlumb.importDefaults({
         //HoverPaintStyle : {strokeStyle:"#ec9f2e" },
         //EndpointHoverStyle : {fillStyle:"#5C96BC" }
-
     });
 };    
 
@@ -126,9 +124,6 @@ var AppRouter = Backbone.Router.extend({
                     return false;
                 }
             });
-            //if(personCollection.size() > 0) {
-            //    currentUser = personCollection.first();
-            //}
             if(currentUser == null) {
                 location.replace('login.html');
             } 
@@ -153,9 +148,7 @@ var AppRouter = Backbone.Router.extend({
                 resetRenderMode(jsPlumb.SVG);
             });
 
-            //var tempToolCollection = new WorkflowToolCollection();
             workflowToolCollection.fetch({success: function() {
-                //console.log("tool collection size = "+workflowToolCollection.size());
                 $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
                 $('#workflowToolButtons').html(new WorkflowToolButtonBar().render().el);
             }});
@@ -285,32 +278,6 @@ var addWorkflowTool = function(toolId) {
             alert('error: '+JSON.stringify(msg));
         }
     });
-}
-
-var postWorkflow = function(workflow) {
-    if(DEBUG) {
-        console.log(JSON.stringify(workflow,undefined, 2));
-    }
-    
-    $.ajax({
-        type: "POST",
-        beforeSend: function(request) {
-            request.setRequestHeader("Content-type", "application/json");
-            request.setRequestHeader("Accept", "application/json");
-        },
-        url: "http://localhost:8001/workflows",
-        dataType: "text",
-        data: JSON.stringify(workflow),
-
-        success: function(msg) {
-            
-            console.log("remote workflow id="+msg);
-            alert('success: '+msg);
-        },
-        error: function(msg) {
-            alert('error: '+JSON.stringify(msg));
-        }
-    }); 
 }
 
 var postTool = function(zip) {
