@@ -261,6 +261,33 @@ var getExecutions = function(workflowId) {
     }); 
 };
 
+var addWorkflow = function(workflowId) {
+    $.ajax({
+        type: "GET",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: '/workflows/'+workflowId,
+        dataType: "text",
+
+        success: function(msg) {
+            var workflow = new Workflow(JSON.parse(msg));
+            var steps = workflow.get('steps');
+            for(var i = 0; i < steps.length; i++) {
+                var tool = steps[i].tool;
+                var toolId = tool.id;
+                addWorkflowTool(toolId);
+            } 
+
+            workflowCollection.add(workflow);
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    });
+}
+
 var addWorkflowTool = function(toolId) {
     $.ajax({
         type: "GET",
@@ -520,6 +547,15 @@ eventBus.on('clicked:tab', function(selected) {
             }
         });
     }
+});
+
+eventBus.on('clicked:importworkflow', function() {
+    $('#import-workflow-content').html(new ImportWorkflowView().render().el);
+    $('#modalImportWorkflowView').modal('show');
+});
+
+eventBus.on('clicked:exportworkflow', function(workflowId) {
+    window.location.href = '/workflows/'+workflowId+'/zip';
 });
 
 function selectTab(tabName) {

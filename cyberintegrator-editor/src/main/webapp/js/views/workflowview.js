@@ -130,6 +130,8 @@ var WorkflowButtonView = Backbone.View.extend({
 		"click button#workflow-open-btn" : "openWorkflow",
 		"click button#save-workflow" : "saveWorkflow",
 		"click button#copy-workflow" : "copyWorkflow",
+		"click button#workflow-import-btn" : "importWorkflow",
+		"click button#workflow-export-btn" : "exportWorkflow"
 	},
 
 	template: _.template($("#new-workflow-buttons").html()),
@@ -407,6 +409,18 @@ var WorkflowButtonView = Backbone.View.extend({
             }
         }
 	},
+
+	importWorkflow : function(e) {
+		eventBus.trigger("clicked:importworkflow", null);
+	},
+
+	exportWorkflow: function(e) {
+		var selectedWorkflow = $('#workflowSelector').find(".highlight");
+		if(selectedWorkflow != null && selectedWorkflow.length != 0) {
+			var wkid = selectedWorkflow.attr("value");
+			eventBus.trigger("clicked:exportworkflow", wkid);
+		}
+	}
 });
 
 var SaveWorkflowView = Backbone.View.extend({
@@ -455,3 +469,43 @@ var SaveWorkflowView = Backbone.View.extend({
 
 	
 });
+
+var ImportWorkflowView = Backbone.View.extend({
+	template: _.template($('#import-workflow-template').html()),
+
+	events: {
+		"click button#import-workflow-btn" : "importWorkflow",
+		"click button#cancel" : "cancel"
+	},
+
+	render: function() {
+		$(this.el).html(this.template());
+		return this;
+	},
+
+	importWorkflow: function(e) {
+		e.preventDefault();
+		var data = new FormData();
+        data.append("workflow", $('#import-workflow-form')[0][0].files[0]);
+        $.ajax({
+            type: "POST",
+            url: "/workflows",
+            data: data,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                addWorkflow(response);
+            },
+             error: function(response) {
+                 alert('error: '+JSON.stringify(msg));
+             }
+
+        }); 
+		$('#modalImportWorkflowView').modal('hide');
+	},
+
+	cancel: function(e) {
+		e.preventDefault();
+		$('#modalImportWorkflowView').modal('hide');
+	}
+})

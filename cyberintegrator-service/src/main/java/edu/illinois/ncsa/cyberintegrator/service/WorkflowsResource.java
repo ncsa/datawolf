@@ -129,7 +129,7 @@ public class WorkflowsResource {
      */
     @POST
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.TEXT_PLAIN })
     public String createWorkflow(MultipartFormDataInput input) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
         List<InputPart> inputParts = uploadForm.get("workflow");
