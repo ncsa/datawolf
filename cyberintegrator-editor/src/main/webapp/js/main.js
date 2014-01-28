@@ -171,6 +171,7 @@ var AppRouter = Backbone.Router.extend({
             registerOpenEvent();
             registerTabEvent();
             getExecutors();
+            $('#tabs').find("[data-toggle='tooltip']").tooltip({'container':'body', 'delay': {show: 500 } });
             //$('#tool-modal-content').html(new CommandLineView().render().el);
         }});
         //$('#persons').html(new PersonListView({model: personCollection}).render().el);

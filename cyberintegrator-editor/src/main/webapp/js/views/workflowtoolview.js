@@ -183,8 +183,7 @@ var WorkflowToolButtonBar = Backbone.View.extend({
         var toolTypes = _.template($('#select-tool-type').html());
         //var popover = $(this.el).popover({html: true, title: popoverTitle({title: 'Select Tool Type'}), content: toolTypes(), trigger: 'manual'});
         $(this.el).popover({html: true, title: popoverTitle({title: 'Select Tool Type'}), content: toolTypes(), trigger: 'manual'});
-               
-
+        $(this.el).find("[data-toggle='tooltip']").tooltip({'container':'body', 'delay': {show: 500 }});         
 
         return this;
     },

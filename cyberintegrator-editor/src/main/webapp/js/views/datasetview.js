@@ -101,6 +101,7 @@ var DatasetButtonView = Backbone.View.extend({
 
     render: function(e) {
         $(this.el).html(this.template());
+        $(this.el).find("[data-toggle='tooltip']").tooltip({'container':'body', 'delay': {show: 500 } });
         return this;
     },
 

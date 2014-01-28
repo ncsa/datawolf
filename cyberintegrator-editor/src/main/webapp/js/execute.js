@@ -27,6 +27,8 @@ var datasetListView=null;
 // TODO
 var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
 
+var numExecutions = {};
+
 // Utility methods
 var getWorkflow = function(workflowId) {
     var workflow = null;
@@ -63,6 +65,27 @@ var getBy = function(field, val, all_elements) {
         }
     });
     return found_element;
+};
+
+var getExecutions = function(workflowId) {
+    var myurl = '/workflows/'+workflowId + '/executions';
+    $.ajax({
+        type: "GET",
+        beforeSend: function(request) {
+            request.setRequestHeader("Content-type", "application/json");
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: myurl,
+        dataType: "text",
+
+        success: function(msg) {
+            var obj = JSON.parse(msg);
+            numExecutions[workflowId] = obj.length;
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    }); 
 };
 
 // Router

@@ -66,19 +66,24 @@
     <script type="text/template" id="new-workflow-buttons">
         <div class="btn-toolbar nav-button-bar">
             <div class="btn-group pull-right cbi-btn-group">
-                <button id="workflow-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                <button id="workflow-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Open">
                     <span class=""><img src="assets/img/icon-toolbar-open-active.png"></span>
                 </button>
-                <button id="workflow-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                <button id="workflow-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Information">
                     <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></span>
                 </button>
-                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Share">
                     <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></span>
                 </button>
-                <button id="delete-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                <button id="delete-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Delete">
                     <span class=""><img src="assets/img/icon-toolbar-trash-inactive.png"></span>
                 </button> 
-                <button id="new-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                <button id="new-workflow" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Create">
                     <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></span>
                 </button> 
             </div>
@@ -95,13 +100,16 @@
     <script type="text/template" id="workflow-tool-buttons">
         <div class="btn-toolbar nav-button-bar">
             <div class="btn-group pull-right cbi-btn-group">
-                <button id="workflow-tool-info-btn" type="button" /* data-toggle="buttons"*/ class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                <button id="workflow-tool-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" 
+                    data-placement="bottom" data-original-title="Information">
                     <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></span>
                 </button>
-                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd">
+                <button type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Share">
                     <span class=""><img src="assets/img/icon-toolbar-share-inactive.png"></span>
                 </button>
-                <button id="new-workflow-tool-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd open">
+                <button id="new-workflow-tool-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd open" data-toggle="tooltip" 
+                    data-placement="bottom" data-original-title="Create">
                     <span class=""><img src="assets/img/icon-toolbar-add-inactive.png"></span>
                 </button>
             </div>
@@ -800,7 +808,8 @@
                 <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
                     <li id="add-workflow">
                         <a href="" data-toggle="tab">
-                           <button type="button" class="btn btn-default btn-xs openTab mytab">
+                           <button type="button" class="btn btn-default btn-xs openTab mytab" data-toggle="tooltip" data-placement="bottom" 
+                                data-original-title="Create workflow">
                                 <span class="glyphicon glyphicon-plus add-workflow-button"></span>
                             </button> 
                         </a>

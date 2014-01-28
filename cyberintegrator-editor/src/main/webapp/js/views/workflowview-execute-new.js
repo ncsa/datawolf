@@ -57,6 +57,7 @@ var WorkflowListItemView = Backbone.View.extend({
 
 		var popoverTitle = _.template($('#workflow-popover').html())
 		var popoverContent = _.template($('#workflow-popover-content').html());
+		getExecutions(this.model.get('id'));
 		return this;
 	},
 	close: function() {
@@ -104,7 +105,7 @@ var WorkflowButtonView = Backbone.View.extend({
 
 	render: function(e) {
 		$(this.el).html(this.template());
-
+		$(this.el).find("[data-toggle='tooltip']").tooltip({'container':'body', 'delay': {show: 500 } });
 		return this;
 	},
 
@@ -127,7 +128,7 @@ var WorkflowButtonView = Backbone.View.extend({
         	var wkid = selectedWorkflow.attr("value");
         	var model = getWorkflow(wkid);
 			var json = model.toJSON();
-			json.numExecutions = "0";//TODO numExecutions[model.get('id')];
+			json.numExecutions = numExecutions[model.get('id')];
 			json.avgTime = "0.0 s"; //TODO
 			var popoverTitle = _.template($('#workflow-popover').html())
 			var popoverContent = _.template($('#workflow-popover-content').html());
