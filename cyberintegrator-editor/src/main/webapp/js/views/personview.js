@@ -35,3 +35,27 @@ var PersonListItemView = Backbone.View.extend({
 		return this;
 	}
 });
+
+var UserView = Backbone.View.extend({
+	template: _.template($('#userview-template').html()),
+
+	events: {
+		"click #logout-btn" : "logout",
+	},
+
+	initialize: function() {
+
+	},
+
+	render: function() {
+		$(this.el).html(this.template(this.model.toJSON()));
+		return this;
+	},
+
+	logout: function(e) {
+		e.preventDefault();
+		localStorage.currentUser = null;
+		location.replace('login.html');
+	}
+
+});

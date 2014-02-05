@@ -128,7 +128,7 @@ var AppRouter = Backbone.Router.extend({
                 location.replace('login.html');
             } 
 
-            $('#current-user').text('Hello '+currentUser.get('firstName'));
+            $('#userview').html(new UserView({model: currentUser}).render().el);
             
             if(DEBUG) {
                 console.log("current user: "+JSON.stringify(currentUser, undefined, 2));
