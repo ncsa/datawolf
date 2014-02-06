@@ -144,10 +144,12 @@ var WorkflowExecutionDatasetListView = Backbone.View.extend({
 					var dsid = currentExecution.get("datasets")[datasetElementId];
 					var ds = getDataset(dsid);
 
-					var actualvalue = ds.get("title");
+					var actualvalue = undefined;
+					if(ds != null) {
+						actualvalue = ds.get("title");
+					}
 					wedsv.execvalue=actualvalue;
 					wedsv.datasetElementId=datasetElementId;
-
 					$(this.el).append(wedsv.render().el);
 
 				}
@@ -201,25 +203,23 @@ var WorkflowExecutionOutputListView = Backbone.View.extend({
 		$(this.el).append("Generated outputs:");
 		_.each(_.keys(this.model.outputs), function(outputkey) {
 			var outputElementId = this.model.outputs[outputkey];
-//console.log(outputElementId);
 			var outputInfo = getBy('dataId', outputkey, this.model.tool.outputs);			
-//console.log(outputInfo);
 			if(outputInfo !== null){
 				var wedsv = new WorkflowExecutionOutputView({model: outputInfo});
 				var dsid = currentExecution.get("datasets")[outputElementId];
 				var ds = getDataset(dsid);
-//console.log(ds.get("fileDescriptors"));
-//console.log(dsid);
-				if (ds.get("fileDescriptors").length == 1) {
-//console.log(ds.get("fileDescriptors")[0].id);
-					wedsv.fileid=ds.get("fileDescriptors")[0].id;
+				if(ds != null) {
+					if (ds.get("fileDescriptors").length == 1) {
+						wedsv.fileid=ds.get("fileDescriptors")[0].id;
+					} else {
+						// TODO CBI-490 Fix case where multiple file descriptors assigned to 1 output
+						wedsv.fileid=null;
+					}
 				} else {
-					// TODO CBI-490 Fix case where multiple file descriptors assigned to 1 output
-					wedsv.fileid=null;
+					wedsv.fileid = null;
 				}
 				wedsv.execvalue=dsid;
 				wedsv.datasetElementId=outputElementId;
-//console.log(wedsv);
 				$(this.el).append(wedsv.render().el);
 			}
 
@@ -229,7 +229,6 @@ var WorkflowExecutionOutputListView = Backbone.View.extend({
 			$(this.el).append(" no outputs generated");
 		}
 
-		// setTimeout(this, 1000);
 		return this;
 	},
 

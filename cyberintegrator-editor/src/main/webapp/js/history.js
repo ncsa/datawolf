@@ -20,7 +20,6 @@ var personCollection = new PersonCollection();
 var executionListView = null;
 var executionButtonView = null;
 
-
 // TODO
 var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
 
@@ -289,106 +288,125 @@ var getExecutionIdFromTabLabel = function(tabId) {
     return id;
 }
 
-function updateExecutionStatus(){
+// Check if execution is still running and should be updated
+var isFinishedAndUpdated = function(executionId, status) {
+    var execution = null;
+    executionCollection.each(function(model) {
+        if(model.get('id') === executionId) {
+            execution = model;
+            return false;
+        }
+    });
+
+    var stepStates = execution.get('stepStates');
+    var update = true;
+    for(var key in stepStates) {
+        if(stepStates[key] === 'WAITING' || stepStates[key] === 'QUEUED' || stepStates[key] === 'RUNNING') {
+            update = false;
+        }
+    }
+
+    // Check to see if the page has updated at least once
+    status.each(function(index) {
+        var stepid=status[index].id;
+        // Not yet updated, update at least once
+        if($(status[index]).text() === 'Unknown') {
+            update = false;
+        }
+    });
+
+    return update;
+}
+
+function updateActiveExecution() {
     if($(".active").find(".cbi-execution-title")[0] !== undefined){
+        var execid = $(".active").find(".cbi-execution-title")[0].id;
         var els = $(".active").find(".step-status-info");
         var elstatus = els.find(".step-status");
         var elsruntime = els.find(".step-runtime");
-        var execid = $(".active").find(".cbi-execution-title")[0].id;
 
-        executionCollection.fetch({success: function(){
-            var exec = getExecution(execid);
-            var stepstats = exec.get("stepStates");
-            var starttimes = exec.get("stepsStart"); 
-            var endtimes = exec.get("stepsEnd"); 
-            
-            elstatus.each(function(index) {
-                var stepid=elstatus[index].id;
-                var stat = stepstats[stepid];
-                var st = starttimes[stepid];
-                var et = endtimes[stepid];
-                var runtime = "N/A";
-                if(st !== undefined && et !== undefined){
-                    runtime = (et-st) + "";
-                }
-                $(elstatus[index]).html('<b>'+stat+'</b>');
-                if(stat === "ABORTED"){
-                    $(elstatus[index]).css( "color", "red" );
-                }
-                else if(stat === "FINISHED"){
-                    $(elstatus[index]).css( "color", "green" );
-                }
-                else{
-                    $(elstatus[index]).css( "color", "#395763" );
-                }
-                $(elsruntime[index]).html(runtime);
-            });
-        }});
+        if(!isFinishedAndUpdated(execid, elstatus)) {
+            executionCollection.fetch({success: function() {
+                datasetCollection.fetch({success: function() {
+                    var exec = getExecution(execid);
+                    var wkid = exec.get("workflowId");
+                    var wk = getWorkflow(wkid);
+
+                    var steps = $(".active").find(".cbi-execstep");
+
+                    var stepstats = exec.get("stepStates");
+                    var starttimes = exec.get("stepsStart"); 
+                    var endtimes = exec.get("stepsEnd"); 
+
+                    // Update the Runtimes
+                    elstatus.each(function(index) {
+                        var stepid=elstatus[index].id;
+                        var stat = stepstats[stepid];
+                        var st = starttimes[stepid];
+                        var et = endtimes[stepid];
+                        var runtime = "N/A";
+                        if(st !== undefined && et !== undefined){
+                            runtime = (et-st) + "";
+                        }
+                        $(elstatus[index]).html('<b>'+stat+'</b>');
+                        if(stat === "ABORTED"){
+                            $(elstatus[index]).css( "color", "red" );
+                        }
+                        else if(stat === "FINISHED"){
+                            $(elstatus[index]).css( "color", "green" );
+                        }
+                        else{
+                            $(elstatus[index]).css( "color", "#395763" );
+                        }
+                        $(elsruntime[index]).html(runtime);
+                    });
+
+                    // Update the output links
+                    steps.each(function(index) {
+
+                        var stepel = steps[index];
+                        var outlist = $(stepel).find(".cbi-execoutputlist")[0];
+                        var stepid = outlist.id;
+                        var step = getStep(wk, stepid);
+                        var stepoutputs = step.outputs;
+                        var outitems = $(outlist).find(".cbi-execoutput");
+                        var index = 0;
+                        _.each(_.keys(stepoutputs), function(outputkey) {
+                            var outputElementId = stepoutputs[outputkey];
+                            var outputInfo = getBy('dataId', outputkey, step.tool.outputs);
+                            if(outputInfo !== null){
+                                var dsid = exec.get("datasets")[outputElementId];
+                                var ds = getDataset(dsid);
+                                var actualvalue = dsid;
+                                var item=outitems[index];
+                                if (actualvalue === 'ERROR') {
+                                    $(item).html(outputInfo.title+' <font color="red">(error)</font>');
+                                }
+                                else if ( actualvalue === undefined) {
+                                    $(item).html(outputInfo.title+' (unfinished)');
+                                } else if(ds != null) {  
+                                    if ( ds.get("fileDescriptors").length === 1 ) {
+                                        $(item).html('<a href="/datasets/'+actualvalue+'/'+ds.get("fileDescriptors")[0].id+'/file">'+outputInfo.title+'</a>');
+                                    }
+                                    else {
+                                        $(item).html('<a href="/datasets/'+actualvalue+'/zip">'+outputInfo.title+'</a>');
+                                    }
+                                }
+
+                                index = index+1;
+
+                            }
+
+                        }, this);
+                    });
+                }});
+            }});
+        }
     }
-    setTimeout(updateExecutionStatus, 1000);
+    setTimeout(updateActiveExecution, 5000);
 }
 
-function updateExecutionOutputs(){
-    // console.log("update execution outputs");
-    if($(".active").find(".cbi-execution-title")[0] !== undefined){
-        var execid = $(".active").find(".cbi-execution-title")[0].id;
-        
-
-        executionCollection.fetch({success: function() {
-            var exec = getExecution(execid);
-            var wkid = exec.get("workflowId");
-            var wk = getWorkflow(wkid);
-
-            var steps = $(".active").find(".cbi-execstep");
-
-            steps.each(function(index) {
-
-                var stepel=steps[index];
-                var outlist = $(stepel).find(".cbi-execoutputlist")[0];
-                var stepid=outlist.id;
-                var step=getStep(wk, stepid);
-                var stepoutputs=step.outputs;
-                var outitems = $(outlist).find(".cbi-execoutput");
-
-                var index=0;
-                _.each(_.keys(stepoutputs), function(outputkey) {
-                    var outputElementId = stepoutputs[outputkey];
-                    var outputInfo = getBy('dataId', outputkey, step.tool.outputs);           
-                    if(outputInfo !== null){
-
-                        var dsid = currentExecution.get("datasets")[outputElementId];
-                        var ds = getDataset(dsid);
-                        var actualvalue = dsid;
-                        var item=outitems[index];
-
-                        if (actualvalue === 'ERROR') {
-                            $(item).html(outputInfo.title+' <font color="red">(error)</font>');
-                        }
-                        else if ( actualvalue === null) {
-                            $(item).html(outputInfo.title+' (unfinished)');
-                        }  
-                        else if ( ds.get("fileDescriptors").length == 1 ) {
-                            $(item).html('<a href="/datasets/'+actualvalue+'/'+ds.get("fileDescriptors")[0].id+'/file">'+outputInfo.title+'</a>');
-        				}
-                        else {
-                            $(item).html('<a href="/datasets/'+actualvalue+'/zip">'+outputInfo.title+'</a>');
-                        }
-
-                        index = index+1;
-
-                    }
-
-                }, this);
-
-            });
-            
-        }});
-    }
-    setTimeout(updateExecutionOutputs, 2000);
-}
-
-updateExecutionStatus();
-updateExecutionOutputs();
+updateActiveExecution();
 
 var app = new AppRouter();
 

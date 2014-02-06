@@ -39,7 +39,7 @@
     <script type="text/template" id="output-hist-list-item">
         <% if ( execvalue === 'ERROR') { %>
             <%= model.title %> <font color="red">(error)</font>
-        <% }  else if ( execvalue === null) { %>
+        <% }  else if ( execvalue === undefined) { %>
             <%= model.title %> (unfinished)
         <% }  else if ( fileid != null ) { %>
             <a href="/datasets/<%= execvalue %>/<%= fileid %>/file"> <%= model.title %> </a>
