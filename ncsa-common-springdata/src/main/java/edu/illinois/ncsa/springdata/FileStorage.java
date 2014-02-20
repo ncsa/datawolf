@@ -10,19 +10,78 @@ import java.net.URL;
 import edu.illinois.ncsa.domain.FileDescriptor;
 
 /**
+ * This interface allows files to be saved, read and deleted for different
+ * storage implementations.
+ * 
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
 public interface FileStorage {
+    /**
+     * Store a file to the storage system
+     * 
+     * @param is
+     *            - inputstream of the file to store
+     * @return FileDescriptor for the stored file
+     * @throws IOException
+     *             if an I/O error occurs
+     */
     public FileDescriptor storeFile(InputStream is) throws IOException;
 
+    /**
+     * 
+     * @param filename
+     *            - name of the file
+     * @param is
+     *            - inputstream of the file to store
+     * @return FileDescriptor for the stored file
+     * @throws IOException
+     *             if an I/O error occurs
+     */
     public FileDescriptor storeFile(String filename, InputStream is) throws IOException;
 
+    /**
+     * 
+     * @param fd
+     *            - file descriptor to store the file with
+     * @param is
+     *            - inputstream of the file to store
+     * @return URL of stored file
+     * @throws IOException
+     *             if an I/O error occurs
+     */
     public URL storeFile(FileDescriptor fd, InputStream is) throws IOException;
 
+    /**
+     * 
+     * @param id
+     *            - descriptor id to store the file with
+     * @param filename
+     *            - name of the file
+     * @param is
+     *            - inputstream of the file to store
+     * @return FileDescriptor for the stored file
+     * @throws IOException
+     *             if an I/O error occurs
+     */
     public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException;
 
+    /**
+     * 
+     * @param fd
+     *            FileDescriptor of file to read
+     * @return Inpustream of the file
+     * @throws IOException
+     *             if an I/O error occurs
+     */
     public InputStream readFile(FileDescriptor fd) throws IOException;
 
+    /**
+     * Deletes file from storage
+     * 
+     * @param fd
+     *            - File descriptor representing the file to delete
+     * @return true if the delete operation was successful.
+     */
     public boolean deleteFile(FileDescriptor fd);
 }
