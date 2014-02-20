@@ -18,7 +18,7 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  */
 public interface FileStorage {
     /**
-     * Store a file to the storage system
+     * Store file in file storage system
      * 
      * @param is
      *            - inputstream of the file to store
@@ -29,6 +29,7 @@ public interface FileStorage {
     public FileDescriptor storeFile(InputStream is) throws IOException;
 
     /**
+     * Store file in file storage system
      * 
      * @param filename
      *            - name of the file
@@ -41,6 +42,7 @@ public interface FileStorage {
     public FileDescriptor storeFile(String filename, InputStream is) throws IOException;
 
     /**
+     * Store file in file storage system
      * 
      * @param fd
      *            - file descriptor to store the file with
@@ -53,6 +55,7 @@ public interface FileStorage {
     public URL storeFile(FileDescriptor fd, InputStream is) throws IOException;
 
     /**
+     * Store file in file storage system
      * 
      * @param id
      *            - descriptor id to store the file with
@@ -67,6 +70,7 @@ public interface FileStorage {
     public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException;
 
     /**
+     * Read file from storage
      * 
      * @param fd
      *            FileDescriptor of file to read
