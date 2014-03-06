@@ -28,6 +28,7 @@
 
 		<jackson.version>2.0.5</jackson.version>
 		<resteasy.version>2.3.4.Final</resteasy.version>
+        <jargon.version>3.3.3-SNAPSHOT</jargon.version>
 	</properties>
 
 	<repositories>
