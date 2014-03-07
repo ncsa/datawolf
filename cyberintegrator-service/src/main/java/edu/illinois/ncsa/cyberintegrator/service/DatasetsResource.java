@@ -51,10 +51,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -77,7 +79,7 @@ import edu.illinois.ncsa.springdata.SpringData;
 @Path("/datasets")
 public class DatasetsResource {
 
-    Logger log = LoggerFactory.getLogger(DatasetsResource.class);
+    private static final Logger log = LoggerFactory.getLogger(DatasetsResource.class);
 
     /**
      * 
@@ -485,9 +487,26 @@ public class DatasetsResource {
             return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
 
         FileStorage fileStorage = SpringData.getFileStorage();
+
         try {
-            InputStream is = fileStorage.readFile(fileDescriptor);
-            ResponseBuilder response = Response.ok(is);
+            final InputStream is = fileStorage.readFile(fileDescriptor);
+
+            StreamingOutput stream = new StreamingOutput() {
+                public void write(OutputStream output) throws IOException, WebApplicationException {
+                    try {
+                        byte[] buf = new byte[10240];
+                        int len = 0;
+                        while ((len = is.read(buf)) >= 0) {
+                            output.write(buf, 0, len);
+                        }
+                        output.close();
+                    } catch (Exception e) {
+                        throw new WebApplicationException(e);
+                    }
+                }
+            };
+
+            ResponseBuilder response = Response.ok(stream);
             if (fileDescriptor.getMimeType().equals("")) {
                 response.type("application/unknown");
             } else {
@@ -496,7 +515,9 @@ public class DatasetsResource {
             response.header("Content-Disposition", "attachment; filename=\"" + fileDescriptor.getFilename() + "\"");
             return response.build();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Can't read the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId);
+        } catch (WebApplicationException e) {
+            log.error("Error streaming the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId);
         }
 
         return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
