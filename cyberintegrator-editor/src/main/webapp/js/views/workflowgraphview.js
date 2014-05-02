@@ -1,5 +1,5 @@
-var inputAnchors = [[-0.07, 0.5, -1, 0], [-0.07, 0.25, -1, 0], [-0.07, 0.75, -1, 0]];
-var outputAnchors = [[1.04, 0.5, 1, 0], [1.04, 0.25, 1, 0], [1.04, 0.75, 1, 0] ];
+var inputAnchors = [[-0.06, 0.5, -1, 0], [-0.06, 0.25, -1, 0], [-0.06, 0.75, -1, 0], [-0.06, 0, -1, 0], [-0.06, 1, -1, 0]];
+var outputAnchors = [[1.06, 0.5, 1, 0], [1.06, 0.25, 1, 0], [1.06, 0.75, 1, 0], [1.06, 0.0, 1, 0], [1.06, 1.0, 1, 0]];
 var endpointHoverStyle = {fillStyle:"#5C96BC"}
 // Green
 //var color2 = "#316b31";
@@ -375,8 +375,14 @@ var WorkflowGraphView = Backbone.View.extend({
 
             endpoint.overlays[0][1].location[0] = xLocation;
             endpoint.overlays[0][1].label = title;
-
-            jsPlumb.addEndpoint(id, { anchor: inputAnchors[index], beforeDrop: handleConnect }, endpoint);  
+            if(index < 5) { 
+                jsPlumb.addEndpoint(id, { anchor: inputAnchors[index], beforeDrop: handleConnect }, endpoint);
+            } else {
+                // Grow the input anchors as needed by the tool
+                var anchorLocation = inputAnchors[4];
+                anchorLocation[1] = index * 0.25;
+                jsPlumb.addEndpoint(id, { anchor: anchorLocation, beforeDrop: handleConnect }, endpoint);
+            }  
             index++;
             //console.log(length);
         });
@@ -393,7 +399,14 @@ var WorkflowGraphView = Backbone.View.extend({
             //console.log("length = "+title.length + " location = "+xLocation);
             endpoint.overlays[0][1].location[0] = xLocation;
             endpoint.overlays[0][1].label = title;
-            jsPlumb.addEndpoint(id, { anchor: outputAnchors[index], beforeDetach: handleDisconnect }, endpoint); 
+            if(index < 5) {
+                jsPlumb.addEndpoint(id, { anchor: outputAnchors[index], beforeDetach: handleDisconnect }, endpoint); 
+            } else {
+                // Grow the number of output anchors as needed
+                var anchorLocation = outputAnchors[4];
+                anchorLocation[1] = index * 0.25;
+                jsPlumb.addEndpoint(id, { anchor: anchorLocation, beforeDetach: handleDisconnect }, endpoint); 
+            }
             index++;
         });
         var del = jQuery.extend(true, {}, deleteEndpoint);
