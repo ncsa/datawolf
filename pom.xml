@@ -101,7 +101,6 @@
 	</distributionManagement>
 
 	<modules>
-		<module>spring-libraries</module>
 		<module>ncsa-common-domain</module>
 		<module>ncsa-common-springdata</module>
 		<module>file-service-client</module>
