@@ -4,7 +4,7 @@
 
 	<groupId>edu.illinois.ncsa</groupId>
 	<version>3.0.0-SNAPSHOT</version>
-	<artifactId>cyberintegrator</artifactId>
+	<artifactId>datawolf</artifactId>
 	<packaging>pom</packaging>
 
         <properties>
@@ -35,8 +35,8 @@
 	</repositories>
 
 	<scm>
-		<connection>https://opensource.ncsa.illinois.edu/fisheye/git/cyberintegrator.git</connection>
-		<url>https://opensource.ncsa.illinois.edu/fisheye/browse/cyberintegrator</url>
+		<connection>https://opensource.ncsa.illinois.edu/fisheye/git/datawolf.git</connection>
+		<url>https://opensource.ncsa.illinois.edu/fisheye/browse/datawolf</url>
 	</scm>
 
 	<build>
@@ -67,26 +67,26 @@
 	</distributionManagement>
 
 	<modules>
-		<module>cyberintegrator-domain</module>
-		<module>cyberintegrator-springdata</module>
-		<module>cyberintegrator-core</module>
-		<module>cyberintegrator-executor-java-tool</module>
-		<module>cyberintegrator-executor-java</module>
-		<module>cyberintegrator-tool-example</module>
-		<module>cyberintegrator-executor-commandline</module>
+		<module>datawolf-domain</module>
+		<module>datawolf-springdata</module>
+		<module>datawolf-core</module>
+		<module>datawolf-executor-java-tool</module>
+		<module>datawolf-executor-java</module>
+		<module>datawolf-tool-example</module>
+		<module>datawolf-executor-commandline</module>
                 <module>gondola</module>
-		<module>cyberintegrator-executor-hpc</module>
-		<module>cyberintegrator-service-client</module>
-		<module>cyberintegrator-service</module>
-		<module>cyberintegrator-webapp</module>
-		<module>cyberintegrator-editor</module>
-                <module>cyberintegrator-tool-creator</module>
-		<module>cyberintegrator-webapp-all</module>
+		<module>datawolf-executor-hpc</module>
+		<module>datawolf-service-client</module>
+		<module>datawolf-service</module>
+		<module>datawolf-webapp</module>
+		<module>datawolf-editor</module>
+                <module>datawolf-tool-creator</module>
+		<module>datawolf-webapp-all</module>
 <!--
-		<module>cyberintegrator-executor-java-ui</module>
-                <module>cyberintegrator-executor-commandline-ui</module>
-                <module>cyberintegrator-executor-hpc-ui</module>
-                <module>cyberintegrator-rpc</module>
+		<module>datawolf-executor-java-ui</module>
+                <module>datawolf-executor-commandline-ui</module>
+                <module>datawolf-executor-hpc-ui</module>
+                <module>datawolf-rpc</module>
 -->
 	</modules>
 

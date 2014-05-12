@@ -1,8 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: cyberintegrator-executor-java-tool
-Bundle-SymbolicName: cyberintegrator-executor-java-tool
-Bundle-Version: 3.0.0.qualifier
-Eclipse-RegisterBuddy: spring-libraries
-Export-Package: edu.illinois.ncsa.cyberintegrator,
- edu.illinois.ncsa.cyberintegrator.executor.java.tool

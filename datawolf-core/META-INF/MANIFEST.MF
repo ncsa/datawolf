@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: datawolf-core
+Bundle-SymbolicName: datawolf-core
+Bundle-Version: 3.0.0.qualifier
+Export-Package: edu.illinois.ncsa.datawolf,
+ edu.illinois.ncsa.datawolf.event
+Require-Bundle: spring-libraries;bundle-version="1.0.0",
+ datawolf-domain;bundle-version="1.0.0",
+ ncsa-common-domain;bundle-version="1.0.0",
+ datawolf-springdata;bundle-version="3.0.0",
+ ncsa-common-springdata;bundle-version="1.0.0"
+Eclipse-RegisterBuddy: spring-libraries

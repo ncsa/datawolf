@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# change to folder of datawolf
+cd "$(dirname $0)/.."
+
+# create some folders just in case
+if [ ! -e data/files ]; then
+  mkdir -p data/files
+fi
+
+# start actual webapp
+java -Xmx512m -cp "lib/*" edu.illinois.ncsa.datawolf.tool.creator.ToolCreator

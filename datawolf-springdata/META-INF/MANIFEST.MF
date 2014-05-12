@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: datawolf-springdata
+Bundle-SymbolicName: datawolf-springdata
+Bundle-Version: 3.0.0.qualifier
+Require-Bundle: datawolf-domain;bundle-version="3.0.0",
+ spring-libraries;bundle-version="1.0.0",
+ ncsa-common-domain;bundle-version="1.0.0",
+ ncsa-common-springdata;bundle-version="1.0.0"
+Eclipse-RegisterBuddy: spring-libraries
+Export-Package: edu.illinois.ncsa.datawolf.springdata

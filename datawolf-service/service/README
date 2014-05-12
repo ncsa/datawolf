@@ -1,0 +1,20 @@
+This is what is needed for a simple datawolf service.
+
+SETUP
+----
+copy jetty-runner.jar, datawolf-service-3.0.0-SNAPSHOT.war, log4j.properties, jetty.xml  and
+applicationContext.xml to /home/datawolf
+
+jetty.xml contains the path to the war and applicationContext.xml file.
+log4j.properties contains the logging information.
+applicationContext.xml contains information about the configuration of the datawolf.
+
+UPSTART
+-------
+copy datawolf.conf to /etc/init
+the datawolf service should be started
+
+SYS V INIT SCRIPTS
+-----------------
+copy datawolf to /etc/init.d
+start datawolf using /etc/init.d/datawolf start

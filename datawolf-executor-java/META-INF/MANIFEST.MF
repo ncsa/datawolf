@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: datawolf-executor-java
+Bundle-SymbolicName: datawolf-executor-java
+Bundle-Version: 3.0.0.qualifier
+Export-Package: edu.illinois.ncsa.datawolf.executor.java
+Require-Bundle: spring-libraries;bundle-version="1.0.0",
+ datawolf-domain;bundle-version="3.0.0",
+ datawolf-executor-java-tool;bundle-version="3.0.0",
+ datawolf-core;bundle-version="3.0.0",
+ datawolf-springdata;bundle-version="3.0.0",
+ ncsa-common-domain;bundle-version="1.0.0",
+ ncsa-common-springdata;bundle-version="1.0.0"
+Eclipse-RegisterBuddy: spring-libraries

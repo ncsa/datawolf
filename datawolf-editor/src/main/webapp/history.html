@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataWolf Editor</title>
+    <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="main.css" rel="stylesheet">
+    <link href="execute.css" rel="stylesheet">
+</head>
+<body>
+    <script type="text/template" id="execution-header">
+        <div class="cbi-execution-header">
+            <p class="cbi-execution-title" id= "<%= id %>"> WORKFLOW: <%= wktitle %> </p>
+            <p>Execution Title: <input ondragover="return false" value= "<%= title %>"  name="execution-title" disabled></p>
+            <p>Execution Description: <input ondragover="return false" value= "<%= description %>"  name="execution-description" disabled></p>
+        </div>
+    </script>
+    <script type="text/template" id="step-list-item">
+        <table >
+            <tbody>
+                <tr class="step-status-info">
+                    <td class="cbi-step-title">STEP <%= num %>: <b>  <%= title %></b></td>
+                    <td>Status:</td>
+                    <td class="step-status" id= "<%= id %>">Unknown</td>
+                    <td>Runtime:</td>
+                    <td class="step-runtime" id= "<%= id %>">Unknown</td>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+    <script type="text/template" id="param-hist-list-item">
+        <%= model.title %>: <input ondragover="return false" value= "<%= execvalue %>"  name= <%= inputboxId %> class="cbi-param-input" disabled>
+    </script>
+    <script type="text/template" id="dataset-hist-list-item">
+        <%= model.title %>: <input ondragover="return false" value= "<%= execvalue %>"  name= <%= datasetElementId %> class="cbi-param-input" disabled>
+    </script>
+    <script type="text/template" id="output-hist-list-item">
+        <% if ( execvalue === 'ERROR') { %>
+            <%= model.title %> <font color="red">(error)</font>
+        <% }  else if ( execvalue === undefined) { %>
+            <%= model.title %> (unfinished)
+        <% }  else if ( fileid != null ) { %>
+            <a href="/datasets/<%= execvalue %>/<%= fileid %>/file"> <%= model.title %> </a>
+        <% } else { %>
+            <a href="/datasets/<%= execvalue %>/zip"> <%= model.title %> </a>
+        <% } %>  
+    </script>
+    <script type="text/template" id="steplog-hist-list-item">
+        <a href="/executions/<%= model.execid %>/logfiles/<%= model.stepid %>"> Log file </a>
+    </script>
+    <script type="text/template" id="resubmit-execution-button">
+        <button id="execute-workflow" class="btn btn-default">Execute</button> 
+        <!-- <button id="execute-workflow" class="cbi-execute-btn">Execute</button> -->
+    </script>
+    <script type="text/template" id="person-list-item">
+        <%= firstName %> <%= lastName %> - <%= email %>
+    </script>
+    <script type="text/template" id="execution-list-item">
+        <span class="icon-exec"><img src="assets/img/icon-exec.png" ></img></span><%= title %>
+    </script>
+    <script type="text/template" id="execution-buttons">
+        <div class="btn-toolbar nav-button-bar">
+            <div class="btn-group pull-right cbi-btn-group">
+                <button id="execution-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Open">
+                   <span class=""><img src="assets/img/icon-toolbar-open-active.png"></img></span>
+                </button>
+                <button id="execution-info-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Information">
+                    <span class=""><img src="assets/img/icon-toolbar-info-inactive.png"></img></span>
+                </button>
+                <button id="execution-delete-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
+                    data-original-title="Delete">
+                    <span class=""><img src="assets/img/icon-toolbar-trash-inactive.png"></img></span>
+                </button> 
+            </div>
+        </div>
+    </script>
+    <!-- execution info popover -->
+    <script type="text/template" id="execution-popover">
+        <div class="info-title-bkgrd info-title-font">
+            <span class="glyphicon glyphicon-info-sign info-popover-title"></span>
+            <%= title %>
+        </div>
+    </script>
+    <script type="text/template" id="execution-popover-content">
+        <div>
+            <div>
+               <table class="table">
+                <tbody>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Date Created</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= date %></font></td>
+                    </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel">Workflow</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= wktitle %></font></td>
+                    </tr>
+                    <tr>
+                        <td><font class="info-metadata-fontlabel"># of Steps</font></td>
+                        <td><font class="info-metadata-fontvalue"><%= numsteps %></font></td>
+                    </tr>
+                </tbody>
+               </table>
+            </div>
+            <div class="">
+               <div class="info-tab-bkgrd info-tab-div">
+                    <font class="info-tab-font">Description</font>
+                </div>
+                <div class="info-content-normal">
+                    <%= description %>
+                </div>
+            </div>
+        </div>
+    </script>
+    <!-- Tool Info Scripts -->
+    <script type="text/template" id="workflow-tool-popover-content-top">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td><font class="info-metadata-fontlabel">Date Created</font></td>
+                    <td><font class="info-metadata-fontvalue"><%= date %></font></td>
+                </tr>
+                <tr>
+                    <td><font class="info-metadata-fontlabel">Author</font></td>
+                    <td><font class="info-metadata-fontvalue">Unknown</font></td>
+                </tr>
+                <tr>
+                    <td><font class="info-metadata-fontlabel">Executor</font></td>
+                    <td><font class="info-metadata-fontvalue"><%= executor %></font></td>
+                </tr>
+            </tbody>
+        </table>
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content-open">
+        <div class="info-accordian-border">
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content-description">
+        <div id="description">
+            <div class="info-tab-bkgrd info-tab-div">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#description" href="#collapseDesc"><font class="info-tab-font">DESCRIPTION</font></a>
+            </div>
+            <div id="collapseDesc" class="info-content-normal info-content-body collapse in">
+                <%= description %>
+            </div>
+        </div>
+    </script> 
+    <script type="text/template" id="workflow-tool-popover-content-input-title">
+        <div id="tool-inputs">           
+            <div class="info-tab-bkgrd info-tab-div">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-inputs" href="#collapseInputs"><font class="info-tab-font">INPUTS</font></a>
+            </div>
+            <div id="collapseInputs" class="info-content-normal info-content-body collapse in">
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content-output-title">
+        <div id="tool-outputs">           
+            <div class="info-tab-bkgrd info-tab-div">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-outputs" href="#collapseOutputs"><font class="info-tab-font">OUTPUTS</font></a>
+            </div>
+            <div id="collapseOutputs" class="info-content-normal info-content-body collapse in">
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content">
+            <div class="info-content-normal">
+                <font class="info-content-subhead"><%= title %></font>
+                <br>
+                <%= description %>
+            </div>
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content-parameter-title">
+        <div id="tool-parameters">           
+            <div class="info-tab-bkgrd info-tab-div">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#tool-parameters" href="#collapseParameters"><font class="info-tab-font">PARAMETERS</font></a>
+            </div>
+            <div id="collapseParameters" class="info-content-normal info-content-body collapse in">
+    </script>
+    <script type="text/template" id="workflow-tool-popover-content-close">
+            </div>
+        </div>
+    </script>
+    <div id='editor-app' class="container-liquid">
+        <div class="row">
+            <div class="col-lg-2 panel-left-bkgrd">
+                <div id="history-nav">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li class="Nav-1-link"><a href="index.html"><label class="Nav-1-Default">Build</label></a></li>
+                        <li class="Nav-1-link"><a href="execute.html"><label class=" Nav-1-Default">Execute</label></a></li>
+                        <li class="Nav-1-link"><a href="#"><label class="Nav-1-Selected">History</label></a></li>
+                    </ul>
+                </div> 
+                <div class="executions-parent" id="executions-parent">
+                    <div class="Nav-2-Bkgrd nav-title">
+                        <h3 class="cbi-title Nav-2-Text">
+                            <span class="icon-wf-title"><img src="assets/img/wf.png"></img></span>
+                            Executions
+                        </h3>
+                    </div>
+                    <form class="navbar-form" role="search">
+                        <div class="input-group search-bar-bkgrd">
+                            <input type="text" class="form-control search-bar-bkgrd" placeholder="Search" name="workflow-search" id="workflow-search"/>
+                            <div class="input-group-btn">
+                                <button class="btn btn-default search-button" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="executions-view" id="executions"></div>
+                    <div id="executionbuttons"></div>
+                </div>
+            </div>
+            <div class="panel-right-bkgrd col-lg-10">
+                <div class="pull-right app-login">
+                    <label id="current-user" class="hello-lbl"></label> 
+                    <label>|</label>
+                    <a href="" class="hello-lbl">Logout</a>
+                        <span class=""><img src="assets/img/digiflow.png" height="25.776" width="105.273"></img></span>
+                </div> 
+                <ul id="tabs" class="nav nav-tabs" data-tabs="tabs"></ul>
+                <div id="tab-content" class="tab-content">
+                    <div id="pane1" class="tab-pane active dropzone canvas-selected">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/jquery-1.9.0.js"></script>
+    <script src="assets/jquery-ui-1.9.2-min.js"></script>
+    <script src="assets/json2.js"></script>
+    <script src="assets/underscore-min.js"></script>
+    <script src="assets/backbone-min.js"></script> 
+    <script src="assets/backbone.dualstorage.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <!-- Views -->
+    <script src="js/views/executionview.js"></script>
+    <script src="js/views/executionhistoryview.js"></script>
+    <!-- Models -->
+    <script src="js/models/personmodel.js"></script>
+    <script src="js/models/workflowstepmodel.js"></script>
+    <script src="js/models/workflowtoolmodel.js"></script>
+    <script src="js/models/workflowmodel.js"></script>
+    <script src="js/models/datasetmodel.js"></script>
+    <script src="js/models/submissionmodel.js"></script>
+    <script src="js/models/executionmodel.js"></script>
+    <!-- main application -->
+    <script src="js/history.js"></script>
+</body>
+</html>
