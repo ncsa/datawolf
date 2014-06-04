@@ -88,7 +88,7 @@ public class LoginResource {
                         return null;
                     }
 
-                    if (userAccount.getPassword().equals(password)) {
+                    if (userAccount.getPassword().equals(password) && userAccount.getPerson().getEmail().equals(email)) {
                         return personDao.findByEmail(email);
                     } else {
                         return null;
