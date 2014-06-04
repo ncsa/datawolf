@@ -58,10 +58,38 @@
 	</build>
 
 	<dependencies>
+		<!-- LOGGING -->
 		<dependency>
-			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>spring-libraries</artifactId>
-			<version>${project.version}</version>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+		<!-- JPA BINDING -->
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.0-api</artifactId>
+			<version>1.0.1.Final</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+			<version>${spring.jpa.version}</version>
+		</dependency>
+
+		<!-- MONGO BINDING -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<version>${spring.mongo.version}</version>
+		</dependency>
+		
+		<!-- JSON SUPPORT -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 	</dependencies>
 </project>
