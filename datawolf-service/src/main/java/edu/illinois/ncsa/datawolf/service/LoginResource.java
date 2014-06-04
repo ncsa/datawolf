@@ -89,7 +89,7 @@ public class LoginResource {
                     }
 
                     if (userAccount.getPassword().equals(password)) {
-                        return personDao.findByEmail(user);
+                        return personDao.findByEmail(email);
                     } else {
                         return null;
                     }
