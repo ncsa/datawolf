@@ -37,6 +37,37 @@
 			<name>Spring Maven MILESTONE Repository</name>
 			<url>http://repo.springsource.org/libs-milestone</url>
 		</repository>
+		<repository>
+			<id>ncsa.opensource.releases</id>
+			<name>ncsa.opensource.releases</name>
+			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>ncsa.opensource.snapshots</id>
+			<name>ncsa.opensource.snapshots</name>
+			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>renci.repository</id>
+			<name>renci.repository</name>
+			<url>http://ci-dev.renci.org/nexus/content/repositories/public</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<scm>
