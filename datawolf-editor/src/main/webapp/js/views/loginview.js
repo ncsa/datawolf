@@ -17,6 +17,8 @@ var LoginView = Backbone.View.extend({
 	userLogin: function(e) {
 		e.preventDefault();
 		var email = $('input[name=username]').val();
+		var password = $('input[name=password]').val();
+
 		var user = null;
 
 		// Find if person exists
@@ -27,11 +29,8 @@ var LoginView = Backbone.View.extend({
 			}
 		});
 
-		// Store user information in local storage
 		if(user != null) {
-			localStorage.currentUser = user.get('id');
-			location.replace("index.html");
-
+			checkLogin(email, password);
 		} else {
 			showingLoginError = true;
 			$("#login-error").show();
@@ -76,8 +75,9 @@ var RegistrationView = Backbone.View.extend({
 		} else {
 			var firstName = $('input[name=firstname]').val();
 			var lastName = $('input[name=lastname]').val();
+			var password = $('input[name=newpassword]').val();
 
-			createPerson(firstName, lastName, email);
+			createPerson(firstName, lastName, email, password);
 		}
 	}
 

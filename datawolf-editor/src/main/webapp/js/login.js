@@ -41,7 +41,51 @@ var registrationError = function() {
     }
 };
 
-var createPerson = function(firstName, lastName, email) {
+var checkLogin = function(email, password) {
+    var token = email + ':' + password;
+    var hash = btoa(token);
+    var url = '/login?email='+email;
+    $.ajax({
+        type: "GET",
+        url: url,
+        dataType: "text",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader ("Authorization", "Basic "+hash);
+        },
+
+        success: function(msg) {
+            if(msg) { 
+                var json = JSON.parse(msg);
+                localStorage.currentUser = json.id;
+                location.replace("index.html");
+            } else {
+                showingLoginError = true;
+                $("#login-error").show();
+            }
+        },
+
+        error: function(msg) {
+            console.log(msg);
+        }
+    })
+}
+
+var createAccount = function(email, password) {
+    var url = '/login?email='+email+'&password='+password;
+    $.ajax({
+        type: "POST",
+        url: url,
+        dataType: "text",
+        success: function(msg) {
+            location.replace("index.html");
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    });
+}
+
+var createPerson = function(firstName, lastName, email, password) {
     var url = '/persons?'+'firstname='+firstName+'&lastname='+lastName+'&email='+email;
     $.ajax({
         type: "POST",
@@ -51,7 +95,7 @@ var createPerson = function(firstName, lastName, email) {
         success: function(msg) {
             console.log("created person with id = "+msg);
             localStorage.currentUser = msg;
-            location.replace("index.html");
+            createAccount(email, password);
         },
         error: function(msg) {
             alert('error: '+JSON.stringify(msg));

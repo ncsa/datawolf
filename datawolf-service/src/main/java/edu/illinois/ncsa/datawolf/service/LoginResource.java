@@ -78,17 +78,28 @@ public class LoginResource {
                 StringTokenizer tokenizer = new StringTokenizer(decoded, ":");
                 if (tokenizer.countTokens() == 2) {
                     String user = tokenizer.nextToken();
-                    return personDao.findByEmail(user);
+                    String password = tokenizer.nextToken();
+
+                    AccountDAO accountDAO = SpringData.getBean(AccountDAO.class);
+                    Account userAccount = accountDAO.findByUserid(user);
+
+                    if (userAccount == null) {
+                        log.error("User account does not exist");
+                        return null;
+                    }
+
+                    if (userAccount.getPassword().equals(password)) {
+                        return personDao.findByEmail(user);
+                    } else {
+                        return null;
+                    }
                 } else {
                     return null;
                 }
             } catch (IOException e) {
                 log.error("Error decoding token", e);
+                return null;
             }
-        }
-
-        if ((email != null) && !email.equals("")) {
-            return personDao.findByEmail(email);
         }
 
         return null;
