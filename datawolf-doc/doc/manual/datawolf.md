@@ -1,10 +1,10 @@
 <html>
-<title>DataWolf</title>
+<title>Data Wolf</title>
 <xmp theme="readable" style="display:none;">
 
-DataWolf was developed to address the need that scientific research is increasingly being done in virtual communities. These virtual communities are often larger in size and are not co-located. One example of these virtual communities can be seen in the hydrology community where groups of scientists have come together to look at Digital Watersheds. The idea of a Digital Watershed is to give the community access to an integrated view of digital data, research results and derived data. All this data can be stored in repositories accessible by scientists allowing them to overlay the data on top of maps to give them a better understanding of the Digital Watershed. Scientists can add their new data, results and models to these repositories. The general process of adding new models/approaches/ideas (knowledge) to the results of previous research and obtaining new scientific results would be understood as knowledge sharing and integration. The overall effort leading to virtual spaces is also denoted as cyberinfrastructure development. The US-coined term cyberinfrastructure (CI) usually refers to the integration of infrastructure technologies and has been used interchangeably with the European-coined term eScience.  
+Data Wolf was developed to address the need that scientific research is increasingly being done in virtual communities. These virtual communities are often larger in size and are not co-located. One example of these virtual communities can be seen in the hydrology community where groups of scientists have come together to look at Digital Watersheds. The idea of a Digital Watershed is to give the community access to an integrated view of digital data, research results and derived data. All this data can be stored in repositories accessible by scientists allowing them to overlay the data on top of maps to give them a better understanding of the Digital Watershed. Scientists can add their new data, results and models to these repositories. The general process of adding new models/approaches/ideas (knowledge) to the results of previous research and obtaining new scientific results would be understood as knowledge sharing and integration. The overall effort leading to virtual spaces is also denoted as cyberinfrastructure development. The US-coined term cyberinfrastructure (CI) usually refers to the integration of infrastructure technologies and has been used interchangeably with the European-coined term eScience.  
 
-DataWolf was designed to be an integral part of a cyberinfrastructure software system with the goal of reducing the time to and from discovery. In a typical research lifecycle, theoretical hypotheses are formulated, experiments are conducted, and publications are delivered. As part of the research lifecycle, one has to follow the publication trail, re-implement software and repeat experiments, customize experiments according to more general hypotheses, and deliver new publications about new discoveries. Reusing results, tools, and insights from one research project to the next is an integral part of scientific research. Currently, this process can be very time and resource consuming, as well as sometimes intractable. Our objective is to reduce the amount of time and resources needed to conduct new science and introduce tractability of research results. This objective is achieved by integrating computationally driven experiments (DataWolf) with custom delivery of experimental results (publishing results to the web) via published workflows that can be ran as small web applications or as part of a larger web application. DataWolf simplifies the integration of data and modeling tools to support research and enable cross disciplinary integration to produce targeted outputs that address particular engineering and educational needs. Thus, the impact of such a technological integration and development of new features lies in the fact that multiple results from research lifecycles become immediately available for interactive explorations (web publishing), linked to the experimental settings and codes (scientific workflows) and retrievable for further studies from content repositories (information sharing). 
+Data Wolf was designed to be an integral part of a cyberinfrastructure software system with the goal of reducing the time to and from discovery. In a typical research lifecycle, theoretical hypotheses are formulated, experiments are conducted, and publications are delivered. As part of the research lifecycle, one has to follow the publication trail, re-implement software and repeat experiments, customize experiments according to more general hypotheses, and deliver new publications about new discoveries. Reusing results, tools, and insights from one research project to the next is an integral part of scientific research. Currently, this process can be very time and resource consuming, as well as sometimes intractable. Our objective is to reduce the amount of time and resources needed to conduct new science and introduce tractability of research results. This objective is achieved by integrating computationally driven experiments (Data Wolf) with custom delivery of experimental results (publishing results to the web) via published workflows that can be ran as small web applications or as part of a larger web application. Data Wolf simplifies the integration of data and modeling tools to support research and enable cross disciplinary integration to produce targeted outputs that address particular engineering and educational needs. Thus, the impact of such a technological integration and development of new features lies in the fact that multiple results from research lifecycles become immediately available for interactive explorations (web publishing), linked to the experimental settings and codes (scientific workflows) and retrievable for further studies from content repositories (information sharing). 
 
 ## Scientific Workflow
 
@@ -30,31 +30,31 @@ By stringing together one or more steps you can create a workflow as illustrated
 * **Executor** - code to execute a type of tool (e.g. a Java executor knows how to execute Java tools)
 * **Engine** - code to execute a workflow
 
-A workflow does not have to be a sequential set of steps since the workflow engine will manage whether a step is ready to execute (e.g. all inputs are satisfied). In the above example, step 2 will not execute until the data has been produced by step 1. The types of executors that DataWolf supports will be discussed in the architecture section. 
+A workflow does not have to be a sequential set of steps since the workflow engine will manage whether a step is ready to execute (e.g. all inputs are satisfied). In the above example, step 2 will not execute until the data has been produced by step 1. The types of executors that Data Wolf supports will be discussed in the architecture section. 
 
 ## Architecture
 
-DataWolf is designed to facilitate the documentation and dissemination of scientific work with a system that makes it easy to create and share workflows while separating the science from the logistics of execution. This allows scientists to focus on research without concerning themselves with the details of where the workflow will execute, how will the data be stored, how do I share my results, etc. Models, algorithms, and data are kept in open formats so they are accessible outside the scientific workflow system and models that are encapsulated by a workflow can be exposed as a RESTful web service. DataWolf has 3 main components: 1) Editor, 2) Service layer (RESTful service) and 3) Engine as shown in the diagram below:
+Data Wolf is designed to facilitate the documentation and dissemination of scientific work with a system that makes it easy to create and share workflows while separating the science from the logistics of execution. This allows scientists to focus on research without concerning themselves with the details of where the workflow will execute, how will the data be stored, how do I share my results, etc. Models, algorithms, and data are kept in open formats so they are accessible outside the scientific workflow system and models that are encapsulated by a workflow can be exposed as a RESTful web service. Data Wolf has 3 main components: 1) Editor, 2) Service layer (RESTful service) and 3) Engine as shown in the diagram below:
 
-![DataWolf Architecture Diagram.](images/datawolf-arch.png)
+![Data Wolf Architecture Diagram.](images/Data Wolf-arch.png)
 
-Each part will be elaborated on in the next few sections, starting at the bottom and working our way up to the Editor (DataWolf JS).
+Each part will be elaborated on in the next few sections, starting at the bottom and working our way up to the Editor (Data Wolf JS).
 
 ### Technologies
 
-DataWolf is a Java application that uses the Spring Framework, specifically [Spring-Data](http://projects.spring.io/spring-data/) for persisting application information using Java Persistance API (JPA). The Object Relational Mapping (ORM) uses Hibernate and Spring Data handles the Create/Read/Update/Delete (CRUD) repository. Application data is stored in a HSQL database by default for simplicity, but this can be any relational database. For example, in production, we have used MySQL extensively in large projects with very good performance. 
+Data Wolf is a Java application that uses the Spring Framework, specifically [Spring-Data](http://projects.spring.io/spring-data/) for persisting application information using Java Persistance API (JPA). The Object Relational Mapping (ORM) uses Hibernate and Spring Data handles the Create/Read/Update/Delete (CRUD) repository. Application data is stored in a HSQL database by default for simplicity, but this can be any relational database. For example, in production, we have used MySQL extensively in large projects with very good performance. 
 
 ### Engine
 
-The DataWolf Engine is the core of DataWolf. The engine manages executing tools with the appropriate executor so Java tools are executed using the Java Executor, Command Line tools use the Command Line Executor, and High Performance Computing (HPC) tools use the HPC Executor. The engine passes the tool to the executor and then it will manage setting up the tool for execution, executing the tool, storing logging information, and saving output data. The engine has a queueing system so jobs can execute when an executor is ready and if there are jobs that do not finish before DataWolf is shutdown, it will restart those jobs. More information about the types of executors will be discussed in the next section.
+The Data Wolf Engine is the core of Data Wolf. The engine manages executing tools with the appropriate executor so Java tools are executed using the Java Executor, Command Line tools use the Command Line Executor, and High Performance Computing (HPC) tools use the HPC Executor. The engine passes the tool to the executor and then it will manage setting up the tool for execution, executing the tool, storing logging information, and saving output data. The engine has a queueing system so jobs can execute when an executor is ready and if there are jobs that do not finish before Data Wolf is shutdown, it will restart those jobs. More information about the types of executors will be discussed in the next section.
 
 ### Executors
 
-There are two types of executors in DataWolf, Local Executors and Remote Executors, which represent where a tool is executing. Local executors are designed to run on the same machine as DataWolf with DataWolf controlling the executors that are running. Only a limited number of parallel processes are allowed with local executors and configuring this will be discussed in the section on DataWolf Server.
+There are two types of executors in Data Wolf, Local Executors and Remote Executors, which represent where a tool is executing. Local executors are designed to run on the same machine as Data Wolf with Data Wolf controlling the executors that are running. Only a limited number of parallel processes are allowed with local executors and configuring this will be discussed in the section on Data Wolf Server.
 
-In contrast, Remote executors are designed to run on different machines than the client and process management is done outside of DataWolf. Since the remote machine is handling job management, datawolf will attempt to run all executors expecting that the remote machine will handle the queueing. DataWolf will poll the remote machine periodically to check on job status so results can be retrieved for finished jobs and any subsequent steps that might be waiting on the remote step can get ready to execute. 
+In contrast, Remote executors are designed to run on different machines than the client and process management is done outside of Data Wolf. Since the remote machine is handling job management, Data Wolf will attempt to run all executors expecting that the remote machine will handle the queueing. Data Wolf will poll the remote machine periodically to check on job status so results can be retrieved for finished jobs and any subsequent steps that might be waiting on the remote step can get ready to execute. 
 
-The next few sections will discuss concrete examples of executors that are available and cover a wide variety of tools so they can be used in DataWolf workflows.
+The next few sections will discuss concrete examples of executors that are available and cover a wide variety of tools so they can be used in Data Wolf workflows.
 
 #### Java Executor
 
@@ -93,20 +93,20 @@ public interface JavaTool {
 * **setTempFolder** - tells the algorithm where it can store temp files
 * **execute** - is where the algorithm is implemented
 
-If you are interested, you can find the source code for a simple Java tool that implements Grep here: https://opensource.ncsa.illinois.edu/stash/users/cnavarro/repos/grep-demo. In the Web Editor section, we'll discuss creating a Java tool in DataWolf using a compiled version of this Grep tool.  
+If you are interested, you can find the source code for a simple Java tool that implements Grep here: https://opensource.ncsa.illinois.edu/stash/users/cnavarro/repos/grep-demo. In the Web Editor section, we'll discuss creating a Java tool in Data Wolf using a compiled version of this Grep tool.  
 
 #### Command Line Executor
 
-The Command Line executor is a local executor capable of executing command line tools that are available on the local machine. A few examples are `netstat`, `grep`, `ls`, etc. The command line executor executes command line tools in a temporary folder and depending on how the tool is configured, it can capture both standard out and standard error. Inputs that are specified when the tool is created will be copied to the temporary folder before executing and outputs that are generated will be copied to the location specified when DataWolf is setup (e.g. metadata might be in MySQL and data might be on disk). This will be discussed in the section that discusses setting up DataWolf. 
+The Command Line executor is a local executor capable of executing command line tools that are available on the local machine. A few examples are `netstat`, `grep`, `ls`, etc. The command line executor executes command line tools in a temporary folder and depending on how the tool is configured, it can capture both standard out and standard error. Inputs that are specified when the tool is created will be copied to the temporary folder before executing and outputs that are generated will be copied to the location specified when Data Wolf is setup (e.g. metadata might be in MySQL and data might be on disk). This will be discussed in the section that discusses setting up Data Wolf. 
 
-If you already have an executable (e.g. your model is written in C/C++/etc) and you just want to run it in DataWolf, the Command Line Executor makes it very easy to add your tool to DataWolf without any modification to your code. The Web Editor provides a step by step process that guides you through specifying information about your tool (e.g. input flags, input data, output data, etc) to assist in importing it into DataWolf. Once your tool is imported, it can be used by itself in a workflow or as a step in a larger workflow. In the Web Editor section, we'll discuss creating a command line tool for executing `netstat` as part of a two step workflow and demonstrate the step by step process for importing a command line tool. 
+If you already have an executable (e.g. your model is written in C/C++/etc) and you just want to run it in Data Wolf, the Command Line Executor makes it very easy to add your tool to Data Wolf without any modification to your code. The Web Editor provides a step by step process that guides you through specifying information about your tool (e.g. input flags, input data, output data, etc) to assist in importing it into Data Wolf. Once your tool is imported, it can be used by itself in a workflow or as a step in a larger workflow. In the Web Editor section, we'll discuss creating a command line tool for executing `netstat` as part of a two step workflow and demonstrate the step by step process for importing a command line tool. 
 
 #### HPC Executor
 
 The HPC Executor is a Remote Executor that uses SSH Channels to communicate with various queueing systems for submitting jobs to high performance computers (HPC) such as the [XSEDE](http://www.xsede.org) resources. The remote executor is similar to the command line executor except the execution line (executable, flags, inputs, etc) for the tool are appended to a script and submitted to a queueing system. When creating an HPC tool, an XML definition file with information about the HPC (e.g. location of submit, terminate, and status commands), a script to append the execution line to, and the regular expressions necessary for parsing job status messages, must be provided. The executor will use this information to communicate with the HPC to submit jobs, cancel jobs, get job status, etc. The queueing systems that have been tested with the HPCExecutor include Portable Batch System (PBS), IBM Loadleveler, and Sun Grid Engine (SGE), which was minimally tested. 
 
 ### REST Interface
-DataWolf provides a thin service layer that wraps around the DataWolf Engine and exposes all primary functionality through a REST API that clients can program against. Below are all of DataWolf's REST endpoints and a brief description about them. For a more information on how to use each endpoint, please see the javadoc associated with the service layer. If you are interested in an example that uses the the REST API, checkout the source code for the web editor. Instructions are included in the Source Code section.
+Data Wolf provides a thin service layer that wraps around the Data Wolf Engine and exposes all primary functionality through a REST API that clients can program against. Below are all of Data Wolf's REST endpoints and a brief description about them. For a more information on how to use each endpoint, please see the javadoc associated with the service layer. If you are interested in an example that uses the the REST API, checkout the source code for the web editor. Instructions are included in the Source Code section.
 
 **People**
 
@@ -183,13 +183,13 @@ GET | executors | get all available executors
 
 ## Web Editor
 
-The DataWolf Web Editor is an exploratory workflow system written in HTML5/JavaScript that emphasizes distributed execution of arbitrary software, data reproducibility, and ease of use. DataWolf addresses the problem of analytical reproducibility in an era where nearly all research/practice involves software and digital data, and where both software and digital data can change over time thus preventing the reproduction of results. The projects using DataWolf have developed interactive Web applications with easy-to-use interfaces supported by sophisticated back-end analyses and models for specific science, industry, and policy domains. The Web Editor allows users to create these sophisticated analyses through a graphical user interface (GUI) that interacts with DataWolf to add new tools, create workflows, import data, execute workflows, etc using their web browser. 
+The Data Wolf Web Editor is an exploratory workflow system written in HTML5/JavaScript that emphasizes distributed execution of arbitrary software, data reproducibility, and ease of use. Data Wolf addresses the problem of analytical reproducibility in an era where nearly all research/practice involves software and digital data, and where both software and digital data can change over time thus preventing the reproduction of results. The projects using Data Wolf have developed interactive Web applications with easy-to-use interfaces supported by sophisticated back-end analyses and models for specific science, industry, and policy domains. The Web Editor allows users to create these sophisticated analyses through a graphical user interface (GUI) that interacts with Data Wolf to add new tools, create workflows, import data, execute workflows, etc using their web browser. 
 
-We'll begin with a brief discussion of the architecture and technologies used in the Web Editor and then we'll go through the steps to install and begin using the web editor to add some example tools, build and execute an example workflow and obtain results. This should provide a good understanding of how you can get your tools into DataWolf. 
+We'll begin with a brief discussion of the architecture and technologies used in the Web Editor and then we'll go through the steps to install and begin using the web editor to add some example tools, build and execute an example workflow and obtain results. This should provide a good understanding of how you can get your tools into Data Wolf. 
 
 ### Technologies
 
-The web editor is an HTML5/Javascript application that allows a user to interact with DataWolf to build and execute workflows. For reference, a brief description of the Javascript libraries used in the Web Editor can be seen below: 
+The web editor is an HTML5/Javascript application that allows a user to interact with Data Wolf to build and execute workflows. For reference, a brief description of the Javascript libraries used in the Web Editor can be seen below: 
 
 * Twitter Bootstrap
   * is a Mobile first front end that eases the task of developing the client user interface for multiple screen sizes. Twitter-Bootstrap will scale widgets to best fit the device that you are using. It includes a lot of general components and examples that can be customized further based on the needs of the application.
@@ -208,33 +208,33 @@ The web editor is an HTML5/Javascript application that allows a user to interact
 
 ### Download
 
-The latest version of DataWolf can be downloaded from: 
+The latest version of Data Wolf can be downloaded from: 
 
-http://isda.ncsa.illinois.edu/drupal/software/datawolf
+http://isda.ncsa.illinois.edu/drupal/software/Data Wolf
 
 * Click on **Downloads** 
   * Expand **binary** 
   * Expand **3.0-latest** 
-  * Click on **datawolf-webapp-all-3.0.0-SNAPSHOT-bin.zip**
+  * Click on **Data Wolf-webapp-all-3.0.0-SNAPSHOT-bin.zip**
 * Click **I Accept** to accept the License.
 
-This will give you the latest stable build that includes both the DataWolf Server and the Web Editor. You can also find links to the source code there (as well as at the end of this document) and more information about the project. 
+This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the source code there (as well as at the end of this document) and more information about the project. 
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded DataWolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-3.0.0-SNAPSHOT**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running DataWolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **Data Wolf-webapp-all-3.0.0-SNAPSHOT**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
 #### Application Context
 
-Open the folder that was created by unzipping the installation zip file and go into the **Conf** folder. You should see a file called **applicationContext.xml**. For the purpose of running DataWolf server and editor, you won't need to make any changes to this file or understand its contents. However, for those who are interested, the rest of this section will dissect the file for informational purposes to highlight the important parts of the file you might want to modify to configure available executors and where information is stored. If you open the **applicationContext.xml** in a text editor, you should see the snippet below:
+Open the folder that was created by unzipping the installation zip file and go into the **Conf** folder. You should see a file called **applicationContext.xml**. For the purpose of running Data Wolf server and editor, you won't need to make any changes to this file or understand its contents. However, for those who are interested, the rest of this section will dissect the file for informational purposes to highlight the important parts of the file you might want to modify to configure available executors and where information is stored. If you open the **applicationContext.xml** in a text editor, you should see the snippet below:
 
 ```
-<bean id="engine" class="edu.illinois.ncsa.datawolf.Engine">
+<bean id="engine" class="edu.illinois.ncsa.Data Wolf.Engine">
 	<property name="executors">
 		<set>
-			<bean class="edu.illinois.ncsa.datawolf.executor.java.JavaExecutor" />
- 			<bean class="edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor" />
- 			<bean class="edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor" />
+			<bean class="edu.illinois.ncsa.Data Wolf.executor.java.JavaExecutor" />
+ 			<bean class="edu.illinois.ncsa.Data Wolf.executor.commandline.CommandLineExecutor" />
+ 			<bean class="edu.illinois.ncsa.Data Wolf.executor.hpc.HPCExecutor" />
 		</set>
 	</property>
 	<property name="extraLocalExecutor" value="1" />
@@ -244,7 +244,7 @@ Open the folder that was created by unzipping the installation zip file and go i
 </bean>
 ```
 * **property**
-  * **executors** property configures the available executors. This is where you configure the executors that are available for a particular DataWolf Server instance. For example, if you don't have an HPC resource available, you can remove the HPCExecutor bean by deleting it from the file or commenting it out so it is unavailable. This will prevent HPC tools from attempting to execute. Leaving this in there will not cause any issues if you don't have an HPC resource available to the server, but workflows with HPC tools will fail if you try to execute them.
+  * **executors** property configures the available executors. This is where you configure the executors that are available for a particular Data Wolf Server instance. For example, if you don't have an HPC resource available, you can remove the HPCExecutor bean by deleting it from the file or commenting it out so it is unavailable. This will prevent HPC tools from attempting to execute. Leaving this in there will not cause any issues if you don't have an HPC resource available to the server, but workflows with HPC tools will fail if you try to execute them.
   * **extraLocalExecutor** - number of jobs that can be in local executor queue
   * **localExecutorThreads** - sets the number of worker threads for the local executor
   * **storeLogs** - store logs execution logs in the database
@@ -265,7 +265,7 @@ This statement specifies that file storage will be on disk with the following pr
   * **levels** - indicates the number of levels to use, this prevents too many files in a single folder.
   * **folder** - indicates the location on disk to store the files.
 
-DataWolf has a **FileStorage** interface that allows users to implement different storage options to meet their application needs if the provided ones are insufficient. One planned storage option is **FileStorageMedici** to use Medici for storing files. 
+Data Wolf has a **FileStorage** interface that allows users to implement different storage options to meet their application needs if the provided ones are insufficient. One planned storage option is **FileStorageMedici** to use Medici for storing files. 
 
 The next part of the file to look at is where object information will be stored as seen in the snippet below:  	
 
@@ -300,7 +300,7 @@ The next part of the file to look at is where object information will be stored 
 </bean>
 ```
 
-The important parts are **dataSource** and the bean it refers to **hsqldata**. This specifies the bean that will define where object information is stored. By default, object information is stored in a Hyper SQL Database because it requires no additional setup by the user to get started with DataWolf. There are two additional **dataSource** options defined in the application context that demonstrate other storage options; however, the storage could be any relational database. The snippet below shows how to specify an in memory hsql database.
+The important parts are **dataSource** and the bean it refers to **hsqldata**. This specifies the bean that will define where object information is stored. By default, object information is stored in a Hyper SQL Database because it requires no additional setup by the user to get started with Data Wolf. There are two additional **dataSource** options defined in the application context that demonstrate other storage options; however, the storage could be any relational database. The snippet below shows how to specify an in memory hsql database.
 
 ```
 <!-- hsqldb memory setting -->
@@ -326,9 +326,9 @@ Another alternative and one that we have tested in production is storing object 
 <!-- mysql setting -->
 <bean id="mysql" class="com.jolbox.bonecp.BoneCPDataSource">
 		<property name="driverClass" value="com.mysql.jdbc.Driver" />
-		<property name="jdbcUrl" value="jdbc:mysql://localhost/datawolf" />
-		<property name="username" value="datawolf" />
-		<property name="password" value="datawolf" />
+		<property name="jdbcUrl" value="jdbc:mysql://localhost/Data Wolf" />
+		<property name="username" value="Data Wolf" />
+		<property name="password" value="Data Wolf" />
 		<property name="idleConnectionTestPeriod" value="60" />
 		<property name="idleMaxAgeInMinutes" value="5" />
 		<property name="maxConnectionsPerPartition" value="30" />
@@ -344,7 +344,7 @@ As mentioned previously, this is not the default because additional setup would 
 
 #### Launch Scripts
 
-If you go back to the folder **datawolf-webapp-all-3.0.0-SNAPSHOT** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running DataWolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring DataWolf Server and Editor. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
+If you go back to the folder **Data Wolf-webapp-all-3.0.0-SNAPSHOT** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **Data Wolf-service** and **Data Wolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring Data Wolf Server and Editor. We will show snippets of the file **Data Wolf-service** and discuss what each section is configuring.
 
 ```
 # port for the jetty server
@@ -355,14 +355,14 @@ As stated in the comment, this is the port that Jetty will launch the service. Y
 
 ```
 # log file, leave blank for console
-#LOG="--out ${PWD}/log/datawolf-yyyy_mm_dd.log"
+#LOG="--out ${PWD}/log/Data Wolf-yyyy_mm_dd.log"
 ```
 
 If you remove the **#** in front of **LOG**, then this will have the server generate a log file in a folder called **log** in the folder you unzipped. This can be useful for debugging problems such as ports in use (in the case where port 8888 is unavailable) and other issues running workflows.
 
 ```
 # setup for the server
-WAR=$( ls -1 lib/datawolf-webapp-all*.war | tail -1 )
+WAR=$( ls -1 lib/Data Wolf-webapp-all*.war | tail -1 )
 SERVER=""
 if [ "${WAR}" != "" ]; then
   SERVER=${PWD}/conf/server.xml
@@ -380,7 +380,7 @@ EOF
 fi
 ```
 
-The above snippet specifies where to find the war file for the DataWolf Server and generates the file **server.xml** inside the **conf** folder so Jetty knows where to find the application context and war file. 
+The above snippet specifies where to find the war file for the Data Wolf Server and generates the file **server.xml** inside the **conf** folder so Jetty knows where to find the application context and war file. 
 
 * **contextPath** - specifies the link for the server, in this case it will be the root of the URL http://localhost:8888/. 
 * **war** - specifies where Jetty can find the war file.
@@ -390,7 +390,7 @@ You can modify these settings to change the server path and application context 
 
 ```
 # setup for the editor
-WAR=$( ls -1 lib/datawolf-editor*.war | tail -1 )
+WAR=$( ls -1 lib/Data Wolf-editor*.war | tail -1 )
 EDITOR=""
 if [ "${WAR}" != "" ]; then
   EDITOR=${PWD}/conf/editor.xml
@@ -411,29 +411,29 @@ Similar to the server, this generates an **editor.xml** file inside the **conf**
 
 Unlike the server, the editor does not need an application context because it will talk to the server using the REST endpoints.
 
-#### Running DataWolf Server and Editor
+#### Running Data Wolf Server and Editor
 
-To start DataWolf Server and Editor, do the following:
+To start Data Wolf Server and Editor, do the following:
 
 On Linux/Mac:
 
 ```dos
-> datawolf-service
+> Data Wolf-service
 ```
 
 on Windows:
 
 ```dos
-> datawolf-service.bat
+> Data Wolf-service.bat
 ```
 
 ### Launch the Web Editor
 
-After launching the datawolf-service, you will have both a DataWolf Server and Web Editor running. To open the web editor, go to http://localhost:8888/editor. You should see a login page similar to the one below:
+After launching the Data Wolf-service, you will have both a Data Wolf Server and Web Editor running. To open the web editor, go to http://localhost:8888/editor. You should see a login page similar to the one below:
 
 ![Web Editor login page.](images/login-page.png)
 
-If you don't have an account on DataWolf, fill in the registration form and click **Register** to create an account. 
+If you don't have an account on Data Wolf, fill in the registration form and click **Register** to create an account. 
 
 After you register an account, the next time you see the login page just enter the email address you registered and click the **Sign-in** button. This should bring you to a page that looks similar to the one below:
 
@@ -446,14 +446,14 @@ There are three main tabs associated with the Web Editor.
   * Workflows view - allows users to create new workflows, open existing workflows for editing, delete existing workflows, and get more information about existing workflows.
   * Workflow Graph - one graph per workflow can be opened at any one time. Users can drag and drop tools onto the graph, connect tools, remove tools, and specify the workflow name. In the above image, the workflow graph is shown as **untitled** since it is an empty canvas. Once a tool is dropped onto the canvas, a new workflow will be created.
 * **Execute** 
-  * Workflows view - allows users to open existing workflows and prepare them for submission to the DataWolf server. Users can specify parameters and inputs and then execute the workflow by submitting the form page. 
-  * Datasets view - allows users to add new datasets, get information about datasets and delete datasets from DataWolf.
+  * Workflows view - allows users to open existing workflows and prepare them for submission to the Data Wolf server. Users can specify parameters and inputs and then execute the workflow by submitting the form page. 
+  * Datasets view - allows users to add new datasets, get information about datasets and delete datasets from Data Wolf.
 * **History**
   * Executions view - allows users to see past submissions, get information about each workflow step, obtain step logs, download results, etc.
 
-### Creating Tools in DataWolf
+### Creating Tools in Data Wolf
 
-There are 3 types of tools currently supported by DataWolf: Java tools, Command Line tools and HPC tools. To illustrate the first two types of tools, we will create a simple workflow that runs the **netstat** executable as a command line tool and passes the output data to a Java tool that implements the **grep** functionality. First, let's create the command line tool. 
+There are 3 types of tools currently supported by Data Wolf: Java tools, Command Line tools and HPC tools. To illustrate the first two types of tools, we will create a simple workflow that runs the **netstat** executable as a command line tool and passes the output data to a Java tool that implements the **grep** functionality. First, let's create the command line tool. 
 
 * Click the (![add icon](images/icon-toolbar-add-active.png)) button to open the **Select Tool Type** dialog.
 * From the dropdown menu, select **Command Line**.
@@ -508,7 +508,7 @@ You will need to download the following Jar file for the grep tool [here](data/g
 
 You should now see a second tool under the **Tools** view called **Grep** that has a different color than the **netstat** tool. We now have one tool that requires the Java executor (blue) and another tool that requires the Command Line executor (yellow/green). 
 
-### Creating Workflows in DataWolf
+### Creating Workflows in Data Wolf
 
 The next step is to create a new workflow so we can add tools and connect them together. There are 3 ways to create a new workflow.
 
@@ -520,7 +520,7 @@ Let's use option 1 and use the mouse to drag and drop the **netstat** and **Grep
 
 ![Workflow graph with two unconnected tools](images/new-workflow-1.png)
 
-There are a few things to notice. First, under **Workflows** we now have a new **untitled** workflow. After we dropped the first tool onto the graph, a new workflow was created for us and persisted to the DataWolf server using the **/workflows** REST endpoint. At this point, our two step workflow is saved and we could close our web browser and continue with this later. Also notice that each tool has the following:
+There are a few things to notice. First, under **Workflows** we now have a new **untitled** workflow. After we dropped the first tool onto the graph, a new workflow was created for us and persisted to the Data Wolf server using the **/workflows** REST endpoint. At this point, our two step workflow is saved and we could close our web browser and continue with this later. Also notice that each tool has the following:
 
 * The tool is labelled by it's name and colored by the executor it uses.
 * Inputs are indicated by labelled connection points on the left side of the tool.
@@ -558,7 +558,7 @@ The information view lists the following information:
 
 To dismiss the information view, click on the (![info icon](images/icon-toolbar-info-active.png)) button again.
 
-### Executing Workflows in DataWolf
+### Executing Workflows in Data Wolf
 
 To execute the workflow, navigate to the **Execution** page by clicking on **Execute** in the upper left navigation menu. There, you should see the workflow we created under the **Workflows** view. To open it, do the following:
 
@@ -616,9 +616,9 @@ tcp6       0      0 ::1:631                 :::*                    LISTEN
 tcp6       0      0 :::8888                 :::*                    LISTEN
 ```
 
-### Adding Data to DataWolf
+### Adding Data to Data Wolf
 
-Adding data to DataWolf can be done through the **Execute** tab. If you navigate back to that tab, you should see the datasets that were produced by the workflow we executed, **Matched-Text** and **stdout**. If your workflow requires input data that needs to be passed into one or more tools, the **Datasets** view is where you can add it. If you click the (![add icon](images/icon-toolbar-add-active.png)) button, you should see a dialog similar to the one below:
+Adding data to Data Wolf can be done through the **Execute** tab. If you navigate back to that tab, you should see the datasets that were produced by the workflow we executed, **Matched-Text** and **stdout**. If your workflow requires input data that needs to be passed into one or more tools, the **Datasets** view is where you can add it. If you click the (![add icon](images/icon-toolbar-add-active.png)) button, you should see a dialog similar to the one below:
 
 ![Add datasets dialog.](images/add-datasets.png)
 
@@ -628,15 +628,15 @@ All you need to do is provide a title, short description and select the file to 
 
 ### Reporting Bugs and Submitting Feature Requests
 
-If you find software bugs or have feature requests for DataWolf, please open a bug report in Jira: https://opensource.ncsa.illinois.edu/jira/browse/CBI. This is the best way to get things fixed and communicate with developers that are active on the project. 
+If you find software bugs or have feature requests for Data Wolf, please open a bug report in JIRA: https://opensource.ncsa.illinois.edu/jira/browse/WOLF. This is the best way to get things fixed and communicate with developers that are active on the project. 
 
 ### Source Code
 
-DataWolf is an open source project and you can obtain the source code from our Git repository. https://opensource.ncsa.illinois.edu/stash/scm/cbi/datawolf-3.git. We welcome additional contributors on the project and would help in any way we can to assist you with making contributions to the project. If you are going to contribute and can make the feature available as open source, please open bug reports in Jira (above) so we know that there is a feature you would like to see in the software and so we can help you implement the new feature. 
+Data Wolf is an open source project and you can obtain the source code from our Git repository : https://opensource.ncsa.illinois.edu/stash/projects/WOLF. We welcome additional contributors on the project and would help in any way we can to assist you with making contributions to the project. If you are going to contribute and can make the feature available as open source, please open bug reports in JIRA (above) so we know that there is a feature you would like to see in the software and so we can help you implement the new feature. 
 
 ### Acknowledgments 
 
-We would like to acknowledge multiple funding agencies for the support including NCSA, NSF, NASA, NARA and TRECC. The main creators of DataWolf are Rob Kooper, Luigi Marini, Chris Navarro, Jong Lee, and Liana Diesendruck with support from Peter Bajcsy, Barbara Minsker, Jim Myers, and Tim Nee.
+We would like to acknowledge multiple funding agencies for the support including NCSA, NSF, NASA, NARA and TRECC. The main creators of Data Wolf are Rob Kooper, Luigi Marini, Chris Navarro, Jong Lee, and Liana Diesendruck with support from Peter Bajcsy, Barbara Minsker, Jim Myers, and Tim Nee.
 </xmp>
 <script src="http://strapdownjs.com/v/0.2/strapdown.js"></script>
 </html>
