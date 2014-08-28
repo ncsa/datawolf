@@ -15,7 +15,7 @@
                 <spring.jpa.version>1.2.0.RC1</spring.jpa.version>
                 <spring.mongo.version>1.1.0.RC1</spring.mongo.version>
 
-		<ncsa.common.version>1.0.0-SNAPSHOT</ncsa.common.version>
+		<ncsa.common.version>3.0.0</ncsa.common.version>
 
                 <hibernate.version>4.1.7.Final</hibernate.version>
                 <bonecp.version>0.7.1.RELEASE</bonecp.version>

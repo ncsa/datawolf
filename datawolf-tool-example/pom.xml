@@ -4,7 +4,7 @@
 
 	<groupId>edu.illinois.ncsa</groupId>
 	<artifactId>datawolf-tool-example</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>3.0.0</version>
 
 	<build>
 		<plugins>
