@@ -9,21 +9,25 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import javax.inject.Inject;
+
 import org.apache.commons.io.IOUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.file.service.client.FileServiceClient;
-import edu.illinois.ncsa.springdata.FileStorage;
-import edu.illinois.ncsa.springdata.SpringData;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
 public class FileServicePostTest {
+
+    @Inject
+    private FileStorage fs;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -44,7 +48,8 @@ public class FileServicePostTest {
         byte[] oba = IOUtil.toByteArray(o);
         FileDescriptor fd = FileServiceClient.createFileDescriptor(postfile);
 
-        FileStorage fs = SpringData.getFileStorage();
+        fs = EmbededJetty.injector.getInstance(FileStorage.class);
+
         InputStream r = fs.readFile(fd);
         byte[] ba = IOUtil.toByteArray(r);
 

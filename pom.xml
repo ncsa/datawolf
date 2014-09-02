@@ -10,13 +10,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<spring.framework.version>3.1.2.RELEASE</spring.framework.version>
-		<spring.data.version>1.4.0.RC1</spring.data.version>
-		<spring.jpa.version>1.2.0.RC1</spring.jpa.version>
-		<spring.mongo.version>1.1.0.RC1</spring.mongo.version>
-
-		<hibernate.version>4.1.7.Final</hibernate.version>
-		<bonecp.version>0.7.1.RELEASE</bonecp.version>
+		<hibernate.version>4.3.5.Final</hibernate.version>
 		<hsql.version>2.2.8</hsql.version>
 		<mysql.version>5.1.21</mysql.version>
 		<postgresql.version>9.1-901-1.jdbc4</postgresql.version>
@@ -32,11 +26,6 @@
 	</properties>
 
 	<repositories>
-		<repository>
-			<id>spring-milestone</id>
-			<name>Spring Maven MILESTONE Repository</name>
-			<url>http://repo.springsource.org/libs-milestone</url>
-		</repository>
 		<repository>
 			<id>ncsa.opensource.releases</id>
 			<name>ncsa.opensource.releases</name>
@@ -133,55 +122,25 @@
 
 	<modules>
 		<module>ncsa-common-domain</module>
-		<module>ncsa-common-springdata</module>
+		<module>ncsa-common-jpa</module>
+		<module>ncsa-common-medici</module>
 		<module>file-service-client</module>
 		<module>file-service</module>
 		<module>file-webapp</module>
 	</modules>
 
 	<dependencies>
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
+		</dependency>
 		<!-- SUPPORT FOR TESTS -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jolbox</groupId>
-			<artifactId>bonecp</artifactId>
-			<version>${bonecp.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions> 
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jolbox</groupId>
-			<artifactId>bonecp-provider</artifactId>
-			<version>${bonecp.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions> 
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jolbox</groupId>
-			<artifactId>bonecp-spring</artifactId>
-			<version>${bonecp.version}</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.hsqldb</groupId>
@@ -201,5 +160,16 @@
                         <version>${slf4j.version}</version>
                         <scope>test</scope>
                 </dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>3.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-persist</artifactId>
+			<version>3.0</version>
+		</dependency>
 	</dependencies>
 </project>

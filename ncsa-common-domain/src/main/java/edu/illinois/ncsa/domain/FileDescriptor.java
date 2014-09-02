@@ -33,16 +33,9 @@ package edu.illinois.ncsa.domain;
 
 import java.math.BigInteger;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Entity(name = "FileDescriptor")
-@Document(collection = "FileDescriptor")
 public class FileDescriptor extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
@@ -60,10 +53,7 @@ public class FileDescriptor extends AbstractBean {
     private String            dataURL;
 
     /** md5 sum of the actual data */
-    @Column(length = 32)
     private String            md5sum;
-
-    public FileDescriptor() {}
 
     /**
      * Return the mime type of the artifact.

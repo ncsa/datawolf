@@ -11,12 +11,7 @@
 
 	<build>
 		<resources>
-			<resource>
-				<directory>.</directory>
-				<includes>
-					<include>plugin.xml</include>
-				</includes>
-			</resource>
+			
 			<resource>
 				<directory>src/main/java</directory>
 				<includes>
@@ -32,29 +27,6 @@
 			</resource>
 		</resources>
 
-		<plugins>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.3.7</version>
-				<extensions>true</extensions>
-				<configuration>
-					<manifestLocation>META-INF</manifestLocation>
-					<instructions>
-						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-						<Bundle-Version>$(replace;${project.version};-SNAPSHOT;.qualifier)</Bundle-Version>
-						<Export-Package>edu.illinois.ncsa.*</Export-Package>
-						<Private-Package>java.util</Private-Package>
-						<Require-Bundle>
-							spring-libraries
-						</Require-Bundle>
-						<Eclipse-RegisterBuddy>spring-libraries</Eclipse-RegisterBuddy>
-						<Eclipse-BuddyPolicy>registered</Eclipse-BuddyPolicy>
-						<Bundle-RequiredExecutionEnvironment>JavaSE-1.6</Bundle-RequiredExecutionEnvironment>
-					</instructions>
-				</configuration>
-			</plugin>
-		</plugins>
 	</build>
 
 	<dependencies>
@@ -65,26 +37,6 @@
 			<version>${slf4j.version}</version>
 		</dependency>
 
-		<!-- JPA BINDING -->
-		<dependency>
-			<groupId>org.hibernate.javax.persistence</groupId>
-			<artifactId>hibernate-jpa-2.0-api</artifactId>
-			<version>1.0.1.Final</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-jpa</artifactId>
-			<version>${spring.jpa.version}</version>
-		</dependency>
-
-		<!-- MONGO BINDING -->
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-mongodb</artifactId>
-			<version>${spring.mongo.version}</version>
-		</dependency>
-
 		<!-- JSON SUPPORT -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.jaxrs</groupId>
@@ -92,16 +44,5 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		
-		<!-- SPRING DATA -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jms</artifactId>
-			<version>${spring.framework.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-oxm</artifactId>
-			<version>${spring.framework.version}</version>
-		</dependency> 
 	</dependencies>
 </project>

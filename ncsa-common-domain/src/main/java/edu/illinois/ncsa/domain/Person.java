@@ -31,14 +31,8 @@
  ******************************************************************************/
 package edu.illinois.ncsa.domain;
 
-import javax.persistence.Entity;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity(name = "Person")
-@Document(collection = "Person")
 public class Person extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
@@ -76,11 +70,6 @@ public class Person extends AbstractBean {
 
         return p;
     }
-
-    /**
-     * Create a definition of a anonymous user
-     */
-    public Person() {}
 
     /**
      * Single function to set both first and last name of the person.
@@ -174,7 +163,6 @@ public class Person extends AbstractBean {
         return email;
     }
 
-    @Override
     public String toString() {
         return firstName + " " + lastName + "<" + email + ">";
     }

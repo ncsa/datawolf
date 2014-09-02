@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import javax.inject.Inject;
+
 import org.apache.commons.io.IOUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -18,9 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.file.service.client.FileServiceClient;
-import edu.illinois.ncsa.springdata.FileStorage;
-import edu.illinois.ncsa.springdata.SpringData;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -29,9 +30,13 @@ import edu.illinois.ncsa.springdata.SpringData;
 public class FileServiceGetTest {
     private static Logger         logger = LoggerFactory.getLogger(FileServiceGetTest.class);
 
+    @Inject
     private static FileDescriptor fd     = null;
     private static String         id     = null;
     private static byte[]         ba     = null;
+
+    @Inject
+    private static FileStorage    fs;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -39,7 +44,9 @@ public class FileServiceGetTest {
 
         FileServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
 
-        FileStorage fs = SpringData.getFileStorage();
+        fs = EmbededJetty.injector.getInstance(FileStorage.class);
+
+        // FileStorage fs = SpringData.getFileStorage();
 
         // store file via FileStorage
 

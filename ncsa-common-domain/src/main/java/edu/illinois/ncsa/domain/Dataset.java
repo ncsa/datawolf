@@ -31,32 +31,16 @@
  ******************************************************************************/
 package edu.illinois.ncsa.domain;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
-@Entity(name = "Dataset")
-@Document(collection = "Dataset")
-public class Dataset extends AbstractBean implements Serializable {
+public class Dataset extends AbstractBean {
     /** Used for serialization of object */
     private static final long    serialVersionUID = 1L;
 
@@ -67,30 +51,16 @@ public class Dataset extends AbstractBean implements Serializable {
     private String               description      = "";        //$NON-NLS-1$
 
     /** Date the artifact is created */
-    @Temporal(TemporalType.TIMESTAMP)
     private Date                 date             = new Date();
 
     /** creator of the artifact */
-    @DBRef
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     private Person               creator          = null;
 
     /** List of contributors to the artifact. */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "DatasetContributors")
-    @DBRef
     private List<Person>         contributors     = null;
 
     /** all blobs associated with this dataset */
-    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "DatasetFileDescriptors")
-    @DBRef
     private List<FileDescriptor> fileDescriptors  = null;
-
-    /**
-     * Create a new instance of the artifact.
-     */
-    public Dataset() {}
 
     /**
      * Return the title of the artifact.

@@ -31,15 +31,6 @@
  ******************************************************************************/
 package edu.illinois.ncsa.domain;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToOne;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
-@Entity(name = "Account")
-@Document(collection = "Account")
 public class Account extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
@@ -52,13 +43,7 @@ public class Account extends AbstractBean {
     private String            password         = "";  //$NON-NLS-1$
 
     /** email of the person. */
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     private Person            person           = null;
-
-    /**
-     * Create a definition of a anonymous user
-     */
-    public Account() {}
 
     @Override
     public boolean equals(Object arg0) {
@@ -109,4 +94,5 @@ public class Account extends AbstractBean {
     public void setPerson(Person person) {
         this.person = person;
     }
+
 }

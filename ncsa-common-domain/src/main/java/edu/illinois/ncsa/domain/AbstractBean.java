@@ -34,24 +34,16 @@ package edu.illinois.ncsa.domain;
 import java.io.Serializable;
 import java.util.UUID;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-@Entity
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-@JsonIgnoreProperties("@id")
+//@Entity
+//@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+//@JsonIgnoreProperties("@id")
 public class AbstractBean implements Serializable {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
     /** Unique identifier for this bean, used by persistence layer */
-    @Id
-    @Column(length = 36)
+    // @Id
+    // @Column(length = 36)
     private String            id;
 
     /** Should the bean be assumed to be deleted and not be returned */

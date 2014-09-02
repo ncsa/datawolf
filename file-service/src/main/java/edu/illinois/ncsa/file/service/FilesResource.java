@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -21,16 +22,21 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.springdata.FileDescriptorDAO;
-import edu.illinois.ncsa.springdata.FileStorage;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 
 @Path("/files")
 public class FilesResource {
+
+    // TODO How can get get Guice to create this class so injection works?
+    @Inject
+    private FileDescriptorDao fileDescriptorDAO;
+
+    @Inject
+    private FileStorage       fileStorage;
+
     /**
      * get all file-descriptors
      * 
@@ -40,9 +46,7 @@ public class FilesResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<FileDescriptor> getAllFileDescriptors(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        FileDescriptorDAO fileDescriptorDAO = SpringData.getBean(FileDescriptorDAO.class);
-        Page<FileDescriptor> files = fileDescriptorDAO.findAll(new PageRequest(page, size));
-        return files.getContent();
+        return fileDescriptorDAO.findAll();
     }
 
     /**
@@ -72,9 +76,7 @@ public class FilesResource {
     @Path("{id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public FileDescriptor getFileDescriptor(@PathParam("id") String id) {
-        FileDescriptorDAO fileDescriptorDAO = SpringData.getBean(FileDescriptorDAO.class);
-        FileDescriptor file = fileDescriptorDAO.findOne(id);
-        return file;
+        return fileDescriptorDAO.findOne(id);
     }
 
     /**
@@ -89,10 +91,7 @@ public class FilesResource {
     @Path("{id}/file")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
     public Response getFile(@PathParam("id") String id) {
-        FileDescriptorDAO fileDescriptorDAO = SpringData.getBean(FileDescriptorDAO.class);
         FileDescriptor file = fileDescriptorDAO.findOne(id);
-
-        FileStorage fileStorage = SpringData.getFileStorage();
         try {
             InputStream is = fileStorage.readFile(file);
             ResponseBuilder response = Response.ok(is);
@@ -125,7 +124,6 @@ public class FilesResource {
     @Consumes({ MediaType.MULTIPART_FORM_DATA })
     @Produces({ MediaType.APPLICATION_JSON })
     public FileDescriptor uploadFile(MultipartFormDataInput input) throws IOException {
-        FileStorage fileStorage = SpringData.getFileStorage();
 
         FileDescriptor fileDescriptor = null;
         String fileName = "";

@@ -1,0 +1,54 @@
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
+    version="2.0">
+    <persistence-unit name="NCSACommonPersistence" transaction-type="RESOURCE_LOCAL">
+       <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+		<!-- <provider>org.hibernate.ejb.HibernatePersistence</provider> -->
+		<!-- <mapping-file>META-INF/orm.xml</mapping-file>        -->
+		
+       	<class>edu.illinois.ncsa.isda.domain.AbstractBean</class>
+       	<class>edu.illinois.ncsa.isda.domain.Person</class>
+       	<class>edu.illinois.ncsa.isda.domain.Account</class>
+       	<class>edu.illinois.ncsa.isda.domain.FileDescriptor</class>
+       	<class>edu.illinois.ncsa.isda.domain.Dataset</class>
+        <properties>
+        	<!-- MySQL -->
+        	<!-- 
+        	<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
+			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost/cyberintegrator" />
+			<property name="javax.persistence.jdbc.user" value="cyberintegrator" />
+			<property name="javax.persistence.jdbc.password" value="cyberintegrator" />
+			<property name="idleConnectionTestPeriod" value="60" />
+			<property name="idleMaxAgeInMinutes" value="5" />
+			<property name="maxConnectionsPerPartition" value="30" />
+			<property name="minConnectionsPerPartition" value="10" />
+			<property name="partitionCount" value="3" />
+			<property name="acquireIncrement" value="5" />
+			<property name="statementsCacheSize" value="100" />
+			<property name="releaseHelperThreads" value="3" />
+			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.hbm2ddl.auto" value="update" /> -->
+            
+        	<!-- HSQL Memory -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
+            <property name="hibernate.connection.driver_class" value="org.hsqldb.jdbcDriver" />
+            <property name="hibernate.connection.url" value="jdbc:hsqldb:mem:testdb" />
+            <property name="hibernate.connection.username" value="sa" />
+            <property name="hibernate.connection.password" value="" />
+           	<property name="hibernate.hbm2ddl.auto" value="update" /> 
+           	
+           	<!-- HSQL file -->
+           	<!-- 
+           	<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
+            <property name="hibernate.connection.driver_class" value="org.hsqldb.jdbcDriver" />
+            <property name="hibernate.connection.url" value="jdbc:hsqldb:file:/home/cnavarro/data/jpa/testdb;shutdown=true;hsqldb.write_delay=false" />
+            <property name="hibernate.connection.username" value="sa" />
+            <property name="hibernate.connection.password" value="" />
+           	<property name="hibernate.hbm2ddl.auto" value="update" /> -->
+           	
+        </properties>
+        
+    </persistence-unit>
+</persistence>

@@ -5,16 +5,17 @@ import java.util.Map;
 
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 import org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap;
-import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.Context;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.support.XmlWebApplicationContext;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class EmbededJetty {
-    public static int     PORT = 9977;
-    private static Server server;
+    public static int      PORT = 9977;
+    private static Server  server;
+    public static Injector injector;
 
     public static void jettyServer(String resourceBase, String configXml) throws Exception {
         server = new Server(PORT);
@@ -30,15 +31,16 @@ public class EmbededJetty {
         root.addEventListener(new ResteasyBootstrap());
         root.addServlet(HttpServletDispatcher.class, "/*");
 
-        // create spring context
-        XmlWebApplicationContext xmlContext = new XmlWebApplicationContext();
-        xmlContext.setConfigLocation(configXml);
-        xmlContext.setServletContext(root.getServletContext());
-        xmlContext.refresh();
+        injector = Guice.createInjector(new TestModule());
 
-        // spring framework
-        root.addEventListener(new ContextLoaderListener(xmlContext));
-        root.addFilter(OpenEntityManagerInViewFilter.class, "/*", Handler.DEFAULT);
+        // Initialize persistence service
+        PersistService service = injector.getInstance(PersistService.class);
+        service.start();
+        // create spring context
+        // XmlWebApplicationContext xmlContext = new XmlWebApplicationContext();
+        // xmlContext.setConfigLocation(configXml);
+        // xmlContext.setServletContext(root.getServletContext());
+        // xmlContext.refresh();
 
         // start jetty
         server.start();
