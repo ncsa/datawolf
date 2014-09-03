@@ -41,18 +41,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
 
 /**
  * Engine that is responsible for executing the steps. This is an abstract class
@@ -83,6 +82,15 @@ public class Engine {
 
     /** flag indicating if queue has been checked for unfinished jobs on startup */
     private boolean               loadedQueue        = false;
+
+    @Inject
+    private WorkflowDao           workflowDao;
+
+    @Inject
+    private WorkflowStepDao       workflowStepDao;
+
+    @Inject
+    private ExecutionDao          executionDao;
 
     /**
      * Create the engine with a single worker.
@@ -201,7 +209,7 @@ public class Engine {
         executors.put(executor.getExecutorName(), executor);
     }
 
-    @Required
+    // @Required
     public void setExecutors(Set<Executor> executors) {
         this.executors.clear();
         for (Executor executor : executors) {
@@ -227,15 +235,15 @@ public class Engine {
      */
     public void execute(Execution execution) {
         try {
-            Transaction t = SpringData.getTransaction();
-            try {
-                t.start();
-                for (WorkflowStep step : SpringData.getBean(WorkflowDAO.class).findOne(execution.getWorkflowId()).getSteps()) {
-                    execute(execution, step);
-                }
-            } finally {
-                t.commit();
+            // Transaction t = SpringData.getTransaction();
+            // try {
+            // t.start();
+            for (WorkflowStep step : workflowDao.findOne(execution.getWorkflowId()).getSteps()) {
+                execute(execution, step);
             }
+            // } finally {
+            // t.commit();
+            // }
         } catch (Exception e) {
             logger.error("Could not get transaction to get steps.", e);
         }
@@ -254,12 +262,12 @@ public class Engine {
      */
     public void execute(Execution execution, String... steps) {
         try {
-            Transaction transaction = SpringData.getTransaction();
-            transaction.start();
+            // Transaction transaction = SpringData.getTransaction();
+            // transaction.start();
             for (String step : steps) {
-                execute(execution, SpringData.getBean(WorkflowStepDAO.class).findOne(step));
+                execute(execution, workflowStepDao.findOne(step));
             }
-            transaction.commit();
+            // transaction.commit();
         } catch (Exception e) {
             logger.error("Could not execute steps.", e);
         }
@@ -329,18 +337,18 @@ public class Engine {
             for (Executor exec : queue) {
                 if (exec.getExecutionId().equals(executionId) && allsteps.contains(exec.getStepId())) {
                     // CMN: does this really need a transaction?
-                    Transaction t = SpringData.getTransaction();
+                    // Transaction t = SpringData.getTransaction();
                     try {
-                        t.start();
+                        // t.start();
                         exec.stopJob();
                     } catch (Exception e) {
                         logger.error("Error starting transaction to stop job", e);
                     } finally {
-                        try {
-                            t.commit();
-                        } catch (Exception e) {
-                            logger.error("Error committing transaction", e);
-                        }
+                        // try {
+                        // t.commit();
+                        // } catch (Exception e) {
+                        // logger.error("Error committing transaction", e);
+                        // }
                     }
 
                 }
@@ -391,13 +399,12 @@ public class Engine {
     private void loadQueue() {
         logger.debug("Load queue with any unfinished steps");
         Map<Execution, List<String>> queue = new HashMap<Execution, List<String>>();
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start(true);
-            ExecutionDAO executionDAO = SpringData.getBean(ExecutionDAO.class);
+            // t.start(true);
             List<String> steps = null;
-            for (Execution execution : executionDAO.findAll()) {
-                Map<String, State> stepStates = execution.getStepStates();
+            for (Execution execution : executionDao.findAll()) {
+                Map<String, State> stepStates = execution.getStepState();
                 steps = new ArrayList<String>();
                 Iterator<String> stepIterator = stepStates.keySet().iterator();
                 while (stepIterator.hasNext()) {
@@ -414,13 +421,13 @@ public class Engine {
             }
         } catch (Exception e) {
             logger.error("Error opening transaction.", e);
-        } finally {
-            try {
-                t.rollback();
-            } catch (Exception e) {
-                logger.error("Error closing transaction.", e);
-            }
-        }
+        } // finally {
+          // try {
+          // t.rollback();
+          // } catch (Exception e) {
+          // logger.error("Error closing transaction.", e);
+          // }
+          // }
 
         // CMN: Should/Does this need to be inside the transaction?
         if (queue.size() > 0) {
@@ -443,11 +450,11 @@ public class Engine {
                     try {
                         // TODO CMN: Need to handle case of multiple workers
                         Thread.sleep(100);
-                        Transaction t = SpringData.getTransaction();
-                        if (t != null) {
-                            loadedQueue = true;
-                            loadQueue();
-                        }
+                        // Transaction t = SpringData.getTransaction();
+                        // if (t != null) {
+                        loadedQueue = true;
+                        loadQueue();
+                        // }
                     } catch (NullPointerException e) {
                         // do nothing, context is not loaded yet
                     } catch (InterruptedException e) {
@@ -506,23 +513,25 @@ public class Engine {
                                 if (local >= (LocalExecutor.getWorkers() + getExtraLocalExecutor())) {
                                     canrun = 1;
                                 } else {
-                                    Transaction transaction = null;
+                                    // Transaction transaction = null;
                                     try {
-                                        transaction = SpringData.getTransaction();
-                                        transaction.start();
+                                        // transaction =
+// SpringData.getTransaction();
+                                        // transaction.start();
 
-                                        execution = SpringData.getBean(ExecutionDAO.class).findOne(exec.getExecutionId());
+                                        execution = executionDao.findOne(exec.getExecutionId());
                                         execution.getDatasets().values();
-                                        step = SpringData.getBean(WorkflowStepDAO.class).findOne(exec.getStepId());
+                                        step = workflowStepDao.findOne(exec.getStepId());
                                         step.getInputs().values();
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
                                     } finally {
-                                        try {
-                                            transaction.commit();
-                                        } catch (Exception e) {
-                                            logger.error("Error getting job information.", e);
-                                        }
+                                        // try {
+                                        // transaction.commit();
+                                        // } catch (Exception e) {
+                                        // logger.error("Error getting job information.",
+// e);
+                                        // }
                                     }
 
                                     // check to see if all inputs of the

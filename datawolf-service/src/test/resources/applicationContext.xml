@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+
+	<bean id="engine" class="edu.illinois.ncsa.datawolf.Engine">
+		<property name="executors">
+			<set>
+				<bean class="edu.illinois.ncsa.datawolf.executor.java.JavaExecutor" />
+ 				<bean class="edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor" />
+ 				<bean class="edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor" />
+			</set>
+		</property>
+		<property name="extraLocalExecutor" value="1" />
+		<property name="localExecutorThreads" value="8" />
+		<property name="storeLogs" value="false" />
+		<property name="timeout" value="3600" />
+	</bean>
+
+	<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk">
+		<property name="levels" value="3" />
+		<property name="folder" value="data/files" />
+	</bean>
+
+	<bean id="eventBus" class="edu.illinois.ncsa.springdata.EventBus" />
+
+	<bean id="applicationContextProvider" class="edu.illinois.ncsa.springdata.SpringData" />
+
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="mysql" />
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<property name="generateDdl" value="true" />
+			</bean>
+		</property>
+		<property name="packagesToScan">
+			<list>
+				<value>edu.illinois.ncsa</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+
+	<!-- hsqldb memory setting -->
+	<bean id="hsqlmemory" class="com.jolbox.bonecp.BoneCPDataSource">
+		<property name="driverClass" value="org.hsqldb.jdbcDriver" />
+		<property name="jdbcUrl" value="jdbc:hsqldb:mem:." />
+		<property name="username" value="sa" />
+		<property name="password" value="" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="idleMaxAgeInMinutes" value="5" />
+		<property name="maxConnectionsPerPartition" value="30" />
+		<property name="minConnectionsPerPartition" value="10" />
+		<property name="partitionCount" value="3" />
+		<property name="acquireIncrement" value="5" />
+		<property name="statementsCacheSize" value="100" />
+		<property name="releaseHelperThreads" value="3" />
+	</bean>
+	 
+	<!-- hsqldb data setting -->
+	<bean id="hsqldata" class="com.jolbox.bonecp.BoneCPDataSource">
+		<property name="driverClass" value="org.hsqldb.jdbcDriver" />
+		<property name="jdbcUrl" value="jdbc:hsqldb:file:data/db;shutdown=true" />
+		<property name="username" value="sa" />
+		<property name="password" value="" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="idleMaxAgeInMinutes" value="5" />
+		<property name="maxConnectionsPerPartition" value="30" />
+		<property name="minConnectionsPerPartition" value="10" />
+		<property name="partitionCount" value="3" />
+		<property name="acquireIncrement" value="5" />
+		<property name="statementsCacheSize" value="100" />
+		<property name="releaseHelperThreads" value="3" />
+	</bean>
+	 
+	<!-- mysql setting -->
+	<bean id="mysql" class="com.jolbox.bonecp.BoneCPDataSource">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://localhost/cyberintegrator" />
+		<property name="username" value="cyberintegrator" />
+		<property name="password" value="cyberintegrator" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="idleMaxAgeInMinutes" value="5" />
+		<property name="maxConnectionsPerPartition" value="30" />
+		<property name="minConnectionsPerPartition" value="10" />
+		<property name="partitionCount" value="3" />
+		<property name="acquireIncrement" value="5" />
+		<property name="statementsCacheSize" value="100" />
+		<property name="releaseHelperThreads" value="3" />
+	</bean>
+ 	
+	<jpa:repositories base-package="edu.illinois.ncsa.springdata" />
+	<jpa:repositories base-package="edu.illinois.ncsa.datawolf.springdata" />
+</beans>

@@ -15,6 +15,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,33 +26,61 @@ import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.WorkflowTool;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDao;
 import edu.illinois.ncsa.datawolf.springdata.LogFileDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.FileDescriptorDAO;
-import edu.illinois.ncsa.springdata.FileStorage;
-import edu.illinois.ncsa.springdata.PersonDAO;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
 
 public class ImportExport {
-    private static Logger       logger         = LoggerFactory.getLogger(ImportExport.class);
+    private static Logger            logger         = LoggerFactory.getLogger(ImportExport.class);
 
-    private static final String WORKFLOW_FILE  = "workflow.json";
-    private static final String TOOL_FILE      = "tool.json";
-    private static final String EXECUTION_FILE = "execution.json";
-    private static final String STEP_FILE      = "step.json";
-    private static final String DATASET_FILE   = "dataset.json";
+    private static final String      WORKFLOW_FILE  = "workflow.json";
+    private static final String      TOOL_FILE      = "tool.json";
+    private static final String      EXECUTION_FILE = "execution.json";
+    private static final String      STEP_FILE      = "step.json";
+    private static final String      DATASET_FILE   = "dataset.json";
 
-    private static final String BLOBS_FOLDER   = "blobs";
-    private static final String LOGS_FOLDER    = "logs";
+    private static final String      BLOBS_FOLDER   = "blobs";
+    private static final String      LOGS_FOLDER    = "logs";
+
+    // TODO where should these dao's come from?
+    @Inject
+    private static WorkflowDao       workflowDao;
+
+    @Inject
+    private static WorkflowToolDao   workflowToolDao;
+
+    @Inject
+    private static WorkflowStepDao   workflowStepDao;
+
+    @Inject
+    private static PersonDao         personDao;
+
+    @Inject
+    private static FileStorage       fileStorage;
+
+    @Inject
+    private static FileDescriptorDao fileDescriptorDao;
+
+    @Inject
+    private static LogFileDao        logFileDao;
+
+    @Inject
+    private static DatasetDao        datasetDao;
+
+    @Inject
+    private static ExecutionDao      executionDao;
 
     /**
      * Exports the given workflow to a zip file. The complete workflow will be
@@ -70,10 +100,10 @@ public class ImportExport {
         ZipOutputStream zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start(true);
-            Workflow workflow = SpringData.getBean(WorkflowDAO.class).findOne(workflowId);
+            // t.start(true);
+            Workflow workflow = workflowDao.findOne(workflowId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
@@ -84,7 +114,6 @@ public class ImportExport {
 
             // export blobs
             Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
-            FileStorage fs = SpringData.getFileStorage();
             byte[] buf = new byte[10240];
             int len = 0;
             for (WorkflowStep step : workflow.getSteps()) {
@@ -93,7 +122,7 @@ public class ImportExport {
                         blobs.add(fd);
 
                         zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
-                        InputStream is = fs.readFile(fd);
+                        InputStream is = fileStorage.readFile(fd);
                         while ((len = is.read(buf)) > 0) {
                             zipfile.write(buf, 0, len);
                         }
@@ -108,7 +137,7 @@ public class ImportExport {
             if (zipfile != null) {
                 zipfile.close();
             }
-            t.rollback();
+            // t.rollback();
         }
     }
 
@@ -124,12 +153,11 @@ public class ImportExport {
         // check to see if bean is person, if so check if we need to swap
         if (bean instanceof Person) {
             Person p1 = (Person) bean;
-            PersonDAO dao = SpringData.getBean(PersonDAO.class);
-            Person p2 = dao.findOne(p1.getId());
+            Person p2 = personDao.findOne(p1.getId());
             if (p2 != null) {
                 return;
             }
-            p2 = dao.findByEmail(((Person) bean).getEmail());
+            p2 = personDao.findByEmail(((Person) bean).getEmail());
             if (p2 != null) {
                 p1.setId(p2.getId());
                 p1.setEmail(p2.getEmail());
@@ -190,9 +218,9 @@ public class ImportExport {
         ZipFile zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start();
+            // t.start();
 
             zipfile = new ZipFile(file);
 
@@ -200,14 +228,12 @@ public class ImportExport {
             Workflow workflow = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(WORKFLOW_FILE)), Workflow.class);
             fixPeople(workflow);
 
-            WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
-            if (workflowDAO.exists(workflow.getId())) {
+            // WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
+            if (workflowDao.exists(workflow.getId())) {
                 throw (new Exception("Workflow already imported."));
             }
 
             // import blobs
-            FileStorage fs = SpringData.getFileStorage();
-            FileDescriptorDAO fdDAO = SpringData.getBean(FileDescriptorDAO.class);
             Enumeration<? extends ZipEntry> entries = zipfile.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
@@ -216,13 +242,13 @@ public class ImportExport {
                 }
                 String[] pieces = entry.getName().split("/");
                 FileDescriptor blob = null;
-                if (fdDAO.exists(pieces[1])) {
+                if (fileDescriptorDao.exists(pieces[1])) {
                     logger.info("Already have blob with id : " + pieces[1]);
-                    blob = fdDAO.findOne(pieces[1]);
+                    blob = fileDescriptorDao.findOne(pieces[1]);
                 } else {
                     // save blob
                     InputStream is = zipfile.getInputStream(entry);
-                    blob = fs.storeFile(pieces[1], pieces[2], is);
+                    blob = fileStorage.storeFile(pieces[1], pieces[2], is);
                     is.close();
                 }
 
@@ -241,9 +267,9 @@ public class ImportExport {
             zipfile = null;
 
             // save workflow
-            workflow = workflowDAO.save(workflow);
-            t.commit();
-            t = null;
+            workflowDao.save(workflow);
+            // t.commit();
+            // t = null;
 
             return workflow;
         } catch (Exception exc) {
@@ -254,11 +280,11 @@ public class ImportExport {
             } catch (Exception e1) {
                 logger.error("Could not close zipfile.", e1);
             }
-            try {
-                t.rollback();
-            } catch (Exception e1) {
-                logger.error("Could not rollback transaction.", e1);
-            }
+            // try {
+            // t.rollback();
+            // } catch (Exception e1) {
+            // logger.error("Could not rollback transaction.", e1);
+            // }
             throw exc;
         }
     }
@@ -281,10 +307,10 @@ public class ImportExport {
         ZipOutputStream zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start(true);
-            WorkflowTool tool = SpringData.getBean(WorkflowToolDAO.class).findOne(toolId);
+            // t.start(true);
+            WorkflowTool tool = workflowToolDao.findOne(toolId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
@@ -295,7 +321,6 @@ public class ImportExport {
 
             // export blobs
             Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
-            FileStorage fs = SpringData.getFileStorage();
             byte[] buf = new byte[10240];
             int len = 0;
             for (FileDescriptor fd : tool.getBlobs()) {
@@ -303,7 +328,7 @@ public class ImportExport {
                     blobs.add(fd);
 
                     zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
-                    InputStream is = fs.readFile(fd);
+                    InputStream is = fileStorage.readFile(fd);
                     while ((len = is.read(buf)) > 0) {
                         zipfile.write(buf, 0, len);
                     }
@@ -317,7 +342,7 @@ public class ImportExport {
             if (zipfile != null) {
                 zipfile.close();
             }
-            t.rollback();
+            // t.rollback();
         }
     }
 
@@ -338,9 +363,9 @@ public class ImportExport {
         ZipFile zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start();
+            // t.start();
 
             zipfile = new ZipFile(file);
 
@@ -348,14 +373,14 @@ public class ImportExport {
             WorkflowTool tool = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(TOOL_FILE)), WorkflowTool.class);
             fixPeople(tool);
 
-            WorkflowToolDAO workflowToolDAO = SpringData.getBean(WorkflowToolDAO.class);
-            if (workflowToolDAO.exists(tool.getId())) {
+            if (workflowToolDao.exists(tool.getId())) {
                 throw (new Exception("tool already imported."));
             }
 
             // import blobs
-            FileStorage fs = SpringData.getFileStorage();
-            FileDescriptorDAO fdDAO = SpringData.getBean(FileDescriptorDAO.class);
+            // FileStorage fs = SpringData.getFileStorage();
+            // FileDescriptorDAO fdDAO =
+// SpringData.getBean(FileDescriptorDAO.class);
             Enumeration<? extends ZipEntry> entries = zipfile.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
@@ -364,13 +389,13 @@ public class ImportExport {
                 }
                 String[] pieces = entry.getName().split("/");
                 FileDescriptor blob = null;
-                if (fdDAO.exists(pieces[1])) {
+                if (fileDescriptorDao.exists(pieces[1])) {
                     logger.info("Already have blob with id : " + pieces[1]);
-                    blob = fdDAO.findOne(pieces[1]);
+                    blob = fileDescriptorDao.findOne(pieces[1]);
                 } else {
                     // save blob
                     InputStream is = zipfile.getInputStream(entry);
-                    blob = fs.storeFile(pieces[1], pieces[2], is);
+                    blob = fileStorage.storeFile(pieces[1], pieces[2], is);
                     is.close();
                 }
 
@@ -387,9 +412,9 @@ public class ImportExport {
             zipfile = null;
 
             // save workflow
-            tool = workflowToolDAO.save(tool);
-            t.commit();
-            t = null;
+            workflowToolDao.save(tool);
+            // t.commit();
+            // t = null;
 
             return tool;
         } catch (Exception exc) {
@@ -400,11 +425,11 @@ public class ImportExport {
             } catch (Exception e1) {
                 logger.error("Could not close zipfile.", e1);
             }
-            try {
-                t.rollback();
-            } catch (Exception e1) {
-                logger.error("Could not rollback transaction.", e1);
-            }
+            // try {
+            // t.rollback();
+            // } catch (Exception e1) {
+            // logger.error("Could not rollback transaction.", e1);
+            // }
             throw exc;
         }
     }
@@ -427,10 +452,10 @@ public class ImportExport {
         ZipOutputStream zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start(true);
-            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(executionId);
+            // t.start(true);
+            Execution execution = executionDao.findOne(executionId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
@@ -441,18 +466,17 @@ public class ImportExport {
 
             // export blobs
             Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
-            FileStorage fs = SpringData.getFileStorage();
             byte[] buf = new byte[10240];
             int len = 0;
             Set<String> datasets = new HashSet<String>(execution.getDatasets().values());
             for (String datasetId : datasets) {
-                Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(datasetId);
+                Dataset dataset = datasetDao.findOne(datasetId);
                 for (FileDescriptor fd : dataset.getFileDescriptors()) {
                     if (!blobs.contains(fd)) {
                         blobs.add(fd);
 
                         zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
-                        InputStream is = fs.readFile(fd);
+                        InputStream is = fileStorage.readFile(fd);
                         while ((len = is.read(buf)) > 0) {
                             zipfile.write(buf, 0, len);
                         }
@@ -469,7 +493,7 @@ public class ImportExport {
                     blobs.add(fd);
 
                     zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", LOGS_FOLDER, fd.getId(), fd.getFilename())));
-                    InputStream is = fs.readFile(fd);
+                    InputStream is = fileStorage.readFile(fd);
                     while ((len = is.read(buf)) > 0) {
                         zipfile.write(buf, 0, len);
                     }
@@ -482,7 +506,7 @@ public class ImportExport {
             if (zipfile != null) {
                 zipfile.close();
             }
-            t.rollback();
+            // t.rollback();
         }
     }
 
@@ -506,10 +530,10 @@ public class ImportExport {
         ZipOutputStream zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start(true);
-            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(stepId);
+            // t.start(true);
+            WorkflowStep step = workflowStepDao.findOne(stepId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
@@ -520,9 +544,8 @@ public class ImportExport {
 
             // export blobs
             if (executionId != null) {
-                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(executionId);
+                Execution execution = executionDao.findOne(executionId);
                 Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
-                FileStorage fs = SpringData.getFileStorage();
                 byte[] buf = new byte[10240];
                 int len = 0;
                 Set<String> datasets = new HashSet<String>();
@@ -532,13 +555,13 @@ public class ImportExport {
                     }
                 }
                 for (String datasetId : datasets) {
-                    Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(datasetId);
+                    Dataset dataset = datasetDao.findOne(datasetId);
                     for (FileDescriptor fd : dataset.getFileDescriptors()) {
                         if (!blobs.contains(fd)) {
                             blobs.add(fd);
 
                             zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
-                            InputStream is = fs.readFile(fd);
+                            InputStream is = fileStorage.readFile(fd);
                             while ((len = is.read(buf)) > 0) {
                                 zipfile.write(buf, 0, len);
                             }
@@ -554,7 +577,7 @@ public class ImportExport {
                     blobs.add(fd);
 
                     zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", LOGS_FOLDER, fd.getId(), fd.getFilename())));
-                    InputStream is = fs.readFile(fd);
+                    InputStream is = fileStorage.readFile(fd);
                     while ((len = is.read(buf)) > 0) {
                         zipfile.write(buf, 0, len);
                     }
@@ -568,7 +591,7 @@ public class ImportExport {
             if (zipfile != null) {
                 zipfile.close();
             }
-            t.rollback();
+            // t.rollback();
         }
     }
 
@@ -589,10 +612,10 @@ public class ImportExport {
         ZipOutputStream zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start(true);
-            Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(datasetId);
+            // t.start(true);
+            Dataset dataset = datasetDao.findOne(datasetId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
 
@@ -603,7 +626,6 @@ public class ImportExport {
 
             // export blobs
             Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
-            FileStorage fs = SpringData.getFileStorage();
             byte[] buf = new byte[10240];
             int len = 0;
             for (FileDescriptor fd : dataset.getFileDescriptors()) {
@@ -611,7 +633,7 @@ public class ImportExport {
                     blobs.add(fd);
 
                     zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
-                    InputStream is = fs.readFile(fd);
+                    InputStream is = fileStorage.readFile(fd);
                     while ((len = is.read(buf)) > 0) {
                         zipfile.write(buf, 0, len);
                     }
@@ -624,7 +646,7 @@ public class ImportExport {
             if (zipfile != null) {
                 zipfile.close();
             }
-            t.rollback();
+            // t.rollback();
         }
     }
 
@@ -645,23 +667,24 @@ public class ImportExport {
         ZipFile zipfile = null;
 
         // create transaction
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start();
+            // t.start();
 
             zipfile = new ZipFile(file);
 
             // get workflow
             Dataset dataset = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
             fixPeople(dataset);
-            DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
-            if (datasetDAO.exists(dataset.getId())) {
+            // DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
+            if (datasetDao.exists(dataset.getId())) {
                 throw (new Exception("Dataset already imported."));
             }
 
             // import blobs
-            FileStorage fs = SpringData.getFileStorage();
-            FileDescriptorDAO fdDAO = SpringData.getBean(FileDescriptorDAO.class);
+            // FileStorage fs = SpringData.getFileStorage();
+            // FileDescriptorDAO fdDAO =
+// SpringData.getBean(FileDescriptorDAO.class);
             Enumeration<? extends ZipEntry> entries = zipfile.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
@@ -670,14 +693,14 @@ public class ImportExport {
                 }
 
                 String[] pieces = entry.getName().split("/");
-                if (fdDAO.exists(pieces[1])) {
+                if (fileDescriptorDao.exists(pieces[1])) {
                     logger.info("Already have blob with id : " + pieces[1]);
                     continue;
                 }
 
                 // save blob
                 InputStream is = zipfile.getInputStream(entry);
-                FileDescriptor blob = fs.storeFile(pieces[1], pieces[2], is);
+                FileDescriptor blob = fileStorage.storeFile(pieces[1], pieces[2], is);
                 is.close();
 
                 // fix workflow
@@ -693,8 +716,8 @@ public class ImportExport {
             zipfile = null;
 
             // save dataset
-            dataset = datasetDAO.save(dataset);
-            t.commit();
+            datasetDao.save(dataset);
+            // t.commit();
 
             return dataset;
         } catch (Exception exc) {
@@ -702,7 +725,7 @@ public class ImportExport {
                 if (zipfile != null) {
                     zipfile.close();
                 }
-                t.rollback();
+                // t.rollback();
             } catch (Exception e1) {
                 logger.error("Could not rollback transaction.", e1);
             }
@@ -724,25 +747,24 @@ public class ImportExport {
      */
     public static void exportLogfile(File file, String logfileId) throws Exception {
         // create transaction
-        Transaction t = SpringData.getTransaction();
-        try {
-            t.start(true);
-            LogFile logfile = SpringData.getBean(LogFileDAO.class).findOne(logfileId);
+        // Transaction t = SpringData.getTransaction();
+        // try {
+        // t.start(true);
+        LogFile logfile = logFileDao.findOne(logfileId);
 
-            FileDescriptor fd = logfile.getLog();
-            FileStorage fileStorage = SpringData.getFileStorage();
+        FileDescriptor fd = logfile.getLog();
 
-            FileOutputStream output = new FileOutputStream(file);
-            InputStream input = fileStorage.readFile(fd);
-            byte[] buf = new byte[10240];
-            int len;
-            while ((len = input.read(buf)) > 0) {
-                output.write(buf, 0, len);
-            }
-            input.close();
-            output.close();
-        } finally {
-            t.rollback();
+        FileOutputStream output = new FileOutputStream(file);
+        InputStream input = fileStorage.readFile(fd);
+        byte[] buf = new byte[10240];
+        int len;
+        while ((len = input.read(buf)) > 0) {
+            output.write(buf, 0, len);
         }
+        input.close();
+        output.close();
+        // } finally {
+        // t.rollback();
+        // }
     }
 }

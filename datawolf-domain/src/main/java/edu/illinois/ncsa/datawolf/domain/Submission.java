@@ -33,6 +33,7 @@ package edu.illinois.ncsa.datawolf.domain;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
@@ -59,16 +60,18 @@ public class Submission extends AbstractBean {
     /** creator of the execution */
     private String              creatorId        = null;
 
-    /** maping a parameter to a specific parameter in the workflow */
+    /** mapping a parameter to a specific parameter in the workflow */
     private Map<String, String> parameters       = new HashMap<String, String>();
 
-    /** maping a dataset to a specific dataset in the workflow */
+    /** mapping a dataset to a specific dataset in the workflow */
     private Map<String, String> datasets         = new HashMap<String, String>();
 
     /**
      * Create a new instance of the execution.
      */
-    public Submission() {}
+    public Submission() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the title of the execution.
@@ -191,6 +194,10 @@ public class Submission extends AbstractBean {
         this.parameters.put(uuid, value);
     }
 
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
     /**
      * @param id
      * @return
@@ -230,4 +237,9 @@ public class Submission extends AbstractBean {
     public void setDataset(String id, String datasetId) {
         this.datasets.put(id, datasetId);
     }
+
+    public void setDatasets(Map<String, String> datasets) {
+        this.datasets = datasets;
+    }
+
 }

@@ -35,18 +35,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
-@Entity(name = "WorkflowToolParameter")
-@Document(collection = "WorkflowToolParameter")
 public class WorkflowToolParameter extends AbstractBean {
     public enum ParameterType {
         BOOLEAN, STRING, NUMBER, OPTION; // , FILE, SELECTION, GEOLOCATION;
@@ -77,13 +70,14 @@ public class WorkflowToolParameter extends AbstractBean {
     private boolean           allowNull        = false;
 
     /** List of options */
-    @ElementCollection
     private List<String>      options          = new ArrayList<String>();
 
     /**
      * Create a new instance of the workflow parameter.
      */
-    public WorkflowToolParameter() {}
+    public WorkflowToolParameter() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the id of the workflow parameter.

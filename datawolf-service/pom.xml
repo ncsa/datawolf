@@ -29,11 +29,7 @@
 			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>${spring.framework.version}</version>
-		</dependency>
+		
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>datawolf-domain</artifactId>
@@ -46,7 +42,7 @@
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>ncsa-common-springdata</artifactId>
+			<artifactId>ncsa-common-jpa</artifactId>
 			<version>${ncsa.common.version}</version>
 		</dependency>
 		<dependency>
@@ -61,7 +57,7 @@
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>datawolf-springdata</artifactId>
+			<artifactId>datawolf-jpa</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

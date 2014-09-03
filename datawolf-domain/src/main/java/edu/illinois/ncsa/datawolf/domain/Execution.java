@@ -34,20 +34,7 @@ package edu.illinois.ncsa.datawolf.domain;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -56,8 +43,6 @@ import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
-@Entity(name = "Execution")
-@Document(collection = "Execution")
 public class Execution extends AbstractBean {
 
     public enum State {
@@ -80,67 +65,38 @@ public class Execution extends AbstractBean {
     private String              workflowId       = null;
 
     /** Date the execution is created */
-    @Temporal(TemporalType.TIMESTAMP)
     private Date                date             = new Date();
 
     /** creator of the execution */
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @DBRef
     private Person              creator          = null;
 
     /** maping a parameter to a specific parameter in the workflow */
-    @ElementCollection
-    @MapKeyColumn(name = "uri")
-    @Column(name = "parameter")
-    @CollectionTable(name = "ExecutionParameters")
     private Map<String, String> parameters       = new HashMap<String, String>();
 
     /** maping a dataset to a specific id of a dataset in the workflow */
-    @ElementCollection
-    @MapKeyColumn(name = "uri")
-    @Column(name = "dataset")
-    @CollectionTable(name = "ExecutionDatasets")
     private Map<String, String> datasets         = new HashMap<String, String>();
 
     /** the state of each step executed */
-    @ElementCollection
-    @MapKeyColumn(name = "id")
-    @Column(name = "state")
-    @CollectionTable(name = "ExecutionStepState")
     private Map<String, State>  stepState        = new HashMap<String, State>();
 
     /** the start date of each step queued */
-    @ElementCollection
-    @MapKeyColumn(name = "id")
-    @Column(name = "date")
-    @CollectionTable(name = "ExecutionStepQueued")
     private Map<String, Long>   stepsQueued      = new HashMap<String, Long>();
 
     /** the start date of each step executed */
-    @ElementCollection
-    @MapKeyColumn(name = "id")
-    @Column(name = "date")
-    @CollectionTable(name = "ExecutionStepStart")
     private Map<String, Long>   stepsStart       = new HashMap<String, Long>();
 
     /** the end date of each step executed */
-    @ElementCollection
-    @MapKeyColumn(name = "id")
-    @Column(name = "date")
-    @CollectionTable(name = "ExecutionStepEnd")
     private Map<String, Long>   stepsEnd         = new HashMap<String, Long>();
 
     /** a collection of properties to store information about the execution */
-    @ElementCollection
-    @MapKeyColumn(name = "pKey", length = 100)
-    @Column(name = "pValue", length = 65535)
-    @CollectionTable(name = "ExecutionProperties")
     private Map<String, String> properties       = new HashMap<String, String>();
 
     /**
      * Create a new instance of the execution.
      */
-    public Execution() {}
+    public Execution() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the title of the execution.
@@ -189,6 +145,10 @@ public class Execution extends AbstractBean {
      */
     public String getWorkflowId() {
         return workflowId;
+    }
+
+    public void setWorkflowId(String workflowId) {
+        this.workflowId = workflowId;
     }
 
     /**
@@ -288,6 +248,10 @@ public class Execution extends AbstractBean {
         return this.parameters;
     }
 
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
     /**
      * @param id
      * @return
@@ -319,6 +283,10 @@ public class Execution extends AbstractBean {
         this.datasets.put(id, datasetid);
     }
 
+    public void setDatasets(Map<String, String> datasets) {
+        this.datasets = datasets;
+    }
+
     public Map<String, String> getDatasets() {
         return this.datasets;
     }
@@ -334,7 +302,7 @@ public class Execution extends AbstractBean {
         return this.stepState.get(id);
     }
 
-    public Map<String, State> getStepStates() {
+    public Map<String, State> getStepState() {
         return this.stepState;
     }
 
@@ -348,6 +316,10 @@ public class Execution extends AbstractBean {
      */
     public void setStepState(String id, State state) {
         this.stepState.put(id, state);
+    }
+
+    public void setStepState(Map<String, State> stepStates) {
+        this.stepState = stepStates;
     }
 
     /**

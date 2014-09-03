@@ -35,18 +35,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinTable;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -54,8 +43,6 @@ import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
-@Entity(name = "Workflow")
-@Document(collection = "Workflow")
 public class Workflow extends AbstractBean {
     /** Used for serialization of object */
     private static final long  serialVersionUID = 1L;
@@ -67,30 +54,23 @@ public class Workflow extends AbstractBean {
     private String             description      = "";                           //$NON-NLS-1$
 
     /** Date the workflow is created */
-    @Temporal(TemporalType.TIMESTAMP)
     private Date               created          = new Date();
 
     /** creator of the workflow */
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
-    @DBRef
     private Person             creator          = null;
 
     /** List of contributors to the workflow. */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowContributors")
-    @DBRef
     private List<Person>       contributors     = new ArrayList<Person>();
 
     /** List of steps in the workflow, in order of addition. */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowSteps")
-    @DBRef
     private List<WorkflowStep> steps            = new ArrayList<WorkflowStep>();
 
     /**
      * Create a new instance of the workflow.
      */
-    public Workflow() {}
+    public Workflow() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the title of the workflow.

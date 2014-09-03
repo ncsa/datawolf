@@ -33,6 +33,7 @@ public class DataWolfApplication extends Application {
         rrcs.add(LogFilesResource.class);
         rrcs.add(ExecutorsResource.class);
         rrcs.add(WorkflowToolsResource.class);
+        rrcs.add(LoginResource.class);
         return rrcs;
     }
 

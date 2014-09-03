@@ -56,7 +56,7 @@ public class EmbededJetty {
     }
 
     public static void main(String[] args) throws Exception {
-        EmbededJetty.PORT = 9999;
-        jettyServer("src/test/resources", "testContext.xml");
+        EmbededJetty.PORT = 9093;
+        jettyServer("src/test/resources", "applicationContext.xml");
     }
 }

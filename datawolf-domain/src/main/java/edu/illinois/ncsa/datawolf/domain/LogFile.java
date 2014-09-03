@@ -1,15 +1,7 @@
 package edu.illinois.ncsa.datawolf.domain;
 
 import java.util.Date;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.UUID;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.FileDescriptor;
@@ -20,9 +12,8 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  * @author Rob Kooper
  * 
  */
-@Entity(name = "LogFile")
-@Document(collection = "LogFile")
 public class LogFile extends AbstractBean {
+    /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
     /** id of the execution */
@@ -32,12 +23,14 @@ public class LogFile extends AbstractBean {
     private String            stepId           = null;
 
     /** the date of the log message */
-    @Temporal(TemporalType.TIMESTAMP)
     private Date              date             = new Date();
 
     /** the actual log message. */
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private FileDescriptor    log              = null;
+
+    public LogFile() {
+        setId(UUID.randomUUID().toString());
+    }
 
     public String getExecutionId() {
         return executionId;
@@ -92,4 +85,5 @@ public class LogFile extends AbstractBean {
     public void setLog(FileDescriptor log) {
         this.log = log;
     }
+
 }

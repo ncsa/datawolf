@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm
+        http://java.sun.com/xml/ns/persistence/orm_2_0.xsd"
+	version="2.0">
+	<package>edu.illinois.ncsa.domain</package>
+	<entity class="AbstractBean" name="AbstractBean">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<id name="id">
+				<column length="36" />
+			</id>
+			<basic name="deleted" />
+		</attributes>
+	</entity>
+	<entity class="Person" name="Person">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<id name="id">
+				<column length="36" />
+			</id>
+			<basic name="firstName" />
+			<basic name="lastName" />
+			<basic name="email" />
+			<transient name="name" />
+		</attributes>
+	</entity>
+	<entity class="Account" name="Account">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<id name="id">
+				<column length="36" />
+			</id>
+			<basic name="userid" />
+			<basic name="password" />
+			<one-to-one name="person" fetch="EAGER" />
+		</attributes>
+	</entity>
+
+	<entity class="FileDescriptor" name="FileDescriptor">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<id name="id">
+				<column length="36" />
+			</id>
+			<basic name="filename" />
+			<basic name="mimetype" />
+			<basic name="size" />
+			<basic name="dataURL" />
+			<basic name="md5sum">
+				<column length="32" />
+			</basic>
+			<transient name="md5sumAsBigInteger" />
+			<transient name="md5sumAsBytes" />
+		</attributes>
+	</entity>
+
+	<entity class="Dataset" name="Dataset">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<id name="id">
+				<column length="36" />
+			</id>
+			<basic name="title" />
+			<basic name="description" />
+			<basic name="date">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<one-to-many name="contributors" fetch="LAZY">
+				<join-table name="Dataset_Contributors"></join-table>
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+
+			<one-to-one name="creator" fetch="EAGER">
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-one>
+
+			<many-to-many name="fileDescriptors" fetch="EAGER">
+				<join-table name="DatasetFileDescriptors" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</many-to-many>
+
+		</attributes>
+	</entity>
+</entity-mappings>

@@ -31,26 +31,13 @@
  ******************************************************************************/
 package edu.illinois.ncsa.datawolf.domain;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinTable;
-import javax.persistence.Lob;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -59,9 +46,7 @@ import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
-@Entity(name = "WorkflowTool")
-@Document(collection = "WorkflowTool")
-public class WorkflowTool extends AbstractBean implements Serializable {
+public class WorkflowTool extends AbstractBean {
     /** Used for serialization of object */
     private static final long           serialVersionUID = 1L;
 
@@ -75,60 +60,41 @@ public class WorkflowTool extends AbstractBean implements Serializable {
     private String                      version          = "1";                                   //$NON-NLS-1$
 
     /** Previous version of the workflow tool */
-    @OneToOne(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @DBRef
     private WorkflowTool                previousVersion  = null;
 
     /** Date the workflow tool is created */
-    @Temporal(TemporalType.TIMESTAMP)
     private Date                        date             = new Date();
 
     /** implementation, this is executor specific. This is a JSON string */
-    @Lob
     private String                      implementation   = null;
 
     /** creator of the workflow tool */
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
-    @DBRef
     private Person                      creator          = null;
 
     /** List of contributors to the workflow tool. */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowToolContributors")
-    @DBRef
     private Set<Person>                 contributors     = new HashSet<Person>();
 
     /** List of inputs to the workflow tool. */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowToolInputs")
-    @DBRef
     private List<WorkflowToolData>      inputs           = new ArrayList<WorkflowToolData>();
 
     /** List of outputs to the workflow tool. */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowToolOutputs")
-    @DBRef
     private List<WorkflowToolData>      outputs          = new ArrayList<WorkflowToolData>();
 
     /** List of parameters to the workflow tool. */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "WorkflowToolParameters")
-    @DBRef
     private List<WorkflowToolParameter> parameters       = new ArrayList<WorkflowToolParameter>();
 
     /** Executor of the tool. */
     private String                      executor         = null;
 
     /** all blobs associated with this tool */
-    @OneToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
-    @JoinTable(name = "ToolBlobs")
-    @DBRef
     private Set<FileDescriptor>         blobs            = null;
 
     /**
      * Create a new instance of the workflow tool.
      */
-    public WorkflowTool() {}
+    public WorkflowTool() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the title of the workflow tool.
@@ -356,10 +322,12 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      *            the list of datasets to be used as inputs.
      */
     public void setInputs(List<WorkflowToolData> inputs) {
-        this.inputs.clear();
-        if (inputs != null) {
-            this.inputs.addAll(inputs);
-        }
+        // this.inputs = inputs;
+        // this.inputs.clear();
+        // if (inputs != null) {
+        // this.inputs.addAll(inputs);
+        // }
+        this.inputs = inputs;
     }
 
     /**
@@ -420,10 +388,11 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      *            the list of datasets to be used as outputs.
      */
     public void setOutputs(List<WorkflowToolData> outputs) {
-        this.outputs.clear();
-        if (outputs != null) {
-            this.outputs.addAll(outputs);
-        }
+        // this.outputs.clear();
+        // if (outputs != null) {
+        // this.outputs.addAll(outputs);
+        // }
+        this.outputs = outputs;
     }
 
     /**
@@ -506,10 +475,11 @@ public class WorkflowTool extends AbstractBean implements Serializable {
      *            parameters to the workflow tool.
      */
     public void setParameters(List<WorkflowToolParameter> parameters) {
-        this.parameters.clear();
-        if (parameters != null) {
-            this.parameters.addAll(parameters);
-        }
+        // this.parameters.clear();
+        // if (parameters != null) {
+        // this.parameters.addAll(parameters);
+        // }
+        this.parameters = parameters;
     }
 
     /**

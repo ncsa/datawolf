@@ -1,15 +1,10 @@
 package edu.illinois.ncsa.datawolf.domain;
 
-import javax.persistence.Entity;
-
-import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.UUID;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
-@Entity(name = "HPCJobInfo")
-@Document(collection = "HPCJobInfo")
 public class HPCJobInfo extends AbstractBean {
-
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
@@ -27,6 +22,10 @@ public class HPCJobInfo extends AbstractBean {
 
     /** Job ID from scheduler */
     private String            jobId            = null;
+
+    public HPCJobInfo() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the execution id assigned by the engine

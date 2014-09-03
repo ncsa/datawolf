@@ -31,18 +31,11 @@
  ******************************************************************************/
 package edu.illinois.ncsa.datawolf.domain;
 
-import java.io.Serializable;
 import java.util.UUID;
-
-import javax.persistence.Entity;
-
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
-@Entity(name = "WorkflowToolData")
-@Document(collection = "WorkflowToolData")
-public class WorkflowToolData extends AbstractBean implements Serializable {
+public class WorkflowToolData extends AbstractBean {
     /** Used for serialization of object */
     private static final long serialVersionUID = 1L;
 
@@ -61,7 +54,9 @@ public class WorkflowToolData extends AbstractBean implements Serializable {
     /**
      * Create a new instance of the workflow tool.
      */
-    public WorkflowToolData() {}
+    public WorkflowToolData() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the id of the workflow tool data.

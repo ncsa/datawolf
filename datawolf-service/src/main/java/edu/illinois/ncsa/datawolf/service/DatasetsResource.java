@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -58,27 +59,31 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
+import org.hibernate.annotations.Sort;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.datawolf.ImportExport;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.springdata.DatasetDAO;
 import edu.illinois.ncsa.springdata.DatasetUtil;
 import edu.illinois.ncsa.springdata.FileStorage;
-import edu.illinois.ncsa.springdata.PersonDAO;
 import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/datasets")
 public class DatasetsResource {
 
+    @Inject
+    private PersonDao           personDao;
+
+    @Inject
+    private DatasetDao          datasetDao;
     private static final Logger log = LoggerFactory.getLogger(DatasetsResource.class);
 
     /**
@@ -136,14 +141,25 @@ public class DatasetsResource {
             }
             return dataset.getId();
         }
-        if (fileInputParts != null) {
+
+        // Check if virtual path
+        List<InputPart> formPath = uploadForm.get("virtualpath");
+        String virtualPath = null;
+        // Handles special case where file is a URI (e.g. irods:// )
+        for (InputPart inputPart : formPath) {
+            try {
+                virtualPath = inputPart.getBody(String.class, null);
+            } catch (IOException e) {
+                // Nothing to log since a virtual path is a special case
+            }
+        }
+
+        if (fileInputParts != null || virtualPath != null) {
             List<InputPart> userInputParts = uploadForm.get("useremail");
 
             if (userInputParts == null)
                 return null;
 
-            PersonDAO personDao = SpringData.getBean(PersonDAO.class);
-            DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
             Person creator = null;
             for (InputPart inputPart : userInputParts) {
                 try {
@@ -163,23 +179,47 @@ public class DatasetsResource {
             FileStorage fileStorage = SpringData.getFileStorage();
 
             FileDescriptor fileDescriptor = null;
-            for (InputPart inputPart : fileInputParts) {
+
+            /*
+             * List<InputPart> formPath = uploadForm.get("virtualpath");
+             * String virtualPath = null;
+             * // Handles special case where file is a URI (e.g. irods:// )
+             * for (InputPart inputPart : formPath) {
+             * try {
+             * virtualPath = inputPart.getBody(String.class, null);
+             * } catch (IOException e) {
+             * // Nothing to log since a virtual path is a special case
+             * }
+             * }
+             */
+            if (virtualPath != null) {
                 try {
-                    MultivaluedMap<String, String> header = inputPart.getHeaders();
-                    String fileName = getFileName(header);
-
-                    // convert the uploaded file to inputstream
-                    InputStream inputStream = inputPart.getBody(InputStream.class, null);
-
-                    // Store the file
-                    fileDescriptor = fileStorage.storeFile(fileName, inputStream);
-                    if (fileDescriptor == null)
-                        return null;
+                    fileDescriptor = fileStorage.storeFile(virtualPath, null);
                 } catch (IOException e) {
-                    log.warn("Could not parse the file", e);
+                    log.error("Error storing virtual file", e);
                     return null;
                 }
+                if (fileDescriptor == null)
+                    return null;
+            } else {
+                for (InputPart inputPart : fileInputParts) {
 
+                    try {
+                        MultivaluedMap<String, String> header = inputPart.getHeaders();
+                        String fileName = getFileName(header);
+
+                        // convert the uploaded file to inputstream
+                        InputStream inputStream = inputPart.getBody(InputStream.class, null);
+
+                        // Store the file
+                        fileDescriptor = fileStorage.storeFile(fileName, inputStream);
+                        if (fileDescriptor == null)
+                            return null;
+                    } catch (IOException e) {
+                        log.warn("Could not parse the file", e);
+                        return null;
+                    }
+                }
             }
 
             String title = fileDescriptor.getFilename();
@@ -217,11 +257,12 @@ public class DatasetsResource {
             dataset.setTitle(title);
             dataset.setDescription(description);
 
-            Dataset savedDataset = datasetDao.save(dataset);
+            // Dataset savedDataset = datasetDao.save(dataset);
+            datasetDao.save(dataset);
 
             log.debug("Dataset uploaded");
 
-            return savedDataset.getId();
+            return dataset.getId();
         }
 
         return null;
@@ -353,7 +394,6 @@ public class DatasetsResource {
     @Path("{dataset-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Dataset getDataset(@PathParam("dataset-id") String datasetId) {
-        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
         Dataset findOne = datasetDao.findOne(datasetId);
 
         return findOne;
@@ -373,7 +413,6 @@ public class DatasetsResource {
         if ("".equals(datasetId)) {
             throw (new Exception("Invalid id passed in."));
         }
-        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
         Dataset dataset = datasetDao.findOne(datasetId);
         if (dataset == null) {
             throw (new Exception("Invalid id passed in."));
@@ -450,7 +489,6 @@ public class DatasetsResource {
     @Path("{dataset-id}/{filedescriptor-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public FileDescriptor getFileDescriptor(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
-        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
         Dataset dataset = datasetDao.findOne(datasetId);
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         for (FileDescriptor fd : fileDescriptors) {
@@ -472,7 +510,6 @@ public class DatasetsResource {
     @Path("{dataset-id}/{filedescriptor-id}/file")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
     public Response getFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
-        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
         Dataset dataset = datasetDao.findOne(datasetId);
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         FileDescriptor fileDescriptor = null;
@@ -535,7 +572,6 @@ public class DatasetsResource {
     @Path("{dataset-id}/{filedescriptor-id}/delete")
     @Produces({ MediaType.APPLICATION_JSON })
     public Response deleteFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
-        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
         Dataset dataset = datasetDao.findOne(datasetId);
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         FileDescriptor fileDescriptor = null;

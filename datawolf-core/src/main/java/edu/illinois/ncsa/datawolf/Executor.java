@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Date;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,30 +17,44 @@ import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.LogFile;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
 import edu.illinois.ncsa.datawolf.event.StepStateChangedEvent;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.LogFileDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.springdata.FileDescriptorDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
 public abstract class Executor {
-    private static Logger logger      = LoggerFactory.getLogger(Executor.class);
+    private static Logger     logger      = LoggerFactory.getLogger(Executor.class);
 
-    private StringBuilder log         = new StringBuilder();
-    private LogFile       logfile     = new LogFile();
-    private int           lastsave    = 0;
-    private State         state       = State.UNKNOWN;
-    private String        executionId = null;
-    private String        stepId      = null;
-    private boolean       jobStopped  = false;
-    private boolean       storeLog    = true;
+    private StringBuilder     log         = new StringBuilder();
+    private LogFile           logfile     = new LogFile();
+    private int               lastsave    = 0;
+    private State             state       = State.UNKNOWN;
+    private String            executionId = null;
+    private String            stepId      = null;
+    private boolean           jobStopped  = false;
+    private boolean           storeLog    = true;
+
+    @Inject
+    private ExecutionDao      executionDao;
+
+    @Inject
+    private LogFileDao        logFileDao;
+
+    @Inject
+    private FileDescriptorDao fileDescriptorDao;
+
+    @Inject
+    private FileStorage       fileStorage;
+
+    @Inject
+    private WorkflowStepDao   workflowStepDao;
 
     /**
      * Should the executor store the logfiles generated.
@@ -262,14 +278,14 @@ public abstract class Executor {
                 logfile.setStepId(stepId);
                 logfile.setDate(new Date());
                 logfile.setLog(new FileDescriptor());
-                logfile = SpringData.getBean(LogFileDAO.class).save(logfile);
+                logFileDao.save(logfile);
             }
 
             try {
                 ByteArrayInputStream bais = new ByteArrayInputStream(log.toString().getBytes("UTF-8"));
                 FileDescriptor fd = logfile.getLog();
-                fd = SpringData.getFileStorage().storeFile(fd.getId(), "log.txt", bais);
-                SpringData.getBean(FileDescriptorDAO.class).save(fd);
+                fd = fileStorage.storeFile(fd.getId(), "log.txt", bais);
+                fileDescriptorDao.save(fd);
             } catch (Exception e) {
                 logger.error("Could not save log message.", e);
             }
@@ -296,11 +312,11 @@ public abstract class Executor {
      */
     public void setState(State state) {
         logger.debug("Job " + executionId + ":" + stepId + " entered " + state);
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start();
-            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(stepId);
-            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(executionId);
+            // t.start();
+            WorkflowStep step = workflowStepDao.findOne(stepId);
+            Execution execution = executionDao.findOne(executionId);
             execution.setStepState(stepId, state);
             switch (state) {
             case UNKNOWN:
@@ -327,21 +343,23 @@ public abstract class Executor {
             default:
                 logger.info("a new state is entered that is not known.");
             }
-            SpringData.getBean(ExecutionDAO.class).save(execution);
+            executionDao.save(execution);
 
             // fire an event to inform everybody of the new state
             StepStateChangedEvent event = new StepStateChangedEvent(step, execution, state);
-            SpringData.getEventBus().fireEvent(event);
+
+            // TODO FIXME add event bus
+            // SpringData.getEventBus().fireEvent(event);
 
             try {
-                t.commit();
+                // t.commit();
                 this.state = state;
             } catch (Exception e) {
                 logger.error("Could not set state of step in execution.", e);
             }
         } catch (Exception e) {
             try {
-                t.rollback();
+                // t.rollback();
                 this.state = State.ABORTED;
             } catch (Exception e2) {
                 logger.error("Could not roll back transaction.", e2);

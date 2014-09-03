@@ -10,14 +10,9 @@
         <properties>
                 <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-                <spring.framework.version>3.1.2.RELEASE</spring.framework.version>
-                <spring.data.version>1.4.0.RC1</spring.data.version>
-                <spring.jpa.version>1.2.0.RC1</spring.jpa.version>
-                <spring.mongo.version>1.1.0.RC1</spring.mongo.version>
+		<ncsa.common.version>3.1.0-SNAPSHOT</ncsa.common.version>
 
-		<ncsa.common.version>1.0.0-SNAPSHOT</ncsa.common.version>
-
-                <hibernate.version>4.1.7.Final</hibernate.version>
+                <hibernate.version>4.3.5.Final</hibernate.version>
                 <bonecp.version>0.7.1.RELEASE</bonecp.version>
                 <hsql.version>2.2.8</hsql.version>
                 <mysql.version>5.1.21</mysql.version>
@@ -33,11 +28,6 @@
         </properties>
 
         <repositories>
-                <repository>
-                        <id>spring-milestone</id>
-                        <name>Spring Maven MILESTONE Repository</name>
-                        <url>http://repo.springsource.org/libs-milestone</url>
-                </repository>
                 <repository>
                         <id>ncsa.opensource.releases</id>
                         <name>ncsa.opensource.releases</name>
@@ -105,7 +95,7 @@
 
 	<modules>
 		<module>datawolf-domain</module>
-		<module>datawolf-springdata</module>
+		<module>datawolf-jpa</module>
 		<module>datawolf-core</module>
 		<module>datawolf-executor-java-tool</module>
 		<module>datawolf-executor-java</module>

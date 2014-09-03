@@ -41,15 +41,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.FileStorage;
 
 /**
  * Abstract class representing a local executor. Local executors will run on the
@@ -62,6 +63,12 @@ public abstract class LocalExecutor extends Executor implements Runnable {
     private static final Logger       logger = LoggerFactory.getLogger(LocalExecutor.class);
 
     private static ThreadPoolExecutor threadpool;
+
+    @Inject
+    private WorkflowStepDao           workflowStepDao;
+
+    @Inject
+    private FileStorage               fileStorage;
 
     static {
         threadpool = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
@@ -172,25 +179,25 @@ public abstract class LocalExecutor extends Executor implements Runnable {
     private void setup(File cwd) throws FailedException {
         Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
 
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start(true);
-            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
+            // t.start(true);
+            WorkflowStep step = workflowStepDao.findOne(getStepId());
             blobs.addAll(step.getTool().getBlobs());
         } catch (Exception e) {
             throw (new FailedException("Could not get all blobs.", e));
-        } finally {
-            try {
-                t.commit();
-            } catch (Exception e) {
-                throw (new FailedException("Could not get all blobs.", e));
-            }
-        }
+        } // finally {
+          // try {
+          // t.commit();
+          // } catch (Exception e) {
+          // throw (new FailedException("Could not get all blobs.", e));
+          // }
+          // }
 
         try {
             for (FileDescriptor blob : blobs) {
                 byte[] buf = new byte[10240];
-                InputStream is = SpringData.getFileStorage().readFile(blob);
+                InputStream is = fileStorage.readFile(blob);
                 FileOutputStream os = new FileOutputStream(new File(cwd, blob.getFilename()));
                 int len;
                 while ((len = is.read(buf)) > 0) {

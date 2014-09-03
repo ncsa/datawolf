@@ -37,17 +37,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinTable;
-import javax.persistence.OneToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import javax.persistence.Transient;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -55,8 +45,6 @@ import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
-@Entity(name = "WorkflowStep")
-@Document(collection = "WorkflowStep")
 public class WorkflowStep extends AbstractBean {
     /** Used for serialization of object */
     private static final long   serialVersionUID = 1L;
@@ -65,17 +53,12 @@ public class WorkflowStep extends AbstractBean {
     private String              title            = "";                           //$NON-NLS-1$
 
     /** creator of the workflow step */
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
-    @DBRef
     private Person              creator          = null;
 
     /** Date the workflow step is created */
-    @Temporal(TemporalType.TIMESTAMP)
     private Date                createDate       = new Date();
 
     /** Tool the workflow step is executing */
-    @OneToOne(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
-    @DBRef
     private WorkflowTool        tool             = null;
 
     /**
@@ -83,8 +66,6 @@ public class WorkflowStep extends AbstractBean {
      * parameterId to an unique id. This allows the same tool to be used
      * multiple times with unique values.
      */
-    @ElementCollection
-    @JoinTable(name = "WorkflowStepParameters")
     private Map<String, String> parameters       = new HashMap<String, String>();
 
     /**
@@ -92,8 +73,6 @@ public class WorkflowStep extends AbstractBean {
      * unique id. The unique id points to a specific output by another step.
      * This allows the same tool to be used multiple times with unique values.
      */
-    @ElementCollection
-    @JoinTable(name = "WorkflowStepInputs")
     private Map<String, String> inputs           = new HashMap<String, String>();
 
     /**
@@ -101,14 +80,14 @@ public class WorkflowStep extends AbstractBean {
      * unique id. The unique id can be used by another step as input. This
      * allows the same tool to be used multiple times with unique values.
      */
-    @ElementCollection
-    @JoinTable(name = "WorkflowStepOutputs")
-    private Map<String, String> outputs          = new HashMap<String, String>();
+    private Map<String, String> outputs          = new HashMap<String, String>(); ;
 
     /**
      * Create a new instance of the workflow step.
      */
-    public WorkflowStep() {}
+    public WorkflowStep() {
+        setId(UUID.randomUUID().toString());
+    }
 
     /**
      * Return the title of the workflow step.
@@ -195,11 +174,14 @@ public class WorkflowStep extends AbstractBean {
         this.inputs.clear();
         this.outputs.clear();
         this.parameters.clear();
-        for (WorkflowToolData output : tool.getOutputs()) {
-            this.outputs.put(output.getDataId(), UUID.randomUUID().toString());
-        }
-        for (WorkflowToolParameter param : tool.getParameters()) {
-            this.parameters.put(param.getParameterId(), UUID.randomUUID().toString());
+
+        if (this.tool != null) {
+            for (WorkflowToolData output : tool.getOutputs()) {
+                this.outputs.put(output.getDataId(), UUID.randomUUID().toString());
+            }
+            for (WorkflowToolParameter param : tool.getParameters()) {
+                this.parameters.put(param.getParameterId(), UUID.randomUUID().toString());
+            }
         }
     }
 
@@ -215,11 +197,16 @@ public class WorkflowStep extends AbstractBean {
         return outputs;
     }
 
+    public void setOutputs(Map<String, String> outputs) {
+        this.outputs = outputs;
+    }
+
     /**
      * Returns a map of id of step's output to the tool's data definition.
      * 
      * @return map of id of step's output to the tool's data definition.
      */
+    @Transient
     public Map<String, WorkflowToolData> getOutputsToolData() {
         Map<String, WorkflowToolData> result = new HashMap<String, WorkflowToolData>();
         for (Entry<String, String> entry : outputs.entrySet()) {
@@ -262,11 +249,16 @@ public class WorkflowStep extends AbstractBean {
         return inputs;
     }
 
+    public void setInputs(Map<String, String> inputs) {
+        this.inputs = inputs;
+    }
+
     /**
      * Returns a map of id of step's input to the tool's data definition.
      * 
      * @return map of id of step's input to the tool's data definition.
      */
+    @Transient
     public Map<String, WorkflowToolData> getInputsToolData() {
         Map<String, WorkflowToolData> result = new HashMap<String, WorkflowToolData>();
         for (Entry<String, String> entry : inputs.entrySet()) {
@@ -336,6 +328,10 @@ public class WorkflowStep extends AbstractBean {
         return parameters;
     }
 
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
     /**
      * Returns a specific parameter. The parameter returned is based on the
      * unique id generated for the parameters of this step.
@@ -356,4 +352,5 @@ public class WorkflowStep extends AbstractBean {
         }
         throw (new IllegalArgumentException("No parameter with [" + id + "] known to tool."));
     }
+
 }

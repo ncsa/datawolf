@@ -17,7 +17,7 @@
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>datawolf-springdata</artifactId>
+			<artifactId>datawolf-jpa</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
