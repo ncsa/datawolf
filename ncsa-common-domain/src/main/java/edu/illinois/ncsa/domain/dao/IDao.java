@@ -14,4 +14,6 @@ public interface IDao<T, ID extends Serializable> {
     T findOne(ID id);
 
     List<T> findAll();
+
+    boolean exists(ID id);
 }

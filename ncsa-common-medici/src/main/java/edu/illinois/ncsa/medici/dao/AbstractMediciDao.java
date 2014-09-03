@@ -24,6 +24,10 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
         return null;
     }
 
+    public boolean exists(ID id) {
+        return findOne(id) != null;
+    }
+
     public List<T> findAll() {
         System.out.println("find all objects of this type from medici");
         return null;

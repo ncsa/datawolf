@@ -48,6 +48,10 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
         return this.entityManager.createQuery(query).getResultList();
     }
 
+    public boolean exists(ID id) {
+        return findOne(id) != null;
+    }
+
     protected Class<T> getEntityType() {
         if (entityType == null) {
             setParameterizedType();
