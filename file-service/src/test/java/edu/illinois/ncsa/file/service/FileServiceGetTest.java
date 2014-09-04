@@ -50,6 +50,9 @@ public class FileServiceGetTest {
 
         // store file via FileStorage
 
+        // FilesResource test =
+// EmbededJetty.injector.getInstance(FilesResource.class);
+
         File file = new File("src/test/resources/test.txt");
         String filename = "test.txt";
         InputStream o = new FileInputStream(file);

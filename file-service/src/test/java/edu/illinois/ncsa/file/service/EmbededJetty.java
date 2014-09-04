@@ -1,16 +1,15 @@
 package edu.illinois.ncsa.file.service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EnumSet;
 
+import javax.servlet.DispatcherType;
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
-import org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.servlet.Context;
 
-import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import com.google.inject.servlet.GuiceFilter;
 
 public class EmbededJetty {
     public static int      PORT = 9977;
@@ -20,30 +19,28 @@ public class EmbededJetty {
     public static void jettyServer(String resourceBase, String configXml) throws Exception {
         server = new Server(PORT);
 
+        ServletContextHandler root = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
         // create the context, point to location of resources
-        Context root = new Context(server, "/", Context.SESSIONS);
-        root.setResourceBase(resourceBase);
+        root.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+
+        GuiceContextListener listener = new GuiceContextListener();
+        root.addEventListener(listener);
+
+        // root.setResourceBase(resourceBase);
+        // ServletHolder sh = new ServletHolder(HttpServletDispatcher.class);
+        // root.addServlet(sh, "/*");
 
         // setup resteasy
-        Map<String, String> initParams = new HashMap<String, String>();
-        initParams.put("javax.ws.rs.Application", FileApplication.class.getName());
-        root.setInitParams(initParams);
-        root.addEventListener(new ResteasyBootstrap());
+        // Map<String, String> initParams = new HashMap<String, String>();
+        // initParams.put("javax.ws.rs.Application",
+// FileApplication.class.getName());
+        // root.addEventListener(new ResteasyBootstrap());
         root.addServlet(HttpServletDispatcher.class, "/*");
-
-        injector = Guice.createInjector(new TestModule());
-
-        // Initialize persistence service
-        PersistService service = injector.getInstance(PersistService.class);
-        service.start();
-        // create spring context
-        // XmlWebApplicationContext xmlContext = new XmlWebApplicationContext();
-        // xmlContext.setConfigLocation(configXml);
-        // xmlContext.setServletContext(root.getServletContext());
-        // xmlContext.refresh();
 
         // start jetty
         server.start();
+
+        injector = listener.getInjector();
         System.out.println("http://localhost:" + PORT);
     }
 

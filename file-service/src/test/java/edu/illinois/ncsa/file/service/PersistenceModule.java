@@ -8,7 +8,13 @@ import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 import edu.illinois.ncsa.domain.impl.FileStorageDisk;
 import edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao;
 
-public class TestModule extends AbstractModule {
+/**
+ * Binds Persistence DAOs
+ * 
+ * @author Chris Navarro <cmnavarr@illinois.edu>
+ * 
+ */
+public class PersistenceModule extends AbstractModule {
 
     @Override
     protected void configure() {

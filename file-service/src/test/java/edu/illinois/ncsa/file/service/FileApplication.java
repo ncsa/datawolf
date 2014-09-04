@@ -3,11 +3,15 @@ package edu.illinois.ncsa.file.service;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.inject.Inject;
 import javax.ws.rs.core.Application;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 public class FileApplication extends Application {
+
+    @Inject
+    FilesResource fs;
 
     public FileApplication() {
         super();

@@ -30,7 +30,6 @@ import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 @Path("/files")
 public class FilesResource {
 
-    // TODO How can get get Guice to create this class so injection works?
     @Inject
     private FileDescriptorDao fileDescriptorDAO;
 
