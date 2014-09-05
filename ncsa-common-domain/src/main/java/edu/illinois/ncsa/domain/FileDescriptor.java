@@ -55,6 +55,8 @@ public class FileDescriptor extends AbstractBean {
     /** md5 sum of the actual data */
     private String            md5sum;
 
+    public FileDescriptor() {}
+
     /**
      * Return the mime type of the artifact.
      * 

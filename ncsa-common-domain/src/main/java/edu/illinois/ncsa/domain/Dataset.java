@@ -62,6 +62,8 @@ public class Dataset extends AbstractBean {
     /** all blobs associated with this dataset */
     private List<FileDescriptor> fileDescriptors  = null;
 
+    public Dataset() {}
+
     /**
      * Return the title of the artifact.
      * 
@@ -212,11 +214,12 @@ public class Dataset extends AbstractBean {
      * @param fileDescriptors
      *            the set of file descriptors to the dataset.
      */
-    public void setFileDescriptors(Collection<FileDescriptor> fileDescriptors) {
-        getFileDescriptors().clear();
-        if (fileDescriptors != null) {
-            getFileDescriptors().addAll(fileDescriptors);
-        }
+    public void setFileDescriptors(List<FileDescriptor> fileDescriptors) {
+        this.fileDescriptors = fileDescriptors;
+        // getFileDescriptors().clear();
+        // if (fileDescriptors != null) {
+        // getFileDescriptors().addAll(fileDescriptors);
+        // }
     }
 
     /**

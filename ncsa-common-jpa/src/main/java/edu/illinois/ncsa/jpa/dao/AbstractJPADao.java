@@ -5,12 +5,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
 import edu.illinois.ncsa.domain.dao.IDao;
@@ -26,8 +26,8 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
     }
 
     @Transactional
-    public void save(T entity) {
-        getEntityManager().persist(entity);
+    public T save(T entity) {
+        return getEntityManager().merge(entity);
     }
 
     @Transactional
@@ -50,6 +50,10 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
 
     public boolean exists(ID id) {
         return findOne(id) != null;
+    }
+
+    public long count() {
+        return findAll().size();
     }
 
     protected Class<T> getEntityType() {

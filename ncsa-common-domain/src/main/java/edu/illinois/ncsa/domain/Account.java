@@ -45,6 +45,8 @@ public class Account extends AbstractBean {
     /** email of the person. */
     private Person            person           = null;
 
+    public Account() {}
+
     @Override
     public boolean equals(Object arg0) {
         return (arg0 instanceof Account) && this.toString().equals(arg0.toString());

@@ -11,8 +11,9 @@ import edu.illinois.ncsa.domain.dao.IDao;
  */
 public abstract class AbstractMediciDao<T, ID extends Serializable> implements IDao<T, ID> {
 
-    public void save(T entity) {
+    public T save(T entity) {
         System.out.println("save " + entity.getClass().getName() + " to medici");
+        return entity;
     }
 
     public void delete(T entity) {
@@ -31,5 +32,10 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
     public List<T> findAll() {
         System.out.println("find all objects of this type from medici");
         return null;
+    }
+
+    public long count() {
+        // TODO implement count
+        return 0;
     }
 }

@@ -18,9 +18,6 @@
 	<entity class="Person" name="Person">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="firstName" />
 			<basic name="lastName" />
 			<basic name="email" />
@@ -30,9 +27,6 @@
 	<entity class="Account" name="Account">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="userid" />
 			<basic name="password" />
 			<one-to-one name="person" fetch="EAGER" />
@@ -42,9 +36,6 @@
 	<entity class="FileDescriptor" name="FileDescriptor">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="filename" />
 			<basic name="mimetype" />
 			<basic name="size" />
@@ -60,9 +51,6 @@
 	<entity class="Dataset" name="Dataset">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="date">

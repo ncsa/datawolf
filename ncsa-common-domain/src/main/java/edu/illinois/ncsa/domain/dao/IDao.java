@@ -7,7 +7,7 @@ import java.util.List;
  * DAO interface for generic operations supported by all DAOs
  */
 public interface IDao<T, ID extends Serializable> {
-    void save(T entity);
+    T save(T entity);
 
     void delete(T entity);
 
@@ -16,4 +16,6 @@ public interface IDao<T, ID extends Serializable> {
     List<T> findAll();
 
     boolean exists(ID id);
+
+    long count();
 }

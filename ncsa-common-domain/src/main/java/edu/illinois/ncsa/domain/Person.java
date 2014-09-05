@@ -71,6 +71,8 @@ public class Person extends AbstractBean {
         return p;
     }
 
+    public Person() {}
+
     /**
      * Single function to set both first and last name of the person.
      * 
