@@ -89,11 +89,6 @@
 			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>edu.illinois.ncsa.isda</groupId>
-			<artifactId>ncsa-common-di</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 	<parent>
 		<groupId>edu.illinois.ncsa</groupId>
