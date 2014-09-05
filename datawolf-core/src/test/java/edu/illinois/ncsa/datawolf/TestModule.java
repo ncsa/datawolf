@@ -1,0 +1,47 @@
+package edu.illinois.ncsa.datawolf;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.persist.jpa.JpaPersistModule;
+
+import edu.illinois.ncsa.datawolf.EngineTest.DummyExecutor;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
+import edu.illinois.ncsa.datawolf.domain.dao.SubmissionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
+import edu.illinois.ncsa.datawolf.jpa.dao.ExecutionJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.LogFileJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.SubmissionJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowStepJPADao;
+import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
+import edu.illinois.ncsa.domain.dao.PersonDao;
+import edu.illinois.ncsa.domain.impl.FileStorageDisk;
+import edu.illinois.ncsa.jpa.dao.DatasetJPADao;
+import edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao;
+import edu.illinois.ncsa.jpa.dao.PersonJPADao;
+
+public class TestModule extends AbstractModule {
+
+    @Override
+    protected void configure() {
+        install(new JpaPersistModule("WolfPersistence"));
+
+        // DAOs
+        bind(PersonDao.class).to(PersonJPADao.class);
+        bind(SubmissionDao.class).to(SubmissionJPADao.class);
+        bind(WorkflowDao.class).to(WorkflowJPADao.class);
+        bind(WorkflowStepDao.class).to(WorkflowStepJPADao.class);
+        bind(DatasetDao.class).to(DatasetJPADao.class);
+        bind(ExecutionDao.class).to(ExecutionJPADao.class);
+        bind(FileDescriptorDao.class).to(FileDescriptorJPADao.class);
+        bind(FileStorage.class).to(FileStorageDisk.class);
+        bind(LogFileDao.class).to(LogFileJPADao.class);
+
+        // Engine & Executors
+        bind(Engine.class);
+        bind(DummyExecutor.class);
+    }
+}

@@ -52,6 +52,7 @@ import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
+import edu.illinois.ncsa.domain.Persistence;
 
 /**
  * Engine that is responsible for executing the steps. This is an abstract class
@@ -188,7 +189,9 @@ public class Engine {
      */
     public Executor findExecutor(String name) {
         try {
-            Executor executor = executors.get(name).getClass().newInstance();
+            // TODO is there a better way?
+            // Executor executor = executors.get(name).getClass().newInstance();
+            Executor executor = Persistence.getBean(executors.get(name).getClass());
             executor.setStoreLog(storeLogs);
             return executor;
         } catch (Exception e) {
@@ -411,7 +414,17 @@ public class Engine {
                     String stepId = stepIterator.next();
                     State stepState = stepStates.get(stepId);
                     if (stepState.equals(State.WAITING) || stepState.equals(State.QUEUED) || stepState.equals(State.RUNNING)) {
-                        steps.add(stepId);
+                        // Check if step already associated with executor
+                        boolean addStep = true;
+                        for (Executor exec : this.queue) {
+                            if (exec.getStepId().equals(stepId)) {
+                                addStep = false;
+                                break;
+                            }
+                        }
+                        if (addStep) {
+                            steps.add(stepId);
+                        }
                     }
                 }
 

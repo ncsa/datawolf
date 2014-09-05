@@ -42,19 +42,19 @@ public abstract class Executor {
     private boolean           storeLog    = true;
 
     @Inject
-    private ExecutionDao      executionDao;
+    protected ExecutionDao      executionDao;
 
     @Inject
-    private LogFileDao        logFileDao;
+    protected LogFileDao        logFileDao;
 
     @Inject
-    private FileDescriptorDao fileDescriptorDao;
+    protected FileDescriptorDao fileDescriptorDao;
 
     @Inject
-    private FileStorage       fileStorage;
+    protected FileStorage       fileStorage;
 
     @Inject
-    private WorkflowStepDao   workflowStepDao;
+    protected WorkflowStepDao   workflowStepDao;
 
     /**
      * Should the executor store the logfiles generated.

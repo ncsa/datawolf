@@ -11,16 +11,12 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
-import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.springdata.SpringData;
 
 /**
  * This executor will run the job on a remote server. There is no limits on the
@@ -39,9 +35,6 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
     private Thread              remoteThread;
     private int                 attempts                  = 0;
     private static final int    MAX_SUBMIT_SLEEP          = 3600000;
-
-    @Inject
-    private WorkflowStepDao     workflowStepDao;
 
     /*
      * Create a thread and launch the thread that will do the real work.
@@ -226,15 +219,15 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
         } // finally {
           // try {
           // t.commit();
-        // } catch (Exception e) {
-        // throw (new FailedException("Could not get all blobs.", e));
-        // }
-        // }
+          // } catch (Exception e) {
+          // throw (new FailedException("Could not get all blobs.", e));
+          // }
+          // }
 
         try {
             for (FileDescriptor blob : blobs) {
                 byte[] buf = new byte[10240];
-                InputStream is = SpringData.getFileStorage().readFile(blob);
+                InputStream is = fileStorage.readFile(blob);
                 FileOutputStream os = new FileOutputStream(new File(cwd, blob.getFilename()));
                 int len;
                 while ((len = is.read(buf)) > 0) {

@@ -20,20 +20,21 @@ import javax.swing.JLabel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.GenericXmlApplicationContext;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 import edu.illinois.ncsa.datawolf.EngineTest.DummyExecutor;
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
 
 public class BigWorkflow implements Runnable {
     private static Logger   logger  = LoggerFactory.getLogger(BigWorkflow.class);
@@ -45,12 +46,21 @@ public class BigWorkflow implements Runnable {
     private static int      CLIENTS = 1;
     private static int      JOBS    = 20;
 
+    private static Injector injector;
+
     public static void main(String[] args) throws Exception {
         // setup spring data
-        new GenericXmlApplicationContext("bigTestContext.xml");
+        // new GenericXmlApplicationContext("bigTestContext.xml");
 
         // create the engine with many local threads
-        engine = SpringData.getBean(Engine.class);
+        injector = Guice.createInjector(new TestModule());
+
+        // Initialize persistence service
+        PersistService service = injector.getInstance(PersistService.class);
+        service.start();
+
+        engine = injector.getInstance(Engine.class);
+        // SpringData.getBean(Engine.class);
         engine.addExecutor(new DummyExecutor());
 
         person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
@@ -58,7 +68,8 @@ public class BigWorkflow implements Runnable {
         // create a workflow with a step
         workflow = EngineTest.createWorkflow(person, 4, false, true);
         workflow.getSteps().get(2).setTitle(EngineTest.SLOW_STEP);
-        workflow = SpringData.getBean(WorkflowDAO.class).save(workflow);
+        WorkflowDao workflowDao = injector.getInstance(WorkflowDao.class);
+        workflowDao.save(workflow);
 
         for (int i = 0; i < CLIENTS; i++) {
             new Thread(new BigWorkflow(i)).start();
@@ -74,21 +85,24 @@ public class BigWorkflow implements Runnable {
     public void run() {
         // add a dataset
         Dataset dataset = EngineTest.createDataset(person);
-        SpringData.getBean(DatasetDAO.class).save(dataset);
+        DatasetDao datasetDao = injector.getInstance(DatasetDao.class);
+        datasetDao.save(dataset);
 
         // create the executions
         List<String> ids = new ArrayList<String>();
         Map<String, Long> executionids = new HashMap<String, Long>();
         long l = System.currentTimeMillis();
         long start = System.currentTimeMillis();
+
+        ExecutionDao executionDao = injector.getInstance(ExecutionDao.class);
         for (int i = 0; i < JOBS; i++) {
             long k = System.currentTimeMillis();
             Execution execution = EngineTest.createExecution(person, workflow);
             execution.setProperty("TITLE", String.format("%02d-%02d", client, i));
             execution.setDataset("dataset", dataset.getId());
             try {
-                execution = SpringData.getBean(ExecutionDAO.class).save(execution);
-                execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+                executionDao.save(execution);
+                execution = executionDao.findOne(execution.getId());
                 if (execution != null) {
                     engine.execute(execution);
                     executionids.put(execution.getId(), System.currentTimeMillis());
@@ -142,10 +156,10 @@ public class BigWorkflow implements Runnable {
         int y = 0;
         Color[] colors = { Color.RED, Color.GREEN, Color.BLUE, Color.WHITE };
         for (String id : ids) {
-            Transaction t = SpringData.getTransaction();
+            // Transaction t = SpringData.getTransaction();
             try {
-                t.start();
-                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(id);
+                // t.start();
+                Execution execution = executionDao.findOne(id);
                 String row = execution.getProperty("TITLE") + "\t" + execution.getId() + "\t" + (execution.getDate().getTime() - start) + "\t";
                 int col = 0;
                 for (WorkflowStep step : workflow.getSteps()) {
@@ -172,14 +186,14 @@ public class BigWorkflow implements Runnable {
 
                 y += scale_y;
                 System.out.println(row);
-                t.commit();
+                // t.commit();
             } catch (Exception e) {
-                try {
-                    t.commit();
-                } catch (Exception e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
+                // try {
+                // t.commit();
+                // } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                // e1.printStackTrace();
+                // }
                 logger.error("Could not get results.", e);
             }
         }

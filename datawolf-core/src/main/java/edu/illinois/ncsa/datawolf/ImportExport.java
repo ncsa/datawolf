@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -31,7 +33,6 @@ import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDao;
-import edu.illinois.ncsa.datawolf.springdata.LogFileDAO;
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
@@ -40,7 +41,7 @@ import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 
 public class ImportExport {
     private static Logger            logger         = LoggerFactory.getLogger(ImportExport.class);
@@ -109,7 +110,7 @@ public class ImportExport {
 
             // convert the workflow to JSON
             zipfile.putNextEntry(new ZipEntry(WORKFLOW_FILE));
-            zipfile.write(SpringData.objectToJSON(workflow).getBytes("UTF-8"));
+            zipfile.write(BeanUtil.objectToJSON(workflow).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -157,7 +158,8 @@ public class ImportExport {
             if (p2 != null) {
                 return;
             }
-            p2 = personDao.findByEmail(((Person) bean).getEmail());
+            // TODO fix this query
+            // p2 = personDao.findByEmail(((Person) bean).getEmail());
             if (p2 != null) {
                 p1.setId(p2.getId());
                 p1.setEmail(p2.getEmail());
@@ -225,7 +227,7 @@ public class ImportExport {
             zipfile = new ZipFile(file);
 
             // get workflow
-            Workflow workflow = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(WORKFLOW_FILE)), Workflow.class);
+            Workflow workflow = BeanUtil.JSONToObject(zipfile.getInputStream(zipfile.getEntry(WORKFLOW_FILE)), Workflow.class);
             fixPeople(workflow);
 
             // WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
@@ -316,7 +318,7 @@ public class ImportExport {
 
             // convert the tool to json and save it.
             zipfile.putNextEntry(new ZipEntry(TOOL_FILE));
-            zipfile.write(SpringData.objectToJSON(tool).getBytes("UTF-8"));
+            zipfile.write(BeanUtil.objectToJSON(tool).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -370,7 +372,7 @@ public class ImportExport {
             zipfile = new ZipFile(file);
 
             // get workflow
-            WorkflowTool tool = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(TOOL_FILE)), WorkflowTool.class);
+            WorkflowTool tool = BeanUtil.JSONToObject(zipfile.getInputStream(zipfile.getEntry(TOOL_FILE)), WorkflowTool.class);
             fixPeople(tool);
 
             if (workflowToolDao.exists(tool.getId())) {
@@ -461,7 +463,7 @@ public class ImportExport {
 
             // convert the execution to JSON
             zipfile.putNextEntry(new ZipEntry(EXECUTION_FILE));
-            zipfile.write(SpringData.objectToJSON(execution).getBytes("UTF-8"));
+            zipfile.write(BeanUtil.objectToJSON(execution).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -487,7 +489,10 @@ public class ImportExport {
             }
 
             // export logfiles
-            for (LogFile logfile : SpringData.getBean(LogFileDAO.class).findByExecutionId(execution.getId())) {
+            // TODO fix this query
+            List<LogFile> logfiles = new ArrayList<LogFile>();
+            // logfiles = logFileDao.findByExecutionId(execution.getId());
+            for (LogFile logfile : logfiles) {
                 FileDescriptor fd = logfile.getLog();
                 if (!blobs.contains(fd)) {
                     blobs.add(fd);
@@ -539,7 +544,7 @@ public class ImportExport {
 
             // this will export the step to JSON
             zipfile.putNextEntry(new ZipEntry(STEP_FILE));
-            zipfile.write(SpringData.objectToJSON(step).getBytes("UTF-8"));
+            zipfile.write(BeanUtil.objectToJSON(step).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -571,7 +576,10 @@ public class ImportExport {
                     }
                 }
 
-                LogFile logfile = SpringData.getBean(LogFileDAO.class).findLogByExecutionIdAndStepId(execution.getId(), step.getId());
+                // TODO fix this query
+                // LogFile logfile =
+// logFileDao.findLogByExecutionIdAndStepId(execution.getId(), step.getId());
+                LogFile logfile = new LogFile();
                 FileDescriptor fd = logfile.getLog();
                 if (!blobs.contains(fd)) {
                     blobs.add(fd);
@@ -621,7 +629,7 @@ public class ImportExport {
 
             // convert the dataset to json
             zipfile.putNextEntry(new ZipEntry(DATASET_FILE));
-            zipfile.write(SpringData.objectToJSON(dataset).getBytes("UTF-8"));
+            zipfile.write(BeanUtil.objectToJSON(dataset).getBytes("UTF-8"));
             zipfile.closeEntry();
 
             // export blobs
@@ -674,7 +682,7 @@ public class ImportExport {
             zipfile = new ZipFile(file);
 
             // get workflow
-            Dataset dataset = SpringData.JSONToObject(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
+            Dataset dataset = BeanUtil.JSONToObject(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
             fixPeople(dataset);
             // DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
             if (datasetDao.exists(dataset.getId())) {

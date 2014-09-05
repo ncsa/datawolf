@@ -4,7 +4,6 @@
 package edu.illinois.ncsa.datawolf;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,7 +14,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.context.support.GenericXmlApplicationContext;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
@@ -23,16 +25,12 @@ import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.WorkflowTool;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
-import edu.illinois.ncsa.datawolf.event.StepStateChangedEvent;
-import edu.illinois.ncsa.datawolf.event.StepStateChangedHandler;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.domain.Dataset;
+import edu.illinois.ncsa.domain.Persistence;
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -46,16 +44,27 @@ public class EngineTest {
     public static final String SLOW_STEP       = "SLOW STEP";
     protected Engine           engine;
 
+    private static Injector    injector;
+
     @BeforeClass
     public static void setUp() throws Exception {
-        // new GenericXmlApplicationContext("testContext.xml");
+        injector = Guice.createInjector(new TestModule());
+
+        Persistence.setInjector(injector);
+        // Initialize persistence service
+        PersistService service = injector.getInstance(PersistService.class);
+        service.start();
     }
 
     @Before
     public void createEngine() {
-        engine = new Engine();
-        engine.addExecutor(new DummyExecutor());
-        new GenericXmlApplicationContext("testContext.xml");
+        // engine = new Engine();
+
+        engine = injector.getInstance(Engine.class);
+        DummyExecutor executor = injector.getInstance(DummyExecutor.class);
+        engine.addExecutor(executor);
+
+        // new GenericXmlApplicationContext("testContext.xml");
     }
 
     @After
@@ -91,18 +100,24 @@ public class EngineTest {
 
         // create a workflow with a step
         Workflow workflow = createWorkflow(person, 2, true);
-        SpringData.getBean(WorkflowDAO.class).save(workflow);
+
+        WorkflowDao workflowDao = injector.getInstance(WorkflowDao.class);
+        workflowDao.save(workflow);
 
         // create the execution
         Execution execution = createExecution(person, workflow);
         execution.setProperty("HELLO", "WORLD");
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        ExecutionDao executionDao = injector.getInstance(ExecutionDao.class);
+        executionDao.save(execution);
 
         // add a dataset
         Dataset dataset = createDataset(person);
-        SpringData.getBean(DatasetDAO.class).save(dataset);
+
+        DatasetDao datasetDao = injector.getInstance(DatasetDao.class);
+        datasetDao.save(dataset);
         execution.setDataset("dataset", dataset.getId());
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+        executionDao.save(execution);
 
         // submit a single step
         engine.execute(execution);
@@ -117,16 +132,16 @@ public class EngineTest {
         // make sure everything is done
         assertEquals(0, engine.getSteps(execution.getId()).size());
 
-        Transaction t = SpringData.getTransaction();
-        t.start();
-        try {
-            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
-            assertEquals("WORLD", execution.getProperty("HELLO"));
-            assertEquals(State.FAILED, execution.getStepState(workflow.getSteps().get(0).getId()));
-            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
-        } finally {
-            t.commit();
-        }
+        // Transaction t = SpringData.getTransaction();
+        // t.start();
+        // try {
+        execution = executionDao.findOne(execution.getId());
+        assertEquals("WORLD", execution.getProperty("HELLO"));
+        assertEquals(State.FAILED, execution.getStepState(workflow.getSteps().get(0).getId()));
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        // } finally {
+        // t.commit();
+        // }
     }
 
 //    @Test
@@ -302,11 +317,14 @@ public class EngineTest {
 
         // create a workflow with a step
         Workflow workflow = createWorkflow(person, 2, false);
-        SpringData.getBean(WorkflowDAO.class).save(workflow);
+        WorkflowDao workflowDao = injector.getInstance(WorkflowDao.class);
+        workflowDao.save(workflow);
 
         // create the execution
         Execution execution = createExecution(person, workflow);
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        ExecutionDao executionDao = injector.getInstance(ExecutionDao.class);
+        executionDao.save(execution);
 
         // submit a single step
         engine.execute(execution);
@@ -324,15 +342,15 @@ public class EngineTest {
         // make sure everything is done
         assertEquals(0, engine.getSteps(execution.getId()).size());
 
-        Transaction t = SpringData.getTransaction();
-        t.start();
-        try {
-            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
-            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
-            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
-        } finally {
-            t.commit();
-        }
+        // Transaction t = SpringData.getTransaction();
+        // t.start();
+        // try {
+        execution = executionDao.findOne(execution.getId());
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
+        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        // } finally {
+        // t.commit();
+        // }
     }
 
     @Test
@@ -341,11 +359,15 @@ public class EngineTest {
 
         // create a workflow with a step
         Workflow workflow = createWorkflow(person, 20, false);
-        SpringData.getBean(WorkflowDAO.class).save(workflow);
+        WorkflowDao workflowDao = injector.getInstance(WorkflowDao.class);
+        workflow = workflowDao.save(workflow);
+
+        Workflow w2 = workflowDao.findOne(workflow.getId());
 
         // create the execution
         Execution execution = createExecution(person, workflow);
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+        ExecutionDao executionDao = injector.getInstance(ExecutionDao.class);
+        execution = executionDao.save(execution);
 
         // submit a single step
         engine.execute(execution);
@@ -359,25 +381,29 @@ public class EngineTest {
         // add a listener
         final List<WorkflowStep> running = new ArrayList<WorkflowStep>();
         final List<WorkflowStep> finished = new ArrayList<WorkflowStep>();
-        SpringData.getEventBus().addHandler(StepStateChangedEvent.TYPE, new StepStateChangedHandler() {
-            @Override
-            public void stepStateChange(StepStateChangedEvent event) {
-                if (event.getNewState() == Execution.State.FINISHED) {
-                    System.out.println("F : " + event.getStep());
-                    finished.add(event.getStep());
-                }
-                if (event.getNewState() == Execution.State.RUNNING) {
-                    System.out.println("R : " + event.getStep());
-                    running.add(event.getStep());
-                }
-            }
-        });
+
+        // TODO is this still needed?
+        // SpringData.getEventBus().addHandler(StepStateChangedEvent.TYPE, new
+// StepStateChangedHandler() {
+        // @Override
+        // public void stepStateChange(StepStateChangedEvent event) {
+        // if (event.getNewState() == Execution.State.FINISHED) {
+        // System.out.println("F : " + event.getStep());
+        // finished.add(event.getStep());
+        // }
+        // if (event.getNewState() == Execution.State.RUNNING) {
+        // System.out.println("R : " + event.getStep());
+        // running.add(event.getStep());
+        // }
+        // }
+        // });
 
         // add a dataset
         Dataset dataset = createDataset(person);
-        SpringData.getBean(DatasetDAO.class).save(dataset);
+        DatasetDao datasetDao = injector.getInstance(DatasetDao.class);
+        datasetDao.save(dataset);
         execution.setDataset("dataset", dataset.getId());
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+        executionDao.save(execution);
 
         // check to see if all workflows are done
         int loop = 0;
@@ -389,24 +415,27 @@ public class EngineTest {
         // make sure everything is done
         assertEquals(0, engine.getSteps(execution.getId()).size());
 
-        Transaction t = SpringData.getTransaction();
-        t.start(false);
-        try {
-            execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
-            for (WorkflowStep step : workflow.getSteps()) {
-                assertEquals(State.FINISHED, execution.getStepState(step.getId()));
-            }
-        } finally {
-            t.commit();
-        }
-
-        // assert all steps send notification
-        assertEquals(workflow.getSteps().size(), finished.size());
-        assertEquals(workflow.getSteps().size(), running.size());
+        // Transaction t = SpringData.getTransaction();
+        // t.start(false);
+        // try {
+        execution = executionDao.findOne(execution.getId());
         for (WorkflowStep step : workflow.getSteps()) {
-            assertTrue("finished did not contain workflow step", finished.contains(step));
-            assertTrue("running did not contain workflow step", running.contains(step));
+            assertEquals(State.FINISHED, execution.getStepState(step.getId()));
         }
+        // } finally {
+        // t.commit();
+        // }
+
+        // TODO add this back if event handling is added back
+        // assert all steps send notification
+        // assertEquals(workflow.getSteps().size(), finished.size());
+        // assertEquals(workflow.getSteps().size(), running.size());
+        // for (WorkflowStep step : workflow.getSteps()) {
+        // assertTrue("finished did not contain workflow step",
+// finished.contains(step));
+        // assertTrue("running did not contain workflow step",
+// running.contains(step));
+        // }
     }
 
     protected static Dataset createDataset(Person creator) {
@@ -494,11 +523,13 @@ public class EngineTest {
 
         @Override
         public void execute(File cwd) throws AbortException, FailedException {
-            Transaction t = SpringData.getTransaction();
+            // Transaction t = SpringData.getTransaction();
             try {
-                t.start();
-                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+                // t.start();
+                WorkflowStep step = workflowStepDao.findOne(getStepId());
+                // ExecutionDao executionDao =
+// injector.getInstance(ExecutionDao.class);
+                Execution execution = executionDao.findOne(getExecutionId());
                 WorkflowTool tool = step.getTool();
 
                 if ((tool.getInputs() == null) || (tool.getOutputs() == null)) {
@@ -522,7 +553,8 @@ public class EngineTest {
                 Thread.sleep(200);
 
                 String firstinput = step.getInputs().values().iterator().next();
-                Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(firstinput));
+                DatasetDao datasetDao = injector.getInstance(DatasetDao.class);
+                Dataset dataset = datasetDao.findOne(execution.getDataset(firstinput));
                 if (dataset == null) {
                     throw (new FailedException("Dataset is not found."));
                 }
@@ -531,15 +563,16 @@ public class EngineTest {
                 // dataset = new Dataset();
                 String firstoutput = step.getOutputs().values().iterator().next();
                 execution.setDataset(firstoutput, dataset.getId());
+                execution = executionDao.save(execution);
 
-                t.commit();
+                // t.commit();
             } catch (Exception e) {
-                try {
-                    t.rollback();
-                } catch (Exception e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }
+                // try {
+                // t.rollback();
+                // } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                // e1.printStackTrace();
+                // }
                 throw (new FailedException("job failed.", e));
             }
         }

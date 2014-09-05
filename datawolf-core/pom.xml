@@ -12,6 +12,16 @@
 	<dependencies>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>ncsa-common-domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>ncsa-common-jpa</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>datawolf-domain</artifactId>
 			<version>${project.version}</version>
 		</dependency>
