@@ -34,7 +34,6 @@ package edu.illinois.ncsa.datawolf.domain;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -94,9 +93,7 @@ public class Execution extends AbstractBean {
     /**
      * Create a new instance of the execution.
      */
-    public Execution() {
-        setId(UUID.randomUUID().toString());
-    }
+    public Execution() {}
 
     /**
      * Return the title of the execution.

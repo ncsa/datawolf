@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -68,9 +67,7 @@ public class Workflow extends AbstractBean {
     /**
      * Create a new instance of the workflow.
      */
-    public Workflow() {
-        setId(UUID.randomUUID().toString());
-    }
+    public Workflow() {}
 
     /**
      * Return the title of the workflow.
@@ -235,10 +232,11 @@ public class Workflow extends AbstractBean {
      *            list of steps as they have been added to the workflow.
      */
     public void setSteps(List<WorkflowStep> steps) {
-        this.steps.clear();
-        if (steps != null) {
-            this.steps.addAll(steps);
-        }
+        this.steps = steps;
+        // this.steps.clear();
+        // if (steps != null) {
+        // this.steps.addAll(steps);
+        // }
     }
 
     public WorkflowToolData getOutput(String id) {

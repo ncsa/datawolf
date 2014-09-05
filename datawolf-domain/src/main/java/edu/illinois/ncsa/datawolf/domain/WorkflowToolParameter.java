@@ -75,9 +75,7 @@ public class WorkflowToolParameter extends AbstractBean {
     /**
      * Create a new instance of the workflow parameter.
      */
-    public WorkflowToolParameter() {
-        setId(UUID.randomUUID().toString());
-    }
+    public WorkflowToolParameter() {}
 
     /**
      * Return the id of the workflow parameter.

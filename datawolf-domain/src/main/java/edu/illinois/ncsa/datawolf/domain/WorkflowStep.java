@@ -85,9 +85,7 @@ public class WorkflowStep extends AbstractBean {
     /**
      * Create a new instance of the workflow step.
      */
-    public WorkflowStep() {
-        setId(UUID.randomUUID().toString());
-    }
+    public WorkflowStep() {}
 
     /**
      * Return the title of the workflow step.
@@ -171,16 +169,21 @@ public class WorkflowStep extends AbstractBean {
         this.tool = tool;
 
         // create a new input/output table
-        this.inputs.clear();
-        this.outputs.clear();
-        this.parameters.clear();
+        // this.inputs.clear();
+        // this.outputs.clear();
+        // this.parameters.clear();
 
         if (this.tool != null) {
-            for (WorkflowToolData output : tool.getOutputs()) {
-                this.outputs.put(output.getDataId(), UUID.randomUUID().toString());
+            if (this.outputs.size() == 0) {
+                for (WorkflowToolData output : tool.getOutputs()) {
+                    this.outputs.put(output.getDataId(), UUID.randomUUID().toString());
+                }
             }
-            for (WorkflowToolParameter param : tool.getParameters()) {
-                this.parameters.put(param.getParameterId(), UUID.randomUUID().toString());
+
+            if (this.parameters.size() == 0) {
+                for (WorkflowToolParameter param : tool.getParameters()) {
+                    this.parameters.put(param.getParameterId(), UUID.randomUUID().toString());
+                }
             }
         }
     }

@@ -33,7 +33,6 @@ package edu.illinois.ncsa.datawolf.domain;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 
@@ -69,9 +68,7 @@ public class Submission extends AbstractBean {
     /**
      * Create a new instance of the execution.
      */
-    public Submission() {
-        setId(UUID.randomUUID().toString());
-    }
+    public Submission() {}
 
     /**
      * Return the title of the execution.

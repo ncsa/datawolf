@@ -54,9 +54,7 @@ public class WorkflowToolData extends AbstractBean {
     /**
      * Create a new instance of the workflow tool.
      */
-    public WorkflowToolData() {
-        setId(UUID.randomUUID().toString());
-    }
+    public WorkflowToolData() {}
 
     /**
      * Return the id of the workflow tool data.

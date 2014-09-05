@@ -37,7 +37,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -92,9 +91,7 @@ public class WorkflowTool extends AbstractBean {
     /**
      * Create a new instance of the workflow tool.
      */
-    public WorkflowTool() {
-        setId(UUID.randomUUID().toString());
-    }
+    public WorkflowTool() {}
 
     /**
      * Return the title of the workflow tool.

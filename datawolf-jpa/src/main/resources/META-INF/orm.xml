@@ -10,16 +10,12 @@
 	<entity class="Execution" name="Execution">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="workflowId" />
 			<basic name="date">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
-			<basic name="deleted" />
 			<one-to-one name="creator" fetch="EAGER">
 				<cascade>
 					<cascade-merge />
@@ -65,32 +61,24 @@
 	<entity class="HPCJobInfo" name="HPCJobInfo">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="executionId" />
 			<basic name="workingDir" />
 			<basic name="standardOutput" />
 			<basic name="standardError" />
 			<basic name="jobId" />
-			<basic name="deleted" />
 		</attributes>
 	</entity>
 	<entity class="LogFile" name="LogFile">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="executionId" />
 			<basic name="stepId" />
 			<basic name="date">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
-			<basic name="deleted" />
 			<one-to-one name="log" fetch="EAGER">
 				<cascade>
-					<cascade-merge />
+					<cascade-all/>
 				</cascade>
 			</one-to-one>
 		</attributes>
@@ -98,30 +86,22 @@
 	<entity class="Submission" name="Submission">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="workflowId" />
 			<basic name="creatorId" />
-			<basic name="deleted" />
 			<element-collection name="parameters" />
 			<element-collection name="datasets" />
 		</attributes>
-	</entity>
+	</entity> 
 	<entity class="Workflow" name="Workflow">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="created">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
-			<basic name="deleted" />
 			<one-to-many name="contributors" fetch="LAZY">
 				<join-table name="WorkflowContributors" />
 				<cascade>
@@ -145,11 +125,7 @@
 	<entity class="WorkflowStep" name="WorkflowStep">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="title" />
-			<basic name="deleted" />
 			<basic name="createDate">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
@@ -160,7 +136,6 @@
 			</one-to-one>
 			<one-to-one name="tool" fetch="EAGER">
 				<cascade>
-					<cascade-persist />
 					<cascade-merge />
 				</cascade>
 			</one-to-one>
@@ -178,13 +153,9 @@
 	<entity class="WorkflowTool" name="WorkflowTool">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="version" />
-			<basic name="deleted" />
 			<basic name="date">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
@@ -201,14 +172,12 @@
 			<one-to-many name="inputs" fetch="LAZY">
 				<join-table name="WorkflowToolInputs" />
 				<cascade>
-					<cascade-persist />
 					<cascade-merge />
 				</cascade>
 			</one-to-many>
 			<one-to-many name="parameters" fetch="LAZY">
 				<join-table name="WorkflowToolParameters" />
 				<cascade>
-					<cascade-persist />
 					<cascade-merge />
 				</cascade>
 			</one-to-many>
@@ -221,7 +190,6 @@
 			<one-to-many name="outputs" fetch="LAZY">
 				<join-table name="WorkflowToolOutputs" />
 				<cascade>
-					<cascade-persist />
 					<cascade-merge />
 				</cascade>
 			</one-to-many>
@@ -241,22 +209,15 @@
 	<entity class="WorkflowToolData" name="WorkflowToolData">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="dataid" />
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="mimeType" />
-			<basic name="deleted" />
 		</attributes>
 	</entity>
 	<entity class="WorkflowToolParameter" name="WorkflowToolParameter">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<id name="id">
-				<column length="36" />
-			</id>
 			<basic name="paramid" />
 			<basic name="title" />
 			<basic name="description" />
@@ -264,7 +225,6 @@
 			<basic name="value" />
 			<basic name="hidden" />
 			<basic name="allowNull" />
-			<basic name="deleted" />
 			<element-collection name="options"></element-collection>
 		</attributes>
 	</entity>

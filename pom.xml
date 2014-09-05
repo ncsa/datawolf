@@ -113,6 +113,11 @@
 
 
         <dependencies>
+		<dependency>
+                        <groupId>javax.inject</groupId>
+                        <artifactId>javax.inject</artifactId>
+                        <version>1</version>
+                </dependency>
 		<!-- SUPPORT FOR TESTS -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -174,5 +179,17 @@
                         <version>${slf4j.version}</version>
                         <scope>test</scope>
                 </dependency>
+ 		<dependency>
+                        <groupId>com.google.inject</groupId>
+                        <artifactId>guice</artifactId>
+                        <version>3.0</version>
+                        <scope>test</scope>
+                </dependency>
+                <dependency>
+                        <groupId>com.google.inject.extensions</groupId>
+                        <artifactId>guice-persist</artifactId>
+                        <version>3.0</version>
+                </dependency>
+
         </dependencies>
 </project>

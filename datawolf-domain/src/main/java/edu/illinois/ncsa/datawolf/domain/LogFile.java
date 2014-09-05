@@ -1,7 +1,6 @@
 package edu.illinois.ncsa.datawolf.domain;
 
 import java.util.Date;
-import java.util.UUID;
 
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.FileDescriptor;
@@ -28,9 +27,7 @@ public class LogFile extends AbstractBean {
     /** the actual log message. */
     private FileDescriptor    log              = null;
 
-    public LogFile() {
-        setId(UUID.randomUUID().toString());
-    }
+    public LogFile() {}
 
     public String getExecutionId() {
         return executionId;

@@ -1,7 +1,5 @@
 package edu.illinois.ncsa.datawolf.domain;
 
-import java.util.UUID;
-
 import edu.illinois.ncsa.domain.AbstractBean;
 
 public class HPCJobInfo extends AbstractBean {
@@ -23,9 +21,7 @@ public class HPCJobInfo extends AbstractBean {
     /** Job ID from scheduler */
     private String            jobId            = null;
 
-    public HPCJobInfo() {
-        setId(UUID.randomUUID().toString());
-    }
+    public HPCJobInfo() {}
 
     /**
      * Return the execution id assigned by the engine
