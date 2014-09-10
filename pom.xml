@@ -24,7 +24,8 @@
                 <junit.version>4.10</junit.version>
 
                 <jackson.version>2.0.5</jackson.version>
-                <resteasy.version>2.3.4.Final</resteasy.version>
+                <resteasy.version>3.0.8.Final</resteasy.version>
+                <jetty.version>9.2.0.v20140526</jetty.version>
         </properties>
 
         <repositories>
@@ -107,7 +108,7 @@
 		<module>datawolf-service</module>
 		<module>datawolf-webapp</module>
 		<module>datawolf-editor</module>
-                <module>datawolf-tool-creator</module>
+                <!-- <module>datawolf-tool-creator</module> -->
 		<module>datawolf-webapp-all</module>
 	</modules>
 

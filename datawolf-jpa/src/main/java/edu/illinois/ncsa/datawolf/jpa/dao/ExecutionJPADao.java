@@ -31,6 +31,8 @@
  ******************************************************************************/
 package edu.illinois.ncsa.datawolf.jpa.dao;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
@@ -43,5 +45,34 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
     @Inject
     public ExecutionJPADao(EntityManager entityManager) {
         super(entityManager);
+    }
+
+    @Override
+    public List<Execution> findByWorkflowId(String workflowId) {
+        return null;
+    }
+
+    @Override
+    public List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Execution> findByDeleted(boolean deleted) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Execution> findByCreatorEmail(String email) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

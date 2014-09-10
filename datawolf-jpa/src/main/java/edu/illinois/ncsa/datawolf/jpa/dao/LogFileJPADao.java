@@ -1,5 +1,7 @@
 package edu.illinois.ncsa.datawolf.jpa.dao;
 
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
@@ -11,5 +13,17 @@ public class LogFileJPADao extends AbstractJPADao<LogFile, String> implements Lo
     @Inject
     public LogFileJPADao(EntityManager entityManager) {
         super(entityManager);
+    }
+
+    @Override
+    public List<LogFile> findByExecutionId(String executionId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public LogFile findLogByExecutionIdAndStepId(String executionId, String stepId) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
