@@ -23,6 +23,7 @@ import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
 import edu.illinois.ncsa.datawolf.event.StepStateChangedEvent;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 
 /**
@@ -55,6 +56,9 @@ public abstract class Executor {
 
     @Inject
     protected WorkflowStepDao   workflowStepDao;
+
+    @Inject
+    protected DatasetDao        datasetDao;
 
     /**
      * Should the executor store the logfiles generated.

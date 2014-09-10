@@ -50,15 +50,10 @@ import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
 import edu.illinois.ncsa.datawolf.executor.java.tool.JavaTool;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.domain.event.ObjectCreatedEvent;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 
 /**
  * Executor for java tools. This is just a little wrapper for calling
@@ -112,13 +107,13 @@ public class JavaExecutor extends LocalExecutor {
         // make sure the classes will get unloaded
         try {
 
-            Transaction t = SpringData.getTransaction();
+            // Transaction t = SpringData.getTransaction();
             try {
-                t.start();
+                // t.start();
 
-                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-                JavaToolImplementation impl = SpringData.JSONToObject(step.getTool().getImplementation(), JavaToolImplementation.class);
+                WorkflowStep step = workflowStepDao.findOne(getStepId());
+                Execution execution = executionDao.findOne(getExecutionId());
+                JavaToolImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), JavaToolImplementation.class);
 
                 logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
 
@@ -152,14 +147,14 @@ public class JavaExecutor extends LocalExecutor {
                 // set inputs
                 if (tool.getInputs() != null) {
                     for (Entry<String, String> entry : step.getInputs().entrySet()) {
-                        Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(entry.getValue()));
+                        Dataset ds = datasetDao.findOne(execution.getDataset(entry.getValue()));
                         if (ds == null) {
                             throw (new AbortException("Dataset is missing."));
                         }
                         if (ds.getFileDescriptors().size() == 0) {
                             throw (new FailedException("Dataset does not have any files associated."));
                         }
-                        InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                        InputStream is = fileStorage.readFile(ds.getFileDescriptors().get(0));
                         inputs.add(is);
                         tool.setInput(entry.getKey(), is);
                     }
@@ -171,13 +166,15 @@ public class JavaExecutor extends LocalExecutor {
             } catch (Throwable e) {
                 throw (new FailedException("Could not run transaction to save information about step.", e));
             } finally {
-                try {
-                    if (t != null) {
-                        t.commit();
-                    }
-                } catch (Exception e) {
-                    throw (new FailedException("Could not commit transaction to save information about step.", e));
-                }
+                // try {
+                // if (t != null) {
+                // t.commit();
+                // }
+                // } catch (Exception e) {
+                // throw (new
+// FailedException("Could not commit transaction to save information about step.",
+// e));
+                // }
             }
 
             // check if job is still alive
@@ -208,18 +205,18 @@ public class JavaExecutor extends LocalExecutor {
 
             // get outputs in the case of DataWolfTool
             if (tool.getOutputs() != null) {
-                t = SpringData.getTransaction();
+                // t = SpringData.getTransaction();
                 // List of created datasets
                 List<AbstractBean> datasets = new ArrayList<AbstractBean>();
                 try {
-                    t.start();
-                    WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-                    Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+                    // t.start();
+                    WorkflowStep step = workflowStepDao.findOne(getStepId());
+                    Execution execution = executionDao.findOne(getExecutionId());
 
                     for (Entry<String, String> entry : step.getOutputs().entrySet()) {
                         WorkflowToolData data = step.getOutput(entry.getValue());
 
-                        FileDescriptor fd = SpringData.getFileStorage().storeFile(data.getTitle(), tool.getOutput(entry.getKey()));
+                        FileDescriptor fd = fileStorage.storeFile(data.getTitle(), tool.getOutput(entry.getKey()));
                         fd.setMimeType(data.getMimeType());
 
                         Dataset ds = new Dataset();
@@ -227,29 +224,33 @@ public class JavaExecutor extends LocalExecutor {
                         ds.setDescription(data.getDescription());
                         ds.setCreator(execution.getCreator());
                         ds.addFileDescriptor(fd);
-                        SpringData.getBean(DatasetDAO.class).save(ds);
+                        datasetDao.save(ds);
 
                         execution.setDataset(entry.getValue(), ds.getId());
                         datasets.add(ds);
                     }
 
-                    SpringData.getBean(ExecutionDAO.class).save(execution);
+                    executionDao.save(execution);
 
-                } catch (AbortException e) {
-                    throw e;
-                } catch (FailedException e) {
-                    throw e;
+                    // } catch (AbortException e) {
+                    // throw e;
+                    // } catch (FailedException e) {
+                    // throw e;
                 } catch (Throwable e) {
                     throw (new FailedException("Error saving output from step.", e));
                 } finally {
-                    try {
-                        if (t != null) {
-                            t.commit();
-                            SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
-                        }
-                    } catch (Exception e) {
-                        throw (new FailedException("Could not commit transaction to save information about step.", e));
-                    }
+                    // try {
+                    // if (t != null) {
+                    // t.commit();
+                    // TODO is this needed?
+                    // SpringData.getEventBus().fireEvent(new
+// ObjectCreatedEvent(datasets));
+                    // }
+                    // } catch (Exception e) {
+                    // throw (new
+// FailedException("Could not commit transaction to save information about step.",
+// e));
+                    // }
                 }
             }
 

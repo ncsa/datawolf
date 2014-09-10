@@ -10,7 +10,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.GenericXmlApplicationContext;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
@@ -18,21 +21,29 @@ import edu.illinois.ncsa.datawolf.domain.LogFile;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.WorkflowTool;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption.Type;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.LogFileDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.Dataset;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.Persistence;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 
 public class CommandLineExecutorTest {
-    Logger logger = LoggerFactory.getLogger(CommandLineExecutorTest.class);
+    Logger                  logger = LoggerFactory.getLogger(CommandLineExecutorTest.class);
+
+    private static Injector injector;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        new GenericXmlApplicationContext("testContext.xml");
+        injector = Guice.createInjector(new TestModule());
+
+        Persistence.setInjector(injector);
+        // Initialize persistence service
+        PersistService service = injector.getInstance(PersistService.class);
+        service.start();
     }
 
     @Test
@@ -41,12 +52,12 @@ public class CommandLineExecutorTest {
         WorkflowStep step = new WorkflowStep();
         step.setTool(createTool());
         step.setTitle("Jong");
-        SpringData.getBean(WorkflowStepDAO.class).save(step);
+        injector.getInstance(WorkflowStepDao.class).save(step);
 
         Execution execution = new Execution();
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+        injector.getInstance(ExecutionDao.class).save(execution);
 
-        CommandLineExecutor exec = new CommandLineExecutor();
+        CommandLineExecutor exec = injector.getInstance(CommandLineExecutor.class);
         assertTrue(exec.isExecutorReady());
         exec.setJobInformation(execution, step);
         exec.startJob();
@@ -69,25 +80,25 @@ public class CommandLineExecutorTest {
             fail("Execution NEVER FINISHED");
         }
 
-        Transaction t = SpringData.getTransaction();
-        t.start(true);
+        // Transaction t = SpringData.getTransaction();
+        // t.start(true);
 
-        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+        execution = injector.getInstance(ExecutionDao.class).findOne(execution.getId());
 
         String outputid = step.getOutputs().values().iterator().next();
         logger.info(outputid);
         assertTrue(execution.hasDataset(outputid));
 
-        Dataset dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(outputid));
+        Dataset dataset = injector.getInstance(DatasetDao.class).findOne(execution.getDataset(outputid));
 
-        InputStream is = SpringData.getFileStorage().readFile(dataset.getFileDescriptors().get(0));
+        InputStream is = injector.getInstance(FileStorage.class).readFile(dataset.getFileDescriptors().get(0));
         byte[] buf = new byte[is.available()];
         is.read(buf);
         is.close();
 
         assertTrue(new String(buf, "UTF-8").trim().startsWith("Active "));
 
-        for (LogFile lf : SpringData.getBean(LogFileDAO.class).findAll()) {
+        for (LogFile lf : injector.getInstance(LogFileDao.class).findAll()) {
             System.out.println("ID            = " + lf.getId());
             System.out.println("Execution ID  = " + lf.getExecutionId());
             System.out.println("Step ID       = " + lf.getStepId());
@@ -95,7 +106,7 @@ public class CommandLineExecutorTest {
             System.out.println("LOG           = " + lf.getLog().getDataURL());
         }
 
-        t.commit();
+        // t.commit();
     }
 
     private WorkflowTool createTool() throws IOException {
@@ -121,7 +132,7 @@ public class CommandLineExecutorTest {
         impl.setCaptureStdOut(STDOUT_ID);
         impl.getCommandLineOptions().add(option);
 
-        tool.setImplementation(SpringData.objectToJSON(impl));
+        tool.setImplementation(BeanUtil.objectToJSON(impl));
 
         return tool;
     }

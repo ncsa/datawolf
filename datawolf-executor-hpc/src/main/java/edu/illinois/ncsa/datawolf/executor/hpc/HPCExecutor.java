@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -33,6 +34,7 @@ import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.HPCJobInfo;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolParameter;
+import edu.illinois.ncsa.datawolf.domain.dao.HPCJobInfoDao;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption.InputOutput;
 import edu.illinois.ncsa.datawolf.executor.hpc.handlers.JobInfoParser;
@@ -41,22 +43,19 @@ import edu.illinois.ncsa.datawolf.executor.hpc.util.FileUtils;
 import edu.illinois.ncsa.datawolf.executor.hpc.util.NonNLSConstants;
 import edu.illinois.ncsa.datawolf.executor.hpc.util.SshUtils;
 import edu.illinois.ncsa.datawolf.executor.hpc.util.SystemUtils;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.HPCJobInfoDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.domain.event.ObjectCreatedEvent;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 import edu.illinois.ncsa.gondola.types.submission.ErrorHandlerType;
 import edu.illinois.ncsa.gondola.types.submission.JobStateType;
 import edu.illinois.ncsa.gondola.types.submission.JobSubmissionType;
 import edu.illinois.ncsa.gondola.types.submission.LineType;
 import edu.illinois.ncsa.gondola.types.submission.RegexType;
 import edu.illinois.ncsa.gondola.types.submission.ScriptType;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+
+
+
 
 /**
  * The HPCExecutor will launch remote jobs based on machine information provided
@@ -127,6 +126,9 @@ public class HPCExecutor extends RemoteExecutor {
     private boolean             storedJobInfo      = false;
     private String scriptPath = null;
 
+    @Inject
+    protected HPCJobInfoDao hpcJobInfoDao;
+    
     @Override
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
 
@@ -140,13 +142,13 @@ public class HPCExecutor extends RemoteExecutor {
 
         // Commands to append to command line
         ArrayList<String> command = new ArrayList<String>();
-        Transaction t = SpringData.getTransaction();
+        //Transaction t = SpringData.getTransaction();
         try {
-            t.start();
+            //t.start();
             if(scriptPath == null) {
-                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-                HPCToolImplementation impl = SpringData.JSONToObject(step.getTool().getImplementation(), HPCToolImplementation.class);
+                WorkflowStep step = workflowStepDao.findOne(getStepId());
+                Execution execution = executionDao.findOne(getExecutionId());
+                HPCToolImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), HPCToolImplementation.class);
     
                 for (CommandLineOption option : impl.getCommandLineOptions()) {
                     switch (option.getType()) {
@@ -208,12 +210,12 @@ public class HPCExecutor extends RemoteExecutor {
                             String optionId = option.getOptionId();
                             Map<String, String> inputs = step.getInputs();
                             String key = inputs.get(optionId);
-                            Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(key));
+                            Dataset ds = datasetDao.findOne(execution.getDataset(key));
                             if (ds == null) {
                                 throw (new AbortException("Dataset is missing."));
                             }
                             try {
-                                InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                                InputStream is = fileStorage.readFile(ds.getFileDescriptors().get(0));
                                 FileOutputStream fos = new FileOutputStream(new File(cwd, filename));
                                 byte[] buf = new byte[10240];
                                 int len = 0;
@@ -319,15 +321,15 @@ public class HPCExecutor extends RemoteExecutor {
             //throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to get information about step.", e));
-        } finally {
-            try {
-                if (t != null) {
-                    t.commit();
-                }
-            } catch (Exception e) {
-                throw (new FailedException("Could not commit transaction to retrieve information about step.", e));
-            }
-        }
+        } //finally {
+            //try {
+            //    if (t != null) {
+            //        t.commit();
+            //    }
+            //} catch (Exception e) {
+            //    throw (new FailedException("Could not commit transaction to retrieve information about step.", e));
+            //}
+        //}
 
         // assume at this point it's queued, but we could run qstat to be sure
         return State.QUEUED;
@@ -563,19 +565,19 @@ public class HPCExecutor extends RemoteExecutor {
         
         String cancelJobId = jobId;
         if(cancelJobId == null) {
-            Transaction t = SpringData.getTransaction();
+            //Transaction t = SpringData.getTransaction();
             try {
-                try {
-                    t.start(true);
-                    List<HPCJobInfo> jobs = SpringData.getBean(HPCJobInfoDAO.class).findByExecutionId(getExecutionId());
+                //try {
+                    //t.start(true);
+                    List<HPCJobInfo> jobs = hpcJobInfoDao.findByExecutionId(getExecutionId());
                     if(jobs.isEmpty()) {
                         logger.error("No job info beans found for execution "+getExecutionId());
                     } else {
                         cancelJobId = jobs.get(0).getJobId();
                     }
-                } finally {
-                    t.commit();
-                }
+                //} finally {
+                //    t.commit();
+                //}
             } catch(Exception e) {
                 logger.error("Error retrieving job information for execution "+getExecutionId());
             }
@@ -750,16 +752,16 @@ public class HPCExecutor extends RemoteExecutor {
             // TODO RK : replace code above with the following code.
             // String log = getRemoteLog();
 
-            Transaction t = null;
+            //Transaction t = null;
             // List of created datasets
             List<AbstractBean> datasets = new ArrayList<AbstractBean>();
             try {
                 // TODO make this more generic
-                t = SpringData.getTransaction();
-                t.start();
+                //t = SpringData.getTransaction();
+                //t.start();
                 
-                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+                WorkflowStep step = workflowStepDao.findOne(getStepId());
+                Execution execution = executionDao.findOne(getExecutionId());
                 
                 // Record start/end time
                 SimpleDateFormat sdfParser = new SimpleDateFormat("EEE MMM d HH:mm:ss zzz yyyy");
@@ -772,13 +774,13 @@ public class HPCExecutor extends RemoteExecutor {
                 }
 
                 ByteArrayInputStream bais = new ByteArrayInputStream(gondolaLogContent.toString().getBytes("UTF-8"));
-                FileDescriptor fd = SpringData.getFileStorage().storeFile(bais);
+                FileDescriptor fd = fileStorage.storeFile(bais);
 
                 Dataset ds = new Dataset();
                 ds.setTitle("gondola-log");
                 ds.setCreator(execution.getCreator());
                 ds.addFileDescriptor(fd);
-                SpringData.getBean(DatasetDAO.class).save(ds);
+                datasetDao.save(ds);
 
                 String key = step.getOutputs().get(gondolaLogId);
                 execution.setDataset(key, ds.getId());
@@ -786,8 +788,9 @@ public class HPCExecutor extends RemoteExecutor {
 
                 return State.FINISHED;
             } finally {
-                t.commit();
-                SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
+                //t.commit();
+                // TODO do we still need this event handling?
+                //SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
                 session.close();
                 session = null;
             }
@@ -797,10 +800,10 @@ public class HPCExecutor extends RemoteExecutor {
         return State.FAILED;
     }
     private void createJobInfo() {
-        Transaction t = SpringData.getTransaction();
+        //Transaction t = SpringData.getTransaction();
         try {
-            try {
-                t.start();
+            //try {
+                //t.start();
                 HPCJobInfo info = new HPCJobInfo();
                 info.setExecutionId(this.getExecutionId());
                 if(jobId != null) {
@@ -809,11 +812,11 @@ public class HPCExecutor extends RemoteExecutor {
                     logger.warn("Job id was null");
                 }
             
-                SpringData.getBean(HPCJobInfoDAO.class).save(info);
+                hpcJobInfoDao.save(info);
             
-            } finally {
-              t.commit();
-            }
+            //} finally {
+            //  t.commit();
+            //}
         } catch(Exception e) {
             logger.error("Error saving job information in HPC Executor", e);
         }
@@ -851,27 +854,27 @@ public class HPCExecutor extends RemoteExecutor {
                     // stdout.append(line);
                     // stdout.append(NL);
 
-                    Transaction t = null;
+                    //Transaction t = null;
                     try {
-                        t = SpringData.getTransaction();
-                        t.start();
+                        //t = SpringData.getTransaction();
+                        //t.start();
                         
-                        HPCJobInfoDAO jobInfoDAO = SpringData.getBean(HPCJobInfoDAO.class);
-                        List<HPCJobInfo> jobs = jobInfoDAO.findByExecutionId(this.getExecutionId());
+                        //HPCJobInfoDAO jobInfoDAO = SpringData.getBean(HPCJobInfoDAO.class);
+                        List<HPCJobInfo> jobs = hpcJobInfoDao.findByExecutionId(getExecutionId());
                         
                         if(!jobs.isEmpty()) {
                             HPCJobInfo info = jobs.get(0);
                             //info.setExecutionId(this.getExecutionId());
                             info.setWorkingDir(workingDir);
        
-                            SpringData.getBean(HPCJobInfoDAO.class).save(info);
+                            hpcJobInfoDao.save(info);
                             storedJobInfo = true;
                         } else {
                             logger.error("No job information bean found for execution id "+getExecutionId());
                         }
                     } finally {
                         stdoutReader.close();
-                        t.commit();
+                        //t.commit();
                     }
                 }
             }
@@ -1032,45 +1035,46 @@ public class HPCExecutor extends RemoteExecutor {
             }
             br.close();
 
-            Transaction t = null;
+            //Transaction t = null;
             List<AbstractBean> datasets = new ArrayList<AbstractBean>();
-            try {
-                t = SpringData.getTransaction();
-                t.start();
-                WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-                Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
+            //try {
+                //t = SpringData.getTransaction();
+                //t.start();
+                WorkflowStep step = workflowStepDao.findOne(getStepId());
+                Execution execution = executionDao.findOne(getExecutionId());
 
                 ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                FileDescriptor fd = SpringData.getFileStorage().storeFile("stdout", bais);
+                FileDescriptor fd = fileStorage.storeFile("stdout", bais);
 
                 Dataset ds = new Dataset();
                 ds.setTitle("stdout");
                 ds.setCreator(execution.getCreator());
                 ds.addFileDescriptor(fd);
-                SpringData.getBean(DatasetDAO.class).save(ds);
+                datasetDao.save(ds);
 
                 String key = step.getOutputs().get(stdOutId);
                 execution.setDataset(key, ds.getId());
 
                 bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                fd = SpringData.getFileStorage().storeFile("stderr", bais);
+                fd = fileStorage.storeFile("stderr", bais);
 
                 ds = new Dataset();
                 ds.setTitle("stderr");
                 ds.setCreator(execution.getCreator());
                 ds.addFileDescriptor(fd);
-                SpringData.getBean(DatasetDAO.class).save(ds);
+                datasetDao.save(ds);
 
                 key = step.getOutputs().get(stdErrId);
                 execution.setDataset(key, ds.getId());
 
-                SpringData.getBean(ExecutionDAO.class).save(execution);
+                executionDao.save(execution);
 
                 datasets.add(ds);
-            } finally {
-                t.commit();
-                SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
-            }
+            //} finally {
+                //t.commit();
+                // TODO do we still need this event handling?
+                //SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
+            //}
         } catch (Throwable e) {
             logger.error("Error getting log file from remote machine and saving it.", e);
         }

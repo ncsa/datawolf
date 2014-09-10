@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +61,12 @@ import edu.illinois.ncsa.domain.Persistence;
  * 
  * @author Rob Kooper
  */
+@Singleton
 public class Engine {
     private static final Logger   logger             = LoggerFactory.getLogger(Engine.class);
 
     /** All known executors. */
+    @Inject
     private Map<String, Executor> executors          = new HashMap<String, Executor>();
 
     /** List of all workers */

@@ -67,15 +67,10 @@ import edu.illinois.ncsa.datawolf.LocalExecutor;
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption.InputOutput;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
 import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.domain.event.ObjectCreatedEvent;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 
 /**
  * This executor will allow the user to execute any arbitrary executable.
@@ -100,13 +95,13 @@ public class CommandLineExecutor extends LocalExecutor {
         Map<String, String> env = new HashMap<String, String>();
         Map<String, String> outputfiles = new HashMap<String, String>();
 
-        Transaction t = SpringData.getTransaction();
+        // Transaction t = SpringData.getTransaction();
         try {
-            t.start();
+            // t.start();
 
-            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-            CommandLineImplementation impl = SpringData.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
+            WorkflowStep step = workflowStepDao.findOne(getStepId());
+            Execution execution = executionDao.findOne(getExecutionId());
+            CommandLineImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
 
             logger.info("Executing " + step.getTitle() + " with tool " + step.getTool().getTitle());
 
@@ -161,12 +156,12 @@ public class CommandLineExecutor extends LocalExecutor {
                     if (option.isCommandline()) {
                         if (option.getInputOutput() != InputOutput.OUTPUT) {
                             String key = step.getInputs().get(option.getOptionId());
-                            Dataset ds = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(key));// option.getOptionId()));
+                            Dataset ds = datasetDao.findOne(execution.getDataset(key));// option.getOptionId()));
                             if (ds == null) {
                                 throw (new AbortException("Dataset is missing."));
                             }
                             try {
-                                InputStream is = SpringData.getFileStorage().readFile(ds.getFileDescriptors().get(0));
+                                InputStream is = fileStorage.readFile(ds.getFileDescriptors().get(0));
                                 FileOutputStream fos = new FileOutputStream(filename);
                                 byte[] buf = new byte[10240];
                                 int len = 0;
@@ -197,15 +192,17 @@ public class CommandLineExecutor extends LocalExecutor {
             throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to get information about step.", e));
-        } finally {
-            try {
-                if (t != null) {
-                    t.commit();
-                }
-            } catch (Exception e) {
-                throw (new FailedException("Could not commit transaction to retrieve information about step.", e));
-            }
-        }
+        } // finally {
+          // try {
+          // if (t != null) {
+          // t.commit();
+          // }
+          // } catch (Exception e) {
+          // throw (new
+// FailedException("Could not commit transaction to retrieve information about step.",
+// e));
+        // }
+        // }
 
         // show command that will be executed
         StringBuilder sb = new StringBuilder();
@@ -313,14 +310,14 @@ public class CommandLineExecutor extends LocalExecutor {
         } while ((stdoutReader != null) || (stderrReader != null));
         flushLog();
 
-        t = SpringData.getTransaction();
+        // t = SpringData.getTransaction();
         // List of created datasets
         List<AbstractBean> datasets = new ArrayList<AbstractBean>();
         try {
-            t.start();
-            WorkflowStep step = SpringData.getBean(WorkflowStepDAO.class).findOne(getStepId());
-            Execution execution = SpringData.getBean(ExecutionDAO.class).findOne(getExecutionId());
-            CommandLineImplementation impl = SpringData.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
+            // t.start();
+            WorkflowStep step = workflowStepDao.findOne(getStepId());
+            Execution execution = executionDao.findOne(getExecutionId());
+            CommandLineImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
 
             // collect stdout/stderr
             boolean saveExecution = false;
@@ -331,13 +328,13 @@ public class CommandLineExecutor extends LocalExecutor {
                         stdout.append(stderr);
                     }
                     ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais);
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais);
 
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
-                    SpringData.getBean(DatasetDAO.class).save(ds);
+                    datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
                     datasets.add(ds);
@@ -349,13 +346,13 @@ public class CommandLineExecutor extends LocalExecutor {
             if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
                 try {
                     ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = SpringData.getFileStorage().storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais);
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais);
 
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
-                    SpringData.getBean(DatasetDAO.class).save(ds);
+                    datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds.getId());
                     datasets.add(ds);
@@ -384,17 +381,17 @@ public class CommandLineExecutor extends LocalExecutor {
                         for (File file : files) {
                             logger.debug("adding files to a dataset: " + file);
                             FileInputStream fis = new FileInputStream(file);
-                            FileDescriptor fd = SpringData.getFileStorage().storeFile(file.getName(), fis);
+                            FileDescriptor fd = fileStorage.storeFile(file.getName(), fis);
                             fis.close();
                             ds.addFileDescriptor(fd);
                         }
 
                     } else {
                         FileInputStream fis = new FileInputStream(entry.getValue());
-                        FileDescriptor fd = SpringData.getFileStorage().storeFile(new File(entry.getValue()).getName(), fis);
+                        FileDescriptor fd = fileStorage.storeFile(new File(entry.getValue()).getName(), fis);
                         ds.addFileDescriptor(fd);
                     }
-                    SpringData.getBean(DatasetDAO.class).save(ds);
+                    datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(entry.getKey()), ds.getId());
                     datasets.add(ds);
@@ -404,25 +401,29 @@ public class CommandLineExecutor extends LocalExecutor {
                 }
             }
             if (saveExecution) {
-                SpringData.getBean(ExecutionDAO.class).save(execution);
+                executionDao.save(execution);
             }
 
-        } catch (AbortException e) {
-            throw e;
-        } catch (FailedException e) {
-            throw e;
+            // } catch (AbortException e) {
+            // throw e;
+            // } catch (FailedException e) {
+            // throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to save information about step.", e));
-        } finally {
-            try {
-                if (t != null) {
-                    t.commit();
-                    SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
-                }
-            } catch (Exception e) {
-                throw (new FailedException("Could not commit transaction to save information about step.", e));
-            }
-        }
+        } // finally {
+          // try {
+          // if (t != null) {
+          // t.commit();
+          // TODO is this still required?
+          // SpringData.getEventBus().fireEvent(new
+// ObjectCreatedEvent(datasets));
+        // }
+        // } catch (Exception e) {
+        // throw (new
+// FailedException("Could not commit transaction to save information about step.",
+// e));
+        // }
+        // }
     }
 
     private boolean isRunning(Process process) {

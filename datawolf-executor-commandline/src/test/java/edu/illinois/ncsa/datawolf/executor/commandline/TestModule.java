@@ -1,10 +1,8 @@
-package edu.illinois.ncsa.datawolf;
+package edu.illinois.ncsa.datawolf.executor.commandline;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.multibindings.MapBinder;
 import com.google.inject.persist.jpa.JpaPersistModule;
 
-import edu.illinois.ncsa.datawolf.EngineTest.DummyExecutor;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
 import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
 import edu.illinois.ncsa.datawolf.domain.dao.SubmissionDao;
@@ -50,10 +48,6 @@ public class TestModule extends AbstractModule {
         bind(FileStorage.class).to(FileStorageDisk.class);
         bind(LogFileDao.class).to(LogFileJPADao.class);
 
-        // Engine & Executors
-        bind(Engine.class);
-        MapBinder<String, Executor> binder = MapBinder.newMapBinder(binder(), String.class, Executor.class);
-        binder.addBinding("dummy").to(DummyExecutor.class);
-        bind(DummyExecutor.class);
+        bind(CommandLineExecutor.class);
     }
 }

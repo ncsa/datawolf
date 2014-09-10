@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -56,13 +57,19 @@ public class EngineTest {
         service.start();
     }
 
+    @AfterClass
+    public static void tearDown() {
+        injector.getInstance(PersistService.class).stop();
+        injector = null;
+    }
+
     @Before
     public void createEngine() {
         // engine = new Engine();
 
         engine = injector.getInstance(Engine.class);
-        DummyExecutor executor = injector.getInstance(DummyExecutor.class);
-        engine.addExecutor(executor);
+        // DummyExecutor executor = injector.getInstance(DummyExecutor.class);
+        // engine.addExecutor(executor);
 
         // new GenericXmlApplicationContext("testContext.xml");
     }

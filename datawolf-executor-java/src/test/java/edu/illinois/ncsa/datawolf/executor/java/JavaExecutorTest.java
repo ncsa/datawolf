@@ -18,7 +18,10 @@ import java.util.UUID;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.context.support.GenericXmlApplicationContext;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 import edu.illinois.ncsa.datawolf.AbortException;
 import edu.illinois.ncsa.datawolf.FailedException;
@@ -28,33 +31,39 @@ import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.WorkflowTool;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolParameter;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDao;
 import edu.illinois.ncsa.datawolf.executor.java.tool.Dataset;
 import edu.illinois.ncsa.datawolf.executor.java.tool.JavaTool;
 import edu.illinois.ncsa.datawolf.executor.java.tool.Parameter;
 import edu.illinois.ncsa.datawolf.executor.java.tool.Parameter.ParameterType;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowToolDAO;
 import edu.illinois.ncsa.domain.FileDescriptor;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
+import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.Persistence;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
 public class JavaExecutorTest {
+    private static Injector injector;
+
     @BeforeClass
     public static void setUp() throws Exception {
-        new GenericXmlApplicationContext("testContext.xml");
+        injector = Guice.createInjector(new TestModule());
+
+        Persistence.setInjector(injector);
+        // Initialize persistence service
+        PersistService service = injector.getInstance(PersistService.class);
+        service.start();
     }
 
     @Test
     public void testJavaToolImplementation() throws Exception {
-        Transaction t = SpringData.getTransaction();
-        t.start();
-        WorkflowToolDAO dao = SpringData.getBean(WorkflowToolDAO.class);
+        WorkflowToolDao dao = injector.getInstance(WorkflowToolDao.class);
 
         DummyJavaTool dummy = new DummyJavaTool();
 
@@ -65,24 +74,18 @@ public class JavaExecutorTest {
 
         JavaToolImplementation impl = new JavaToolImplementation();
         impl.setToolClassName(dummy.getClass().getName());
-        tool.setImplementation(SpringData.objectToJSON(impl));
+        tool.setImplementation(BeanUtil.objectToJSON(impl));
 
         dao.save(tool);
 
         String id = tool.getId();
 
-        t.commit();
-
-        Transaction t1 = SpringData.getTransaction();
-        t1.start();
-
-        dao = SpringData.getBean(WorkflowToolDAO.class);
+        dao = injector.getInstance(WorkflowToolDao.class);
         WorkflowTool tool2 = dao.findOne(id);
 
-        JavaToolImplementation impl2 = SpringData.JSONToObject(tool2.getImplementation(), JavaToolImplementation.class);
+        JavaToolImplementation impl2 = BeanUtil.JSONToObject(tool2.getImplementation(), JavaToolImplementation.class);
         assertEquals(impl.getToolClassName(), impl2.getToolClassName());
 
-        t1.commit();
     }
 
     @Test
@@ -90,21 +93,22 @@ public class JavaExecutorTest {
         String datasetid = UUID.randomUUID().toString();
 
         edu.illinois.ncsa.domain.Dataset dataset = new edu.illinois.ncsa.domain.Dataset();
-        FileDescriptor fd = SpringData.getFileStorage().storeFile(new ByteArrayInputStream("HELLO".getBytes("UTF-8")));
+        FileDescriptor fd = injector.getInstance(FileStorage.class).storeFile(new ByteArrayInputStream("HELLO".getBytes("UTF-8")));
         dataset.addFileDescriptor(fd);
-        SpringData.getBean(DatasetDAO.class).save(dataset);
+        injector.getInstance(DatasetDao.class).save(dataset);
 
         WorkflowStep step = new WorkflowStep();
         step.setTool(createTool());
         step.setInput("1", datasetid);
-        SpringData.getBean(WorkflowStepDAO.class).save(step);
+        injector.getInstance(WorkflowStepDao.class).save(step);
 
         Execution execution = new Execution();
         execution.setDataset(datasetid, dataset.getId());
         execution.setParameter(step.getParameters().values().iterator().next(), "WORLD");
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+        injector.getInstance(ExecutionDao.class).save(execution);
 
-        JavaExecutor exec = new JavaExecutor();
+        // JavaExecutor exec = new JavaExecutor();
+        JavaExecutor exec = injector.getInstance(JavaExecutor.class);
         assertTrue(exec.isExecutorReady());
         exec.setJobInformation(execution, step);
         exec.startJob();
@@ -127,25 +131,21 @@ public class JavaExecutorTest {
             fail("Execution NEVER FINISHED");
         }
 
-        Transaction t = SpringData.getTransaction();
-        t.start(true);
-
-        execution = SpringData.getBean(ExecutionDAO.class).findOne(execution.getId());
+        execution = injector.getInstance(ExecutionDao.class).findOne(execution.getId());
 
         String outputid = step.getOutputs().values().iterator().next();
         assertTrue(execution.hasDataset(outputid));
 
-        dataset = SpringData.getBean(DatasetDAO.class).findOne(execution.getDataset(outputid));
+        dataset = injector.getInstance(DatasetDao.class).findOne(execution.getDataset(outputid));
         assertEquals(1, dataset.getFileDescriptors().size());
 
-        InputStream is = SpringData.getFileStorage().readFile(dataset.getFileDescriptors().get(0));
+        InputStream is = injector.getInstance(FileStorage.class).readFile(dataset.getFileDescriptors().get(0));
         byte[] buf = new byte[is.available()];
         is.read(buf);
         is.close();
 
         assertEquals("HELLO WORLD", new String(buf, "UTF-8"));
 
-        t.commit();
     }
 
     private WorkflowTool createTool() throws IOException {
@@ -157,7 +157,7 @@ public class JavaExecutorTest {
         tool.setExecutor("java");
         JavaToolImplementation impl = new JavaToolImplementation();
         impl.setToolClassName(dummy.getClass().getName());
-        tool.setImplementation(SpringData.objectToJSON(impl));
+        tool.setImplementation(BeanUtil.objectToJSON(impl));
 
         Dataset inputds = dummy.getInputs().iterator().next();
         WorkflowToolData input = new WorkflowToolData();
