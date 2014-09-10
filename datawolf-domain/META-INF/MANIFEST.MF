@@ -4,6 +4,7 @@ Bundle-Name: datawolf-domain
 Bundle-SymbolicName: datawolf-domain
 Bundle-Version: 3.0.0.qualifier
 Export-Package: edu.illinois.ncsa.datawolf.domain,
+ edu.illinois.ncsa.datawolf.domain.dao,
  edu.illinois.ncsa.datawolf.domain.event
 Require-Bundle: spring-libraries;bundle-version="1.0.0",
  ncsa-common-domain;bundle-version="1.0.0"

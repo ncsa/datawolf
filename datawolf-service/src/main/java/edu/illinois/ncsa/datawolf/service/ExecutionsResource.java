@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -69,9 +70,6 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.datawolf.Engine;
 import edu.illinois.ncsa.datawolf.domain.Execution;
@@ -80,22 +78,39 @@ import edu.illinois.ncsa.datawolf.domain.HPCJobInfo;
 import edu.illinois.ncsa.datawolf.domain.LogFile;
 import edu.illinois.ncsa.datawolf.domain.Submission;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.HPCJobInfoDao;
+import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.executor.hpc.ssh.SSHInfo;
 import edu.illinois.ncsa.datawolf.executor.hpc.ssh.SSHSession;
 import edu.illinois.ncsa.datawolf.executor.hpc.util.NonNLSConstants;
 import edu.illinois.ncsa.datawolf.executor.hpc.util.SshUtils;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.HPCJobInfoDAO;
-import edu.illinois.ncsa.datawolf.springdata.LogFileDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
-import edu.illinois.ncsa.springdata.PersonDAO;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 
 @Path("/executions")
 public class ExecutionsResource {
 
-    Logger             log     = LoggerFactory.getLogger(ExecutionsResource.class);
-    private static int RETRIES = 5;
+    Logger                log     = LoggerFactory.getLogger(ExecutionsResource.class);
+    private static int    RETRIES = 5;
+
+    @Inject
+    private WorkflowDao   workflowDao;
+
+    @Inject
+    private PersonDao     personDao;
+
+    @Inject
+    private ExecutionDao  executionDao;
+
+    @Inject
+    private Engine        engine;
+
+    @Inject
+    private HPCJobInfoDao hpcJobInfoDao;
+
+    @Inject
+    private LogFileDao    logfileDao;
 
     /**
      * Create execution via Submission JSON
@@ -113,23 +128,22 @@ public class ExecutionsResource {
         log.debug("POST /executions received");
         Execution execution = new Execution();
         // find workflow
-        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
-        Workflow workflow = workflowDAO.findOne(submission.getWorkflowId());
+        Workflow workflow = workflowDao.findOne(submission.getWorkflowId());
         if (workflow != null) {
             execution.setWorkflow(workflow);
             execution.setTitle(submission.getTitle());
             execution.setDescription(submission.getDescription());
-            execution.setCreator(SpringData.getBean(PersonDAO.class).findOne(submission.getCreatorId()));
+            execution.setCreator(personDao.findOne(submission.getCreatorId()));
             for (Entry<String, String> param : submission.getParameters().entrySet()) {
                 execution.setParameter(param.getKey(), param.getValue());
             }
             for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
                 execution.setDataset(dataset.getKey(), dataset.getValue());
             }
-            SpringData.getBean(ExecutionDAO.class).save(execution);
+            executionDao.save(execution);
 
             // start execution
-            SpringData.getBean(Engine.class).execute(execution);
+            engine.execute(execution);
 
             return execution.getId();
         } else {
@@ -155,18 +169,19 @@ public class ExecutionsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
 
-        Sort sort = new Sort(Sort.Direction.DESC, "date");
+//        Sort sort = new Sort(Sort.Direction.DESC, "date");
 
         // without paging
         if (size < 1) {
             if (email.equals("")) {
                 Iterable<Execution> tmp;
                 if (showdeleted) {
-                    tmp = exedao.findAll(sort);
+                    // tmp = exedao.findAll(sort);
+                    tmp = executionDao.findAll();
                 } else {
-                    tmp = exedao.findByDeleted(false, sort);
+                    // tmp = executionDao.findByDeleted(false, sort);
+                    tmp = executionDao.findByDeleted(false);
                 }
                 ArrayList<Execution> list = new ArrayList<Execution>();
                 for (Execution d : tmp) {
@@ -175,28 +190,34 @@ public class ExecutionsResource {
                 return list;
             } else {
                 if (showdeleted) {
-                    return exedao.findByCreatorEmail(email, sort);
+                    // return executionDao.findByCreatorEmail(email, sort);
+                    return executionDao.findByCreatorEmail(email);
                 } else {
-                    return exedao.findByCreatorEmailAndDeleted(email, false, sort);
+                    // return executionDao.findByCreatorEmailAndDeleted(email,
+// false, sort);
+                    return executionDao.findByCreatorEmailAndDeleted(email, false);
                 }
             }
 
         } else { // with paging
-            Page<Execution> results = null;
-            if (email.equals("")) {
-                if (showdeleted) {
-                    results = exedao.findAll(new PageRequest(page, size, sort));
-                } else {
-                    results = exedao.findByDeleted(false, new PageRequest(page, size, sort));
-                }
-            } else {
-                if (showdeleted) {
-                    results = exedao.findByCreatorEmail(email, new PageRequest(page, size, sort));
-                } else {
-                    results = exedao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
-                }
-            }
-            return results.getContent();
+            // TODO implement paging
+//            Page<Execution> results = null;
+//            if (email.equals("")) {
+//                if (showdeleted) {
+//                    results = exedao.findAll(new PageRequest(page, size, sort));
+//                } else {
+//                    results = exedao.findByDeleted(false, new PageRequest(page, size, sort));
+//                }
+//            } else {
+//                if (showdeleted) {
+//                    results = exedao.findByCreatorEmail(email, new PageRequest(page, size, sort));
+//                } else {
+//                    results = exedao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
+//                }
+//            }
+//            return results.getContent();
+
+            return null;
         }
 
     }
@@ -214,8 +235,7 @@ public class ExecutionsResource {
     @Path("{execution-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Execution getExecution(@PathParam("execution-id") String executionId) {
-        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
-        return exedao.findOne(executionId);
+        return executionDao.findOne(executionId);
     }
 
     /**
@@ -231,13 +251,12 @@ public class ExecutionsResource {
         if ("".equals(executionId)) {
             throw (new Exception("Invalid id passed in."));
         }
-        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
-        Execution execution = exedao.findOne(executionId);
+        Execution execution = executionDao.findOne(executionId);
         if (execution == null) {
             throw (new Exception("Invalid id passed in."));
         }
         execution.setDeleted(true);
-        exedao.save(execution);
+        executionDao.save(execution);
     }
 
     @GET
@@ -249,8 +268,7 @@ public class ExecutionsResource {
         String command = null;
         try {
             // getting HPCJobInfo Bean
-            HPCJobInfoDAO hDao = SpringData.getBean(HPCJobInfoDAO.class);
-            List<HPCJobInfo> hpcJobInfoList = hDao.findByExecutionId(executionId);
+            List<HPCJobInfo> hpcJobInfoList = hpcJobInfoDao.findByExecutionId(executionId);
 
             if (hpcJobInfoList.isEmpty()) {
                 log.error("Can't find hpcJogInfo bean for execution: " + executionId);
@@ -309,8 +327,7 @@ public class ExecutionsResource {
         SSHSession session = null;
         try {
             // getting HPCJobInfo Bean
-            HPCJobInfoDAO hDao = SpringData.getBean(HPCJobInfoDAO.class);
-            List<HPCJobInfo> hpcJobInfoList = hDao.findByExecutionId(executionId);
+            List<HPCJobInfo> hpcJobInfoList = hpcJobInfoDao.findByExecutionId(executionId);
 
             if (hpcJobInfoList.isEmpty()) {
                 log.error("Can't find hpcJogInfo bean for execution: " + executionId);
@@ -485,7 +502,6 @@ public class ExecutionsResource {
     @Path("{execution-id}/logfiles")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<LogFile> getLogfiles(@PathParam("execution-id") String executionId) {
-        LogFileDAO logfileDao = SpringData.getBean(LogFileDAO.class);
         return logfileDao.findByExecutionId(executionId);
     }
 
@@ -503,7 +519,6 @@ public class ExecutionsResource {
     @Path("{execution-id}/logfiles/{step-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public LogFile getLogfiles(@PathParam("execution-id") String executionId, @PathParam("step-id") String stepId) {
-        LogFileDAO logfileDao = SpringData.getBean(LogFileDAO.class);
         return logfileDao.findLogByExecutionIdAndStepId(executionId, stepId);
     }
 
@@ -518,9 +533,8 @@ public class ExecutionsResource {
     @Path("{execution-id}/state")
     @Produces({ MediaType.APPLICATION_JSON })
     public Map<String, State> getState(@PathParam("execution-id") String executionId) {
-        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
-        Execution e = exedao.findOne(executionId);
-        return e.getStepStates();
+        Execution e = executionDao.findOne(executionId);
+        return e.getStepState();
     }
 
     /**
@@ -532,11 +546,9 @@ public class ExecutionsResource {
     @PUT
     @Path("{execution-id}/start")
     public void startExecution(@PathParam("execution-id") String executionId) {
-        ExecutionDAO exedao = SpringData.getBean(ExecutionDAO.class);
-        Execution execution = exedao.findOne(executionId);
-        Engine engine = SpringData.getBean(Engine.class);
+        Execution execution = executionDao.findOne(executionId);
         engine.execute(execution);
-        execution = exedao.findOne(executionId);
+        // execution = executionDao.findOne(executionId);
     }
 
     /**
@@ -558,8 +570,6 @@ public class ExecutionsResource {
     @PUT
     @Path("{execution-id}/cancel")
     public void cancelExecution(@PathParam("execution-id") String executionId, @QueryParam("stepids") @DefaultValue("") String stepIds) {
-        Engine engine = SpringData.getBean(Engine.class);
-
         if (stepIds.equals("")) {
             engine.stop(executionId);
         } else {

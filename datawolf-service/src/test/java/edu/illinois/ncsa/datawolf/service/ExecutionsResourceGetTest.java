@@ -8,17 +8,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.service.client.DataWolfServiceClient;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
+import edu.illinois.ncsa.domain.Persistence;
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.SpringData;
-import edu.illinois.ncsa.springdata.Transaction;
 
 public class ExecutionsResourceGetTest {
     private static Logger logger = LoggerFactory.getLogger(ExecutionsResourceGetTest.class);
@@ -33,22 +31,34 @@ public class ExecutionsResourceGetTest {
         DataWolfServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
 
         EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
+
+        Persistence.setInjector(EmbededJetty.injector);
+
     }
 
     @Before
     public void createContext() throws Exception {
-        new GenericXmlApplicationContext("testContext.xml");
+        // new GenericXmlApplicationContext("testContext.xml");
 
         // create person
         Person person = Person.createPerson("Jong", "Lee", "jonglee1@illinois.edu");
 
+        // Engine engine = EmbededJetty.injector.getInstance(Engine.class);
+        // CommandLineExecutor executor =
+// Persistence.getBean(CommandLineExecutor.class);
+
         // create a workflow with a step
         Workflow workflow = TestCaseUtil.createWorkflow(person);
-        SpringData.getBean(WorkflowDAO.class).save(workflow);
+        WorkflowDao workflowDao = EmbededJetty.injector.getInstance(WorkflowDao.class);
+        workflowDao.save(workflow);
+
         Execution execution = TestCaseUtil.createExecution(person, workflow);
         List<WorkflowStep> steps = workflow.getSteps();
         stepId = steps.get(0).getId();
-        SpringData.getBean(ExecutionDAO.class).save(execution);
+
+        ExecutionDao executionDao = EmbededJetty.injector.getInstance(ExecutionDao.class);
+        executionDao.save(execution);
+
         id = execution.getId();
     }
 
@@ -60,24 +70,26 @@ public class ExecutionsResourceGetTest {
     @Test
     public void testStartExecutionById() throws Exception {
         logger.info("Test get workflow by id");
+
+        // Execution execution = executionDao.findOne(id);
+
         DataWolfServiceClient.startExecution(id);
-        ExecutionDAO executionDAO = SpringData.getBean(ExecutionDAO.class);
         for (int i = 0; i < 100; i++) {
             Thread.sleep(1000);
-            Transaction transaction = SpringData.getTransaction();
-            try {
-                transaction.start();
-                Execution execution = executionDAO.findOne(id);
-                logger.info("Status of the job:" + execution.getStepState(stepId));
-                if (execution.getStepState(stepId) == Execution.State.FINISHED) {
-                    return;
-                }
-            } finally {
-                transaction.commit();
+            // Transaction transaction = SpringData.getTransaction();
+            // try {
+            // transaction.start();
+            // Execution execution = executionDao.findOne(id);
+            Execution execution = DataWolfServiceClient.getExecution(id);
+            logger.info("Status of the job:" + stepId + " state = " + execution.getStepState(stepId));
+            if (execution.getStepState(stepId) == Execution.State.FINISHED) {
+                return;
             }
+            // } finally {
+            // transaction.commit();
+            // }
         }
         throw new AssertionError("workflow never finished.");
 //        assertEquals(workflowJson, wfJson);
     }
-
 }

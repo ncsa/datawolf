@@ -1,48 +1,48 @@
 package edu.illinois.ncsa.datawolf.service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EnumSet;
 
+import javax.servlet.DispatcherType;
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
-import org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.servlet.Context;
-import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
-import org.springframework.web.context.ContextLoaderListener;
-import org.springframework.web.context.support.XmlWebApplicationContext;
+
+import com.google.inject.Injector;
+import com.google.inject.servlet.GuiceFilter;
 
 public class EmbededJetty {
-    public static int     PORT = 9977;
-    private static Server server;
+    public static int      PORT = 9977;
+    private static Server  server;
+    public static Injector injector;
 
     public static void jettyServer(String resourceBase, String configXml) throws Exception {
         server = new Server(PORT);
 
+        ServletContextHandler root = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
+        root.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+
+        GuiceContextListener listener = new GuiceContextListener();
+        root.addEventListener(listener);
         // create the context, point to location of resources
-        Context root = new Context(server, "/", Context.SESSIONS);
-        root.setResourceBase(resourceBase);
+        // Context root = new Context(server, "/", Context.SESSIONS);
+        // root.setResourceBase(resourceBase);
 
         // setup resteasy
-        Map<String, String> initParams = new HashMap<String, String>();
-        initParams.put("resteasy.scan.providers", "true");
-        initParams.put("javax.ws.rs.Application", DataWolfApplication.class.getName());
-        root.setInitParams(initParams);
-        root.addEventListener(new ResteasyBootstrap());
+        // Map<String, String> initParams = new HashMap<String, String>();
+        // initParams.put("resteasy.scan.providers", "true");
+        // initParams.put("javax.ws.rs.Application",
+// DataWolfApplication.class.getName());
+        // root.addEventListener(new ResteasyBootstrap());
         root.addServlet(HttpServletDispatcher.class, "/*");
 
-        // create spring context
-        XmlWebApplicationContext xmlContext = new XmlWebApplicationContext();
-        xmlContext.setConfigLocation(configXml);
-        xmlContext.setServletContext(root.getServletContext());
-        xmlContext.refresh();
-
-        // spring framework
-        root.addEventListener(new ContextLoaderListener(xmlContext));
-        root.addFilter(OpenEntityManagerInViewFilter.class, "/*", Handler.DEFAULT);
+        // root.addEventListener(new ContextLoaderListener(xmlContext));
+        // root.addFilter(OpenEntityManagerInViewFilter.class, "/*",
+// Handler.DEFAULT);
 
         // start jetty
         server.start();
+        injector = listener.getInjector();
         System.out.println("http://localhost:" + PORT);
     }
 

@@ -92,7 +92,7 @@
 
 	<build>
 		<plugins>
-			<!-- copy the jetty runer and datawolf editor-->
+			<!-- copy the jetty runer and datawolf editor -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -112,9 +112,9 @@
 									<type>war</type>
 								</artifactItem>
 								<artifactItem>
-									<groupId>org.mortbay.jetty</groupId>
+									<groupId>org.eclipse.jetty</groupId>
 									<artifactId>jetty-runner</artifactId>
-									<version>8.1.5.v20120716</version>
+									<version>9.2.2.v20140723</version>
 									<destFileName>jetty-runner.jar</destFileName>
 								</artifactItem>
 							</artifactItems>

@@ -3,13 +3,14 @@ package edu.illinois.ncsa.datawolf.service;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
 import org.jboss.resteasy.annotations.interception.ServerInterceptor;
 import org.jboss.resteasy.core.Headers;
-import org.jboss.resteasy.core.ResourceMethod;
+import org.jboss.resteasy.core.ResourceMethodInvoker;
 import org.jboss.resteasy.core.ServerResponse;
 import org.jboss.resteasy.spi.Failure;
 import org.jboss.resteasy.spi.HttpRequest;
@@ -20,15 +21,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.domain.Account;
-import edu.illinois.ncsa.springdata.AccountDAO;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.dao.AccountDao;
 
 @Provider
 @ServerInterceptor
+// TODO replace this deprecated interface
 public class AuthenticationInterceptor implements PreProcessInterceptor {
-    private Logger  log     = LoggerFactory.getLogger(AuthenticationInterceptor.class);
+    private Logger     log     = LoggerFactory.getLogger(AuthenticationInterceptor.class);
 
-    private boolean enabled = Boolean.getBoolean("datawolf.authentication");
+    private boolean    enabled = Boolean.getBoolean("datawolf.authentication");
+
+    @Inject
+    private AccountDao accountDao;
 
     public boolean isEnabled() {
         return enabled;
@@ -39,11 +43,10 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
     }
 
     @Override
-    public ServerResponse preProcess(HttpRequest request, ResourceMethod method) throws Failure, WebApplicationException {
+    public ServerResponse preProcess(HttpRequest request, ResourceMethodInvoker method) throws Failure, WebApplicationException {
         if (!enabled) {
             return null;
         }
-
         if (request.getHttpHeaders().getRequestHeader("Authorization") != null) {
             String token = request.getHttpHeaders().getRequestHeader("Authorization").get(0);
 
@@ -51,11 +54,15 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
                 log.debug("Authorization header found - Sucessfully authenticated");
                 return null;
             } else {
-                return unauthorizedResponse(request.getPreprocessedPath());
+                // TODO preprocessedPath not part of httprequest
+                // return unauthorizedResponse(request.getPreprocessedPath());
+                return unauthorizedResponse("Not authenticated");
             }
         } else {
             log.debug("Not authenticated");
-            return unauthorizedResponse(request.getPreprocessedPath());
+            // TODO preprocessedPath not part of httprequest
+            // return unauthorizedResponse(request.getPreprocessedPath());
+            return unauthorizedResponse("Not authenticated");
         }
     }
 
@@ -89,7 +96,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
                 String user = tokenizer.nextToken();
                 // TODO RK : password should really be encrypted
                 String password = tokenizer.nextToken();
-                Account account = SpringData.getBean(AccountDAO.class).findByUserid(user);
+                Account account = accountDao.findByUserid(user);
                 if ((account != null) && !account.isDeleted() && account.getPassword().equals(password)) {
                     log.debug("REST Authentication successful");
                     return true;

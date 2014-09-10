@@ -7,60 +7,60 @@
 	<artifactId>datawolf</artifactId>
 	<packaging>pom</packaging>
 
-        <properties>
-                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<ncsa.common.version>3.1.0-SNAPSHOT</ncsa.common.version>
 
-                <hibernate.version>4.3.5.Final</hibernate.version>
-                <bonecp.version>0.7.1.RELEASE</bonecp.version>
-                <hsql.version>2.2.8</hsql.version>
-                <mysql.version>5.1.21</mysql.version>
-                <postgresql.version>9.1-901-1.jdbc4</postgresql.version>
+		<hibernate.version>4.3.5.Final</hibernate.version>
+		<bonecp.version>0.7.1.RELEASE</bonecp.version>
+		<hsql.version>2.2.8</hsql.version>
+		<mysql.version>5.1.21</mysql.version>
+		<postgresql.version>9.1-901-1.jdbc4</postgresql.version>
 
 		<apache.http.version>4.2.1</apache.http.version>
 
-                <slf4j.version>1.7.0</slf4j.version>
-                <junit.version>4.10</junit.version>
+		<slf4j.version>1.7.0</slf4j.version>
+		<junit.version>4.10</junit.version>
+		<guice.version>3.0</guice.version>
+		<jackson.version>2.0.5</jackson.version>
+		<resteasy.version>3.0.8.Final</resteasy.version>
+		<jetty.version>9.2.0.v20140526</jetty.version>
+	</properties>
 
-                <jackson.version>2.0.5</jackson.version>
-                <resteasy.version>3.0.8.Final</resteasy.version>
-                <jetty.version>9.2.0.v20140526</jetty.version>
-        </properties>
-
-        <repositories>
-                <repository>
-                        <id>ncsa.opensource.releases</id>
-                        <name>ncsa.opensource.releases</name>
-                        <url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/releases</url>
-                        <releases>
-                                <enabled>true</enabled>
-                        </releases>
-                </repository>
-                <repository>
-                        <id>ncsa.opensource.snapshots</id>
-                        <name>ncsa.opensource.snapshots</name>
-                        <url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
-                        <snapshots>
-                                <enabled>true</enabled>
-                                <updatePolicy>always</updatePolicy>
-                                <checksumPolicy>warn</checksumPolicy>
-                        </snapshots>
-                </repository>
-                <repository>
-                        <id>renci.repository</id>
-                        <name>renci.repository</name>
-                        <url>http://ci-dev.renci.org/nexus/content/repositories/public</url>
-                        <releases>
-                                <enabled>true</enabled>
-                        </releases>
-                        <snapshots>
-                                <enabled>true</enabled>
-                                <updatePolicy>always</updatePolicy>
-                                <checksumPolicy>warn</checksumPolicy>
-                        </snapshots>
-                </repository>
-        </repositories>
+	<repositories>
+		<repository>
+			<id>ncsa.opensource.releases</id>
+			<name>ncsa.opensource.releases</name>
+			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+		<repository>
+			<id>ncsa.opensource.snapshots</id>
+			<name>ncsa.opensource.snapshots</name>
+			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>renci.repository</id>
+			<name>renci.repository</name>
+			<url>http://ci-dev.renci.org/nexus/content/repositories/public</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</repository>
+	</repositories>
 
 	<scm>
 		<connection>https://opensource.ncsa.illinois.edu/fisheye/git/datawolf.git</connection>
@@ -102,23 +102,23 @@
 		<module>datawolf-executor-java</module>
 		<module>datawolf-tool-example</module>
 		<module>datawolf-executor-commandline</module>
-                <module>gondola</module>
+		<module>gondola</module>
 		<module>datawolf-executor-hpc</module>
 		<module>datawolf-service-client</module>
 		<module>datawolf-service</module>
 		<module>datawolf-webapp</module>
 		<module>datawolf-editor</module>
-                <!-- <module>datawolf-tool-creator</module> -->
+		<!-- <module>datawolf-tool-creator</module> -->
 		<module>datawolf-webapp-all</module>
 	</modules>
 
 
-        <dependencies>
+	<dependencies>
 		<dependency>
-                        <groupId>javax.inject</groupId>
-                        <artifactId>javax.inject</artifactId>
-                        <version>1</version>
-                </dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
+		</dependency>
 		<!-- SUPPORT FOR TESTS -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -135,7 +135,7 @@
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
-			</exclusions> 
+			</exclusions>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -147,7 +147,7 @@
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
-			</exclusions> 
+			</exclusions>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -168,29 +168,29 @@
 			<version>${hsql.version}</version>
 			<scope>test</scope>
 		</dependency>
-                <dependency>
-                        <groupId>junit</groupId>
-                        <artifactId>junit</artifactId>
-                        <version>${junit.version}</version>
-                        <scope>test</scope>
-                </dependency>
-                <dependency>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-jdk14</artifactId>
-                        <version>${slf4j.version}</version>
-                        <scope>test</scope>
-                </dependency>
- 		<dependency>
-                        <groupId>com.google.inject</groupId>
-                        <artifactId>guice</artifactId>
-                        <version>3.0</version>
-                        <scope>test</scope>
-                </dependency>
-                <dependency>
-                        <groupId>com.google.inject.extensions</groupId>
-                        <artifactId>guice-persist</artifactId>
-                        <version>3.0</version>
-                </dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>3.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-persist</artifactId>
+			<version>3.0</version>
+		</dependency>
 
-        </dependencies>
+	</dependencies>
 </project>

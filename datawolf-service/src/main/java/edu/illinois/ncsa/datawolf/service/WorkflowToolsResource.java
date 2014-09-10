@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -54,17 +55,17 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 
 import edu.illinois.ncsa.datawolf.ImportExport;
 import edu.illinois.ncsa.datawolf.domain.WorkflowTool;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowToolDAO;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDao;
 
 @Path("/workflowtools")
 public class WorkflowToolsResource {
-    private static Logger logger = LoggerFactory.getLogger(WorkflowToolsResource.class);
+    private static Logger   logger = LoggerFactory.getLogger(WorkflowToolsResource.class);
+
+    @Inject
+    private WorkflowToolDao workflowToolDao;
 
     /**
      * Get all workflow tools
@@ -81,15 +82,14 @@ public class WorkflowToolsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public List<WorkflowTool> getWorkflowTools(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted, @QueryParam("email") @DefaultValue("") String email) {
-        WorkflowToolDAO toolDao = SpringData.getBean(WorkflowToolDAO.class);
 
         if (size < 1) {
             if (email.equals("")) {
                 Iterable<WorkflowTool> tmp;
                 if (showdeleted) {
-                    tmp = toolDao.findAll();
+                    tmp = workflowToolDao.findAll();
                 } else {
-                    tmp = toolDao.findByDeleted(false);
+                    tmp = workflowToolDao.findByDeleted(false);
                 }
                 ArrayList<WorkflowTool> list = new ArrayList<WorkflowTool>();
                 for (WorkflowTool d : tmp) {
@@ -98,29 +98,48 @@ public class WorkflowToolsResource {
                 return list;
             } else {
                 if (showdeleted) {
-                    return toolDao.findByCreatorEmail(email);
+                    return workflowToolDao.findByCreatorEmail(email);
                 } else {
-                    return toolDao.findByCreatorEmailAndDeleted(email, false);
+                    return workflowToolDao.findByCreatorEmailAndDeleted(email, false);
                 }
             }
         } else {
-            Page<WorkflowTool> results = null;
-
+            // TODO implement paging
+//            Page<WorkflowTool> results = null;
+//
+//            if (email.equals("")) {
+//                if (showdeleted) {
+//                    results = workflowToolDao.findAll(new PageRequest(page, size));
+//                } else {
+//                    results = workflowToolDao.findByDeleted(false, new PageRequest(page, size));
+//                }
+//            } else {
+//                if (showdeleted) {
+//                    results = workflowToolDao.findByCreatorEmail(email, new PageRequest(page, size));
+//                } else {
+//                    results = workflowToolDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size));
+//                }
+//            }
+//            return results.getContent();
             if (email.equals("")) {
+                Iterable<WorkflowTool> tmp;
                 if (showdeleted) {
-                    results = toolDao.findAll(new PageRequest(page, size));
+                    tmp = workflowToolDao.findAll();
                 } else {
-                    results = toolDao.findByDeleted(false, new PageRequest(page, size));
+                    tmp = workflowToolDao.findByDeleted(false);
                 }
+                ArrayList<WorkflowTool> list = new ArrayList<WorkflowTool>();
+                for (WorkflowTool d : tmp) {
+                    list.add(d);
+                }
+                return list;
             } else {
                 if (showdeleted) {
-                    results = toolDao.findByCreatorEmail(email, new PageRequest(page, size));
+                    return workflowToolDao.findByCreatorEmail(email);
                 } else {
-                    results = toolDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size));
+                    return workflowToolDao.findByCreatorEmailAndDeleted(email, false);
                 }
             }
-            return results.getContent();
-
         }
     }
 
@@ -183,8 +202,7 @@ public class WorkflowToolsResource {
     @Path("{tool-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public WorkflowTool getWorkflowTool(@PathParam("tool-id") String toolId) {
-        WorkflowToolDAO toolDAO = SpringData.getBean(WorkflowToolDAO.class);
-        return toolDAO.findOne(toolId);
+        return workflowToolDao.findOne(toolId);
     }
 
     /**
@@ -199,13 +217,12 @@ public class WorkflowToolsResource {
         if ("".equals(toolId)) {
             throw (new Exception("Invalid id passed in."));
         }
-        WorkflowToolDAO toolDao = SpringData.getBean(WorkflowToolDAO.class);
-        WorkflowTool tool = toolDao.findOne(toolId);
+        WorkflowTool tool = workflowToolDao.findOne(toolId);
         if (tool == null) {
             throw (new Exception("Invalid id passed in."));
         }
         tool.setDeleted(true);
-        toolDao.save(tool);
+        workflowToolDao.save(tool);
     }
 
 }

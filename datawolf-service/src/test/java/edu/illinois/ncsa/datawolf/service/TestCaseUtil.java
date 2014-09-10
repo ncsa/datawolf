@@ -12,7 +12,7 @@ import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineImplementation
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption.Type;
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 
 public class TestCaseUtil {
     public static Execution createExecution(Person creator, Workflow workflow) {
@@ -86,7 +86,7 @@ public class TestCaseUtil {
         impl.setCaptureStdOut(STDOUT_ID);
         impl.getCommandLineOptions().add(option);
 
-        tool.setImplementation(SpringData.objectToJSON(impl));
+        tool.setImplementation(BeanUtil.objectToJSON(impl));
 
         return tool;
     }

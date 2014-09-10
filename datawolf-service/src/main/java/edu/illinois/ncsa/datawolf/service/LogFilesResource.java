@@ -34,6 +34,7 @@ package edu.illinois.ncsa.datawolf.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -42,14 +43,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.springframework.data.domain.PageRequest;
-
 import edu.illinois.ncsa.datawolf.domain.LogFile;
-import edu.illinois.ncsa.datawolf.springdata.LogFileDAO;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
 
 @Path("/logfiles")
 public class LogFilesResource {
+
+    @Inject
+    private LogFileDao logFileDao;
+
     /**
      * Get all logfiles
      * 
@@ -62,7 +64,6 @@ public class LogFilesResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<LogFile> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page) {
-        LogFileDAO logFileDao = SpringData.getBean(LogFileDAO.class);
 
         // without paging
         if (size < 1) {
@@ -73,7 +74,14 @@ public class LogFilesResource {
             }
             return list;
         } else { // with paging
-            return logFileDao.findAll(new PageRequest(page, size)).getContent();
+            // TODO implement paging
+//            return logFileDao.findAll(new PageRequest(page, size)).getContent();
+            Iterable<LogFile> results = logFileDao.findAll();
+            ArrayList<LogFile> list = new ArrayList<LogFile>();
+            for (LogFile d : results) {
+                list.add(d);
+            }
+            return list;
         }
     }
 
@@ -90,6 +98,6 @@ public class LogFilesResource {
     @Path("{logfile-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public LogFile getLogFile(@PathParam("logfile-id") String logfileId) {
-        return SpringData.getBean(LogFileDAO.class).findOne(logfileId);
+        return logFileDao.findOne(logfileId);
     }
 }

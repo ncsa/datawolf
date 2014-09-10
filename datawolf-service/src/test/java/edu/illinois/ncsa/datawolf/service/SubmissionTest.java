@@ -7,15 +7,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.GenericXmlApplicationContext;
 
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.Submission;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.service.client.DataWolfServiceClient;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
+import edu.illinois.ncsa.domain.Persistence;
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.SpringData;
 
 public class SubmissionTest {
     private static Logger logger = LoggerFactory.getLogger(SubmissionTest.class);
@@ -27,20 +26,23 @@ public class SubmissionTest {
     public static void setUp() throws Exception {
         logger.info("Setting up Test for Executions Resource");
 
-        new GenericXmlApplicationContext("testContext.xml");
+        // new GenericXmlApplicationContext("testContext.xml");
 
         // create person
         Person person = Person.createPerson("Jong", "Lee", "jonglee1@illinois.edu");
 
-        // create a workflow with a step
-        Workflow workflow = TestCaseUtil.createWorkflow(person);
-        SpringData.getBean(WorkflowDAO.class).save(workflow);
-
-        id = workflow.getId();
-
         DataWolfServiceClient.SERVER = "http://localhost:" + EmbededJetty.PORT;
 
         EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
+
+        Persistence.setInjector(EmbededJetty.injector);
+
+        // create a workflow with a step
+        Workflow workflow = TestCaseUtil.createWorkflow(person);
+        WorkflowDao workflowDao = EmbededJetty.injector.getInstance(WorkflowDao.class);
+        workflowDao.save(workflow);
+
+        id = workflow.getId();
     }
 
     @AfterClass

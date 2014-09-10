@@ -59,7 +59,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.StreamingOutput;
 
-import org.hibernate.annotations.Sort;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
@@ -68,13 +67,11 @@ import org.slf4j.LoggerFactory;
 import edu.illinois.ncsa.datawolf.ImportExport;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
-import edu.illinois.ncsa.springdata.DatasetDAO;
-import edu.illinois.ncsa.springdata.DatasetUtil;
-import edu.illinois.ncsa.springdata.FileStorage;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.util.DatasetUtil;
 
 @Path("/datasets")
 public class DatasetsResource {
@@ -84,6 +81,10 @@ public class DatasetsResource {
 
     @Inject
     private DatasetDao          datasetDao;
+
+    @Inject
+    private FileStorage         fileStorage;
+
     private static final Logger log = LoggerFactory.getLogger(DatasetsResource.class);
 
     /**
@@ -175,8 +176,6 @@ public class DatasetsResource {
                     return null;
                 }
             }
-
-            FileStorage fileStorage = SpringData.getFileStorage();
 
             FileDescriptor fileDescriptor = null;
 
@@ -302,9 +301,10 @@ public class DatasetsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
             @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
+        // DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
 
-        Sort sort = new Sort(Sort.Direction.DESC, "date");
+        // TODO add sort capability
+//        Sort sort = new Sort(Sort.Direction.DESC, "date");
 
         // without paging
         if (size < 1) {
@@ -312,29 +312,42 @@ public class DatasetsResource {
             if (email.equals("")) {
                 if (pattern.equals("")) {
                     if (showdeleted) {
-                        results = datasetDao.findAll(sort);
+                        // results = datasetDao.findAll(sort);
+                        results = datasetDao.findAll();
                     } else {
-                        results = datasetDao.findByDeleted(false, sort);
+                        // results = datasetDao.findByDeleted(false, sort);
+                        results = datasetDao.findByDeleted(false);
                     }
                 } else {
                     if (showdeleted) {
-                        results = datasetDao.findByTitleLike(pattern, sort);
+                        // results = datasetDao.findByTitleLike(pattern, sort);
+                        results = datasetDao.findByTitleLike(pattern);
                     } else {
-                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, sort);
+                        // results =
+// datasetDao.findByTitleLikeAndDeleted(pattern, false, sort);
+                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false);
                     }
                 }
             } else {
                 if (pattern.equals("")) {
                     if (showdeleted) {
-                        results = datasetDao.findByCreatorEmail(email, sort);
+                        // results = datasetDao.findByCreatorEmail(email, sort);
+                        results = datasetDao.findByCreatorEmail(email);
                     } else {
-                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, sort);
+                        // results =
+// datasetDao.findByCreatorEmailAndDeleted(email, false, sort);
+                        results = datasetDao.findByCreatorEmailAndDeleted(email, false);
                     }
                 } else {
                     if (showdeleted) {
-                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, sort);
+                        // results =
+// datasetDao.findByCreatorEmailAndTitleLike(email, pattern, sort);
+                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
                     } else {
-                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, sort);
+                        // results =
+// datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false,
+// sort);
+                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false);
                     }
                 }
             }
@@ -346,38 +359,39 @@ public class DatasetsResource {
             return list;
 
         } else { // with paging
-
-            Page<Dataset> results = null;
-            if (email.equals("")) {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findAll(new PageRequest(page, size, sort));
-                    } else {
-                        results = datasetDao.findByDeleted(false, new PageRequest(page, size, sort));
-                    }
-                } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByTitleLike(pattern, new PageRequest(page, size, sort));
-                    } else {
-                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, new PageRequest(page, size, sort));
-                    }
-                }
-            } else {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size, sort));
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
-                    }
-                } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, new PageRequest(page, size, sort));
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, new PageRequest(page, size, sort));
-                    }
-                }
-            }
-            return results.getContent();
+            // TODO implement paging
+//            Page<Dataset> results = null;
+//            if (email.equals("")) {
+//                if (pattern.equals("")) {
+//                    if (showdeleted) {
+//                        results = datasetDao.findAll(new PageRequest(page, size, sort));
+//                    } else {
+//                        results = datasetDao.findByDeleted(false, new PageRequest(page, size, sort));
+//                    }
+//                } else {
+//                    if (showdeleted) {
+//                        results = datasetDao.findByTitleLike(pattern, new PageRequest(page, size, sort));
+//                    } else {
+//                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, new PageRequest(page, size, sort));
+//                    }
+//                }
+//            } else {
+//                if (pattern.equals("")) {
+//                    if (showdeleted) {
+//                        results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size, sort));
+//                    } else {
+//                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
+//                    }
+//                } else {
+//                    if (showdeleted) {
+//                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, new PageRequest(page, size, sort));
+//                    } else {
+//                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, new PageRequest(page, size, sort));
+//                    }
+//                }
+//            }
+//            return results.getContent();
+            return null;
         }
     }
 
@@ -523,7 +537,7 @@ public class DatasetsResource {
         if (fileDescriptor == null)
             return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
 
-        FileStorage fileStorage = SpringData.getFileStorage();
+        // FileStorage fileStorage = SpringData.getFileStorage();
 
         try {
             final InputStream is = fileStorage.readFile(fileDescriptor);

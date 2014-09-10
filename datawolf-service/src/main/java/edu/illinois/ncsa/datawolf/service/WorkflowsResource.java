@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -59,22 +60,28 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 import edu.illinois.ncsa.datawolf.ImportExport;
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
-import edu.illinois.ncsa.datawolf.springdata.ExecutionDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowDAO;
-import edu.illinois.ncsa.datawolf.springdata.WorkflowStepDAO;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
+import edu.illinois.ncsa.domain.util.BeanUtil;
 
 @Path("/workflows")
 public class WorkflowsResource {
     private static final Logger log = LoggerFactory.getLogger(WorkflowsResource.class);
+
+    @Inject
+    private WorkflowDao         workflowDao;
+
+    @Inject
+    private ExecutionDao        executionDao;
+
+    @Inject
+    private WorkflowStepDao     workflowStepDao;
 
     /**
      * Create a new workflow
@@ -88,9 +95,8 @@ public class WorkflowsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow createWorkflow(Workflow workflow) {
         log.debug("Creating new workflow with id " + workflow.getId());
-        workflow = SpringData.removeDuplicate(workflow);
-        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
-        Workflow tmp = workflowDAO.save(workflow);
+        workflow = BeanUtil.removeDuplicate(workflow);
+        Workflow tmp = workflowDao.save(workflow);
         return tmp;
     }
 
@@ -107,9 +113,8 @@ public class WorkflowsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow updateWorkflow(Workflow workflow) {
         log.debug("Updating workflow. workflow id " + workflow.getId());
-        workflow = SpringData.removeDuplicate(workflow);
-        WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
-        Workflow tmp = workflowDAO.save(workflow);
+        workflow = BeanUtil.removeDuplicate(workflow);
+        Workflow tmp = workflowDao.save(workflow);
         return tmp;
     }
 
@@ -177,15 +182,16 @@ public class WorkflowsResource {
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         log.debug("get workflows");
 
-        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        Sort sort = new Sort(Sort.Direction.DESC, "created");
+//        Sort sort = new Sort(Sort.Direction.DESC, "created");
         if (size < 1) {
             if (email.equals("")) {
                 Iterable<Workflow> tmp;
                 if (showdeleted) {
-                    tmp = wfdao.findAll(sort);
+                    // tmp = workflowDao.findAll(sort);
+                    tmp = workflowDao.findAll();
                 } else {
-                    tmp = wfdao.findByDeleted(false, sort);
+                    // tmp = workflowDao.findByDeleted(false, sort);
+                    tmp = workflowDao.findByDeleted(false);
                 }
                 ArrayList<Workflow> list = new ArrayList<Workflow>();
                 for (Workflow d : tmp) {
@@ -194,28 +200,57 @@ public class WorkflowsResource {
                 return list;
             } else {
                 if (showdeleted) {
-                    return wfdao.findByCreatorEmail(email, sort);
+                    // return workflowDao.findByCreatorEmail(email, sort);
+                    return workflowDao.findByCreatorEmail(email);
                 } else {
-                    return wfdao.findByCreatorEmailAndDeleted(email, false, sort);
+                    // return workflowDao.findByCreatorEmailAndDeleted(email,
+// false, sort);
+                    return workflowDao.findByCreatorEmailAndDeleted(email, false);
                 }
             }
         } else {
-            Page<Workflow> results;
+            // TODO implement paging
+//            Page<Workflow> results;
+//            if (email.equals("")) {
+//                if (showdeleted) {
+//                    results = workflowDao.findAll(new PageRequest(page, size));
+//                } else {
+//                    results = workflowDao.findByDeleted(false, new PageRequest(page, size));
+//                }
+//            } else {
+//                if (showdeleted) {
+//                    results = workflowDao.findByCreatorEmail(email, new PageRequest(page, size, sort));
+//                } else {
+//                    results = workflowDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
+//                }
+//
+//            }
+//            return results.getContent();
+
             if (email.equals("")) {
+                Iterable<Workflow> tmp;
                 if (showdeleted) {
-                    results = wfdao.findAll(new PageRequest(page, size));
+                    // tmp = workflowDao.findAll(sort);
+                    tmp = workflowDao.findAll();
                 } else {
-                    results = wfdao.findByDeleted(false, new PageRequest(page, size));
+                    // tmp = workflowDao.findByDeleted(false, sort);
+                    tmp = workflowDao.findByDeleted(false);
                 }
+                ArrayList<Workflow> list = new ArrayList<Workflow>();
+                for (Workflow d : tmp) {
+                    list.add(d);
+                }
+                return list;
             } else {
                 if (showdeleted) {
-                    results = wfdao.findByCreatorEmail(email, new PageRequest(page, size, sort));
+                    // return workflowDao.findByCreatorEmail(email, sort);
+                    return workflowDao.findByCreatorEmail(email);
                 } else {
-                    results = wfdao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
+                    // return workflowDao.findByCreatorEmailAndDeleted(email,
+// false, sort);
+                    return workflowDao.findByCreatorEmailAndDeleted(email, false);
                 }
-
             }
-            return results.getContent();
         }
     }
 
@@ -233,8 +268,8 @@ public class WorkflowsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Workflow getWorkflow(@PathParam("workflow-id") String workflowId) {
         log.warn("get workflow by id");
-        WorkflowDAO wfdao = SpringData.getBean(WorkflowDAO.class);
-        return wfdao.findOne(workflowId);
+        Workflow w = workflowDao.findOne(workflowId);
+        return w;
     }
 
     /**
@@ -252,7 +287,6 @@ public class WorkflowsResource {
         if ("".equals(workflowId)) {
             throw (new Exception("Invalid id passed in."));
         }
-        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
         Workflow workflow = workflowDao.findOne(workflowId);
         if (workflow == null) {
             throw (new Exception("Invalid id passed in."));
@@ -331,14 +365,20 @@ public class WorkflowsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        ExecutionDAO execDao = SpringData.getBean(ExecutionDAO.class);
-        Page<Execution> results;
+        // TODO implement paging
+        // Page<Execution> results;
+        List<Execution> results;
         if (showdeleted) {
-            results = execDao.findByWorkflowId(workflowId, new PageRequest(page, size));
+            // results = executionDao.findByWorkflowId(workflowId, new
+// PageRequest(page, size));
+            results = executionDao.findByWorkflowId(workflowId);
         } else {
-            results = execDao.findByWorkflowIdAndDeleted(workflowId, false, new PageRequest(page, size));
+            // results = executionDao.findByWorkflowIdAndDeleted(workflowId,
+// false, new PageRequest(page, size));
+            results = executionDao.findByWorkflowIdAndDeleted(workflowId, false);
         }
-        return results.getContent();
+        // return results.getContent();
+        return results;
     }
 
     /**
@@ -353,7 +393,6 @@ public class WorkflowsResource {
     @Path("{workflow-id}/steps")
     @Produces({ MediaType.APPLICATION_JSON })
     public List<WorkflowStep> getSteps(@PathParam("workflow-id") @DefaultValue("") String workflowId) throws Exception {
-        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
         Workflow workflow = workflowDao.findOne(workflowId);
         if (workflow == null) {
             throw (new Exception("Invalid workflow id passed in."));
@@ -379,13 +418,11 @@ public class WorkflowsResource {
             throw (new Exception("Invalid id passed in."));
         }
 
-        WorkflowDAO workflowDao = SpringData.getBean(WorkflowDAO.class);
         Workflow workflow = workflowDao.findOne(workflowId);
         if (workflow == null) {
             throw (new Exception("Invalid workflow id passed in."));
         }
 
-        WorkflowStepDAO workflowStepDao = SpringData.getBean(WorkflowStepDAO.class);
         WorkflowStep workflowStep = workflowStepDao.findOne(stepId);
 
         if (workflowStep == null) {

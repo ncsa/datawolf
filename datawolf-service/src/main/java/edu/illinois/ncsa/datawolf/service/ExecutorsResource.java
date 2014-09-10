@@ -48,6 +48,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -68,12 +69,14 @@ import com.google.common.collect.ImmutableSet;
 import edu.illinois.ncsa.datawolf.Engine;
 import edu.illinois.ncsa.datawolf.Executor;
 import edu.illinois.ncsa.datawolf.executor.java.tool.JavaTool;
-import edu.illinois.ncsa.springdata.SpringData;
 
 @Path("/executors")
 public class ExecutorsResource {
 
     private static final Logger log = LoggerFactory.getLogger(ExecutorsResource.class);
+
+    @Inject
+    private Engine              engine;
 
     /**
      * Get all available executors
@@ -84,7 +87,6 @@ public class ExecutorsResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<String> getExecutors() throws Exception {
-        Engine engine = SpringData.getBean(Engine.class);
         if (engine == null)
             throw (new Exception("Can't retrive CI engine and executors"));
 

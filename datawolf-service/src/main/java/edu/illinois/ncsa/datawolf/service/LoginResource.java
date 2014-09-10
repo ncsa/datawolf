@@ -34,6 +34,7 @@ package edu.illinois.ncsa.datawolf.service;
 import java.io.IOException;
 import java.util.StringTokenizer;
 
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -50,13 +51,18 @@ import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.AccountDAO;
-import edu.illinois.ncsa.springdata.PersonDAO;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.dao.AccountDao;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 
 @Path("/login")
 public class LoginResource {
-    private Logger log = LoggerFactory.getLogger(LoginResource.class);
+    private Logger     log = LoggerFactory.getLogger(LoginResource.class);
+
+    @Inject
+    private PersonDao  personDao;
+
+    @Inject
+    private AccountDao accountDao;
 
     /**
      * Login a user by email and authorization string
@@ -70,8 +76,6 @@ public class LoginResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Person login(@QueryParam("email") String email, @HeaderParam("Authorization") String auth) {
-        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
-
         if ((auth != null) && !auth.equals("")) {
             try {
                 String decoded = new String(Base64.decode(auth.substring(6)));
@@ -80,8 +84,7 @@ public class LoginResource {
                     String user = tokenizer.nextToken();
                     String password = tokenizer.nextToken();
 
-                    AccountDAO accountDAO = SpringData.getBean(AccountDAO.class);
-                    Account userAccount = accountDAO.findByUserid(user);
+                    Account userAccount = accountDao.findByUserid(user);
 
                     if (userAccount == null) {
                         log.error("User account does not exist");
@@ -118,7 +121,6 @@ public class LoginResource {
     @POST
     @Produces({ MediaType.TEXT_PLAIN })
     public void createAccount(@QueryParam("email") String email, @QueryParam("password") String password) throws Exception {
-        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
 
         if ((email == null) || email.equals("") || (password == null) || password.equals("")) {
             throw (new Exception("No email or password specified"));
@@ -129,8 +131,7 @@ public class LoginResource {
             throw (new Exception("User does not exist"));
         }
 
-        AccountDAO accountDAO = SpringData.getBean(AccountDAO.class);
-        Account account = accountDAO.findByUserid(email);
+        Account account = accountDao.findByUserid(email);
         if (account == null) {
             account = new Account();
             account.setPerson(person);
@@ -138,7 +139,7 @@ public class LoginResource {
         }
         account.setPassword(password);
         account.setDeleted(false);
-        SpringData.getBean(AccountDAO.class).save(account);
+        accountDao.save(account);
     }
 
     /**
@@ -153,11 +154,10 @@ public class LoginResource {
             throw (new Exception("No email specified"));
         }
 
-        AccountDAO accountDAO = SpringData.getBean(AccountDAO.class);
-        Account account = accountDAO.findByUserid(email);
+        Account account = accountDao.findByUserid(email);
         if (account != null) {
             account.setDeleted(true);
-            accountDAO.save(account);
+            accountDao.save(account);
         }
     }
 }

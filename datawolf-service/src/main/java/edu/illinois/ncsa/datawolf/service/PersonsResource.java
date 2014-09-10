@@ -34,6 +34,7 @@ package edu.illinois.ncsa.datawolf.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -44,15 +45,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-
 import edu.illinois.ncsa.domain.Person;
-import edu.illinois.ncsa.springdata.PersonDAO;
-import edu.illinois.ncsa.springdata.SpringData;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 
 @Path("/persons")
 public class PersonsResource {
+
+    @Inject
+    private PersonDao personDao;
 
     /**
      * Get all users
@@ -69,15 +69,26 @@ public class PersonsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Person> getPersons(@QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
         if ("".equals(email)) {
-            Page<Person> results = null;
+            // TODO implement paging
+//            Page<Person> results = null;
+//            if (showdeleted) {
+//                results = personDao.findAll(new PageRequest(page, size));
+//            } else {
+//                results = personDao.findByDeleted(false, new PageRequest(page, size));
+//            }
+//            return results.getContent();
+            List<Person> results = null;
             if (showdeleted) {
-                results = personDao.findAll(new PageRequest(page, size));
+                // results = personDao.findAll(new PageRequest(page, size));
+                results = personDao.findAll();
             } else {
-                results = personDao.findByDeleted(false, new PageRequest(page, size));
+                // results = personDao.findByDeleted(false, new
+// PageRequest(page, size));
+                results = personDao.findByDeleted(false);
             }
-            return results.getContent();
+            return results;
+
         } else {
             Person result = personDao.findByEmail(email);
             List<Person> results = new ArrayList<Person>();
@@ -103,7 +114,6 @@ public class PersonsResource {
             @QueryParam("email") @DefaultValue("") String email) {
         if ("".equals(email))
             return null;
-        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
         Person p = personDao.findByEmail(email);
         if (p == null) {
             p = new Person();
@@ -128,7 +138,6 @@ public class PersonsResource {
     @Path("{person-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public Person getPerson(@PathParam("person-id") String personId) {
-        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
         return personDao.findOne(personId);
     }
 
@@ -144,7 +153,6 @@ public class PersonsResource {
         if ("".equals(personId)) {
             throw (new Exception("Invalid id passed in."));
         }
-        PersonDAO personDao = SpringData.getBean(PersonDAO.class);
         Person person = personDao.findOne(personId);
         if (person == null) {
             throw (new Exception("Invalid id passed in."));
