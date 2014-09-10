@@ -35,7 +35,7 @@
 			<artifactId>ncsa-common-domain</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
@@ -107,9 +107,9 @@
 						<configuration>
 							<artifactItems>
 								<artifactItem>
-									<groupId>org.mortbay.jetty</groupId>
+									<groupId>org.eclipse.jetty</groupId>
 									<artifactId>jetty-runner</artifactId>
-									<version>8.1.5.v20120716</version>
+									<version>9.2.2.v20140723</version>
 									<destFileName>jetty-runner.jar</destFileName>
 								</artifactItem>
 							</artifactItems>

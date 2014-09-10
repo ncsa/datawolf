@@ -33,7 +33,7 @@
 		<dependency>
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-guice</artifactId>
-            <version>3.0.4.Final</version>
+            <version>${resteasy.version}</version>
         </dependency>
 		 <!-- Jetty dependencies -->
         <dependency>

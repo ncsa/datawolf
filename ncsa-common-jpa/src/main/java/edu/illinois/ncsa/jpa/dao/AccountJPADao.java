@@ -13,4 +13,10 @@ public class AccountJPADao extends AbstractJPADao<Account, String> implements Ac
         super(entityManager);
     }
 
+    @Override
+    public Account findByUserid(String userId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }
