@@ -25,7 +25,7 @@
 		<guice.version>3.0</guice.version>
 		<jackson.version>2.0.5</jackson.version>
 		<resteasy.version>3.0.8.Final</resteasy.version>
-		<jetty.version>9.2.0.v20140526</jetty.version>
+		<jetty.version>9.2.2.v20140723</jetty.version>
 	</properties>
 
 	<repositories>
@@ -47,6 +47,7 @@
 				<checksumPolicy>warn</checksumPolicy>
 			</snapshots>
 		</repository>
+		<!--
 		<repository>
 			<id>renci.repository</id>
 			<name>renci.repository</name>
@@ -59,7 +60,7 @@
 				<updatePolicy>always</updatePolicy>
 				<checksumPolicy>warn</checksumPolicy>
 			</snapshots>
-		</repository>
+		</repository> -->
 	</repositories>
 
 	<scm>
