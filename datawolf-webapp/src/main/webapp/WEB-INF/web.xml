@@ -16,16 +16,20 @@
         <param-value>true</param-value>
     </context-param>
  
+ 	<!-- 
 	<listener>
     	<listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
     </listener>
 	<listener> 
  		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class> 
 	</listener>
-	
+	-->
+	<listener>
+		<listener-class>edu.illinois.ncsa.datawolf.service.GuiceContextListener</listener-class>
+	</listener>
 	<filter>
         <filter-name>hibernateFilter</filter-name>
-        <filter-class>org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter</filter-class>
+        <filter-class>com.google.inject.servlet.GuiceFilter</filter-class>
     </filter>
     
     <!-- Cross origin resource sharing filter -->

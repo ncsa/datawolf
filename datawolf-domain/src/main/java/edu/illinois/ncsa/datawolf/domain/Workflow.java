@@ -170,11 +170,11 @@ public class Workflow extends AbstractBean {
      * @param contributors
      *            the set of contributors to the workflow.
      */
-    public void setContributors(Collection<Person> contributors) {
-        this.contributors.clear();
-        if (contributors != null) {
-            this.contributors.addAll(contributors);
-        }
+    public void setContributors(List<Person> contributors) {
+        this.contributors = contributors;
+        // if (contributors != null) {
+        // this.contributors.addAll(contributors);
+        // }
     }
 
     /**

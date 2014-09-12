@@ -32,7 +32,7 @@ public class ExecutionsResourceGetTest {
 
         EmbededJetty.jettyServer("src/test/resources", "testContext.xml");
 
-        Persistence.setInjector(EmbededJetty.injector);
+        // Persistence.setInjector(EmbededJetty.injector);
 
     }
 
@@ -79,8 +79,9 @@ public class ExecutionsResourceGetTest {
             // Transaction transaction = SpringData.getTransaction();
             // try {
             // transaction.start();
-            // Execution execution = executionDao.findOne(id);
-            Execution execution = DataWolfServiceClient.getExecution(id);
+            Execution execution = Persistence.getBean(ExecutionDao.class).findOne(id);
+
+            // Execution execution = DataWolfServiceClient.getExecution(id);
             logger.info("Status of the job:" + stepId + " state = " + execution.getStepState(stepId));
             if (execution.getStepState(stepId) == Execution.State.FINISHED) {
                 return;

@@ -369,8 +369,6 @@ public class EngineTest {
         WorkflowDao workflowDao = injector.getInstance(WorkflowDao.class);
         workflow = workflowDao.save(workflow);
 
-        Workflow w2 = workflowDao.findOne(workflow.getId());
-
         // create the execution
         Execution execution = createExecution(person, workflow);
         ExecutionDao executionDao = injector.getInstance(ExecutionDao.class);

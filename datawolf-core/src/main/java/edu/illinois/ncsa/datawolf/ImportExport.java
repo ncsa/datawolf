@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -16,8 +15,6 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
-
-import javax.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +34,7 @@ import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.Persistence;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
@@ -44,44 +42,18 @@ import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.domain.util.BeanUtil;
 
 public class ImportExport {
-    private static Logger            logger         = LoggerFactory.getLogger(ImportExport.class);
+    private static Logger       logger         = LoggerFactory.getLogger(ImportExport.class);
 
-    private static final String      WORKFLOW_FILE  = "workflow.json";
-    private static final String      TOOL_FILE      = "tool.json";
-    private static final String      EXECUTION_FILE = "execution.json";
-    private static final String      STEP_FILE      = "step.json";
-    private static final String      DATASET_FILE   = "dataset.json";
+    private static final String WORKFLOW_FILE  = "workflow.json";
+    private static final String TOOL_FILE      = "tool.json";
+    private static final String EXECUTION_FILE = "execution.json";
+    private static final String STEP_FILE      = "step.json";
+    private static final String DATASET_FILE   = "dataset.json";
 
-    private static final String      BLOBS_FOLDER   = "blobs";
-    private static final String      LOGS_FOLDER    = "logs";
+    private static final String BLOBS_FOLDER   = "blobs";
+    private static final String LOGS_FOLDER    = "logs";
 
-    // TODO where should these dao's come from?
-    @Inject
-    private static WorkflowDao       workflowDao;
-
-    @Inject
-    private static WorkflowToolDao   workflowToolDao;
-
-    @Inject
-    private static WorkflowStepDao   workflowStepDao;
-
-    @Inject
-    private static PersonDao         personDao;
-
-    @Inject
-    private static FileStorage       fileStorage;
-
-    @Inject
-    private static FileDescriptorDao fileDescriptorDao;
-
-    @Inject
-    private static LogFileDao        logFileDao;
-
-    @Inject
-    private static DatasetDao        datasetDao;
-
-    @Inject
-    private static ExecutionDao      executionDao;
+    // TODO can we @Inject the DAOs for a utility class?
 
     /**
      * Exports the given workflow to a zip file. The complete workflow will be
@@ -104,6 +76,7 @@ public class ImportExport {
         // Transaction t = SpringData.getTransaction();
         try {
             // t.start(true);
+            WorkflowDao workflowDao = Persistence.getBean(WorkflowDao.class);
             Workflow workflow = workflowDao.findOne(workflowId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
@@ -123,6 +96,7 @@ public class ImportExport {
                         blobs.add(fd);
 
                         zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
+                        FileStorage fileStorage = Persistence.getBean(FileStorage.class);
                         InputStream is = fileStorage.readFile(fd);
                         while ((len = is.read(buf)) > 0) {
                             zipfile.write(buf, 0, len);
@@ -153,13 +127,13 @@ public class ImportExport {
     private static void fixPeople(AbstractBean bean) {
         // check to see if bean is person, if so check if we need to swap
         if (bean instanceof Person) {
+            PersonDao personDao = Persistence.getBean(PersonDao.class);
             Person p1 = (Person) bean;
             Person p2 = personDao.findOne(p1.getId());
             if (p2 != null) {
                 return;
             }
-            // TODO fix this query
-            // p2 = personDao.findByEmail(((Person) bean).getEmail());
+            p2 = personDao.findByEmail(((Person) bean).getEmail());
             if (p2 != null) {
                 p1.setId(p2.getId());
                 p1.setEmail(p2.getEmail());
@@ -230,7 +204,8 @@ public class ImportExport {
             Workflow workflow = BeanUtil.JSONToObject(zipfile.getInputStream(zipfile.getEntry(WORKFLOW_FILE)), Workflow.class);
             fixPeople(workflow);
 
-            // WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);
+            // WorkflowDAO workflowDAO = SpringData.getBean(WorkflowDAO.class);'
+            WorkflowDao workflowDao = Persistence.getBean(WorkflowDao.class);
             if (workflowDao.exists(workflow.getId())) {
                 throw (new Exception("Workflow already imported."));
             }
@@ -244,12 +219,14 @@ public class ImportExport {
                 }
                 String[] pieces = entry.getName().split("/");
                 FileDescriptor blob = null;
+                FileDescriptorDao fileDescriptorDao = Persistence.getBean(FileDescriptorDao.class);
                 if (fileDescriptorDao.exists(pieces[1])) {
                     logger.info("Already have blob with id : " + pieces[1]);
                     blob = fileDescriptorDao.findOne(pieces[1]);
                 } else {
                     // save blob
                     InputStream is = zipfile.getInputStream(entry);
+                    FileStorage fileStorage = Persistence.getBean(FileStorage.class);
                     blob = fileStorage.storeFile(pieces[1], pieces[2], is);
                     is.close();
                 }
@@ -312,6 +289,7 @@ public class ImportExport {
         // Transaction t = SpringData.getTransaction();
         try {
             // t.start(true);
+            WorkflowToolDao workflowToolDao = Persistence.getBean(WorkflowToolDao.class);
             WorkflowTool tool = workflowToolDao.findOne(toolId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
@@ -330,6 +308,7 @@ public class ImportExport {
                     blobs.add(fd);
 
                     zipfile.putNextEntry(new ZipEntry(String.format("%s/%s/%s", BLOBS_FOLDER, fd.getId(), fd.getFilename())));
+                    FileStorage fileStorage = Persistence.getBean(FileStorage.class);
                     InputStream is = fileStorage.readFile(fd);
                     while ((len = is.read(buf)) > 0) {
                         zipfile.write(buf, 0, len);
@@ -375,6 +354,9 @@ public class ImportExport {
             WorkflowTool tool = BeanUtil.JSONToObject(zipfile.getInputStream(zipfile.getEntry(TOOL_FILE)), WorkflowTool.class);
             fixPeople(tool);
 
+            WorkflowToolDao workflowToolDao = Persistence.getBean(WorkflowToolDao.class);
+            workflowToolDao = Persistence.getBean(WorkflowToolDao.class);
+
             if (workflowToolDao.exists(tool.getId())) {
                 throw (new Exception("tool already imported."));
             }
@@ -391,12 +373,14 @@ public class ImportExport {
                 }
                 String[] pieces = entry.getName().split("/");
                 FileDescriptor blob = null;
+                FileDescriptorDao fileDescriptorDao = Persistence.getBean(FileDescriptorDao.class);
                 if (fileDescriptorDao.exists(pieces[1])) {
                     logger.info("Already have blob with id : " + pieces[1]);
                     blob = fileDescriptorDao.findOne(pieces[1]);
                 } else {
                     // save blob
                     InputStream is = zipfile.getInputStream(entry);
+                    FileStorage fileStorage = Persistence.getBean(FileStorage.class);
                     blob = fileStorage.storeFile(pieces[1], pieces[2], is);
                     is.close();
                 }
@@ -457,6 +441,7 @@ public class ImportExport {
         // Transaction t = SpringData.getTransaction();
         try {
             // t.start(true);
+            ExecutionDao executionDao = Persistence.getBean(ExecutionDao.class);
             Execution execution = executionDao.findOne(executionId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
@@ -471,6 +456,8 @@ public class ImportExport {
             byte[] buf = new byte[10240];
             int len = 0;
             Set<String> datasets = new HashSet<String>(execution.getDatasets().values());
+            DatasetDao datasetDao = Persistence.getBean(DatasetDao.class);
+            FileStorage fileStorage = Persistence.getBean(FileStorage.class);
             for (String datasetId : datasets) {
                 Dataset dataset = datasetDao.findOne(datasetId);
                 for (FileDescriptor fd : dataset.getFileDescriptors()) {
@@ -489,9 +476,8 @@ public class ImportExport {
             }
 
             // export logfiles
-            // TODO fix this query
-            List<LogFile> logfiles = new ArrayList<LogFile>();
-            // logfiles = logFileDao.findByExecutionId(execution.getId());
+            LogFileDao logFileDao = Persistence.getBean(LogFileDao.class);
+            List<LogFile> logfiles = logFileDao.findByExecutionId(execution.getId());
             for (LogFile logfile : logfiles) {
                 FileDescriptor fd = logfile.getLog();
                 if (!blobs.contains(fd)) {
@@ -538,6 +524,7 @@ public class ImportExport {
         // Transaction t = SpringData.getTransaction();
         try {
             // t.start(true);
+            WorkflowStepDao workflowStepDao = Persistence.getBean(WorkflowStepDao.class);
             WorkflowStep step = workflowStepDao.findOne(stepId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
@@ -549,6 +536,7 @@ public class ImportExport {
 
             // export blobs
             if (executionId != null) {
+                ExecutionDao executionDao = Persistence.getBean(ExecutionDao.class);
                 Execution execution = executionDao.findOne(executionId);
                 Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
                 byte[] buf = new byte[10240];
@@ -559,6 +547,8 @@ public class ImportExport {
                         datasets.add(execution.getDataset(tooldata.getDataId()));
                     }
                 }
+                DatasetDao datasetDao = Persistence.getBean(DatasetDao.class);
+                FileStorage fileStorage = Persistence.getBean(FileStorage.class);
                 for (String datasetId : datasets) {
                     Dataset dataset = datasetDao.findOne(datasetId);
                     for (FileDescriptor fd : dataset.getFileDescriptors()) {
@@ -576,10 +566,8 @@ public class ImportExport {
                     }
                 }
 
-                // TODO fix this query
-                // LogFile logfile =
-// logFileDao.findLogByExecutionIdAndStepId(execution.getId(), step.getId());
-                LogFile logfile = new LogFile();
+                LogFileDao logFileDao = Persistence.getBean(LogFileDao.class);
+                LogFile logfile = logFileDao.findByExecutionIdAndStepId(execution.getId(), step.getId());
                 FileDescriptor fd = logfile.getLog();
                 if (!blobs.contains(fd)) {
                     blobs.add(fd);
@@ -623,6 +611,7 @@ public class ImportExport {
         // Transaction t = SpringData.getTransaction();
         try {
             // t.start(true);
+            DatasetDao datasetDao = Persistence.getBean(DatasetDao.class);
             Dataset dataset = datasetDao.findOne(datasetId);
 
             zipfile = new ZipOutputStream(new FileOutputStream(file));
@@ -636,6 +625,7 @@ public class ImportExport {
             Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
             byte[] buf = new byte[10240];
             int len = 0;
+            FileStorage fileStorage = Persistence.getBean(FileStorage.class);
             for (FileDescriptor fd : dataset.getFileDescriptors()) {
                 if (!blobs.contains(fd)) {
                     blobs.add(fd);
@@ -685,6 +675,7 @@ public class ImportExport {
             Dataset dataset = BeanUtil.JSONToObject(zipfile.getInputStream(zipfile.getEntry(DATASET_FILE)), Dataset.class);
             fixPeople(dataset);
             // DatasetDAO datasetDAO = SpringData.getBean(DatasetDAO.class);
+            DatasetDao datasetDao = Persistence.getBean(DatasetDao.class);
             if (datasetDao.exists(dataset.getId())) {
                 throw (new Exception("Dataset already imported."));
             }
@@ -694,6 +685,8 @@ public class ImportExport {
             // FileDescriptorDAO fdDAO =
 // SpringData.getBean(FileDescriptorDAO.class);
             Enumeration<? extends ZipEntry> entries = zipfile.entries();
+            FileDescriptorDao fileDescriptorDao = Persistence.getBean(FileDescriptorDao.class);
+            FileStorage fileStorage = Persistence.getBean(FileStorage.class);
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 if (entry.isDirectory() || !entry.getName().startsWith(BLOBS_FOLDER)) {
@@ -758,11 +751,13 @@ public class ImportExport {
         // Transaction t = SpringData.getTransaction();
         // try {
         // t.start(true);
+        LogFileDao logFileDao = Persistence.getBean(LogFileDao.class);
         LogFile logfile = logFileDao.findOne(logfileId);
 
         FileDescriptor fd = logfile.getLog();
 
         FileOutputStream output = new FileOutputStream(file);
+        FileStorage fileStorage = Persistence.getBean(FileStorage.class);
         InputStream input = fileStorage.readFile(fd);
         byte[] buf = new byte[10240];
         int len;

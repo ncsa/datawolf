@@ -88,6 +88,12 @@
 			<version>${hibernate.version}</version>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>${guice.version}</version>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

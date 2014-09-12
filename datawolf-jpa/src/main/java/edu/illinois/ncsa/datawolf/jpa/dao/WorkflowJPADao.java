@@ -2,34 +2,76 @@ package edu.illinois.ncsa.datawolf.jpa.dao;
 
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.jpa.dao.AbstractJPADao;
 
 public class WorkflowJPADao extends AbstractJPADao<Workflow, String> implements WorkflowDao {
+
     @Inject
-    public WorkflowJPADao(EntityManager entityManager) {
+    public WorkflowJPADao(Provider<EntityManager> entityManager) {
         super(entityManager);
     }
 
     @Override
     public List<Workflow> findByDeleted(boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        EntityManager em = getEntityManager();
+        List<Workflow> result = null;
+        try {
+            em.getTransaction().begin();
+            String queryString = "SELECT w FROM Workflow w " + "WHERE w.deleted = :deleted";
+            TypedQuery<Workflow> typedQuery = em.createQuery(queryString, Workflow.class);
+            typedQuery.setParameter("deleted", deleted);
+            result = typedQuery.getResultList();
+            for (Workflow entity : result) {
+                em.refresh(entity);
+            }
+        } finally {
+            em.getTransaction().commit();
+        }
+        return result;
+
     }
 
     @Override
     public List<Workflow> findByCreatorEmail(String email) {
-        // TODO Auto-generated method stub
-        return null;
+
+        List<Workflow> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+
+            String queryString = "SELECT w FROM Workflow w " + "WHERE w.email = :email";
+
+            TypedQuery<Workflow> typedQuery = getEntityManager().createQuery(queryString, Workflow.class);
+            typedQuery.setParameter("email", email);
+
+            results = typedQuery.getResultList();
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
+
+        return results;
     }
 
     @Override
     public List<Workflow> findByCreatorEmailAndDeleted(String email, boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Workflow> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT w FROM Workflow w " + "WHERE w.creator.email = :email and w.deleted = :deleted";
+
+            TypedQuery<Workflow> typedQuery = getEntityManager().createQuery(queryString, Workflow.class);
+            typedQuery.setParameter("email", email);
+            typedQuery.setParameter("deleted", deleted);
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
+        return results;
     }
 }

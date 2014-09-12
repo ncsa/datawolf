@@ -5,19 +5,21 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
+import com.google.inject.Provider;
+
 import edu.illinois.ncsa.datawolf.domain.HPCJobInfo;
 import edu.illinois.ncsa.datawolf.domain.dao.HPCJobInfoDao;
 import edu.illinois.ncsa.jpa.dao.AbstractJPADao;
 
 public class HPCJobInfoJPADao extends AbstractJPADao<HPCJobInfo, String> implements HPCJobInfoDao {
     @Inject
-    public HPCJobInfoJPADao(EntityManager entityManager) {
+    public HPCJobInfoJPADao(Provider<EntityManager> entityManager) {
         super(entityManager);
     }
 
     @Override
     public List<HPCJobInfo> findByExecutionId(String executionId) {
-        // TODO Auto-generated method stub
+        // TODO implement query
         return null;
     }
 }

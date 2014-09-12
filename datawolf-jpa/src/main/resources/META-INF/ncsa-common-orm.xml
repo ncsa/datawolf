@@ -37,7 +37,7 @@
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
 			<basic name="filename" />
-			<basic name="mimetype" />
+			<basic name="mimeType" />
 			<basic name="size" />
 			<basic name="dataURL" />
 			<basic name="md5sum">

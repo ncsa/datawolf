@@ -11,6 +11,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
 
+import edu.illinois.ncsa.domain.Persistence;
+
 public class GuiceContextListener extends GuiceResteasyBootstrapServletContextListener {
     private Injector injector;
 
@@ -27,6 +29,8 @@ public class GuiceContextListener extends GuiceResteasyBootstrapServletContextLi
         service.start();
 
         this.injector = injector;
+
+        Persistence.setInjector(this.injector);
     }
 
     public Injector getInjector() {

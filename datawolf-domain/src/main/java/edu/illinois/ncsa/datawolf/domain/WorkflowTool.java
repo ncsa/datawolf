@@ -32,7 +32,6 @@
 package edu.illinois.ncsa.datawolf.domain;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -273,11 +272,8 @@ public class WorkflowTool extends AbstractBean {
      * @param contributors
      *            the set of contributors to the workflow tool.
      */
-    public void setContributors(Collection<Person> contributors) {
-        this.contributors.clear();
-        if (contributors != null) {
-            this.contributors.addAll(contributors);
-        }
+    public void setContributors(Set<Person> contributors) {
+        this.contributors = contributors;
     }
 
     /**
@@ -517,11 +513,12 @@ public class WorkflowTool extends AbstractBean {
      * @param blobs
      *            the set of blobs to the workflow tool.
      */
-    public void setBlobs(Collection<FileDescriptor> blobs) {
-        getBlobs().clear();
-        if (blobs != null) {
-            getBlobs().addAll(blobs);
-        }
+    public void setBlobs(Set<FileDescriptor> blobs) {
+        this.blobs = blobs;
+        // getBlobs().clear();
+        // if (blobs != null) {
+        // getBlobs().addAll(blobs);
+        // }
     }
 
     /**

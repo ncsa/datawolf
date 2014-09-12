@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.util.Date;
 
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -27,7 +28,7 @@ public class LogFileDAOTest {
         service.start();
     }
 
-    // @Test
+    @Test
     public void testCreateAndStore() throws Exception {
         LogFileDao logFileDao = injector.getInstance(LogFileDao.class);
         LogFile logfile = new LogFile();
@@ -48,5 +49,20 @@ public class LogFileDAOTest {
         fileDescriptorDao.save(fd);
 
         assert (logfile.getLog() != null);
+    }
+
+    // @Test
+    public void findByExecutionIdAndStepId() throws Exception {
+        LogFileDao logFileDao = injector.getInstance(LogFileDao.class);
+        LogFile logfile = new LogFile();
+        logfile.setExecutionId("execution-id");
+        logfile.setStepId("step-id");
+        logfile.setDate(new Date());
+        logfile.setLog(new FileDescriptor());
+        logFileDao.save(logfile);
+
+        LogFile logfile1 = logFileDao.findByExecutionIdAndStepId("execution-id", "step-id");
+        assert (logfile1.getId().equals(logfile.getId()));
+
     }
 }

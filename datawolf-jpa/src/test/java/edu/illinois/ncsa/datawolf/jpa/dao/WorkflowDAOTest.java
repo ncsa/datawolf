@@ -1,6 +1,7 @@
 package edu.illinois.ncsa.datawolf.jpa.dao;
 
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -28,7 +29,7 @@ public class WorkflowDAOTest {
         service.start();
     }
 
-    // @Test
+    @Test
     public void testCreateAndStore() throws Exception {
         Person person = Person.createPerson("Rob", "Kooper", "kooper@illinois.edu");
         WorkflowDao dao = injector.getInstance(WorkflowDao.class);
@@ -37,6 +38,11 @@ public class WorkflowDAOTest {
         workflow.setCreator(person);
         WorkflowStep step = new WorkflowStep();
         workflow.addStep(step);
+        dao.save(workflow);
+
+        workflow = dao.findOne(workflow.getId());
+        workflow.setTitle("test");
+
         dao.save(workflow);
 
         Workflow workflow1 = dao.findOne(workflow.getId());

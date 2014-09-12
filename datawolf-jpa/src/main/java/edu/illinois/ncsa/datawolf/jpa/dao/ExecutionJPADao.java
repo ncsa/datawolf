@@ -35,6 +35,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import com.google.inject.Provider;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
@@ -43,36 +46,87 @@ import edu.illinois.ncsa.jpa.dao.AbstractJPADao;
 public class ExecutionJPADao extends AbstractJPADao<Execution, String> implements ExecutionDao {
 
     @Inject
-    public ExecutionJPADao(EntityManager entityManager) {
+    public ExecutionJPADao(Provider<EntityManager> entityManager) {
         super(entityManager);
     }
 
     @Override
     public List<Execution> findByWorkflowId(String workflowId) {
-        return null;
+
+        List<Execution> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId";
+            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+            typedQuery.setParameter("workflowId", workflowId);
+            results = typedQuery.getResultList();
+            return results;
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
     }
 
     @Override
     public List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Execution> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId and e.deleted = :deleted";
+            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+            typedQuery.setParameter("workflowId", workflowId);
+            typedQuery.setParameter("deleted", deleted);
+            results = typedQuery.getResultList();
+            return results;
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
     }
 
     @Override
     public List<Execution> findByDeleted(boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Execution> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT e FROM Execution e " + "WHERE e.deleted = :deleted";
+            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+            typedQuery.setParameter("deleted", deleted);
+            results = typedQuery.getResultList();
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
+        return results;
     }
 
     @Override
     public List<Execution> findByCreatorEmail(String email) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Execution> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+
+            String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email";
+            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+            typedQuery.setParameter("email", email);
+            results = typedQuery.getResultList();
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
+        return results;
     }
 
     @Override
     public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Execution> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email and e.deleted = :deleted";
+            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+            typedQuery.setParameter("email", email);
+            typedQuery.setParameter("deleted", deleted);
+            results = typedQuery.getResultList();
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
+
+        return results;
     }
 }

@@ -70,6 +70,5 @@ public class PersistenceModule extends AbstractModule {
         bind(JavaExecutor.class);
         bind(CommandLineExecutor.class);
         bind(Engine.class);
-
     }
 }

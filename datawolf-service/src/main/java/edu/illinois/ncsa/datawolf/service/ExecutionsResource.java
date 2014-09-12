@@ -519,7 +519,7 @@ public class ExecutionsResource {
     @Path("{execution-id}/logfiles/{step-id}")
     @Produces({ MediaType.APPLICATION_JSON })
     public LogFile getLogfiles(@PathParam("execution-id") String executionId, @PathParam("step-id") String stepId) {
-        return logfileDao.findLogByExecutionIdAndStepId(executionId, stepId);
+        return logfileDao.findByExecutionIdAndStepId(executionId, stepId);
     }
 
     /**

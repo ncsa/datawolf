@@ -26,7 +26,7 @@
 				<column name="parameter" />
 				<collection-table name="ExecutionParameters" />
 			</element-collection>
-			<element-collection name="datasets">
+			<element-collection name="datasets" fetch="EAGER">
 				<map-key-column name="uri" />
 				<column name="dataset" />
 				<collection-table name="ExecutionDatasets" />

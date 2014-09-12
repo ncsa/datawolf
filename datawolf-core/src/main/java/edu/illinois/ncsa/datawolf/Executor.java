@@ -31,16 +31,16 @@ import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
  * 
  */
 public abstract class Executor {
-    private static Logger     logger      = LoggerFactory.getLogger(Executor.class);
+    private static Logger       logger      = LoggerFactory.getLogger(Executor.class);
 
-    private StringBuilder     log         = new StringBuilder();
-    private LogFile           logfile     = new LogFile();
-    private int               lastsave    = 0;
-    private State             state       = State.UNKNOWN;
-    private String            executionId = null;
-    private String            stepId      = null;
-    private boolean           jobStopped  = false;
-    private boolean           storeLog    = true;
+    private StringBuilder       log         = new StringBuilder();
+    private LogFile             logfile     = new LogFile();
+    private int                 lastsave    = 0;
+    private State               state       = State.UNKNOWN;
+    private String              executionId = null;
+    private String              stepId      = null;
+    private boolean             jobStopped  = false;
+    private boolean             storeLog    = true;
 
     @Inject
     protected ExecutionDao      executionDao;

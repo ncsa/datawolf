@@ -8,5 +8,5 @@ import edu.illinois.ncsa.domain.dao.IDao;
 public interface LogFileDao extends IDao<LogFile, String> {
     List<LogFile> findByExecutionId(String executionId);
 
-    LogFile findLogByExecutionIdAndStepId(String executionId, String stepId);
+    LogFile findByExecutionIdAndStepId(String executionId, String stepId);
 }
