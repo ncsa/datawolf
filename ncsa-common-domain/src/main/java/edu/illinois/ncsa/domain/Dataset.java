@@ -32,7 +32,6 @@
 package edu.illinois.ncsa.domain;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -167,11 +166,8 @@ public class Dataset extends AbstractBean {
      * @param contributors
      *            the set of contributors to the artifact.
      */
-    public void setContributors(Collection<Person> contributors) {
-        getContributors().clear();
-        if (contributors != null) {
-            getContributors().addAll(contributors);
-        }
+    public void setContributors(List<Person> contributors) {
+        this.contributors = contributors;
     }
 
     /**

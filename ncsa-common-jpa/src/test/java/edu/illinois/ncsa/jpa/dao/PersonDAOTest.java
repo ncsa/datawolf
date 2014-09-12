@@ -9,7 +9,9 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
+import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.jpa.JPADevModule;
 
@@ -38,13 +40,16 @@ public class PersonDAOTest {
         p1.setLastName("Navarro");
         p1.setEmail("cmnavarr@illinois.edu");
 
-        Person p2 = new Person();
-        p2.setFirstName("Rob");
-        p2.setLastName("Kooper");
-        p2.setEmail("kooper@illinois.edu");
+        AccountDao accountDao = injector.getInstance(AccountDao.class);
+        Account account = new Account();
+        account.setPerson(p1);
+        account.setPassword("test");
+        account.setUserid("cmnavarr@illinois.edu");
 
         dao.save(p1);
-        dao.save(p2);
+
+        accountDao.save(account);
+        // dao.save(p2);
 
         List<Person> person = dao.findAll();
         System.out.println("number of people = " + person.size());
@@ -53,7 +58,7 @@ public class PersonDAOTest {
         System.out.println("name: " + p.getName());
     }
 
-    @Test
+    // @Test
     public void testCreateAndFind() throws Exception {
         PersonDao dao = injector.getInstance(PersonDao.class);
 
@@ -75,7 +80,7 @@ public class PersonDAOTest {
         assert (found != null);
     }
 
-    @Test
+    // @Test
     public void testCreateAndFindByDeleted() throws Exception {
         PersonDao dao = injector.getInstance(PersonDao.class);
 

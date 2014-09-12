@@ -44,7 +44,7 @@ public class FileDescriptor extends AbstractBean {
     private String            filename         = null;
 
     /** Mime type of the dataset data */
-    private String            mimetype         = "";  //$NON-NLS-1$
+    private String            mimeType         = "";  //$NON-NLS-1$
 
     /** size of the blob associated */
     private long              size             = -1;
@@ -63,7 +63,7 @@ public class FileDescriptor extends AbstractBean {
      * @return mime type of the artifact
      */
     public String getMimeType() {
-        return mimetype;
+        return mimeType;
     }
 
     /**
@@ -74,7 +74,7 @@ public class FileDescriptor extends AbstractBean {
      * 
      */
     public void setMimeType(String mimetype) {
-        this.mimetype = mimetype;
+        this.mimeType = mimetype;
     }
 
     /**

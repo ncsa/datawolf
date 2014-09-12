@@ -4,6 +4,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+
+import com.google.inject.Provider;
 
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
@@ -11,49 +14,78 @@ import edu.illinois.ncsa.domain.dao.DatasetDao;
 public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements DatasetDao {
 
     @Inject
-    protected DatasetJPADao(EntityManager entityManager) {
+    protected DatasetJPADao(Provider<EntityManager> entityManager) {
         super(entityManager);
     }
 
     @Override
     public List<Dataset> findByDeleted(boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Dataset> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT d FROM Dataset d " + "WHERE d.deleted = :deleted";
+            TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+            q.setParameter("deleted", deleted);
+            results = q.getResultList();
+            return results;
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
     }
 
     @Override
     public List<Dataset> findByTitleLike(String titlePattern) {
-        // TODO Auto-generated method stub
+        // TODO implement query
         return null;
     }
 
     @Override
     public List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted) {
-        // TODO Auto-generated method stub
+        // TODO implement query
         return null;
     }
 
     @Override
     public List<Dataset> findByCreatorEmail(String email) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Dataset> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email";
+            TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+            q.setParameter("email", email);
+            results = q.getResultList();
+            return results;
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
+
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Dataset> results = null;
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.deleted = :deleted";
+            TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+            q.setParameter("email", email);
+            q.setParameter("deleted", deleted);
+            results = q.getResultList();
+            return results;
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLike(String email, String titlePattern) {
-        // TODO Auto-generated method stub
+        // TODO implement query
         return null;
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted) {
-        // TODO Auto-generated method stub
+        // TODO implement query
         return null;
     }
 }

@@ -4,9 +4,13 @@ import com.google.inject.AbstractModule;
 import com.google.inject.persist.jpa.JpaPersistModule;
 
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.dao.AccountDao;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.domain.impl.FileStorageDisk;
+import edu.illinois.ncsa.jpa.dao.AccountJPADao;
+import edu.illinois.ncsa.jpa.dao.DatasetJPADao;
 import edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao;
 import edu.illinois.ncsa.jpa.dao.PersonJPADao;
 
@@ -27,6 +31,8 @@ public class JPADevModule extends AbstractModule {
         bind(PersonDao.class).to(PersonJPADao.class);
         bind(FileDescriptorDao.class).to(FileDescriptorJPADao.class);
         bind(FileStorage.class).to(FileStorageDisk.class);
+        bind(AccountDao.class).to(AccountJPADao.class);
+        bind(DatasetDao.class).to(DatasetJPADao.class);
     }
 
     // private Properties loadProperties() throws Exception {

@@ -12,7 +12,7 @@
 
 		<hibernate.version>4.3.5.Final</hibernate.version>
 		<hsql.version>2.2.8</hsql.version>
-		<mysql.version>5.1.21</mysql.version>
+		<mysql.version>5.1.32</mysql.version>
 		<postgresql.version>9.1-901-1.jdbc4</postgresql.version>
 
 		<apache.http.version>4.2.1</apache.http.version>
@@ -23,7 +23,7 @@
 		<jackson.version>2.0.5</jackson.version>
 		<resteasy.version>3.0.8.Final</resteasy.version>
 		<jetty.version>9.2.2.v20140723</jetty.version>
-        <!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
+		<!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
 	</properties>
 
 	<repositories>
@@ -45,20 +45,10 @@
 				<checksumPolicy>warn</checksumPolicy>
 			</snapshots>
 		</repository>
-		<!--
-		<repository>
-			<id>renci.repository</id>
-			<name>renci.repository</name>
-			<url>http://ci-dev.renci.org/nexus/content/repositories/public</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</snapshots>
-		</repository> -->
+		<!-- <repository> <id>renci.repository</id> <name>renci.repository</name> 
+			<url>http://ci-dev.renci.org/nexus/content/repositories/public</url> <releases> 
+			<enabled>true</enabled> </releases> <snapshots> <enabled>true</enabled> <updatePolicy>always</updatePolicy> 
+			<checksumPolicy>warn</checksumPolicy> </snapshots> </repository> -->
 	</repositories>
 
 	<scm>
@@ -156,12 +146,12 @@
 			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
-                <dependency>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-jdk14</artifactId>
-                        <version>${slf4j.version}</version>
-                        <scope>test</scope>
-                </dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
@@ -172,6 +162,11 @@
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-persist</artifactId>
 			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql.version}</version>
 		</dependency>
 	</dependencies>
 </project>
