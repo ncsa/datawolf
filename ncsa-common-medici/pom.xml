@@ -2,6 +2,11 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>ncsa-common-medici</artifactId>
+	<parent>
+		<groupId>edu.illinois.ncsa</groupId>
+		<version>3.1.0-SNAPSHOT</version>
+		<artifactId>ncsa-common</artifactId>
+	</parent>
 	<build>
 		<plugins>
 			<plugin>
@@ -15,20 +20,33 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>ncsa-common-domain</artifactId>
 			<version>3.1.0-SNAPSHOT</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${apache.http.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>${apache.http.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 			<version>3.0</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.3</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -36,9 +54,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	<parent>
-		<groupId>edu.illinois.ncsa</groupId>
-		<version>3.1.0-SNAPSHOT</version>
-		<artifactId>ncsa-common</artifactId>
-	</parent>
 </project>

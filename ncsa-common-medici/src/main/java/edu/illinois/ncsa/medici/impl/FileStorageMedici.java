@@ -17,6 +17,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.name.Named;
+
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
@@ -27,7 +29,11 @@ import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
  */
 public class FileStorageMedici implements FileStorage {
     private static Logger     logger = LoggerFactory.getLogger(FileStorageMedici.class);
+    @Inject
+    @Named("medici.server")
     private String            server;
+    @Inject
+    @Named("medici.key")
     private String            key;
 
     @Inject
