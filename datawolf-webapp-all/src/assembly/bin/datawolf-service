@@ -53,4 +53,4 @@ EOF
 fi
 
 # start actual webapp
-java -Xmx512m -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} ${LOG} "${SERVER}" "${EDITOR}"
+java -Xmx512m -Ddatawolf.properties=${PWD}/conf/datawolf.properties -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} ${LOG} "${SERVER}" "${EDITOR}"

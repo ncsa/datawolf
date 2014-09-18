@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
@@ -76,6 +77,8 @@ public class Engine {
     private List<Executor>        queue              = new ArrayList<Executor>();
 
     /** store the logs in the database */
+    @Inject
+    @Named("engine.storeLogs")
     private boolean               storeLogs          = true;
 
     /** timeout of a workflow in seconds */

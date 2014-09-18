@@ -144,14 +144,18 @@ public class DatasetsResource {
         }
 
         // Check if virtual path
-        List<InputPart> formPath = uploadForm.get("virtualpath");
         String virtualPath = null;
-        // Handles special case where file is a URI (e.g. irods:// )
-        for (InputPart inputPart : formPath) {
-            try {
-                virtualPath = inputPart.getBody(String.class, null);
-            } catch (IOException e) {
-                // Nothing to log since a virtual path is a special case
+        if (uploadForm.containsKey("virtualpath")) {
+            List<InputPart> formPath = uploadForm.get("virtualpath");
+            // Handles special case where file is a URI (e.g. irods:// )
+            if (formPath != null) {
+                for (InputPart inputPart : formPath) {
+                    try {
+                        virtualPath = inputPart.getBody(String.class, null);
+                    } catch (IOException e) {
+                        // Nothing to log since a virtual path is a special case
+                    }
+                }
             }
         }
 
@@ -178,19 +182,6 @@ public class DatasetsResource {
             }
 
             FileDescriptor fileDescriptor = null;
-
-            /*
-             * List<InputPart> formPath = uploadForm.get("virtualpath");
-             * String virtualPath = null;
-             * // Handles special case where file is a URI (e.g. irods:// )
-             * for (InputPart inputPart : formPath) {
-             * try {
-             * virtualPath = inputPart.getBody(String.class, null);
-             * } catch (IOException e) {
-             * // Nothing to log since a virtual path is a special case
-             * }
-             * }
-             */
             if (virtualPath != null) {
                 try {
                     fileDescriptor = fileStorage.storeFile(virtualPath, null);

@@ -22,21 +22,18 @@ public class WorkflowJPADao extends AbstractJPADao<Workflow, String> implements 
     @Override
     public List<Workflow> findByDeleted(boolean deleted) {
         EntityManager em = getEntityManager();
-        List<Workflow> result = null;
+        List<Workflow> results = null;
         try {
             em.getTransaction().begin();
             String queryString = "SELECT w FROM Workflow w " + "WHERE w.deleted = :deleted";
             TypedQuery<Workflow> typedQuery = em.createQuery(queryString, Workflow.class);
             typedQuery.setParameter("deleted", deleted);
-            result = typedQuery.getResultList();
-            for (Workflow entity : result) {
-                em.refresh(entity);
-            }
+            results = typedQuery.getResultList();
+
+            return refreshList(results);
         } finally {
             em.getTransaction().commit();
         }
-        return result;
-
     }
 
     @Override
@@ -52,11 +49,11 @@ public class WorkflowJPADao extends AbstractJPADao<Workflow, String> implements 
             typedQuery.setParameter("email", email);
 
             results = typedQuery.getResultList();
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
 
-        return results;
     }
 
     @Override
@@ -69,9 +66,10 @@ public class WorkflowJPADao extends AbstractJPADao<Workflow, String> implements 
             TypedQuery<Workflow> typedQuery = getEntityManager().createQuery(queryString, Workflow.class);
             typedQuery.setParameter("email", email);
             typedQuery.setParameter("deleted", deleted);
+            results = typedQuery.getResultList();
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
-        return results;
     }
 }

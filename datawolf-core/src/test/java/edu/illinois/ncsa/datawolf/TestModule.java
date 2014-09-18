@@ -2,6 +2,7 @@ package edu.illinois.ncsa.datawolf;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.MapBinder;
+import com.google.inject.name.Names;
 import com.google.inject.persist.jpa.JpaPersistModule;
 
 import edu.illinois.ncsa.datawolf.EngineTest.DummyExecutor;
@@ -49,6 +50,8 @@ public class TestModule extends AbstractModule {
         bind(FileDescriptorDao.class).to(FileDescriptorJPADao.class);
         bind(FileStorage.class).to(FileStorageDisk.class);
         bind(LogFileDao.class).to(LogFileJPADao.class);
+
+        bindConstant().annotatedWith(Names.named("engine.storeLogs")).to(true);
 
         // Engine & Executors
         bind(Engine.class);

@@ -49,4 +49,4 @@ FOR %%W in (lib\datawolf-editor*.war) do (
 )
 
 REM start actual webapp
-java -Xmx512m -Dlog4j.configuration="file:///%cd:\=/%/conf/log4j.properties" -jar "%cd:\=/%/lib/jetty-runner.jar" --port %PORT% %LOG% %SERVER% %EDITOR%
+java -Xmx512m -Ddatawolf.properties=${PWD}/conf/datawolf.properties -Dlog4j.configuration="file:///%cd:\=/%/conf/log4j.properties" -jar "%cd:\=/%/lib/jetty-runner.jar" --port %PORT% %LOG% %SERVER% %EDITOR%

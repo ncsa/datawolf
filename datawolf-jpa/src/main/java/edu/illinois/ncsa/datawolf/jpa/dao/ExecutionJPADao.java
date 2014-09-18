@@ -60,7 +60,8 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
             TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
             typedQuery.setParameter("workflowId", workflowId);
             results = typedQuery.getResultList();
-            return results;
+
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
@@ -76,7 +77,8 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
             typedQuery.setParameter("workflowId", workflowId);
             typedQuery.setParameter("deleted", deleted);
             results = typedQuery.getResultList();
-            return results;
+
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
@@ -91,10 +93,11 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
             TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
             typedQuery.setParameter("deleted", deleted);
             results = typedQuery.getResultList();
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
-        return results;
+
     }
 
     @Override
@@ -107,10 +110,10 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
             TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
             typedQuery.setParameter("email", email);
             results = typedQuery.getResultList();
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
-        return results;
     }
 
     @Override
@@ -123,10 +126,9 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
             typedQuery.setParameter("email", email);
             typedQuery.setParameter("deleted", deleted);
             results = typedQuery.getResultList();
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
-
-        return results;
     }
 }
