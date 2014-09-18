@@ -34,11 +34,15 @@ public class PersonJPADao extends AbstractJPADao<Person, String> implements Pers
             if (list.isEmpty()) {
                 return null;
             }
+            Person entity = list.get(0);
+            if (entity != null) {
+                em.refresh(entity);
+            }
+            return entity;
         } finally {
             em.getTransaction().commit();
         }
 
-        return list.get(0);
     }
 
     @Override
@@ -50,8 +54,7 @@ public class PersonJPADao extends AbstractJPADao<Person, String> implements Pers
             TypedQuery<Person> q = getEntityManager().createQuery(queryString, Person.class);
             q.setParameter("deleted", deleted);
             results = q.getResultList();
-
-            return results;
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }

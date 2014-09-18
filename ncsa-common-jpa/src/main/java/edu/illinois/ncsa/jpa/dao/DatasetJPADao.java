@@ -27,7 +27,7 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
             TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
             q.setParameter("deleted", deleted);
             results = q.getResultList();
-            return results;
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
@@ -54,7 +54,7 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
             TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
             q.setParameter("email", email);
             results = q.getResultList();
-            return results;
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }
@@ -71,7 +71,7 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
             q.setParameter("email", email);
             q.setParameter("deleted", deleted);
             results = q.getResultList();
-            return results;
+            return refreshList(results);
         } finally {
             getEntityManager().getTransaction().commit();
         }

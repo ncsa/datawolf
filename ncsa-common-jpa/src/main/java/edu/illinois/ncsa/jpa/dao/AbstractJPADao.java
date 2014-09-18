@@ -7,9 +7,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
+import javax.persistence.TypedQuery;
 
 import com.google.inject.Provider;
 
@@ -63,24 +61,22 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
     }
 
     public List<T> findAll() {
-        List<T> result = null;
+        List<T> results = null;
         EntityManager entityManager = this.getEntityManager();
         try {
             entityManager.getTransaction().begin();
-            CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-            CriteriaQuery<T> query = builder.createQuery(getEntityType());
-            Root<T> root = query.from(getEntityType());
-            query.select(root);
+            // CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+            // CriteriaQuery<T> query = builder.createQuery(getEntityType());
 
-            result = entityManager.createQuery(query).getResultList();
+            // Root<T> root = query.from(getEntityType());
+            // query.select(root);
+            TypedQuery<T> query = entityManager.createQuery("SELECT e FROM " + getEntityType().getSimpleName() + " e", getEntityType());
+            results = query.getResultList();// entityManager.createQuery(query).getResultList();
             // TODO this seems like a caching problem
-            for (T entity : result) {
-                entityManager.refresh(entity);
-            }
+            return refreshList(results);
         } finally {
             entityManager.getTransaction().commit();
         }
-        return result;
 
     }
 
@@ -90,6 +86,13 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
 
     public long count() {
         return findAll().size();
+    }
+
+    protected List<T> refreshList(List<T> results) {
+        for (T entity : results) {
+            getEntityManager().refresh(entity);
+        }
+        return results;
     }
 
     protected Class<T> getEntityType() {
