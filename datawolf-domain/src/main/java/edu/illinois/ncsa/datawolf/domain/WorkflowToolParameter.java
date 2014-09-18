@@ -49,7 +49,7 @@ public class WorkflowToolParameter extends AbstractBean {
     private static final long serialVersionUID = 1L;
 
     /** Id of the workflow parameter used to match the step and tool */
-    private String            paramid          = UUID.randomUUID().toString();
+    private String            parameterId      = UUID.randomUUID().toString();
 
     /** Title of the workflow parameter */
     private String            title            = "";                          //$NON-NLS-1$
@@ -83,7 +83,7 @@ public class WorkflowToolParameter extends AbstractBean {
      * @return id of the workflow parameter.
      */
     public String getParameterId() {
-        return paramid;
+        return parameterId;
     }
 
     /**
@@ -94,7 +94,7 @@ public class WorkflowToolParameter extends AbstractBean {
      * 
      */
     public void setParameterId(String paramid) {
-        this.paramid = paramid;
+        this.parameterId = paramid;
     }
 
     /**

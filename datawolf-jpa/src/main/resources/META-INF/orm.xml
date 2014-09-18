@@ -209,7 +209,7 @@
 	<entity class="WorkflowToolData" name="WorkflowToolData">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<basic name="dataid" />
+			<basic name="dataId" />
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="mimeType" />
@@ -218,7 +218,7 @@
 	<entity class="WorkflowToolParameter" name="WorkflowToolParameter">
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
-			<basic name="paramid" />
+			<basic name="parameterId" />
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="type" />

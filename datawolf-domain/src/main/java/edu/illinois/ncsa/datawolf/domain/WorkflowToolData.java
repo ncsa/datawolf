@@ -40,7 +40,7 @@ public class WorkflowToolData extends AbstractBean {
     private static final long serialVersionUID = 1L;
 
     /** Id of the workflow tool data */
-    private String            dataid           = UUID.randomUUID().toString();
+    private String            dataId           = UUID.randomUUID().toString();
 
     /** Title of the workflow tool data */
     private String            title            = "";                          //$NON-NLS-1$
@@ -62,7 +62,7 @@ public class WorkflowToolData extends AbstractBean {
      * @return id of the workflow tool data
      */
     public String getDataId() {
-        return dataid;
+        return dataId;
     }
 
     /**
@@ -73,7 +73,7 @@ public class WorkflowToolData extends AbstractBean {
      * 
      */
     public void setDataId(String dataid) {
-        this.dataid = dataid;
+        this.dataId = dataid;
     }
 
     /**
