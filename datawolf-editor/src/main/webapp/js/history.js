@@ -298,7 +298,7 @@ var isFinishedAndUpdated = function(executionId, status) {
         }
     });
 
-    var stepStates = execution.get('stepStates');
+    var stepStates = execution.get('stepState');
     var update = true;
     for(var key in stepStates) {
         if(stepStates[key] === 'WAITING' || stepStates[key] === 'QUEUED' || stepStates[key] === 'RUNNING') {
@@ -334,7 +334,7 @@ function updateActiveExecution() {
 
                     var steps = $(".active").find(".cbi-execstep");
 
-                    var stepstats = exec.get("stepStates");
+                    var stepstats = exec.get("stepState");
                     var starttimes = exec.get("stepsStart"); 
                     var endtimes = exec.get("stepsEnd"); 
 
