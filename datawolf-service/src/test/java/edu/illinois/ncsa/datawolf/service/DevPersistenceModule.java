@@ -1,10 +1,5 @@
 package edu.illinois.ncsa.datawolf.service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,41 +35,35 @@ import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
+import edu.illinois.ncsa.domain.impl.FileStorageDisk;
 import edu.illinois.ncsa.jpa.dao.AccountJPADao;
+import edu.illinois.ncsa.jpa.dao.DatasetJPADao;
+import edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao;
 import edu.illinois.ncsa.jpa.dao.PersonJPADao;
-import edu.illinois.ncsa.medici.dao.DatasetMediciDao;
-import edu.illinois.ncsa.medici.dao.FileDescriptorMediciDao;
-import edu.illinois.ncsa.medici.impl.FileStorageMedici;
 
-/**
- * Binds Persistence DAOs
- * 
- * @author Chris Navarro <cmnavarr@illinois.edu>
- * 
- */
-public class PersistenceModule extends AbstractModule {
-    private Logger logger = LoggerFactory.getLogger(PersistenceModule.class);
+public class DevPersistenceModule extends AbstractModule {
+    private Logger logger = LoggerFactory.getLogger(DevPersistenceModule.class);
 
     @Override
     protected void configure() {
         JpaPersistModule jpa = new JpaPersistModule("WolfPersistence");
 
-        // Configure Persistence
-        // String datawolfProperties = "src/test/resources/datawolf.properties";
-
-        // This contains properties to set on injected files (e.g. medici key)
-        Properties properties = new Properties();
-        String datawolfProperties = System.getProperty("datawolf.properties");
-        if (datawolfProperties.trim() != "") {
-            File file = new File(datawolfProperties);
-            try {
-                properties.load(new FileInputStream(file));
-                Names.bindProperties(binder(), properties);
-                jpa.properties(properties);
-            } catch (IOException e) {
-                logger.error("Error reading properties file: " + System.getProperty("datawolf.properties"), e);
-            }
-        }
+        // CMN: shows how we can bind different persistence properties at
+// runtime
+        // Properties properties = new Properties();
+        // String datawolfProperties =
+// System.getProperty("datawolf.properties");
+        // if (datawolfProperties.trim() != "") {
+        // File file = new File(datawolfProperties);
+        // try {
+        // properties.load(new FileInputStream(file));
+        // Names.bindProperties(binder(), properties);
+        // jpa.properties(properties);
+        // } catch (IOException e) {
+        // logger.error("Error reading properties file: " +
+// System.getProperty("datawolf.properties"), e);
+        // }
+        // }
 
         install(jpa);
 
@@ -85,19 +74,15 @@ public class PersistenceModule extends AbstractModule {
         bind(WorkflowToolDao.class).to(WorkflowToolJPADao.class);
         bind(WorkflowToolParameterDao.class).to(WorkflowToolParameterJPADao.class);
         bind(WorkflowToolDataDao.class).to(WorkflowToolDataJPADao.class);
-        bind(DatasetDao.class).to(DatasetMediciDao.class);
+        bind(DatasetDao.class).to(DatasetJPADao.class);
         bind(ExecutionDao.class).to(ExecutionJPADao.class);
         bind(LogFileDao.class).to(LogFileJPADao.class);
         bind(HPCJobInfoDao.class).to(HPCJobInfoJPADao.class);
         bind(AccountDao.class).to(AccountJPADao.class);
 
-        bind(FileDescriptorDao.class).to(FileDescriptorMediciDao.class);
-
-        // String datawolfProperties = "src/test/resources/datawolf.properties";
-
-        // This contains properties to set on injected files (e.g. medici key)
-
-        bind(FileStorage.class).to(FileStorageMedici.class);
+        bind(FileDescriptorDao.class).to(FileDescriptorJPADao.class);
+        bind(FileStorage.class).to(FileStorageDisk.class);
+        bindConstant().annotatedWith(Names.named("engine.storeLogs")).to(true);
 
         MapBinder<String, Executor> binder = MapBinder.newMapBinder(binder(), String.class, Executor.class);
         binder.addBinding("java").to(JavaExecutor.class);

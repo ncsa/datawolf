@@ -22,7 +22,7 @@ public class EmbededJetty {
         ServletContextHandler root = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
         root.addFilter(GuiceFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 
-        GuiceContextListener listener = new GuiceContextListener();
+        TestGuiceContextListener listener = new TestGuiceContextListener();
         root.addEventListener(listener);
         // create the context, point to location of resources
         // Context root = new Context(server, "/", Context.SESSIONS);
