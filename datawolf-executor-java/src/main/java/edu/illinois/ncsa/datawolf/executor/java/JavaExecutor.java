@@ -224,7 +224,7 @@ public class JavaExecutor extends LocalExecutor {
                         ds.setDescription(data.getDescription());
                         ds.setCreator(execution.getCreator());
                         ds.addFileDescriptor(fd);
-                        datasetDao.save(ds);
+                        ds = datasetDao.save(ds);
 
                         execution.setDataset(entry.getValue(), ds.getId());
                         datasets.add(ds);

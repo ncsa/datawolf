@@ -780,7 +780,7 @@ public class HPCExecutor extends RemoteExecutor {
                 ds.setTitle("gondola-log");
                 ds.setCreator(execution.getCreator());
                 ds.addFileDescriptor(fd);
-                datasetDao.save(ds);
+                ds = datasetDao.save(ds);
 
                 String key = step.getOutputs().get(gondolaLogId);
                 execution.setDataset(key, ds.getId());
@@ -1050,7 +1050,7 @@ public class HPCExecutor extends RemoteExecutor {
                 ds.setTitle("stdout");
                 ds.setCreator(execution.getCreator());
                 ds.addFileDescriptor(fd);
-                datasetDao.save(ds);
+                ds = datasetDao.save(ds);
 
                 String key = step.getOutputs().get(stdOutId);
                 execution.setDataset(key, ds.getId());
@@ -1062,7 +1062,7 @@ public class HPCExecutor extends RemoteExecutor {
                 ds.setTitle("stderr");
                 ds.setCreator(execution.getCreator());
                 ds.addFileDescriptor(fd);
-                datasetDao.save(ds);
+                ds = datasetDao.save(ds);
 
                 key = step.getOutputs().get(stdErrId);
                 execution.setDataset(key, ds.getId());

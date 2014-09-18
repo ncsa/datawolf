@@ -334,7 +334,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
-                    datasetDao.save(ds);
+                    ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
                     datasets.add(ds);
@@ -352,7 +352,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle());
                     ds.setCreator(execution.getCreator());
                     ds.addFileDescriptor(fd);
-                    datasetDao.save(ds);
+                    ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds.getId());
                     datasets.add(ds);
@@ -391,7 +391,7 @@ public class CommandLineExecutor extends LocalExecutor {
                         FileDescriptor fd = fileStorage.storeFile(new File(entry.getValue()).getName(), fis);
                         ds.addFileDescriptor(fd);
                     }
-                    datasetDao.save(ds);
+                    ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(entry.getKey()), ds.getId());
                     datasets.add(ds);
