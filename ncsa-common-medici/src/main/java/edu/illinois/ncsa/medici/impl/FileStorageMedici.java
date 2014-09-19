@@ -14,6 +14,11 @@ import java.security.NoSuchAlgorithmException;
 import javax.activation.MimetypesFileTypeMap;
 import javax.inject.Inject;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.impl.client.BasicResponseHandler;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +99,10 @@ public class FileStorageMedici implements FileStorage {
         fd.setDataURL(check.getDataURL());
 
         return new URL(check.getDataURL());
+    }
+
+    public FileDescriptor storeFile(FileDescriptor fd, String filename, InputStream is) throws IOException {
+        return storeFile(fd.getId(), filename, is);
     }
 
     public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
@@ -189,11 +198,32 @@ public class FileStorageMedici implements FileStorage {
     }
 
     public boolean deleteFile(FileDescriptor fd) {
-        // not supported
+        if (fd.getDataURL() != null) {
+            logger.debug("Deleting existing file");
+            HttpClient httpClient = new DefaultHttpClient();
+            String requestUrl = null;
+            if ((key == null) || key.trim().equals("")) {
+                requestUrl = fd.getDataURL();
+            } else {
+                requestUrl = fd.getDataURL() + "?key=" + key.trim();
+            }
+
+            HttpDelete httpDelete = new HttpDelete(requestUrl);
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            String responseString = null;
+            try {
+                responseString = httpClient.execute(httpDelete, responseHandler);
+                logger.debug("Response: " + responseString);
+                return true;
+            } catch (Exception e) {
+                logger.error("HTTP Delete failed.", e);
+            }
+        }
         return false;
     }
 
     public InputStream readFile(FileDescriptor fd) throws IOException {
         return new URL(fd.getDataURL()).openStream();
     }
+
 }
