@@ -285,7 +285,9 @@ public abstract class Executor {
                 logFileDao.save(logfile);
             } else {
                 // Delete existing file
-                fileStorage.deleteFile(logfile.getLog());
+                if (logfile.getLog().getDataURL() != null) {
+                    fileStorage.deleteFile(logfile.getLog());
+                }
             }
 
             try {
