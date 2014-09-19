@@ -283,6 +283,9 @@ public abstract class Executor {
                 logfile.setDate(new Date());
                 logfile.setLog(new FileDescriptor());
                 logFileDao.save(logfile);
+            } else {
+                // Delete existing file
+                fileStorage.deleteFile(logfile.getLog());
             }
 
             try {
