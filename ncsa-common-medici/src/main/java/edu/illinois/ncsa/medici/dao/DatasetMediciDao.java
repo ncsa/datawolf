@@ -19,6 +19,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -82,6 +83,26 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 String id = jsonElement.getAsJsonObject().get("id").getAsString();
                 dataset.setId(id);
 
+                // Add datawolf tag
+                if ((key == null) || key.trim().equals("")) {
+                    requestUrl = SERVER + "api/datasets/" + dataset.getId() + "/tags";
+                } else {
+                    requestUrl = SERVER + "api/datasets/" + dataset.getId() + "/tags?key=" + key.trim();
+                }
+
+                httpPost = new HttpPost(requestUrl);
+                jsonObject = new JsonObject();
+                JsonArray array = new JsonArray();
+                array.add(new JsonPrimitive("datawolf"));
+                jsonObject.add("tags", array);
+                jsonObject.addProperty("extractor_id", "add");
+
+                params = new StringEntity(jsonObject.toString());
+                httpPost.setEntity(params);
+                httpPost.setHeader("content-type", "application/json");
+                responseHandler = new BasicResponseHandler();
+                responseStr = httpclient.execute(httpPost, responseHandler);
+                logger.debug("Add Tag response: " + responseStr);
             } catch (Exception e1) {
                 logger.error("HTTP Create Dataset failed.", e1);
             }
