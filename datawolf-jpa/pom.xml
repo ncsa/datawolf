@@ -39,23 +39,23 @@
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>ncsa-common-domain</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>datawolf-domain</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>ncsa-common-jpa</artifactId>
-			<version>3.1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<!-- GUICE -->
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>3.0</version>
+			<version>${guice.version}</version>
 		</dependency>
 	</dependencies>
 </project>

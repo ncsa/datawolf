@@ -9,23 +9,20 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
 		<ncsa.common.version>3.1.0-SNAPSHOT</ncsa.common.version>
-
+		<hibernate.jpa.version>1.0.0.Final</hibernate.jpa.version>
 		<hibernate.version>4.3.5.Final</hibernate.version>
-		<bonecp.version>0.7.1.RELEASE</bonecp.version>
-		<hsql.version>2.2.8</hsql.version>
-		<mysql.version>5.1.21</mysql.version>
+		<hsql.version>2.3.2</hsql.version>
+		<mysql.version>5.1.32</mysql.version>
 		<postgresql.version>9.1-901-1.jdbc4</postgresql.version>
-
 		<apache.http.version>4.2.1</apache.http.version>
-
 		<slf4j.version>1.7.0</slf4j.version>
 		<junit.version>4.10</junit.version>
 		<guice.version>3.0</guice.version>
 		<jackson.version>2.0.5</jackson.version>
 		<resteasy.version>3.0.8.Final</resteasy.version>
 		<jetty.version>9.2.2.v20140723</jetty.version>
+		<hikaricp.version>2.0.1</hikaricp.version>
 	</properties>
 
 	<repositories>
@@ -128,41 +125,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.jolbox</groupId>
-			<artifactId>bonecp</artifactId>
-			<version>${bonecp.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-			<scope>test</scope>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+			<version>${hikaricp.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.jolbox</groupId>
-			<artifactId>bonecp-provider</artifactId>
-			<version>${bonecp.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jolbox</groupId>
-			<artifactId>bonecp-spring</artifactId>
-			<version>${bonecp.version}</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+
 		<dependency>
 			<groupId>org.hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>

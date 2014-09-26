@@ -1,6 +1,15 @@
 package edu.illinois.ncsa.datawolf.executor.java;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
 import com.google.inject.persist.jpa.JpaPersistModule;
 
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
@@ -29,10 +38,25 @@ import edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao;
 import edu.illinois.ncsa.jpa.dao.PersonJPADao;
 
 public class TestModule extends AbstractModule {
+    private Logger logger = LoggerFactory.getLogger(TestModule.class);
 
     @Override
     protected void configure() {
-        install(new JpaPersistModule("WolfPersistence"));
+        JpaPersistModule jpa = new JpaPersistModule("WolfPersistence");
+
+        Properties properties = new Properties();
+        String datawolfProperties = "src/test/resources/datawolf.properties";
+        if (datawolfProperties.trim() != "") {
+            File file = new File(datawolfProperties);
+            try {
+                properties.load(new FileInputStream(file));
+                Names.bindProperties(binder(), properties);
+                jpa.properties(properties);
+            } catch (IOException e) {
+                logger.error("Error reading properties file", e);
+            }
+        }
+        install(jpa);
 
         // DAOs
         bind(PersonDao.class).to(PersonJPADao.class);

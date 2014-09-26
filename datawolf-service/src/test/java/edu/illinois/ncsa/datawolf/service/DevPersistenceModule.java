@@ -1,5 +1,10 @@
 package edu.illinois.ncsa.datawolf.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,23 +53,18 @@ public class DevPersistenceModule extends AbstractModule {
     protected void configure() {
         JpaPersistModule jpa = new JpaPersistModule("WolfPersistence");
 
-        // CMN: shows how we can bind different persistence properties at
-// runtime
-        // Properties properties = new Properties();
-        // String datawolfProperties =
-// System.getProperty("datawolf.properties");
-        // if (datawolfProperties.trim() != "") {
-        // File file = new File(datawolfProperties);
-        // try {
-        // properties.load(new FileInputStream(file));
-        // Names.bindProperties(binder(), properties);
-        // jpa.properties(properties);
-        // } catch (IOException e) {
-        // logger.error("Error reading properties file: " +
-// System.getProperty("datawolf.properties"), e);
-        // }
-        // }
-
+        Properties properties = new Properties();
+        String datawolfProperties = "src/test/resources/datawolf.properties";
+        if (datawolfProperties.trim() != "") {
+            File file = new File(datawolfProperties);
+            try {
+                properties.load(new FileInputStream(file));
+                Names.bindProperties(binder(), properties);
+                jpa.properties(properties);
+            } catch (IOException e) {
+                logger.error("Error reading properties file", e);
+            }
+        }
         install(jpa);
 
         bind(PersonDao.class).to(PersonJPADao.class);
