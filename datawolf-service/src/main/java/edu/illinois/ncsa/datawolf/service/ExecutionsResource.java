@@ -39,6 +39,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -78,6 +79,7 @@ import edu.illinois.ncsa.datawolf.domain.HPCJobInfo;
 import edu.illinois.ncsa.datawolf.domain.LogFile;
 import edu.illinois.ncsa.datawolf.domain.Submission;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
+import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
 import edu.illinois.ncsa.datawolf.domain.dao.HPCJobInfoDao;
 import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
@@ -151,6 +153,51 @@ public class ExecutionsResource {
             log.error(error);
             return error;
         }
+    }
+
+    @GET
+    @Path("{workflow-id}/template")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Submission getSubmissionTemplate(@PathParam("workflow-id") String workflowId) {
+
+        Workflow workflow = workflowDao.findOne(workflowId);
+        Submission submission = new Submission();
+        submission.setId(""); //$NON-NLS-1$
+
+        if (workflow != null) {
+            submission.setWorkflowId(workflow.getId());
+            submission.setCreatorId(workflow.getCreator().getId());
+            for (WorkflowStep step : workflow.getSteps()) {
+                // Parameter keys to insert into Submission parameter map
+                Map<String, String> parameters = step.getParameters();
+                Iterator<String> keys = parameters.keySet().iterator();
+                while (keys.hasNext()) {
+                    String parameterId = keys.next();
+                    String mappingKey = parameters.get(parameterId);
+                    String defaultValue = step.getTool().getParameter(parameterId).getValue();
+                    submission.setParameter(mappingKey, defaultValue);
+                }
+
+                // Dataset keys to insert into Submission dataset map
+                Map<String, String> inputs = step.getInputs();
+                Iterator<String> inputIterator = inputs.keySet().iterator();
+                boolean add = true;
+                while (inputIterator.hasNext()) {
+                    String inputKey = inputIterator.next();
+                    String mappingKey = inputs.get(inputKey);
+                    for (WorkflowStep step0 : workflow.getSteps()) {
+                        if (step0.getOutputs().containsValue(mappingKey)) {
+                            add = false;
+                            break;
+                        }
+                    }
+                    if (add) {
+                        submission.setDataset(mappingKey, ""); //$NON-NLS-1$
+                    }
+                }
+            }
+        }
+        return submission;
     }
 
     /**
