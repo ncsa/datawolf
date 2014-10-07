@@ -88,6 +88,7 @@ import edu.illinois.ncsa.datawolf.executor.hpc.ssh.SSHInfo;
 import edu.illinois.ncsa.datawolf.executor.hpc.ssh.SSHSession;
 import edu.illinois.ncsa.datawolf.executor.hpc.util.NonNLSConstants;
 import edu.illinois.ncsa.datawolf.executor.hpc.util.SshUtils;
+import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 
 @Path("/executions")
@@ -158,7 +159,7 @@ public class ExecutionsResource {
     @GET
     @Path("{workflow-id}/template")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Submission getSubmissionTemplate(@PathParam("workflow-id") String workflowId) {
+    public Submission getSubmissionTemplate(@PathParam("workflow-id") String workflowId, @QueryParam("email") @DefaultValue("") String email) {
 
         Workflow workflow = workflowDao.findOne(workflowId);
         Submission submission = new Submission();
@@ -166,7 +167,13 @@ public class ExecutionsResource {
 
         if (workflow != null) {
             submission.setWorkflowId(workflow.getId());
-            submission.setCreatorId(workflow.getCreator().getId());
+            if (!email.equals("")) { //$NON-NLS-1$
+                Person person = personDao.findByEmail(email);
+                if (person != null) {
+                    submission.setCreatorId(person.getId());
+                }
+            }
+
             for (WorkflowStep step : workflow.getSteps()) {
                 // Parameter keys to insert into Submission parameter map
                 Map<String, String> parameters = step.getParameters();
