@@ -54,9 +54,6 @@ import edu.illinois.ncsa.gondola.types.submission.LineType;
 import edu.illinois.ncsa.gondola.types.submission.RegexType;
 import edu.illinois.ncsa.gondola.types.submission.ScriptType;
 
-
-
-
 /**
  * The HPCExecutor will launch remote jobs based on machine information provided
  * in the XML template. The executable will be passed an arbitrary set of
@@ -71,13 +68,12 @@ import edu.illinois.ncsa.gondola.types.submission.ScriptType;
  */
 public class HPCExecutor extends RemoteExecutor {
 
-    private static final String CANNOT_CONNECT = "Cannot connect to";
-    // This should be an executor option
-    private static final String NCPUS              = "[NCPUS]";
-    private static final String HPC_SCRIPT_DIR     = "[HPC-SCRIPT-DIR]";
-    private static final String HPC_EXE            = "[HPC-EXE]";
     private static Logger       logger             = LoggerFactory.getLogger(HPCExecutor.class);
-    private static final String NL                 = System.getProperty("line.separator");
+    private static final String CANNOT_CONNECT     = "Cannot connect to";
+    // This should be an executor option
+    private static final String NCPUS              = "[NCPUS]";                                 //$NON-NLS-1$
+    private static final String HPC_SCRIPT_DIR     = "[HPC-SCRIPT-DIR]";                        //$NON-NLS-1$
+    private static final String HPC_EXE            = "[HPC-EXE]";                               //$NON-NLS-1$
 
     public static final String  EXECUTOR_NAME      = "hpc";
 
@@ -124,11 +120,11 @@ public class HPCExecutor extends RemoteExecutor {
     private String              submissionStdErr   = null;
 
     private boolean             storedJobInfo      = false;
-    private String scriptPath = null;
+    private String              scriptPath         = null;
 
     @Inject
-    protected HPCJobInfoDao hpcJobInfoDao;
-    
+    protected HPCJobInfoDao     hpcJobInfoDao;
+
     @Override
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
 
@@ -142,14 +138,12 @@ public class HPCExecutor extends RemoteExecutor {
 
         // Commands to append to command line
         ArrayList<String> command = new ArrayList<String>();
-        //Transaction t = SpringData.getTransaction();
         try {
-            //t.start();
-            if(scriptPath == null) {
+            if (scriptPath == null) {
                 WorkflowStep step = workflowStepDao.findOne(getStepId());
                 Execution execution = executionDao.findOne(getExecutionId());
                 HPCToolImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), HPCToolImplementation.class);
-    
+
                 for (CommandLineOption option : impl.getCommandLineOptions()) {
                     switch (option.getType()) {
                     case VALUE:
@@ -158,7 +152,7 @@ public class HPCExecutor extends RemoteExecutor {
                             command.add(option.getValue());
                         }
                         break;
-    
+
                     case PARAMETER:
                         String value = null;
                         if (execution.hasParameter(step.getParameters().get(option.getOptionId()))) {
@@ -174,17 +168,17 @@ public class HPCExecutor extends RemoteExecutor {
                                 }
                             }
                             command.add(value);
-                            // parameters.add(option);
                         } else if (!option.isCommandline() && option.getFlag() != null) {
-                            // TODO CMN : make this parameter of the HPC Executor,
-    // perhaps part of an HPCExecutorParameterPage
+                            // TODO CMN : make this parameter of the HPC
+// Executor,
+                            // perhaps part of an HPCExecutorParameterPage
                             if (option.getFlag().equals("-n")) {
                                 ncpuScriptVar = value;
                             }
                         } else {
                             // add special parameters that are expected
                             WorkflowToolParameter param = step.getTool().getParameter(option.getOptionId());
-    
+
                             if (param.getTitle().equals("Target Username")) {
                                 targetUser = value;
                             } else if (param.getTitle().equals("Target SSH")) {
@@ -194,7 +188,7 @@ public class HPCExecutor extends RemoteExecutor {
                             }
                         }
                         break;
-    
+
                     case DATA:
                         String filename = option.getFilename();
                         if (filename == null) {
@@ -206,7 +200,7 @@ public class HPCExecutor extends RemoteExecutor {
                         }
                         stagedFiles = cwd.getAbsolutePath() + NonNLSConstants.PATH_SEP + filename;
                         if (option.getInputOutput() != InputOutput.OUTPUT) {
-    
+
                             String optionId = option.getOptionId();
                             Map<String, String> inputs = step.getInputs();
                             String key = inputs.get(optionId);
@@ -231,7 +225,7 @@ public class HPCExecutor extends RemoteExecutor {
                         break;
                     }
                 }
-    
+
                 try {
                     session = SshUtils.maybeGetSession(new URI(contactURI), targetUser, home);
                 } catch (URISyntaxException e) {
@@ -241,32 +235,27 @@ public class HPCExecutor extends RemoteExecutor {
                     logger.error("Failed to open ssh session.", e);
                     throw new FailedException("Failed to open ssh session.");
                 }
-    
+
                 // Dataset id of log file to store as tool output
                 gondolaLogId = impl.getLog();
                 stdOutId = impl.getCaptureStdOut();
                 stdErrId = impl.getCaptureStdErr();
-    
+
                 // Generate a unique id
                 String normUuid = normalize(UUID.randomUUID().toString());
                 String targetPathSep = NonNLSConstants.REMOTE_PATH_SEP;
                 String targetLineSep = NonNLSConstants.REMOTE_LINE_SEP;
-    
+
                 String stagingDir = null;
                 if (targetUserHome.endsWith(targetPathSep)) {
-                    stagingDir = targetUserHome + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid; // +
-    // targetPathSep;
+                    stagingDir = targetUserHome + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid;
                 } else {
-                    stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid; // +
-    // targetPathSep;
+                    stagingDir = targetUserHome + targetPathSep + NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid;
                 }
-    
+
                 standardOut = stagingDir + targetPathSep + "stdout";
                 standardErr = stagingDir + targetPathSep + "stderr";
-                // String stagingDir = targetUserHome + targetPathSep +
-                // NonNLSConstants.JOB_SCRIPTS + targetPathSep + normUuid +
-                // targetPathSep;
-    
+
                 JAXBContext jc;
                 try {
                     jc = JAXBContext.newInstance(new Class[] { edu.illinois.ncsa.gondola.types.submission.JobSubmissionType.class, edu.illinois.ncsa.gondola.types.submission.JobStatusListType.class,
@@ -276,32 +265,28 @@ public class HPCExecutor extends RemoteExecutor {
                     // e.printStackTrace(pw);
                     throw new FailedException("Failed to instantiate gondola classes.");
                 }
-    
+
                 File workflow = new File(cwd, impl.getTemplate());
-                // File executable = new File(cwd, impl.getExecutable());
-    
-                executablePath = impl.getExecutable(); // stageFile(executable,
-                                                       // stagingDir, session,
-                                                       // impl.getExecutable());
-    
+
+                executablePath = impl.getExecutable();
+
                 job = createJob(workflow, command, stagingDir, jc);
                 jobParser = new JobInfoParser(job.getStatusHandler().getParser());
-    
+
                 // Generate job script locally
                 File tmpScript = writeLocalScript(cwd, job.getScript(), stagingDir, normUuid, targetLineSep);
-    
+
                 // copy job script to target machine
                 scriptPath = stageFile(tmpScript, stagingDir, session, NonNLSConstants.SCRIPT);
-    
+
                 // path to remote gondola log file
                 gondolaLogFile = stagingDir + targetPathSep + NonNLSConstants.LOG;
-                // remoteLogFile = stagingDir + NonNLSConstants.LOG;
-    
+
                 // quick check to see if we should stop
                 if (isJobStopped()) {
                     throw (new AbortException("Job is stopped."));
                 }
-                
+
                 jobId = submit(job, scriptPath, session, targetLineSep);
                 createJobInfo();
             } else {
@@ -310,7 +295,6 @@ public class HPCExecutor extends RemoteExecutor {
                 jobId = submit(job, scriptPath, session, targetLineSep);
                 createJobInfo();
             }
-            // findJobOutput();
 
         } catch (AbortException e) {
             throw e;
@@ -318,45 +302,13 @@ public class HPCExecutor extends RemoteExecutor {
             // Job could not be submitted, set state to waiting to try again
             logger.info("Job not submitted because the job scheduler appears to be down, will try again shortly...");
             return State.WAITING;
-            //throw e;
+            // throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to get information about step.", e));
-        } //finally {
-            //try {
-            //    if (t != null) {
-            //        t.commit();
-            //    }
-            //} catch (Exception e) {
-            //    throw (new FailedException("Could not commit transaction to retrieve information about step.", e));
-            //}
-        //}
-
+        }
         // assume at this point it's queued, but we could run qstat to be sure
         return State.QUEUED;
     }
-
-    /**
-     * Parses job script and finds name of standard error and output files. It
-     * is left up to the retrieval service to determine the run directory TODO
-     * CMN : We should consider logging the err/out log file location/names to
-     * the gondola log
-     */
-    /*
-     * private void findJobOutput() { for(LineType line :
-     * job.getScript().getLine()) { String content = line.getContent(); if
-     * (content.contains("output")) { String[] split = content.split("=");
-     * standardOut = split[1].trim(); if (standardOut.contains("$(jobid)")) {
-     * standardOut = standardOut.replace("$(jobid)", jobId); } } else if
-     * (content.contains("-o")) { String[] split = content.split("-o");
-     * standardOut = split[1].trim(); if (standardOut.contains("$JOB_ID")) {
-     * standardOut = standardOut.replace("$JOB_ID", jobId); } } else
-     * if(content.contains("error")) { String[] split = content.split("=");
-     * standardErr = split[1].trim(); if (standardErr.contains("$(jobid)")) {
-     * standardErr = standardOut.replace("$(jobid)", jobId); } } else
-     * if(content.contains("-e")) { String[] split = content.split("-e");
-     * standardErr = split[1].trim(); if (standardErr.contains("$JOB_ID")) {
-     * standardErr = standardOut.replace("$JOB_ID", jobId); } } } }
-     */
 
     private String submit(JobSubmissionType job, String targetPath, SSHSession session, String lineSep) throws IllegalArgumentException, Exception, IOException {
         StringBuffer stdout = new StringBuffer();
@@ -452,43 +404,48 @@ public class HPCExecutor extends RemoteExecutor {
         BufferedReader br = null;
 
         String line = null;
-        try {
-            br = new BufferedReader(new FileReader(stagedFiles));
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(":");
-                String key = parts[1];
-                String fileLocation = parts[2];
-                fileMap.put(key, fileLocation);
-            }
-
-            return fileMap;
-        } catch (IOException e) {
-            logger.error("Error reading fileLocations input", e);
-            throw new FailedException("Error reading fileLocations input.");
-        } finally {
+        if (stagedFiles != null) {
             try {
-                br.close();
+                br = new BufferedReader(new FileReader(stagedFiles));
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split(":");
+                    String key = parts[1];
+                    String fileLocation = parts[2];
+                    fileMap.put(key, fileLocation);
+                }
+
             } catch (IOException e) {
-                logger.warn("A problem occurred closing fileLocations input.", e);
+                logger.error("Error reading fileLocations input", e);
+                throw new FailedException("Error reading fileLocations input.");
+            } finally {
+                try {
+                    if (br != null) {
+                        br.close();
+                    }
+                } catch (IOException e) {
+                    logger.warn("A problem occurred closing fileLocations input.", e);
+                }
             }
         }
+        return fileMap;
     }
 
     protected void updateJobScript(ScriptType script, Map<String, String> fileMap, List<String> command, String stagingDir) {
         // Create executable line from the user specified exe and inputs
-        // LineType executionLine = new LineType();
         Iterator<String> iterator = fileMap.keySet().iterator();
-        String content = "sh" + NonNLSConstants.SP + executablePath;// line.getContent();
+        // String content = "sh" + NonNLSConstants.SP + executablePath;//
+// line.getContent();
+        String content = executablePath;
 
         // Add parameters to command line
         StringBuilder sb = new StringBuilder();
         for (String s : command) {
             sb.append(s);
-            sb.append(" ");
+            sb.append(NonNLSConstants.SP);
+
         }
 
-        content = content.concat(" " + sb.toString());
-
+        content = content.concat(NonNLSConstants.SP + sb.toString());
         while (iterator.hasNext()) {
             String key = iterator.next();
             String fileLocation = fileMap.get(key);
@@ -522,18 +479,10 @@ public class HPCExecutor extends RemoteExecutor {
                 line.setContent(lineContent);
             }
         }
-
-        // script.getLine().add(executionLine);
-
-        // LineType done = new LineType();
-        // done.setContent("echo" + NonNLSConstants.SP + NonNLSConstants.DONE);
-        // done.setLog(true);
-        // script.getLine().add(done);
     }
 
     private File writeLocalScript(File cwd, ScriptType script, String stagingDir, String normUuid, String lineSep) throws Exception {
         String logPath = stagingDir + NonNLSConstants.REMOTE_PATH_SEP + NonNLSConstants.LOG;
-        // status.setLogFile(logPath);
         StringBuffer sb = new StringBuffer();
         for (LineType line : script.getLine()) {
             sb.append(line.getContent());
@@ -562,47 +511,41 @@ public class HPCExecutor extends RemoteExecutor {
 
     @Override
     public void cancelRemoteJob() {
-        
+
         String cancelJobId = jobId;
-        if(cancelJobId == null) {
-            //Transaction t = SpringData.getTransaction();
+        if (cancelJobId == null) {
             try {
-                //try {
-                    //t.start(true);
-                    List<HPCJobInfo> jobs = hpcJobInfoDao.findByExecutionId(getExecutionId());
-                    if(jobs.isEmpty()) {
-                        logger.error("No job info beans found for execution "+getExecutionId());
-                    } else {
-                        cancelJobId = jobs.get(0).getJobId();
-                    }
-                //} finally {
-                //    t.commit();
-                //}
-            } catch(Exception e) {
-                logger.error("Error retrieving job information for execution "+getExecutionId());
+                List<HPCJobInfo> jobs = hpcJobInfoDao.findByExecutionId(getExecutionId());
+                if (jobs.isEmpty()) {
+                    logger.error("No job info beans found for execution " + getExecutionId());
+                } else {
+                    cancelJobId = jobs.get(0).getJobId();
+                }
+            } catch (Exception e) {
+                logger.error("Error retrieving job information for execution " + getExecutionId());
             }
         }
-        
+
         logger.info(String.format("Stopping RemoteJob : %s", jobId));
         if (session != null) {
-            if(cancelJobId != null) {
+            if (cancelJobId != null) {
                 String command = job.getTerminatePath() + NonNLSConstants.SP + cancelJobId;
                 try {
                     SshUtils.exec(session, command);
-                    // setState(State.ABORTED);
                 } catch (IllegalArgumentException e) {
                     logger.error("Could not cancel job " + jobId, e);
                 } catch (Exception e) {
                     logger.error("Could not cancel job " + jobId, e);
                 }
             } else {
-                logger.error("Job ID was null for execution id "+getExecutionId());
+                logger.error("Job ID was null for execution id " + getExecutionId());
             }
         }
     }
 
     @Override
     public State checkRemoteJob() throws FailedException {
+        System.out.println("check remote job state");
         StringBuffer out = new StringBuffer();
         String[] lines = null;
         String commandArgs = job.getStatusHandler().getCommandArgs();
@@ -612,7 +555,10 @@ public class HPCExecutor extends RemoteExecutor {
                 String command = commandPath;
                 if (commandArgs != null)
                     command += NonNLSConstants.SP + commandArgs;
-                command += NonNLSConstants.SP + "-j" + NonNLSConstants.SP + jobId;
+                // qstat flags should come from the template
+                // command += NonNLSConstants.SP + "-j" + NonNLSConstants.SP +
+// jobId;
+                command += NonNLSConstants.SP + jobId;
 
                 logger.debug("get status command: " + command);
                 SshUtils.exec(session, command, out, null);
@@ -628,17 +574,18 @@ public class HPCExecutor extends RemoteExecutor {
             for (String line : lines) {
 
                 // Determine if remote job queue is unresponsive
-                if(line.contains(CANNOT_CONNECT)) {
+                if (line.contains(CANNOT_CONNECT)) {
                     State state = this.getState();
-                    if(state != State.WAITING) {
+                    if (state != State.WAITING) {
                         // Job status not responding, return previous state
                         return state;
                     } else {
-                        // Job submitted, but we have not yet received a successful job status since, assume queued
+                        // Job submitted, but we have not yet received a
+// successful job status since, assume queued
                         return State.QUEUED;
                     }
                 }
-                
+
                 String[] data = jobParser.parseJobState(line);
                 if (data != null) {
                     if (data[0].equals(jobId)) {
@@ -649,7 +596,7 @@ public class HPCExecutor extends RemoteExecutor {
                             updateJobInfo();
                             return jobState;
                         } else {
-                            logger.debug("Job is not finished, aborted, nor running: "+jobState.toString());
+                            logger.debug("Job is not finished, aborted, nor running: " + jobState.toString());
                             return jobState;
                         }
                     }
@@ -711,7 +658,7 @@ public class HPCExecutor extends RemoteExecutor {
             boolean done = false;
             String startTime = null;
             String endTime = null;
-            
+
             if (gondolaLogReader != null) {
                 String line;
                 while ((line = gondolaLogReader.readLine()) != null) {
@@ -719,32 +666,39 @@ public class HPCExecutor extends RemoteExecutor {
                         jobResultDirectory = line;
                     } else if ("DONE".equals(line.toUpperCase())) {
                         done = true;
-                    } else if(line.startsWith("start:")) {
+                    } else if (line.startsWith("start:")) {
                         startTime = line.substring(7, line.length());
-                    } else if(line.startsWith("end:")) {
+                    } else if (line.startsWith("end:")) {
                         endTime = line.substring(5, line.length());
                     }
                     // println(line);
                     gondolaLogContent.append(line);
-                    gondolaLogContent.append(NL);
+                    gondolaLogContent.append(NonNLSConstants.LINE_SEP);
                 }
                 gondolaLogReader.close();
                 gondolaLogReader = null;
             }
-            
+
             if (!done) {
                 // If not done, copy standard error and out
-                SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
-                SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
-
+                if (SshUtils.exists(standardErr, session)) {
+                    SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
+                }
+                if (SshUtils.exists(standardOut, session)) {
+                    SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
+                }
                 // Job failed, store stdout and stderr datasets
                 storeStandardOutDataset();
                 return State.FAILED;
             }
 
             // If not done, copy standard error and out
-            SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
-            SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
+            if (SshUtils.exists(standardErr, session)) {
+                SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
+            }
+            if (SshUtils.exists(standardOut, session)) {
+                SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
+            }
 
             // Job finished properly, store stdout and stderr
             storeStandardOutDataset();
@@ -752,24 +706,21 @@ public class HPCExecutor extends RemoteExecutor {
             // TODO RK : replace code above with the following code.
             // String log = getRemoteLog();
 
-            //Transaction t = null;
             // List of created datasets
             List<AbstractBean> datasets = new ArrayList<AbstractBean>();
             try {
                 // TODO make this more generic
-                //t = SpringData.getTransaction();
-                //t.start();
-                
+
                 WorkflowStep step = workflowStepDao.findOne(getStepId());
                 Execution execution = executionDao.findOne(getExecutionId());
-                
+
                 // Record start/end time
                 SimpleDateFormat sdfParser = new SimpleDateFormat("EEE MMM d HH:mm:ss zzz yyyy");
-                if(startTime != null) {
+                if (startTime != null) {
                     execution.setStepStart(getStepId(), sdfParser.parse(startTime).getTime());
                 }
-                
-                if(endTime != null) {
+
+                if (endTime != null) {
                     execution.setStepEnd(getStepId(), sdfParser.parse(endTime).getTime());
                 }
 
@@ -788,9 +739,6 @@ public class HPCExecutor extends RemoteExecutor {
 
                 return State.FINISHED;
             } finally {
-                //t.commit();
-                // TODO do we still need this event handling?
-                //SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
                 session.close();
                 session = null;
             }
@@ -799,28 +747,23 @@ public class HPCExecutor extends RemoteExecutor {
         }
         return State.FAILED;
     }
+
     private void createJobInfo() {
-        //Transaction t = SpringData.getTransaction();
         try {
-            //try {
-                //t.start();
-                HPCJobInfo info = new HPCJobInfo();
-                info.setExecutionId(this.getExecutionId());
-                if(jobId != null) {
-                    info.setJobId(jobId);
-                } else {
-                    logger.warn("Job id was null");
-                }
-            
-                hpcJobInfoDao.save(info);
-            
-            //} finally {
-            //  t.commit();
-            //}
-        } catch(Exception e) {
+            HPCJobInfo info = new HPCJobInfo();
+            info.setExecutionId(this.getExecutionId());
+            if (jobId != null) {
+                info.setJobId(jobId);
+            } else {
+                logger.warn("Job id was null");
+            }
+
+            hpcJobInfoDao.save(info);
+
+        } catch (Exception e) {
             logger.error("Error saving job information in HPC Executor", e);
         }
-        
+
     }
 
     // TODO RK remove following code, is rolled into getRemoteLog()
@@ -839,42 +782,22 @@ public class HPCExecutor extends RemoteExecutor {
                     }
                     workingDir = line;
                     jobResultDirectory = workingDir;
-                    // This should be the standard err/out log file directory
-                    // line = stdoutReader.readLine();
-                    // if(line != null) {
-                    // if(standardErr != null) {
-                    // standardErr = line + "/" + standardErr;
-                    // }
 
-                    // if(standardOut != null) {
-                    // standardOut = line + "/" + standardOut;
-                    // }
-                    // }
-                    // println(line);
-                    // stdout.append(line);
-                    // stdout.append(NL);
-
-                    //Transaction t = null;
                     try {
-                        //t = SpringData.getTransaction();
-                        //t.start();
-                        
-                        //HPCJobInfoDAO jobInfoDAO = SpringData.getBean(HPCJobInfoDAO.class);
                         List<HPCJobInfo> jobs = hpcJobInfoDao.findByExecutionId(getExecutionId());
-                        
-                        if(!jobs.isEmpty()) {
+
+                        if (!jobs.isEmpty()) {
                             HPCJobInfo info = jobs.get(0);
-                            //info.setExecutionId(this.getExecutionId());
+                            // info.setExecutionId(this.getExecutionId());
                             info.setWorkingDir(workingDir);
-       
+
                             hpcJobInfoDao.save(info);
                             storedJobInfo = true;
                         } else {
-                            logger.error("No job information bean found for execution id "+getExecutionId());
+                            logger.error("No job information bean found for execution id " + getExecutionId());
                         }
                     } finally {
                         stdoutReader.close();
-                        //t.commit();
                     }
                 }
             }
@@ -886,23 +809,18 @@ public class HPCExecutor extends RemoteExecutor {
 
     @Override
     public String getRemoteLog() {
-        // if (session == null) {
-        // return null;
-        // }
         try {
             if (session != null) {
                 // If the session is still open, make sure we get the error log
-                // files
-                SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
-                SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
+                // files if there are any
+                if (SshUtils.exists(standardErr, session)) {
+                    SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(), session);
+                }
+                if (SshUtils.exists(standardOut, session)) {
+                    SshUtils.copyFrom(standardOut, stdOutLog.getAbsolutePath(), session);
+                }
             }
-            // SshUtils.copyFrom(standardErr, stdErrLog.getAbsolutePath(),
-            // session);
-            // SshUtils.copyFrom(standardErr, stdOutLog.getAbsolutePath(),
-            // session);
-
             String workingfolder = null;
-            BufferedReader br = new BufferedReader(new FileReader(stdOutLog));
 
             StringBuilder stdout = new StringBuilder();
             StringBuilder stderr = new StringBuilder();
@@ -910,50 +828,55 @@ public class HPCExecutor extends RemoteExecutor {
             StringBuffer sb = new StringBuffer();
             String line = null;
             sb.append("-------- STDOUT --------");
-            sb.append(NL);
+            sb.append(NonNLSConstants.LINE_SEP);
 
             if (jobResultDirectory != null) {
                 sb.append("run-dir=" + jobResultDirectory);
-                sb.append(NL);
+                sb.append(NonNLSConstants.LINE_SEP);
 
                 stdout.append("run-dir=" + jobResultDirectory);
-                stdout.append(NL);
+                stdout.append(NonNLSConstants.LINE_SEP);
             }
 
             sb.append(submissionStdOut);
-            sb.append(NL);
-            while ((line = br.readLine()) != null) {
-                if (workingfolder == null) {
-                    workingfolder = line;
+            sb.append(NonNLSConstants.LINE_SEP);
+            if (stdOutLog.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(stdOutLog));
+                while ((line = br.readLine()) != null) {
+                    if (workingfolder == null) {
+                        workingfolder = line;
+                    }
+                    sb.append(line);
+                    sb.append(NonNLSConstants.LINE_SEP);
+
+                    stdout.append(line);
+                    stdout.append(NonNLSConstants.LINE_SEP);
+
                 }
-                sb.append(line);
-                sb.append(NL);
-
-                stdout.append(line);
-                stdout.append(NL);
-
+                br.close();
             }
-            br.close();
 
             sb.append("-------- STDERR --------");
-            sb.append(NL);
+            sb.append(NonNLSConstants.LINE_SEP);
             sb.append(submissionStdErr);
-            sb.append(NL);
+            sb.append(NonNLSConstants.LINE_SEP);
 
-            br = new BufferedReader(new FileReader(stdErrLog));
-            line = null;
-            while ((line = br.readLine()) != null) {
-                if (workingfolder == null) {
-                    workingfolder = line;
+            if (stdErrLog.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(stdErrLog));
+                line = null;
+                while ((line = br.readLine()) != null) {
+                    if (workingfolder == null) {
+                        workingfolder = line;
+                    }
+                    sb.append(line);
+                    sb.append(NonNLSConstants.LINE_SEP);
+
+                    stderr.append(line);
+                    stderr.append(NonNLSConstants.LINE_SEP);
+
                 }
-                sb.append(line);
-                sb.append(NL);
-
-                stderr.append(line);
-                stderr.append(NL);
-
+                br.close();
             }
-            br.close();
 
             // TODO RK : store working folder
             // if ((workingfolder != null) && !storedJobInfo) {
@@ -988,93 +911,67 @@ public class HPCExecutor extends RemoteExecutor {
     private void storeStandardOutDataset() {
         // Store stdout and stderr as datasets
         try {
-            BufferedReader br = new BufferedReader(new FileReader(stdOutLog));
 
             StringBuilder stdout = new StringBuilder();
             StringBuilder stderr = new StringBuilder();
 
-            // StringBuffer sb = new StringBuffer();
             String line = null;
-            // sb.append("-------- STDOUT --------");
-            // sb.append(NL);
-
             if (jobResultDirectory != null) {
-                // sb.append("run-dir=" + jobResultDirectory);
-                // sb.append(NL);
-
                 stdout.append("run-dir=" + jobResultDirectory);
-                stdout.append(NL);
+                stdout.append(NonNLSConstants.LINE_SEP);
             }
 
-            // sb.append(submissionStdOut);
-            // sb.append(NL);
-            while ((line = br.readLine()) != null) {
-                // sb.append(line);
-                // sb.append(NL);
-
-                stdout.append(line);
-                stdout.append(NL);
-
+            if (stdOutLog.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(stdOutLog));
+                while ((line = br.readLine()) != null) {
+                    stdout.append(line);
+                    stdout.append(NonNLSConstants.LINE_SEP);
+                }
+                br.close();
             }
-            br.close();
 
-            // sb.append("-------- STDERR --------");
-            // sb.append(NL);
-            // sb.append(submissionStdErr);
-            // sb.append(NL);
-
-            br = new BufferedReader(new FileReader(stdErrLog));
-            line = null;
-            while ((line = br.readLine()) != null) {
-                // sb.append(line);
-                // sb.append(NL);
-
-                stderr.append(line);
-                stderr.append(NL);
-
+            if (stdErrLog.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(stdErrLog));
+                line = null;
+                while ((line = br.readLine()) != null) {
+                    stderr.append(line);
+                    stderr.append(NonNLSConstants.LINE_SEP);
+                }
+                br.close();
             }
-            br.close();
 
-            //Transaction t = null;
             List<AbstractBean> datasets = new ArrayList<AbstractBean>();
-            //try {
-                //t = SpringData.getTransaction();
-                //t.start();
-                WorkflowStep step = workflowStepDao.findOne(getStepId());
-                Execution execution = executionDao.findOne(getExecutionId());
+            WorkflowStep step = workflowStepDao.findOne(getStepId());
+            Execution execution = executionDao.findOne(getExecutionId());
 
-                ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                FileDescriptor fd = fileStorage.storeFile("stdout", bais);
+            ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
+            FileDescriptor fd = fileStorage.storeFile("stdout", bais);
 
-                Dataset ds = new Dataset();
-                ds.setTitle("stdout");
-                ds.setCreator(execution.getCreator());
-                ds.addFileDescriptor(fd);
-                ds = datasetDao.save(ds);
+            Dataset ds = new Dataset();
+            ds.setTitle("stdout");
+            ds.setCreator(execution.getCreator());
+            ds.addFileDescriptor(fd);
+            ds = datasetDao.save(ds);
 
-                String key = step.getOutputs().get(stdOutId);
-                execution.setDataset(key, ds.getId());
+            String key = step.getOutputs().get(stdOutId);
+            execution.setDataset(key, ds.getId());
 
-                bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                fd = fileStorage.storeFile("stderr", bais);
+            bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
+            fd = fileStorage.storeFile("stderr", bais);
 
-                ds = new Dataset();
-                ds.setTitle("stderr");
-                ds.setCreator(execution.getCreator());
-                ds.addFileDescriptor(fd);
-                ds = datasetDao.save(ds);
+            ds = new Dataset();
+            ds.setTitle("stderr");
+            ds.setCreator(execution.getCreator());
+            ds.addFileDescriptor(fd);
+            ds = datasetDao.save(ds);
 
-                key = step.getOutputs().get(stdErrId);
-                execution.setDataset(key, ds.getId());
+            key = step.getOutputs().get(stdErrId);
+            execution.setDataset(key, ds.getId());
 
-                executionDao.save(execution);
+            executionDao.save(execution);
 
-                datasets.add(ds);
-            //} finally {
-                //t.commit();
-                // TODO do we still need this event handling?
-                //SpringData.getEventBus().fireEvent(new ObjectCreatedEvent(datasets));
-            //}
+            datasets.add(ds);
+
         } catch (Throwable e) {
             logger.error("Error getting log file from remote machine and saving it.", e);
         }

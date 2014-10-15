@@ -1,0 +1,90 @@
+package edu.illinois.ncsa.datawolf.executor.hpc;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.AbstractModule;
+import com.google.inject.name.Names;
+import com.google.inject.persist.jpa.JpaPersistModule;
+
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.HPCJobInfoDao;
+import edu.illinois.ncsa.datawolf.domain.dao.LogFileDao;
+import edu.illinois.ncsa.datawolf.domain.dao.SubmissionDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDataDao;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolParameterDao;
+import edu.illinois.ncsa.datawolf.jpa.dao.ExecutionJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.HPCJobInfoJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.LogFileJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowStepJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolDataJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolParameterJPADao;
+import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
+import edu.illinois.ncsa.domain.dao.PersonDao;
+import edu.illinois.ncsa.domain.impl.FileStorageDisk;
+import edu.illinois.ncsa.jpa.dao.DatasetJPADao;
+import edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao;
+
+public class TestModule extends AbstractModule {
+    private Logger logger = LoggerFactory.getLogger(TestModule.class);
+
+    @Override
+    protected void configure() {
+        JpaPersistModule jpa = new JpaPersistModule("WolfPersistence");
+
+        Properties properties = new Properties();
+        String datawolfProperties = "src/test/resources/datawolf.properties";
+        if (datawolfProperties.trim() != "") {
+            File file = new File(datawolfProperties);
+            try {
+                properties.load(new FileInputStream(file));
+                Names.bindProperties(binder(), properties);
+                jpa.properties(properties);
+            } catch (IOException e) {
+                logger.error("Error reading properties file", e);
+            }
+        }
+        install(jpa);
+        // DAOs
+        try {
+            // bind(PersonDao.class).to(((PersonDao)getDAO()));
+            // PersonDao o = getDAO(properties.getProperty("dao.person"));
+            bind(PersonDao.class).to(getRequestedDao(PersonDao.class, properties.getProperty("dao.person"))); //$NON-NLS-1$
+            bind(SubmissionDao.class).to(getRequestedDao(SubmissionDao.class, properties.getProperty("dao.submission")));
+            bind(WorkflowDao.class).to(WorkflowJPADao.class);
+            bind(WorkflowStepDao.class).to(WorkflowStepJPADao.class);
+            bind(WorkflowToolDao.class).to(WorkflowToolJPADao.class);
+            bind(WorkflowToolParameterDao.class).to(WorkflowToolParameterJPADao.class);
+            bind(WorkflowToolDataDao.class).to(WorkflowToolDataJPADao.class);
+            bind(DatasetDao.class).to(DatasetJPADao.class);
+            bind(ExecutionDao.class).to(ExecutionJPADao.class);
+            bind(FileDescriptorDao.class).to(FileDescriptorJPADao.class);
+            bind(FileStorage.class).to(FileStorageDisk.class);
+            bind(LogFileDao.class).to(LogFileJPADao.class);
+            bind(HPCJobInfoDao.class).to(HPCJobInfoJPADao.class);
+            bind(HPCExecutor.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> getRequestedDao(Class<T> type, String requestedDAO) throws ClassNotFoundException {
+        return (Class<T>)Class.forName(requestedDAO);
+    }
+   
+}
