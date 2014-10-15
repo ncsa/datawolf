@@ -53,7 +53,7 @@
 			</element-collection>
 			<element-collection name="properties">
 				<map-key-column name="pKey" length="100" />
-				<column name="pValue" length="65535" />
+				<column name="pValue" length="65393" />
 				<collection-table name="ExecutionProperties" />
 			</element-collection>
 		</attributes>

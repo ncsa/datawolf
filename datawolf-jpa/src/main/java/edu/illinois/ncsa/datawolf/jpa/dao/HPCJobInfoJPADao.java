@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import com.google.inject.Provider;
 
@@ -19,7 +20,18 @@ public class HPCJobInfoJPADao extends AbstractJPADao<HPCJobInfo, String> impleme
 
     @Override
     public List<HPCJobInfo> findByExecutionId(String executionId) {
-        // TODO implement query
-        return null;
+        List<HPCJobInfo> results = null;
+
+        try {
+            getEntityManager().getTransaction().begin();
+            String queryString = "SELECT o FROM HPCJobInfo o " + "WHERE o.executionId = :executionId";
+            TypedQuery<HPCJobInfo> typedQuery = getEntityManager().createQuery(queryString, HPCJobInfo.class);
+            typedQuery.setParameter("executionId", executionId);
+            results = typedQuery.getResultList();
+
+            return refreshList(results);
+        } finally {
+            getEntityManager().getTransaction().commit();
+        }
     }
 }
