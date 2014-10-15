@@ -24,6 +24,7 @@ import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolParameterDao;
 import edu.illinois.ncsa.datawolf.jpa.dao.ExecutionJPADao;
 import edu.illinois.ncsa.datawolf.jpa.dao.HPCJobInfoJPADao;
 import edu.illinois.ncsa.datawolf.jpa.dao.LogFileJPADao;
+import edu.illinois.ncsa.datawolf.jpa.dao.SubmissionJPADao;
 import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowJPADao;
 import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowStepJPADao;
 import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolDataJPADao;
@@ -36,6 +37,7 @@ import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.domain.impl.FileStorageDisk;
 import edu.illinois.ncsa.jpa.dao.DatasetJPADao;
 import edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao;
+import edu.illinois.ncsa.jpa.dao.PersonJPADao;
 
 public class TestModule extends AbstractModule {
     private Logger logger = LoggerFactory.getLogger(TestModule.class);
@@ -59,10 +61,8 @@ public class TestModule extends AbstractModule {
         install(jpa);
         // DAOs
         try {
-            // bind(PersonDao.class).to(((PersonDao)getDAO()));
-            // PersonDao o = getDAO(properties.getProperty("dao.person"));
-            bind(PersonDao.class).to(getRequestedDao(PersonDao.class, properties.getProperty("dao.person"))); //$NON-NLS-1$
-            bind(SubmissionDao.class).to(getRequestedDao(SubmissionDao.class, properties.getProperty("dao.submission")));
+            bind(PersonDao.class).to(PersonJPADao.class); 
+            bind(SubmissionDao.class).to(SubmissionJPADao.class);
             bind(WorkflowDao.class).to(WorkflowJPADao.class);
             bind(WorkflowStepDao.class).to(WorkflowStepJPADao.class);
             bind(WorkflowToolDao.class).to(WorkflowToolJPADao.class);
@@ -81,10 +81,4 @@ public class TestModule extends AbstractModule {
 
         
     }
-
-    @SuppressWarnings("unchecked")
-    public <T> Class<T> getRequestedDao(Class<T> type, String requestedDAO) throws ClassNotFoundException {
-        return (Class<T>)Class.forName(requestedDAO);
-    }
-   
 }
