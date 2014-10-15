@@ -17,6 +17,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.name.Named;
+
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
@@ -32,7 +34,11 @@ import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 public class FileStorageDisk implements FileStorage {
     private static Logger     logger = LoggerFactory.getLogger(FileStorageDisk.class);
 
+    @Inject
+    @Named("disk.levels")
     private int               levels;
+    @Inject
+    @Named("disk.folder")
     private String            folder;
 
     @Inject
