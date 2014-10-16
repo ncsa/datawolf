@@ -1,3 +1,3 @@
 datawolfOptions = {
-	showRegistration: false
+	showRegistration: true
 }
