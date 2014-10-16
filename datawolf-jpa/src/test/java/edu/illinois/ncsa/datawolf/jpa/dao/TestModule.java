@@ -30,18 +30,20 @@ public class TestModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        JpaPersistModule jpa = new JpaPersistModule("WolfPersistence");
+        JpaPersistModule jpa = new JpaPersistModule("WolfPersistence"); //$NON-NLS-1$
 
         Properties properties = new Properties();
-        String datawolfProperties = "src/test/resources/datawolf.properties";
-        if (datawolfProperties.trim() != "") {
+        String datawolfProperties = "src/test/resources/datawolf.properties"; //$NON-NLS-1$
+        if (!datawolfProperties.trim().isEmpty()) {
             File file = new File(datawolfProperties);
             try {
                 properties.load(new FileInputStream(file));
+                properties.setProperty("disk.folder", System.getProperty("java.io.tmpdir")); //$NON-NLS-1$//$NON-NLS-2$
+                properties.setProperty("disk.levels", "2"); //$NON-NLS-1$ //$NON-NLS-2$
                 Names.bindProperties(binder(), properties);
                 jpa.properties(properties);
             } catch (IOException e) {
-                logger.error("Error reading properties file", e);
+                logger.error("Error reading properties file", e); //$NON-NLS-1$
             }
         }
         install(jpa);

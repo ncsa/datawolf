@@ -59,6 +59,8 @@ public class DevPersistenceModule extends AbstractModule {
             File file = new File(datawolfProperties);
             try {
                 properties.load(new FileInputStream(file));
+                properties.setProperty("disk.folder", System.getProperty("java.io.tmpdir")); //$NON-NLS-1$//$NON-NLS-2$
+                properties.setProperty("disk.levels", "2"); //$NON-NLS-1$ //$NON-NLS-2$
                 Names.bindProperties(binder(), properties);
                 jpa.properties(properties);
             } catch (IOException e) {
