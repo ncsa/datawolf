@@ -1,5 +1,19 @@
 var Execution = Backbone.Model.extend({
     urlRoot: "/executions/",
+
+    getDeleteUrl: function() {
+        return '/executions/' + this.id;
+    },
+
+    sync: function(method, model, options) {
+        if(method === 'delete') {
+            options = options || {};
+            options.url = model.getDeleteUrl();
+        } 
+
+        return Backbone.sync.apply(this, arguments);
+    }
+
 });
 
 var ExecutionCollection = Backbone.Collection.extend({

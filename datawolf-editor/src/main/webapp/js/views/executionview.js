@@ -110,29 +110,25 @@ var ExecutionButtonView = Backbone.View.extend({
         	var execid = selectedExecution.attr("value");
         	var model = getExecution(execid);
 			$('.highlight').removeClass('highlight');
-            
             model.destroy({
                 wait: true,
+                dataType: "text",
             
                 success: function(model, response) {
-                    console.log("deleted dataset - success");
+                    console.log("deleted execution - success");
                     eventBus.trigger('clicked:updateExecutions', null);
 
                 },
 
                 error: function(model, response) {
-                    console.log("deleted dataset - failed"+response);
+                    console.log("deleted execution - failed" + response);
                 }
 
             });
         }
     },
 
-
-
 	executionInfo : function() {
-
-
 		var selectedExecution = $('#executionSelector').find(".highlight");
         // console.log(selectedExecution);
         if(selectedExecution!=null && selectedExecution.length !=0){
