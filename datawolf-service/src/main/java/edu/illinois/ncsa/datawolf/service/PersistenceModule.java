@@ -3,6 +3,8 @@ package edu.illinois.ncsa.datawolf.service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -25,52 +27,38 @@ import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolDataDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolParameterDao;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor;
+import edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor;
 import edu.illinois.ncsa.datawolf.executor.java.JavaExecutor;
-import edu.illinois.ncsa.datawolf.jpa.dao.ExecutionJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.HPCJobInfoJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.LogFileJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.SubmissionJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowStepJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolDataJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolJPADao;
-import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolParameterJPADao;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
-import edu.illinois.ncsa.jpa.dao.AccountJPADao;
-import edu.illinois.ncsa.jpa.dao.PersonJPADao;
-import edu.illinois.ncsa.medici.dao.DatasetMediciDao;
-import edu.illinois.ncsa.medici.dao.FileDescriptorMediciDao;
-import edu.illinois.ncsa.medici.impl.FileStorageMedici;
 
 /**
- * Binds Persistence DAOs
+ * Binds Persistence DAOs and available executors
  * 
  * @author Chris Navarro <cmnavarr@illinois.edu>
  * 
  */
 public class PersistenceModule extends AbstractModule {
-    private Logger logger = LoggerFactory.getLogger(PersistenceModule.class);
+    private Logger              logger = LoggerFactory.getLogger(PersistenceModule.class);
+    private Properties          configuration;
+    private Map<String, String> defaultDAOs;
 
     @Override
     protected void configure() {
         JpaPersistModule jpa = new JpaPersistModule("WolfPersistence");
 
-        // Configure Persistence
-        // String datawolfProperties = "src/test/resources/datawolf.properties";
-
         // This contains properties to set on injected files (e.g. medici key)
-        Properties properties = new Properties();
+        configuration = new Properties();
         String datawolfProperties = System.getProperty("datawolf.properties");
         if (datawolfProperties.trim() != "") {
             File file = new File(datawolfProperties);
             try {
-                properties.load(new FileInputStream(file));
-                Names.bindProperties(binder(), properties);
-                jpa.properties(properties);
+                configuration.load(new FileInputStream(file));
+                Names.bindProperties(binder(), configuration);
+                jpa.properties(configuration);
             } catch (IOException e) {
                 logger.error("Error reading properties file: " + System.getProperty("datawolf.properties"), e);
             }
@@ -78,32 +66,77 @@ public class PersistenceModule extends AbstractModule {
 
         install(jpa);
 
-        bind(PersonDao.class).to(PersonJPADao.class);
-        bind(SubmissionDao.class).to(SubmissionJPADao.class);
-        bind(WorkflowDao.class).to(WorkflowJPADao.class);
-        bind(WorkflowStepDao.class).to(WorkflowStepJPADao.class);
-        bind(WorkflowToolDao.class).to(WorkflowToolJPADao.class);
-        bind(WorkflowToolParameterDao.class).to(WorkflowToolParameterJPADao.class);
-        bind(WorkflowToolDataDao.class).to(WorkflowToolDataJPADao.class);
-        bind(DatasetDao.class).to(DatasetMediciDao.class);
-        bind(ExecutionDao.class).to(ExecutionJPADao.class);
-        bind(LogFileDao.class).to(LogFileJPADao.class);
-        bind(HPCJobInfoDao.class).to(HPCJobInfoJPADao.class);
-        bind(AccountDao.class).to(AccountJPADao.class);
+        try {
+            bind(PersonDao.class).to(getRequestedDao(PersonDao.class, "person.dao")); //$NON-NLS-1$
+            bind(SubmissionDao.class).to(getRequestedDao(SubmissionDao.class, "submission.dao")); //$NON-NLS-1$
+            bind(WorkflowDao.class).to(getRequestedDao(WorkflowDao.class, "workflow.dao")); //$NON-NLS-1$
+            bind(WorkflowStepDao.class).to(getRequestedDao(WorkflowStepDao.class, "workflowstep.dao")); //$NON-NLS-1$
+            bind(WorkflowToolDao.class).to(getRequestedDao(WorkflowToolDao.class, "workflowtool.dao")); //$NON-NLS-1$
+            bind(WorkflowToolParameterDao.class).to(getRequestedDao(WorkflowToolParameterDao.class, "workflowtoolparameter.dao")); //$NON-NLS-1$
+            bind(WorkflowToolDataDao.class).to(getRequestedDao(WorkflowToolDataDao.class, "workflowtooldata.dao")); //$NON-NLS-1$
+            bind(DatasetDao.class).to(getRequestedDao(DatasetDao.class, "dataset.dao")); //$NON-NLS-1$
+            bind(ExecutionDao.class).to(getRequestedDao(ExecutionDao.class, "execution.dao")); //$NON-NLS-1$
+            bind(LogFileDao.class).to(getRequestedDao(LogFileDao.class, "logfile.dao")); //$NON-NLS-1$
+            bind(HPCJobInfoDao.class).to(getRequestedDao(HPCJobInfoDao.class, "hpcjobinfo.dao")); //$NON-NLS-1$
+            bind(AccountDao.class).to(getRequestedDao(AccountDao.class, "account.dao")); //$NON-NLS-1$
+            bind(FileDescriptorDao.class).to(getRequestedDao(FileDescriptorDao.class, "filedescriptor.dao")); //$NON-NLS-1$
+            bind(FileStorage.class).to(getRequestedDao(FileStorage.class, "filestorage")); //$NON-NLS-1$
 
-        bind(FileDescriptorDao.class).to(FileDescriptorMediciDao.class);
+            // Add executors
+            MapBinder<String, Executor> binder = MapBinder.newMapBinder(binder(), String.class, Executor.class);
 
-        // String datawolfProperties = "src/test/resources/datawolf.properties";
+            if (configuration.containsKey("java.executor")) { //$NON-NLS-1$
+                binder.addBinding(JavaExecutor.EXECUTOR_NAME).to(JavaExecutor.class);
+                bind(JavaExecutor.class);
+            }
 
-        // This contains properties to set on injected files (e.g. medici key)
+            if (configuration.containsKey("commandline.executor")) { //$NON-NLS-1$
+                binder.addBinding(CommandLineExecutor.EXECUTOR_NAME).to(CommandLineExecutor.class);
+                bind(CommandLineExecutor.class);
+            }
 
-        bind(FileStorage.class).to(FileStorageMedici.class);
+            if (configuration.containsKey("hpc.executor")) { //$NON-NLS-1$
+                binder.addBinding(HPCExecutor.EXECUTOR_NAME).to(HPCExecutor.class);
+            }
 
-        MapBinder<String, Executor> binder = MapBinder.newMapBinder(binder(), String.class, Executor.class);
-        binder.addBinding("java").to(JavaExecutor.class);
-        binder.addBinding("commandline").to(CommandLineExecutor.class);
-        bind(JavaExecutor.class);
-        bind(CommandLineExecutor.class);
-        bind(Engine.class);
+            bind(Engine.class);
+        } catch (ClassNotFoundException e) {
+            logger.error("Error binding DAO's", e);
+        }
     }
+
+    @SuppressWarnings("unchecked")
+    public <T> Class<T> getRequestedDao(Class<T> type, String key) throws ClassNotFoundException {
+        String daoClass;
+        if (configuration.containsKey(key)) {
+            daoClass = configuration.getProperty(key);
+        } else {
+            if (defaultDAOs == null) {
+                defaultDAOs = getDefaultDAOs();
+            }
+            daoClass = defaultDAOs.get(key);
+        }
+        return (Class<T>) Class.forName(daoClass);
+    }
+
+    public Map<String, String> getDefaultDAOs() {
+        Map<String, String> defaultDAOs = new HashMap<String, String>();
+        defaultDAOs.put("submission.dao", "edu.illinois.ncsa.datawolf.jpa.dao.SubmissionJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("workflow.dao", "edu.illinois.ncsa.datawolf.jpa.dao.WorkflowJPADao"); //$NON-NLS-1$ //$NON-NLS-2$
+        defaultDAOs.put("workflowstep.dao", "edu.illinois.ncsa.datawolf.jpa.dao.WorkflowStepJPADao"); //$NON-NLS-1$ //$NON-NLS-2$
+        defaultDAOs.put("workflowtool.dao", "edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("workflowtoolparameter.dao", "edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolParameterJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("workflowtooldata.dao", "edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolDataJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("execution.dao", "edu.illinois.ncsa.datawolf.jpa.dao.ExecutionJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("hpcjobinfo.dao", "edu.illinois.ncsa.datawolf.jpa.dao.HPCJobInfoJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("logfile.dao", "edu.illinois.ncsa.datawolf.jpa.dao.LogFileJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("person.dao", "edu.illinois.ncsa.jpa.dao.PersonJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("dataset.dao", "edu.illinois.ncsa.jpa.dao.DatasetJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("account.dao", "edu.illinois.ncsa.jpa.dao.AccountJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("filedescriptor.dao", "edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao"); //$NON-NLS-1$//$NON-NLS-2$
+        defaultDAOs.put("filestorage.dao", "edu.illinois.ncsa.domain.impl.FileStorageDisk"); //$NON-NLS-1$//$NON-NLS-2$
+
+        return defaultDAOs;
+    }
+
 }
