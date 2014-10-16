@@ -13,7 +13,6 @@ import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
-import edu.illinois.ncsa.jpa.JPADevModule;
 
 public class PersonDAOTest {
 
@@ -21,7 +20,7 @@ public class PersonDAOTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        injector = Guice.createInjector(new JPADevModule());
+        injector = Guice.createInjector(new TestModule());
 
         // Initialize persistence service
         PersistService service = injector.getInstance(PersistService.class);

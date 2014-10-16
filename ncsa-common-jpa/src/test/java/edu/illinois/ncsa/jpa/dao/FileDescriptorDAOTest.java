@@ -9,14 +9,13 @@ import com.google.inject.persist.PersistService;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
-import edu.illinois.ncsa.jpa.JPADevModule;
 
 public class FileDescriptorDAOTest {
     private static Injector injector;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        injector = Guice.createInjector(new JPADevModule());
+        injector = Guice.createInjector(new TestModule());
 
         // Initialize persistence service
         PersistService service = injector.getInstance(PersistService.class);

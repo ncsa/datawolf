@@ -13,14 +13,13 @@ import com.google.inject.persist.PersistService;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
-import edu.illinois.ncsa.jpa.JPADevModule;
 
 public class DatasetDAOTest {
     private static Injector injector;
 
     @Before
     public void setUp() throws Exception {
-        injector = Guice.createInjector(new JPADevModule());
+        injector = Guice.createInjector(new TestModule());
 
         // Initialize persistence service
         PersistService service = injector.getInstance(PersistService.class);
