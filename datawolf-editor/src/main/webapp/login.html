@@ -38,7 +38,7 @@
 					<button id="register-btn" class="btn btn-default pull-right" type="submit">Register</button> 
 				</form>
 				<div class="alert fade in" id="registration-error" style="display:none;">
-					<p class="login-error">An account is already registered to that email address</p>
+					<p class="login-error" id="registration-error-text">An account is already registered to that email address.</p>
 				</div>
 			</div>
 		</div>
@@ -57,6 +57,8 @@
     <script src="assets/backbone-min.js"></script> 
     <script src="assets/backbone.dualstorage.js"></script>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <!-- Configuration options -->
+    <script src="js/config.js"></script>
     <!-- Views -->
 	<script src="js/views/loginview.js"></script>
     <!-- Models -->

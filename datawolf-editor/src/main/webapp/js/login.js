@@ -12,7 +12,10 @@ var AppRouter = Backbone.Router.extend({
     	
     	personCollection.fetch({success: function() {
     		$('#login-form').html(new LoginView().render().el);
-            $('#register-form').html(new RegistrationView().render().el);
+
+            if(datawolfOptions.showRegistration) {
+                $('#register-form').html(new RegistrationView().render().el);
+            }
 
     		$('#username').keypress(function() {
     			if(showingLoginError) {
@@ -93,7 +96,7 @@ var createPerson = function(firstName, lastName, email, password) {
         dataType: "text",
 
         success: function(msg) {
-            console.log("created person with id = "+msg);
+            console.log("created person");
             localStorage.currentUser = msg;
             createAccount(email, password);
         },
