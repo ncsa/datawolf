@@ -354,6 +354,13 @@ PORT=8888
 As stated in the comment, this is the port that Jetty will launch the service. You can change this to any other open port, but for most users, 8888 should be free.
 
 ```
+# context root for datawolf server, needed when behind nginx
+CONTEXT=/datawolf
+```
+
+This will set the path where datawolf can be reached at, the default is at /datawolf, you can change this here and it will be applied to the editor as well. This is especially important if you have a webserver with a proxy running in front of this service.
+
+```
 # log file, leave blank for console
 #LOG="--out ${PWD}/log/Data Wolf-yyyy_mm_dd.log"
 ```
@@ -369,7 +376,7 @@ if [ "${WAR}" != "" ]; then
   WAR="${PWD}/${WAR}"
   cat > "${SERVER}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
-  <Set name="contextPath">/</Set>
+  <Set name="contextPath">${CONTEXT}/</Set>
   <Set name="war">${WAR}</Set>
   <Call name="setInitParameter">
     <Arg>contextConfigLocation</Arg>
@@ -382,7 +389,7 @@ fi
 
 The above snippet specifies where to find the war file for the Data Wolf Server and generates the file **server.xml** inside the **conf** folder so Jetty knows where to find the application context and war file. 
 
-* **contextPath** - specifies the link for the server, in this case it will be the root of the URL http://localhost:8888/. 
+* **contextPath** - specifies the link for the server, in this case it will be the root of the URL http://localhost:8888/datawolf. 
 * **war** - specifies where Jetty can find the war file.
 * **contextConfigLocation** - specifies where the application context can be found
 
@@ -397,7 +404,7 @@ if [ "${WAR}" != "" ]; then
   WAR="${PWD}/${WAR}"
   cat > "${EDITOR}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
-  <Set name="contextPath">/editor</Set>
+  <Set name="contextPath">${CONTEXT}/editor</Set>
   <Set name="war">${WAR}</Set>
 </Configure>
 EOF
@@ -406,7 +413,7 @@ fi
 
 Similar to the server, this generates an **editor.xml** file inside the **conf** folder and contains the configuration information for the Editor. 
 
-* **contextPath** - specifies the link for the web editor, in this case it will be http://localhost:8888/editor. 
+* **contextPath** - specifies the link for the web editor, in this case it will be http://localhost:8888/datawolf/editor. 
 * **war** - specifies where Jetty can find the war file.
 
 Unlike the server, the editor does not need an application context because it will talk to the server using the REST endpoints.
@@ -429,7 +436,7 @@ on Windows:
 
 ### Launch the Web Editor
 
-After launching the Data Wolf-service, you will have both a Data Wolf Server and Web Editor running. To open the web editor, go to http://localhost:8888/editor. You should see a login page similar to the one below:
+After launching the Data Wolf-service, you will have both a Data Wolf Server and Web Editor running. To open the web editor, go to http://localhost:8888/datawolf/editor. You should see a login page similar to the one below:
 
 ![Web Editor login page.](images/login-page.png)
 
