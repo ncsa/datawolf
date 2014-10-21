@@ -7,6 +7,9 @@ cd "%~dp0\.."
 REM port for the jetty server
 set PORT=8888
 
+REM context root for datawolf server, needed when behind nginx
+set CONTEXT=/datawolf
+
 REM log file, leave blank for console
 REM set LOG="--out %cd%\log\datawolf-yyyy_mm_dd.log"
 
@@ -27,7 +30,7 @@ FOR %%W in (lib\datawolf-webapp-all*.war) do (
   set APP=%cd%\conf\applicationContext.xml
   set APP_URI=file:///!APP:\=/!
   echo ^<Configure class="org.eclipse.jetty.webapp.WebAppContext"^> > !SERVER!
-  echo ^<Set name="contextPath"^>/^</Set^> >> !SERVER!
+  echo ^<Set name="contextPath"^>%CONTEXT%/^</Set^> >> !SERVER!
   echo ^<Set name="war"^>!WAR_URI!^</Set^> >> !SERVER!
   echo  ^<Call name="setInitParameter"^> >> !SERVER!
   echo    ^<Arg^>contextConfigLocation^</Arg^> >> !SERVER!
@@ -43,7 +46,7 @@ FOR %%W in (lib\datawolf-editor*.war) do (
   set WAR=%cd%\%%W
   set WAR_URI=file:///!WAR:\=/!
   echo ^<Configure class="org.eclipse.jetty.webapp.WebAppContext"^> > !EDITOR!
-  echo ^<Set name="contextPath"^>/editor^</Set^> >> !EDITOR!
+  echo ^<Set name="contextPath"^>%CONTEXT%/editor^</Set^> >> !EDITOR!
   echo ^<Set name="war"^>!WAR_URI!^</Set^> >> !EDITOR!
   echo ^</Configure^> >> !EDITOR!
 )

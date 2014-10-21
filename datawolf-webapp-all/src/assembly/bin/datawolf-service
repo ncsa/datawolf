@@ -6,6 +6,9 @@ cd "$(dirname $0)/.."
 # port for the jetty server
 PORT=8888
 
+# context root for datawolf server, needed when behind nginx
+CONTEXT=/datawolf
+
 # log file, leave blank for console
 #LOG="--out ${PWD}/log/datawolf-yyyy_mm_dd.log"
 
@@ -28,7 +31,7 @@ if [ "${WAR}" != "" ]; then
   WAR="${PWD}/${WAR}"
   cat > "${SERVER}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
-  <Set name="contextPath">/</Set>
+  <Set name="contextPath">${CONTEXT}/</Set>
   <Set name="war">${WAR}</Set>
   <Call name="setInitParameter">
     <Arg>contextConfigLocation</Arg>
@@ -46,7 +49,7 @@ if [ "${WAR}" != "" ]; then
   WAR="${PWD}/${WAR}"
   cat > "${EDITOR}" << EOF
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
-  <Set name="contextPath">/editor</Set>
+  <Set name="contextPath">${CONTEXT}/editor</Set>
   <Set name="war">${WAR}</Set>
 </Configure>
 EOF
