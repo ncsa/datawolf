@@ -220,7 +220,7 @@ var NewDatasetView = Backbone.View.extend({
         data.append("title", title);
         $.ajax({
             type: "POST",
-            url: "/datasets",
+            url: datawolfOptions.rest + "/datasets",
             data: data,
             contentType: false,
             processData: false,

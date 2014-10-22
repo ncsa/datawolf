@@ -1,3 +1,5 @@
 datawolfOptions = {
-	showRegistration: true
+	showRegistration: true,
+	// REST Endpoint for models
+	rest: "/datawolf"
 }

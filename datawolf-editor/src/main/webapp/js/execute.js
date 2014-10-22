@@ -68,7 +68,7 @@ var getBy = function(field, val, all_elements) {
 };
 
 var getExecutions = function(workflowId) {
-    var myurl = '/workflows/'+workflowId + '/executions';
+    var myurl = datawolfOptions.rest + '/workflows/'+workflowId + '/executions';
     $.ajax({
         type: "GET",
         beforeSend: function(request) {
@@ -162,7 +162,7 @@ var addDataset = function(datasetId) {
             request.setRequestHeader("Content-type", "application/json");
             request.setRequestHeader("Accept", "application/json");
         },
-        url: '/datasets/'+datasetId,
+        url: datawolfOptions.rest + '/datasets/'+datasetId,
         dataType: "text",
 
         success: function(msg) {
@@ -199,7 +199,7 @@ var postSubmission = function(workflowid, creatorid, title, description, paramet
             request.setRequestHeader("Content-type", "application/json");
             //request.setRequestHeader("Accept", "application/json");
         },
-        url: "/executions", 
+        url: datawolfOptions.rest + "/executions", 
         dataType: "text",
         data: JSON.stringify(submission),
 

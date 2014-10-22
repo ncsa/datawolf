@@ -1,8 +1,8 @@
 var Person = Backbone.Model.extend({
-    urlRoot: '/persons/'
+    urlRoot: datawolfOptions.rest + '/persons/'
 });
 
 var PersonCollection = Backbone.Collection.extend({
     model: Person,
-    url: '/persons/'
+    url:  datawolfOptions.rest + '/persons/'
 });

@@ -1,5 +1,9 @@
 var WorkflowTool = Backbone.Model.extend({
-	urlRoot: "/workflowtools/",
+	urlRoot: datawolfOptions.rest + "/workflowtools",
+	
+	getDeleteUrl: function() {
+		return datawolfOptions.rest + '/workflowtools/' + this.id;
+	},
 
 	getInputs: function() {
 		return new WorkflowToolDataCollection(this.get("inputs"));
@@ -24,5 +28,5 @@ var WorkflowTool = Backbone.Model.extend({
 
 var WorkflowToolCollection = Backbone.Collection.extend({
 	model: WorkflowTool,
-	url: "/workflowtools"
+	url: datawolfOptions.rest + "/workflowtools"
 });

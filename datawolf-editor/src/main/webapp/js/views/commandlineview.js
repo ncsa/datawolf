@@ -1143,7 +1143,7 @@ function findJavaTools(zip) {
     data.append('tool', blob);
     
     var oReq = new XMLHttpRequest();
-    oReq.open("POST", "/executors");
+    oReq.open("POST", datawolfOptions.rest + "/executors");
     oReq.onreadystatechange = function() {
         if (oReq.readyState == 4) {
             var map = JSON.parse(this.responseText);

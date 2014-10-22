@@ -47,7 +47,7 @@ var registrationError = function() {
 var checkLogin = function(email, password) {
     var token = email + ':' + password;
     var hash = btoa(token);
-    var url = '/login?email='+email;
+    var url = datawolfOptions.rest + '/login?email='+email;
     $.ajax({
         type: "GET",
         url: url,
@@ -74,7 +74,7 @@ var checkLogin = function(email, password) {
 }
 
 var createAccount = function(email, password) {
-    var url = '/login?email='+email+'&password='+password;
+    var url = datawolfOptions.rest + '/login?email='+email+'&password='+password;
     $.ajax({
         type: "POST",
         url: url,
@@ -89,7 +89,7 @@ var createAccount = function(email, password) {
 }
 
 var createPerson = function(firstName, lastName, email, password) {
-    var url = '/persons?'+'firstname='+firstName+'&lastname='+lastName+'&email='+email;
+    var url = datawolfOptions.rest + '/persons?'+'firstname='+firstName+'&lastname='+lastName+'&email='+email;
     $.ajax({
         type: "POST",
         url: url,

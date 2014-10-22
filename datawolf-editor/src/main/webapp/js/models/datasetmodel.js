@@ -1,5 +1,5 @@
 var Dataset = Backbone.Model.extend({
-	urlRoot: "/datasets",
+	urlRoot: datawolfOptions.rest + "/datasets",
 
 	defaults: {
         title: null, 			/** title of the dataset **/
@@ -7,7 +7,7 @@ var Dataset = Backbone.Model.extend({
     },
 
     getDeleteUrl: function() {
-		return '/datasets/'+ this.id;
+		return datawolfOptions.rest + '/datasets/'+ this.id;
 	},
 
 	getCreator: function() {
@@ -32,11 +32,11 @@ var Dataset = Backbone.Model.extend({
 
 var DatasetCollection = Backbone.Collection.extend({
 	model: Dataset,
-	url: "/datasets", 
+	url: datawolfOptions.rest + "/datasets", 
 	remote: true,
 	
 	getReadUrl: function() {
-		return '/datasets/'+ '?email=' + currentUser.get('email');
+		return datawolfOptions.rest + '/datasets/'+ '?email=' + currentUser.get('email');
 	},
 
 	sync: function(method, model, options) {

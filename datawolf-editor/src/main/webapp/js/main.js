@@ -212,7 +212,7 @@ function registerCloseEvent() {
 }
 
 var getExecutors = function() {
-    var myurl = '/executors';
+    var myurl = datawolfOptions.rest + '/executors';
     $.ajax({
         type: "GET",
         beforeSend: function(request) {
@@ -240,7 +240,7 @@ var getExecutors = function() {
 }
 
 var getExecutions = function(workflowId) {
-    var myurl = '/workflows/'+workflowId + '/executions';
+    var myurl = datawolfOptions.rest + '/workflows/'+workflowId + '/executions';
     $.ajax({
         type: "GET",
         beforeSend: function(request) {
@@ -268,7 +268,7 @@ var addWorkflow = function(workflowId) {
             request.setRequestHeader("Content-type", "application/json");
             request.setRequestHeader("Accept", "application/json");
         },
-        url: '/workflows/'+workflowId,
+        url: datawolfOptions.rest + '/workflows/'+workflowId,
         dataType: "text",
 
         success: function(msg) {
@@ -295,7 +295,7 @@ var addWorkflowTool = function(toolId) {
             request.setRequestHeader("Content-type", "application/json");
             request.setRequestHeader("Accept", "application/json");
         },
-        url: '/workflowtools/'+toolId,
+        url: datawolfOptions.rest + '/workflowtools/'+toolId,
         dataType: "text",
 
         success: function(msg) {
@@ -314,7 +314,7 @@ var postTool = function(zip) {
     var data = new FormData();
     data.append('tool', blob);
     var oReq = new XMLHttpRequest();
-    oReq.open("POST", "/workflowtools");
+    oReq.open("POST", datawolfOptions.rest + "/workflowtools");
     oReq.onreadystatechange = function() {
         if (oReq.readyState == 4 && oReq.status == 200 ) {
             var tool = JSON.parse(this.responseText);
@@ -555,7 +555,7 @@ eventBus.on('clicked:importworkflow', function() {
 });
 
 eventBus.on('clicked:exportworkflow', function(workflowId) {
-    window.location.href = '/workflows/'+workflowId+'/zip';
+    window.location.href = datawolfOptions.rest + '/workflows/'+workflowId+'/zip';
 });
 
 function selectTab(tabName) {

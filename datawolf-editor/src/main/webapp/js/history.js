@@ -102,7 +102,7 @@ var getStep = function(workflow, stepid){
 }
 
 var getLogFiles = function(execid) {
-    var myurl = '/executions/'+execid+"/logfiles";
+    var myurl = datawolfOptions.rest + '/executions/'+execid+"/logfiles";
     console.log(myurl);
     $.ajax({
             type: "GET",

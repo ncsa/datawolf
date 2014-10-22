@@ -37,7 +37,7 @@ var GraphStepLocation = Backbone.Model.extend({
 
 var GraphStepLocationCollection = Backbone.Collection.extend({
 	// dual storage required a url to create a local storage location
-	url: '/graphlocation/',
+	url: datawolfOptions.rest + '/graphlocation/',
 	model: GraphStepLocation,
 	local: true
 	//localStorage: new Backbone.LocalStorage('graphlocations')

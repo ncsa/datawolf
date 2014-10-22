@@ -1,12 +1,12 @@
 var Workflow = Backbone.Model.extend({
-	urlRoot: "/workflows/",
-
+	urlRoot: datawolfOptions.rest + "/workflows",
+	
 	getDeleteUrl: function() {
-		return '/workflows/'+ this.id;
+		return datawolfOptions.rest + '/workflows/'+ this.id;
 	},
 
 	getUpdateUrl: function() {
-		return '/workflows/' + this.id;
+		return datawolfOptions.rest + '/workflows/' + this.id;
 	},
 
 	getCreator: function() {
@@ -52,10 +52,10 @@ var Workflow = Backbone.Model.extend({
 var WorkflowCollection = Backbone.Collection.extend({
 	model: Workflow,
 	//localStorage: new Backbone.LocalStorage('workflows'),
-	url: "/workflows/",
+	url: datawolfOptions.rest + "/workflows/",
 
 	getReadUrl: function() {
-		return '/workflows/'+ '?email=' + currentUser.get('email');
+		return datawolfOptions.rest + '/workflows/'+ '?email=' + currentUser.get('email');
 	},
 
 	sync: function(method, model, options) {

@@ -1,8 +1,8 @@
 var Execution = Backbone.Model.extend({
-    urlRoot: "/executions/",
+    urlRoot: datawolfOptions.rest + "/executions/",
 
     getDeleteUrl: function() {
-        return '/executions/' + this.id;
+        return datawolfOptions.rest + '/executions/' + this.id;
     },
 
     sync: function(method, model, options) {
@@ -19,12 +19,12 @@ var Execution = Backbone.Model.extend({
 var ExecutionCollection = Backbone.Collection.extend({
     model: Execution,
     //localStorage: new Backbone.LocalStorage('executions'),
-    url: "/executions", //"http://localhost:8080/executions",
+    url: datawolfOptions.rest + "/executions", //"http://localhost:8080/executions",
 
     remote: true,
 	
 	getReadUrl: function() {
-		return '/executions/'+ '?email=' + currentUser.get('email');
+		return datawolfOptions.rest + '/executions/'+ '?email=' + currentUser.get('email');
 	},
 
 	sync: function(method, model, options) {

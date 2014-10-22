@@ -46,12 +46,13 @@ var WorkflowToolListItemView = Backbone.View.extend({
     initialize: function() {
        this.$el.attr('draggable', 'true');
        this.$el.bind('dragstart', _.bind(this.handleDragStart, this));
+       this.model.bind("destroy", this.close, this);
        //this.$el.bind('dragstart', _.bind(this._dragStartEvent, this));
     },
 
     attributes: function() {
         return {
-            value: this.model.get('title')
+            value: this.model.get('id')
         }
     },
 
@@ -104,6 +105,12 @@ var WorkflowToolListItemView = Backbone.View.extend({
 
         return this;
     },
+
+    close: function() {
+        $(this.el).unbind();
+        $(this.el).remove();
+    },
+
     handleDragStart: function(e) {
         // Here we'll want to simply transfer the ID, not the heavyweight model
         var modelUri = this.model.get('id');
@@ -169,7 +176,8 @@ var WorkflowToolButtonBar = Backbone.View.extend({
     events: {
         "click button#workflow-tool-info-btn" : "workflowToolInfo",
         "click button#new-workflow-tool-btn" : "createWorkflowTool",
-        "select .tool-select" : "handleSelection"
+        "select .tool-select" : "handleSelection",
+        "click button#delete-tool-btn" : "deleteWorkflowTool"
     },
 
     initialize: function() {
@@ -244,6 +252,83 @@ var WorkflowToolButtonBar = Backbone.View.extend({
                 }
 
             });
+        }
+    },
+
+    deleteWorkflowTool: function(e) {
+        e.preventDefault();
+        var selectedToolId = $('.highlight').attr('value');
+        console.log("delete workflow tool = "+selectedToolId);
+        if(selectedToolId != null) {
+            var workflowTool = null;
+            workflowToolCollection.each(function(tool) {
+                if(tool.get('id') === selectedToolId) {
+                    workflowTool = tool;
+                    return false;
+                }
+            });
+
+            if(workflowTool != null) {
+                var showWarning = false;
+                // map of tools to delete from workflows
+                var workflowMap = {};
+                workflowCollection.each(function(workflow) {
+                    var index = 0;
+                    workflow.getSteps().each(function(workflowStep) {
+                        if(workflowStep.getTool().get('id') === selectedToolId) {
+                            showWarning = true;
+                            workflowMap[workflow.get('id')] = index;
+                            return false;
+                        }
+                        index++;
+                    });
+                });
+                var deleteTool = false;
+
+                if(showWarning) {
+                    var performDelete = window.confirm("Warning - tool is used in 1 or more workflows. Deleting this tool will update those workflows.");
+                    if(performDelete) {
+                        deleteTool = true;    
+                    } 
+                } else {
+                    deleteTool = true;
+                }
+                
+                if(deleteTool) {
+                    workflowCollection.each(function(workflow) {
+                        for(var key in workflowMap) {
+                            if(workflow.get('id') === key) {
+                                var stepIndex = workflowMap[key];
+                                var steps = workflow.get('steps');  
+                                steps.splice(stepIndex, 1);
+
+                                workflow.save({steps: steps}, {
+                                    wait: true,
+
+                                    success: function(model, response) {
+                                        console.log("updated workflow - success");
+                                    },
+
+                                    error: function(model, error) {
+                                        console.log("failed to update workflow");
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    workflowTool.destroy({
+                        wait: true,
+                        dataType: "text",
+                        success: function(model, response) {
+                            console.log("delete tool - success");
+                        },
+
+                        error: function(model, response) {
+                            console.log("delete tool - failed. " + response);
+                        }
+                    }); 
+                }
+            }
         }
     }
 });
