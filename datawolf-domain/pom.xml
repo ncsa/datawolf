@@ -39,7 +39,7 @@
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>ncsa-common-domain</artifactId>
-			<version>${ncsa.common.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>
