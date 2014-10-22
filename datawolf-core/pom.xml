@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>edu.illinois.ncsa</groupId>
+		<artifactId>datawolf</artifactId>
+		<version>3.1.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>datawolf-core</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>ncsa-common-domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>ncsa-common-jpa</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>datawolf-domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>datawolf-jpa</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- GUICE -->
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-multibindings</artifactId>
+			<version>${guice.version}</version>
+		</dependency>
+	</dependencies>
+</project>

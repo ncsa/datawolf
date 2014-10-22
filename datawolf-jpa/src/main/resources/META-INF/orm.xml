@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<entity-mappings xmlns="http://java.sun.com/xml/ns/persistence/orm"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm
+        http://java.sun.com/xml/ns/persistence/orm_2_0.xsd"
+	version="2.0">
+
+	<package>edu.illinois.ncsa.datawolf.domain</package>
+	<entity class="Execution" name="Execution">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="title" />
+			<basic name="description" />
+			<basic name="workflowId" />
+			<basic name="date">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<one-to-one name="creator" fetch="EAGER">
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-one>
+			<element-collection name="parameters">
+				<map-key-column name="uri" />
+				<column name="parameter" />
+				<collection-table name="ExecutionParameters" />
+			</element-collection>
+			<element-collection name="datasets">
+				<map-key-column name="uri" />
+				<column name="dataset" />
+				<collection-table name="ExecutionDatasets" />
+			</element-collection>
+			<element-collection name="stepState">
+				<map-key-column name="id" />
+				<column name="state" />
+				<collection-table name="ExecutionStepState" />
+			</element-collection>
+			<element-collection name="stepsQueued">
+				<map-key-column name="id" />
+				<column name="date" />
+				<collection-table name="ExecutionStepQueued" />
+			</element-collection>
+			<element-collection name="stepsStart">
+				<map-key-column name="id" />
+				<column name="date" />
+				<collection-table name="ExecutionStepStart" />
+			</element-collection>
+			<element-collection name="stepsEnd">
+				<map-key-column name="id" />
+				<column name="date" />
+				<collection-table name="ExecutionStepEnd" />
+			</element-collection>
+			<element-collection name="properties">
+				<map-key-column name="pKey" length="100" />
+				<column name="pValue" length="65393" />
+				<collection-table name="ExecutionProperties" />
+			</element-collection>
+		</attributes>
+	</entity> 
+	<entity class="HPCJobInfo" name="HPCJobInfo">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="executionId" />
+			<basic name="workingDir" />
+			<basic name="standardOutput" />
+			<basic name="standardError" />
+			<basic name="jobId" />
+		</attributes>
+	</entity>
+	<entity class="LogFile" name="LogFile">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="executionId" />
+			<basic name="stepId" />
+			<basic name="date">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<one-to-one name="log" fetch="EAGER">
+				<cascade>
+					<cascade-all/>
+				</cascade>
+			</one-to-one>
+		</attributes>
+	</entity> 
+	<entity class="Submission" name="Submission">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="title" />
+			<basic name="description" />
+			<basic name="workflowId" />
+			<basic name="creatorId" />
+			<element-collection name="parameters" />
+			<element-collection name="datasets" />
+		</attributes>
+	</entity> 
+	<entity class="Workflow" name="Workflow">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="title" />
+			<basic name="description" />
+			<basic name="created">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<one-to-many name="contributors" fetch="LAZY">
+				<join-table name="WorkflowContributors" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+			<one-to-many name="steps" fetch="LAZY">
+				<join-table name="WorkflowSteps" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+			<one-to-one name="creator" fetch="EAGER">
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-one>
+		</attributes>
+	</entity>
+	
+	<entity class="WorkflowStep" name="WorkflowStep">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="title" />
+			<basic name="createDate">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<one-to-one name="creator" fetch="EAGER">
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-one>
+			<one-to-one name="tool" fetch="EAGER">
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-one>
+			<element-collection name="parameters">
+				<collection-table name="WorkflowStepParameters" />
+			</element-collection>
+			<element-collection name="inputs">
+			 	<collection-table name="WorkflowStepInputs" /> 
+			</element-collection>
+			<element-collection name="outputs">
+				<collection-table name="WorkflowStepOutputs"></collection-table> 
+			</element-collection>
+		</attributes>
+	</entity>
+	<entity class="WorkflowTool" name="WorkflowTool">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="title" />
+			<basic name="description" />
+			<basic name="version" />
+			<basic name="date">
+				<temporal>TIMESTAMP</temporal>
+			</basic>
+			<basic name="implementation">
+				<lob />
+			</basic>
+			<basic name="executor" />
+			<one-to-many name="contributors" fetch="LAZY">
+				<join-table name="WorkflowToolContributors" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+			<one-to-many name="inputs" fetch="LAZY">
+				<join-table name="WorkflowToolInputs" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+			<one-to-many name="parameters" fetch="LAZY">
+				<join-table name="WorkflowToolParameters" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+			<one-to-many name="blobs" fetch="LAZY">
+				<join-table name="ToolBlobs" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+			<one-to-many name="outputs" fetch="LAZY">
+				<join-table name="WorkflowToolOutputs" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-many>
+			<one-to-one name="previousVersion" fetch="LAZY">
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-one>
+			<one-to-one name="creator" fetch="EAGER">
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</one-to-one>
+		</attributes>
+	</entity>
+	
+	<entity class="WorkflowToolData" name="WorkflowToolData">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="dataId" />
+			<basic name="title" />
+			<basic name="description" />
+			<basic name="mimeType" />
+		</attributes>
+	</entity>
+	<entity class="WorkflowToolParameter" name="WorkflowToolParameter">
+		<inheritance strategy="TABLE_PER_CLASS" />
+		<attributes>
+			<basic name="parameterId" />
+			<basic name="title" />
+			<basic name="description" />
+			<basic name="type" />
+			<basic name="value" />
+			<basic name="hidden" />
+			<basic name="allowNull" />
+			<element-collection name="options"></element-collection>
+		</attributes>
+	</entity>
+	<!-- how to handle enum types? -->
+</entity-mappings>

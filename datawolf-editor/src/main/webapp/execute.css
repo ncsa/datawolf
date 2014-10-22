@@ -1,0 +1,136 @@
+.icon-exec {
+  padding-right: 20px;
+  padding-left: 10px;
+}
+
+.icon-exec-title {
+  float: left;
+}
+
+.cbi-execstep{
+    color:#395763;
+    width: 100%;
+    list-style-type: none;
+}
+
+.cbi-execlist{
+    color:#395763;
+    width: 100%;
+}
+
+.cbi-execparamlist, .cbi-execdatasetlist, .cbi-execoutputlist{
+    color:#395763;
+    width: 100%;
+    margin-left: -20px;
+}
+
+.cbi-execparam, .cbi-execdataset, .cbi-execoutput{
+    /*color:#000;*/
+    /*width: 100%;*/
+    margin-left: 40px;
+}
+
+.cbi-execlogfile{
+    margin-left: 20px;    
+}
+
+.even{
+    /*background: #bbbbff;*/
+}
+
+.odd{
+}
+
+.cbi-submission-header, .cbi-execution-header{
+    color:#395763;
+}
+
+.cbi-dataset-selection { 
+    width: 150px; 
+    height: 40px; 
+    background-color: #DCE2E5;
+    border: 1px dashed #000;
+    text-align: center;
+}
+  
+.workflowDatasetView, .executionView {
+    padding: 2px;
+    margin: 2px;
+    list-style-type: none;
+}
+
+.cbi-workflow-title, .cbi-execution-title{
+    font-family : Open Sans;
+    font-weight: bold;
+    font-size : 18px;
+    background-color : #395763;
+    color: #FFFFFF;
+    text-indent: 10px;
+/*color: #DCE2E5;*/
+
+}
+
+.canvas-selected
+{
+/*  background : #EDE9DC;
+  background : rgba(237, 233, 220, 1);*/
+
+
+    background : #FFFFFF;
+    background : rgba(255, 255, 255, 1);
+    border-style : Solid;
+    border-color : #A6A8AB;
+    border-color : rgba(166, 168, 171, 1);
+    border-width : 1px;
+    /*width : 1346px; */
+    height : 960px;
+    box-shadow : 2px 2px 2px rgba(35, 31, 32, 0.3);
+    filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='#231F20') ;
+    padding: 5px;
+    overflow:scroll;
+}
+
+/*.cbi-submission-header {
+  background : #EDE9DC;
+  background : rgba(237, 233, 220, 1);
+}*/
+
+/*.cbi-workflow-title{
+    background-color: #DCE2E5;
+
+  background : #89792F;
+  background : rgba(137, 121, 47, 1);
+  
+}*/
+.cbi-exec-btn{
+    /*float: right;*/
+    margin-left:20px;
+}
+
+.cbi-step-title, .step-status-info{
+    background-color: #DCE2E5;
+    text-indent: 15px;
+    width: 100%;
+}
+
+.execute-nav, .history-nav {
+    height: 17%;
+}
+
+.workflow-parent, .dataset-parent {
+    height: 38%;
+}
+
+.workflows-view, .datasets-view {
+    height: 58%;
+    overflow: auto;
+}
+
+.executions-parent {
+    height: 80%;
+}
+
+.executions-view {
+    height: 74%;
+    overflow: auto;
+}

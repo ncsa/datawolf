@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="edu.illinois.ncsa.datawolf.rcp.datawolf"
+            class="edu.illinois.ncsa.datawolf.executor.hpc.wizard.HPCToolWizard"
+            icon="icons/world.png"
+            id="edu.illinois.ncsa.datawolf.executor.hpc.wizard.HPCToolWizard"
+            name="HPC Tool">
+      </wizard>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="edu.illinois.ncsa.datawolf.rcp.perspective">
+         <newWizardShortcut
+               id="edu.illinois.ncsa.datawolf.executor.hpc.wizard.HPCToolWizard">
+         </newWizardShortcut>
+      </perspectiveExtension>
+   </extension>
+</plugin>

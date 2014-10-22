@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: datawolf-executor-java-tool
+Bundle-SymbolicName: datawolf-executor-java-tool
+Bundle-Version: 3.0.0.qualifier
+Eclipse-RegisterBuddy: spring-libraries
+Export-Package: edu.illinois.ncsa.datawolf,
+ edu.illinois.ncsa.datawolf.executor.java.tool

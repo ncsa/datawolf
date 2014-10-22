@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ******************************************************************************* -->
+<!-- * Copyright (c) 2011 University of Illinois All rights reserved. This 
+	program -->
+<!-- * and the accompanying materials are made available under the terms 
+	of the -->
+<!-- * Eclipse Public License v1.0 which accompanies this distribution, and 
+	is -->
+<!-- * available at http://www.eclipse.org/legal/epl-v10.html -->
+<!-- * -->
+<!-- * Contributors: -->
+<!-- * Albert L. Rossi - design and implementation -->
+<!-- ****************************************************************************** -->
+<job-submission xmlns="http://edu.illinois.ncsa.gondola/submission"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="job_submission.xsd" id="test-submission">
+	<myproxy-user>cnavarro</myproxy-user>
+	<target-user>cnavarro</target-user>
+	<target-uri>gsissh://trestles.sdsc.edu</target-uri>
+	<service-user-home>/home/cnavarro/gondola</service-user-home>
+	<target-user-home>/home/cnavarro</target-user-home>
+	<submit-path>/opt/torque/bin/qsub</submit-path>
+	<terminate-path>/opt/torque/bin/qdel</terminate-path>
+	<submit-error-handler>
+		<stderr-warn flags="DOTALL | UNIX_LINES">.*will be charged to:.*</stderr-warn>
+		<stderr-error flags="DOTALL | UNIX_LINES">.*not submit.*</stderr-error>
+	</submit-error-handler>
+	<job-id-parser>
+		<expression flags="DOTALL | UNIX_LINES">([\d]+)([.])(.+)[\s]*</expression>
+		<job-id-group>1</job-id-group>
+	</job-id-parser>
+	<status-handler>
+		<command-path>/opt/torque/bin/qstat</command-path>
+		<command-args>-R</command-args>
+		<parser>
+			<expression>([\d]+)[.].+[\s]+.+[\s]+.+[\s]+.+[\s]+([A-Z])[\s]+.+</expression>
+			<job-id-group>1</job-id-group>
+			<translator group="2" from="Q" to="JOB_QUEUED" />
+			<translator group="2" from="R" to="JOB_RUNNING" />
+			<translator group="2" from="S" to="JOB_SUSPENDED" />
+			<translator group="2" from="H" to="JOB_SUSPENDED" />
+			<translator group="2" from="C" to="JOB_COMPLETED" />
+			<translator group="2" from="E" to="JOB_COMPLETED" />
+		</parser>
+	</status-handler>
+	<script deleteAfterSubmit="false">
+		<line>#!/bin/bash</line>
+		<line>#PBS -l nodes=1:ppn=5</line>
+		<line>#PBS -N test-job</line>
+		<line>#PBS -l walltime=00:05:00</line>
+		<line>#PBS -o stdout</line>
+		<line>#PBS -e stderr</line>
+		<line>#PBS -V</line>
+		<line>#PBS -q shared</line>
+		<line>TS=$( date +%s )</line>
+		<line>SCRWD="$SCRATCH/$$-$TS.tmp"</line>
+		<line>mkdir $SCRWD</line>
+		<line>cd $SCRWD</line>
+		<line log="true">pwd</line>
+		<line>sleep 5</line>
+		<line>[HPC-EXE]</line>
+		<line log="true">echo DONE</line>
+	</script>
+	<x509-certificate>
+
+	</x509-certificate>
+</job-submission>

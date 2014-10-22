@@ -4,11 +4,12 @@
 
 	<groupId>edu.illinois.ncsa</groupId>
 	<version>3.1.0-SNAPSHOT</version>
-	<artifactId>ncsa-common</artifactId>
+	<artifactId>datawolf</artifactId>
 	<packaging>pom</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<hibernate.jpa.version>1.0.0.Final</hibernate.jpa.version>
 		<hibernate.version>4.3.5.Final</hibernate.version>
 		<hsql.version>2.3.2</hsql.version>
 		<mysql.version>5.1.32</mysql.version>
@@ -21,6 +22,7 @@
 		<resteasy.version>3.0.8.Final</resteasy.version>
 		<jetty.version>9.2.2.v20140723</jetty.version>
 		<!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
+		<hikaricp.version>2.0.1</hikaricp.version>
 	</properties>
 
 	<repositories>
@@ -42,59 +44,27 @@
 				<checksumPolicy>warn</checksumPolicy>
 			</snapshots>
 		</repository>
-		<!-- <repository> <id>renci.repository</id> <name>renci.repository</name> 
-			<url>http://ci-dev.renci.org/nexus/content/repositories/public</url> <releases> 
-			<enabled>true</enabled> </releases> <snapshots> <enabled>true</enabled> <updatePolicy>always</updatePolicy> 
-			<checksumPolicy>warn</checksumPolicy> </snapshots> </repository> -->
+    <!--
+    <repository>
+      <id>renci.repository</id>
+      <name>renci.repository</name>
+      <url>http://ci-dev.renci.org/nexus/content/repositories/public</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+    </repository>
+    -->
 	</repositories>
 
 	<scm>
-		<connection>https://opensource.ncsa.illinois.edu/fisheye/git/ncsa-common.git</connection>
-		<url>https://opensource.ncsa.illinois.edu/fisheye/browse/ncsa-common</url>
+		<connection>https://opensource.ncsa.illinois.edu/stash/scm/wolf/datawolf.git</connection>
+		<url>https://opensource.ncsa.illinois.edu/stash/scm/wolf/datawolf</url>
 	</scm>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
-		</plugins>
-
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.apache.felix</groupId>
-										<artifactId>maven-bundle-plugin</artifactId>
-										<versionRange>[1.0.0,)</versionRange>
-										<goals>
-											<goal>bundle</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
 
 	<distributionManagement>
 		<repository>
@@ -109,6 +79,20 @@
 		</snapshotRepository>
 	</distributionManagement>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 	<modules>
 		<module>ncsa-common-domain</module>
 		<module>ncsa-common-jpa</module>
@@ -116,7 +100,23 @@
 		<module>file-service-client</module>
 		<module>file-service</module>
 		<module>file-webapp</module>
+		<module>datawolf-domain</module>
+		<module>datawolf-jpa</module>
+		<module>datawolf-core</module>
+		<module>datawolf-executor-java-tool</module>
+		<module>datawolf-executor-java</module>
+		<module>datawolf-tool-example</module>
+		<module>datawolf-executor-commandline</module>
+		<module>gondola</module>
+		<module>datawolf-executor-hpc</module>
+		<module>datawolf-service-client</module>
+		<module>datawolf-service</module>
+		<module>datawolf-webapp</module>
+		<module>datawolf-editor</module>
+		<!-- <module>datawolf-tool-creator</module> -->
+		<module>datawolf-webapp-all</module>
 	</modules>
+
 
 	<dependencies>
 		<dependency>
@@ -124,12 +124,24 @@
 			<artifactId>javax.inject</artifactId>
 			<version>1</version>
 		</dependency>
+    <dependency>
+      <groupId>com.google.inject.extensions</groupId>
+      <artifactId>guice-persist</artifactId>
+      <version>3.0</version>
+    </dependency>
+
 		<!-- SUPPORT FOR TESTS -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP-java6</artifactId>
+			<version>${hikaricp.version}</version>
+      <scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.hsqldb</groupId>
@@ -154,16 +166,6 @@
 			<artifactId>guice</artifactId>
 			<version>3.0</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.inject.extensions</groupId>
-			<artifactId>guice-persist</artifactId>
-			<version>3.0</version>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>${mysql.version}</version>
 		</dependency>
 	</dependencies>
 </project>
