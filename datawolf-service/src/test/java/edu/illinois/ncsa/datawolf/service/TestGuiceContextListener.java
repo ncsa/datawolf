@@ -9,7 +9,6 @@ import org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextList
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
 
 import edu.illinois.ncsa.domain.Persistence;
 
@@ -18,18 +17,12 @@ public class TestGuiceContextListener extends GuiceResteasyBootstrapServletConte
 
     protected List<Module> getModules(final ServletContext context) {
         final List<Module> result = new ArrayList<Module>();
-        result.add(new DevPersistenceModule());
-        result.add(new ResourcesModule());
+        result.add(new DevServletModule());
         return result;
     }
 
     protected void withInjector(Injector injector) {
-        // Starts the persistence service for injector
-        PersistService service = injector.getInstance(PersistService.class);
-        service.start();
-
         this.injector = injector;
-
         Persistence.setInjector(this.injector);
     }
 

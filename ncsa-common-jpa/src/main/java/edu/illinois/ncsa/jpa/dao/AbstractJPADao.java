@@ -10,6 +10,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 import edu.illinois.ncsa.domain.dao.IDao;
 
@@ -23,25 +24,15 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
         this.entityManager = entityManager;
     }
 
-    // @Transactional
+    @Transactional
     public T save(T entity) {
         EntityManager em = getEntityManager();
-        try {
-            em.getTransaction().begin();
-            T saved = em.merge(entity);
-            return saved;
-        } finally {
-            em.getTransaction().commit();
-        }
+        return em.merge(entity);
     }
 
+    @Transactional
     public void delete(T entity) {
-        try {
-            getEntityManager().getTransaction().begin();
-            getEntityManager().remove(entity);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        getEntityManager().remove(entity);
     }
 
     public T findOne(ID id) {
