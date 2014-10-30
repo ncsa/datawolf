@@ -1,5 +1,6 @@
 package edu.illinois.ncsa.medici.dao;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -7,11 +8,13 @@ import java.util.List;
 
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +29,7 @@ import com.google.inject.name.Named;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.medici.MediciRedirectStrategy;
 
 public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> implements DatasetDao {
     private static final Logger logger = LoggerFactory.getLogger(DatasetMediciDao.class);
@@ -40,22 +44,30 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
     public Dataset save(Dataset dataset) {
         String responseStr = null;
-        HttpClient httpclient = new DefaultHttpClient();
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setRedirectStrategy(new MediciRedirectStrategy());
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+        builder.setDefaultRequestConfig(config);
+        HttpClient httpclient = builder.build();
+
         ResponseHandler<String> responseHandler;
+
         try {
+            // TODO CMN - should call findOne and update files if dataset found
             String requestUrl = SERVER + "api/datasets/" + dataset.getId();
             HttpGet httpGet = new HttpGet(requestUrl);
+
             responseHandler = new BasicResponseHandler();
             logger.debug("Executing request " + httpGet.getRequestLine());
             responseStr = httpclient.execute(httpGet, responseHandler);
+
         } catch (Exception e) {
             try {
                 String name = dataset.getTitle();
                 String description = dataset.getDescription();
 
-                // TODO Datasets and Descriptors should be independent enough to
-                // store the dataset in medici and the file descriptor elsewhere
-                // we might need a linked Id to link medici id to object id
+                // TODO add support for multiple files in a dataset
                 String fileId = dataset.getFileDescriptors().get(0).getDataURL();
                 fileId = fileId.replace(SERVER + "api/files/", "");
 
@@ -65,7 +77,6 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 jsonObject.addProperty("file_id", fileId);
 
                 StringEntity params = new StringEntity(jsonObject.toString());
-
                 String requestUrl;
                 if ((key == null) || key.trim().equals("")) {
                     requestUrl = SERVER + "api/datasets";
@@ -73,13 +84,18 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                     requestUrl = SERVER + "api/datasets?key=" + key.trim();
                 }
                 logger.debug("REQUEST URL = " + requestUrl);
+
+                // Create new dataset and associate files
                 HttpPost httpPost = new HttpPost(requestUrl);
                 httpPost.setEntity(params);
                 httpPost.setHeader("content-type", "application/json");
+
                 responseHandler = new BasicResponseHandler();
                 responseStr = httpclient.execute(httpPost, responseHandler);
 
                 JsonElement jsonElement = new JsonParser().parse(responseStr);
+
+                // Returned ID from Medici
                 String id = jsonElement.getAsJsonObject().get("id").getAsString();
                 dataset.setId(id);
 
@@ -91,6 +107,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 }
 
                 httpPost = new HttpPost(requestUrl);
+
                 jsonObject = new JsonObject();
                 JsonArray array = new JsonArray();
                 array.add(new JsonPrimitive("datawolf"));
@@ -105,6 +122,12 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 logger.debug("Add Tag response: " + responseStr);
             } catch (Exception e1) {
                 logger.error("HTTP Create Dataset failed.", e1);
+            } finally {
+                try {
+                    ((CloseableHttpClient) httpclient).close();
+                } catch (IOException ignore) {
+                    logger.warn("Error closing http client", ignore);
+                }
             }
         }
         return dataset;
@@ -113,7 +136,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
     public List<Dataset> findAll() {
         List<Dataset> results = null;
         String responseStr = null;
-        HttpClient httpclient = new DefaultHttpClient();
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setRedirectStrategy(new MediciRedirectStrategy());
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+        builder.setDefaultRequestConfig(config);
+        HttpClient httpclient = builder.build();
         try {
             String requestUrl;
             if ((key == null) || key.trim().equals("")) {
@@ -157,17 +184,16 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
         } finally {
             try {
-                httpclient.getConnectionManager().shutdown();
-            } catch (Exception ignore) {
-                // Nothing to do with this exception
+                ((CloseableHttpClient) httpclient).close();
+            } catch (IOException ignore) {
+                logger.warn("Error closing http client", ignore);
             }
         }
         return results;
     }
 
     public Dataset findOne(String id) {
-        // TODO Medici 2 API api/datasets/id returns list of files, is there a
-        // findOne equivalent?
+        // TODO CMN - this should call SERVER + "api/datasets/id"
         List<Dataset> results = findAll();
         for (Dataset dataset : results) {
             if (dataset.getId().equals(id)) {
@@ -180,7 +206,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
     private List<FileDescriptor> getFileDescriptor(String id) {
 
-        HttpClient httpclient = new DefaultHttpClient();
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setRedirectStrategy(new MediciRedirectStrategy());
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+        builder.setDefaultRequestConfig(config);
+        HttpClient httpclient = builder.build();
 
         String requestUrl = SERVER + "api/datasets/" + id + "/listFiles";
         HttpGet httpGet = new HttpGet(requestUrl);
@@ -210,10 +240,21 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
             }
         } catch (Exception e) {
             logger.error("HTTP Get failed.", e);
+        } finally {
+            try {
+                ((CloseableHttpClient) httpclient).close();
+            } catch (IOException ignore) {
+                logger.warn("Error closing http client", ignore);
+            }
         }
 
         return results;
 
+    }
+
+    // TODO CMN implement delete
+    public void delete(Dataset entity) {
+        System.out.println("delete " + entity.getClass().getName() + " from medici not yet implemented");
     }
 
     @Override
