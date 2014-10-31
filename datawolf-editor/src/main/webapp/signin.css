@@ -51,6 +51,11 @@ body {
   border-top-right-radius: 0;
 }
 
+.register-btn-div {
+  width: 100%;
+  margin: 0 auto;
+}
+
 .login {
   padding: 5px;
 }
