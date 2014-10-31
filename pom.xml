@@ -14,7 +14,7 @@
 		<hsql.version>2.3.2</hsql.version>
 		<mysql.version>5.1.32</mysql.version>
 		<postgresql.version>9.1-901-1.jdbc4</postgresql.version>
-		<apache.http.version>4.2.1</apache.http.version>
+		<apache.http.version>4.3.5</apache.http.version>
 		<slf4j.version>1.7.0</slf4j.version>
 		<junit.version>4.10</junit.version>
 		<guice.version>3.0</guice.version>

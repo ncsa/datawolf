@@ -18,7 +18,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +27,7 @@ import com.google.inject.name.Named;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
+import edu.illinois.ncsa.medici.MediciRedirectStrategy;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
@@ -124,6 +125,27 @@ public class FileStorageMedici implements FileStorage {
         // Open a HTTP connection to the URL
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
+        // Check connection for redirection
+        int status = conn.getResponseCode();
+        boolean redirect = false;
+        if (status != HttpURLConnection.HTTP_OK) {
+            if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == HttpURLConnection.HTTP_SEE_OTHER) {
+                redirect = true;
+            }
+        }
+
+        // Close connection after checking for redirection
+        conn.disconnect();
+
+        if (redirect) {
+            // Update URL from server response
+            String redirectUrl = conn.getHeaderField("Location");
+            conn = (HttpURLConnection) new URL(redirectUrl).openConnection();
+        } else {
+            // Open a new connection to the server
+            conn = (HttpURLConnection) url.openConnection();
+        }
+
         // Allow Inputs
         conn.setDoInput(true);
 
@@ -200,7 +222,10 @@ public class FileStorageMedici implements FileStorage {
     public boolean deleteFile(FileDescriptor fd) {
         if (fd.getDataURL() != null) {
             logger.debug("Deleting existing file");
-            HttpClient httpClient = new DefaultHttpClient();
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setRedirectStrategy(new MediciRedirectStrategy());
+            HttpClient httpClient = builder.build();
+
             String requestUrl = null;
             if ((key == null) || key.trim().equals("")) {
                 requestUrl = fd.getDataURL();
