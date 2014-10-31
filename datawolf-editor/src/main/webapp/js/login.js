@@ -13,9 +13,8 @@ var AppRouter = Backbone.Router.extend({
     	personCollection.fetch({success: function() {
     		$('#login-form').html(new LoginView().render().el);
 
-            if(datawolfOptions.showRegistration) {
-                $('#register-form').html(new RegistrationView().render().el);
-            }
+            // Registration buttons to display forms
+            $('#register-buttons').html(new RegistrationButtonView().render().el);
 
     		$('#username').keypress(function() {
     			if(showingLoginError) {
@@ -80,9 +79,29 @@ var createAccount = function(email, password) {
         url: url,
         dataType: "text",
         success: function(msg) {
-            location.replace("index.html");
+            var user = null;
+            // Find if person exists, might need to refetch
+            personCollection.fetch({
+                success: function() {
+                    // TODO make this a function so we can check collection to avoid unnecessary fetch
+                    personCollection.each(function(person) {
+                        if(person.get('email') === email) {
+                            user = person;
+                            return false;
+                        }
+                    });
+                    console.log(user.get('id'));
+                    localStorage.currentUser = user.get('id');
+                    location.replace("index.html");
+                },
+                error: function() {
+                    console.log("Error fetching user list");
+                }
+            });
         },
         error: function(msg) {
+            console.log(JSON.stringify(msg));
+            // TODO add more user friendly error message
             alert('error: '+JSON.stringify(msg));
         }
     });
