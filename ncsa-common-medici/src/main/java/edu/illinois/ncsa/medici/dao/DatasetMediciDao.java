@@ -134,6 +134,8 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                     httpPost.setHeader("content-type", "text/plain");
                     responseHandler = new BasicResponseHandler();
                     responseStr = httpclient.execute(httpPost, responseHandler);
+
+                    logger.debug("Attach file to dataset response: " + responseStr);
                 }
 
             } catch (Exception e1) {
