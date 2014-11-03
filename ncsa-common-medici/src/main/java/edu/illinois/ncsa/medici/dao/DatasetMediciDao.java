@@ -54,7 +54,6 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
         ResponseHandler<String> responseHandler;
 
         try {
-            // TODO CMN - should call findOne and update files if dataset found
             String requestUrl = SERVER + "api/datasets/" + dataset.getId();
             HttpGet httpGet = new HttpGet(requestUrl);
 
@@ -120,6 +119,23 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 responseHandler = new BasicResponseHandler();
                 responseStr = httpclient.execute(httpPost, responseHandler);
                 logger.debug("Add Tag response: " + responseStr);
+
+                // Attach additional files
+                for (int idx = 1; idx < dataset.getFileDescriptors().size(); idx++) {
+                    fileId = dataset.getFileDescriptors().get(idx).getDataURL();
+                    fileId = fileId.replace(SERVER + "api/files/", "");
+                    requestUrl = SERVER + "api/datasets/" + dataset.getId() + "/files/" + fileId;
+
+                    if ((key != null) || !key.trim().equals("")) {
+                        requestUrl += "?key=" + key.trim();
+                    }
+
+                    httpPost = new HttpPost(requestUrl);
+                    httpPost.setHeader("content-type", "text/plain");
+                    responseHandler = new BasicResponseHandler();
+                    responseStr = httpclient.execute(httpPost, responseHandler);
+                }
+
             } catch (Exception e1) {
                 logger.error("HTTP Create Dataset failed.", e1);
             } finally {
