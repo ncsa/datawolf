@@ -177,7 +177,9 @@ var WorkflowToolButtonBar = Backbone.View.extend({
         "click button#workflow-tool-info-btn" : "workflowToolInfo",
         "click button#new-workflow-tool-btn" : "createWorkflowTool",
         "select .tool-select" : "handleSelection",
-        "click button#delete-tool-btn" : "deleteWorkflowTool"
+        "click button#delete-tool-btn" : "deleteWorkflowTool",
+        "click button#workflow-tool-export-btn" : "exportWorkflowTool",
+        "click button#workflow-tool-import-btn" : "importWorkflowTool"
     },
 
     initialize: function() {
@@ -330,7 +332,81 @@ var WorkflowToolButtonBar = Backbone.View.extend({
                 }
             }
         }
+    },
+
+    importWorkflowTool: function() {
+        eventBus.trigger("clicked:importworkflowtool", null);
+    },
+
+    exportWorkflowTool: function() {
+        var selectedToolId = $('.highlight').attr('value');
+        if(selectedToolId != null) {
+            var workflowTool = null;
+            workflowToolCollection.each(function(tool) {
+                if(tool.get('id') === selectedToolId) {
+                    workflowTool = tool;
+                    return false;
+                }
+            });
+
+            if(workflowTool != null) {
+                eventBus.trigger("clicked:exportworkflowtool", selectedToolId);
+            }
+        }
     }
+});
+
+var ImportWorkflowToolView = Backbone.View.extend({
+    id: "import-workflow-tool-div",
+    template: _.template($("#import-workflow-tool-template").html()),
+
+    events: {
+        "click button#import-workflow-tool-btn" : "importWorkflowTool",
+        "click button#cancel" : "cancel"
+    },
+
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    },
+
+    importWorkflowTool: function(e) {
+        e.preventDefault();
+
+        var toolFile = $("#import-workflow-tool-form")[0][0].files[0];
+        
+        if(toolFile != undefined) {        
+            var formData = new FormData();
+            formData.append("tool", toolFile);
+            $.ajax({
+                type: "POST",
+                url: datawolfOptions.rest + "/workflowtools",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    // Response is array of tool ids
+                    var toolIds = response;
+                    for(var index = 0; index < toolIds.length; index++) {
+                        addWorkflowTool(toolIds[index]);
+                    }
+                },
+                error: function(response) {
+                     alert('error: '+JSON.stringify(msg));
+                }
+            });
+            $('#modal-import-view').modal('hide');
+        } else {
+            alert("Error - no file selected");
+        } 
+        
+    },
+
+    cancel: function(e) {
+        e.preventDefault();
+        $('#modal-import-view').modal('hide');
+    }
+
 });
 
 var showCommandLineToolWizard = function() {

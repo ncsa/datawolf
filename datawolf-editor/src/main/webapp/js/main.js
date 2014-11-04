@@ -550,12 +550,23 @@ eventBus.on('clicked:tab', function(selected) {
 });
 
 eventBus.on('clicked:importworkflow', function() {
+    document.getElementById("import-dialog-label").innerHTML = "Import Workflow";
     $('#import-workflow-content').html(new ImportWorkflowView().render().el);
-    $('#modalImportWorkflowView').modal('show');
+    $('#modal-import-view').modal('show');
+});
+
+eventBus.on('clicked:importworkflowtool', function() {
+    document.getElementById("import-dialog-label").innerHTML = "Import Workflow Tool(s)";
+    $('#import-workflow-content').html(new ImportWorkflowToolView().render().el);
+    $('#modal-import-view').modal('show');
 });
 
 eventBus.on('clicked:exportworkflow', function(workflowId) {
     window.location.href = datawolfOptions.rest + '/workflows/'+workflowId+'/zip';
+});
+
+eventBus.on('clicked:exportworkflowtool', function(toolId) {
+    window.location.href = datawolfOptions.rest + '/workflowtools/' + toolId + '/zip';
 });
 
 function selectTab(tabName) {

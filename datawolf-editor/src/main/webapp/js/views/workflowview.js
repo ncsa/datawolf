@@ -485,27 +485,34 @@ var ImportWorkflowView = Backbone.View.extend({
 
 	importWorkflow: function(e) {
 		e.preventDefault();
-		var data = new FormData();
-        data.append("workflow", $('#import-workflow-form')[0][0].files[0]);
-        $.ajax({
-            type: "POST",
-            url: "/workflows",
-            data: data,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                addWorkflow(response);
-            },
-             error: function(response) {
-                 alert('error: '+JSON.stringify(msg));
-             }
 
-        }); 
-		$('#modalImportWorkflowView').modal('hide');
+		var workflowFile = $('#import-workflow-form')[0][0].files[0];
+
+		if(workflowFile != undefined) {
+			var data = new FormData();
+	        data.append("workflow", workflowFile);
+	        $.ajax({
+	            type: "POST",
+	            url: datawolfOptions.rest + "/workflows",
+	            data: data,
+	            contentType: false,
+	            processData: false,
+	            success: function(response) {
+	                addWorkflow(response);
+	            },
+	            error: function(response) {
+	                 alert('error: '+JSON.stringify(msg));
+	            }
+
+	        }); 
+			$('#modal-import-view').modal('hide');
+		} else {
+			alert("Error - no file selected");
+		}
 	},
 
 	cancel: function(e) {
 		e.preventDefault();
-		$('#modalImportWorkflowView').modal('hide');
+		$('#modal-import-view').modal('hide');
 	}
 })

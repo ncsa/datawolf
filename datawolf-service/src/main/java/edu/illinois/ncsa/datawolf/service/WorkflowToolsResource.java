@@ -32,7 +32,9 @@
 package edu.illinois.ncsa.datawolf.service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -50,6 +52,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -223,6 +228,32 @@ public class WorkflowToolsResource {
         }
         tool.setDeleted(true);
         workflowToolDao.save(tool);
+    }
+
+    @GET
+    @Path("{tool-id}/zip")
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM })
+    public Response getWorkflowToolZip(@PathParam("tool-id") String toolId) {
+        try {
+            final File tempFile = File.createTempFile("workflow-tool", ".zip");
+            ImportExport.exportTool(tempFile, toolId);
+            ResponseBuilder response = Response.ok(new FileInputStream(tempFile) {
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    tempFile.delete();
+                }
+            });
+            response.type("application/zip");
+            response.header("Content-Disposition", "attachment; filename=\"workflow-tool.zip\"");
+            return response.build();
+        } catch (IOException e) {
+            logger.error("Error creating temporary file", e);
+        } catch (Exception e) {
+            logger.error("Error exporting tool", e);
+        }
+
+        return Response.status(Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON).build();
     }
 
 }
