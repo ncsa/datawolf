@@ -41,14 +41,10 @@
             <%= model.title %> <font color="red">(error)</font>
         <% }  else if ( execvalue === undefined) { %>
             <%= model.title %> (unfinished)
-        <% }  else if ( fileid != null ) { %>
-            <a href="/datasets/<%= execvalue %>/<%= fileid %>/file"> <%= model.title %> </a>
-        <% } else { %>
-            <a href="/datasets/<%= execvalue %>/zip"> <%= model.title %> </a>
-        <% } %>  
+        <% }   %>
     </script>
     <script type="text/template" id="steplog-hist-list-item">
-        <a href="/executions/<%= model.execid %>/logfiles/<%= model.stepid %>"> Log file </a>
+        <p>Locating log file...</p>
     </script>
     <script type="text/template" id="resubmit-execution-button">
         <button id="execute-workflow" class="btn btn-default">Execute</button> 

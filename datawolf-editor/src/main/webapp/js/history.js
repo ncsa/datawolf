@@ -370,6 +370,12 @@ function updateActiveExecution() {
                         var step = getStep(wk, stepid);
                         var stepoutputs = step.outputs;
                         var outitems = $(outlist).find(".cbi-execoutput");
+                        var outputlog = $(stepel).find(".cbi-execlogfile");
+
+                        // Update log file links
+                        var steplog = outputlog[0];
+                        $(steplog).html('<a href=' + '"' + datawolfOptions.rest + '/executions/' + exec.get('id') + '/logfiles/' + stepid + '">' + "Log file" + '</a>'); 
+
                         var index = 0;
                         _.each(_.keys(stepoutputs), function(outputkey) {
                             var outputElementId = stepoutputs[outputkey];
@@ -379,6 +385,7 @@ function updateActiveExecution() {
                                 var ds = getDataset(dsid);
                                 var actualvalue = dsid;
                                 var item=outitems[index];
+
                                 if (actualvalue === 'ERROR') {
                                     $(item).html(outputInfo.title+' <font color="red">(error)</font>');
                                 }
@@ -386,17 +393,14 @@ function updateActiveExecution() {
                                     $(item).html(outputInfo.title+' (unfinished)');
                                 } else if(ds != null) {  
                                     if ( ds.get("fileDescriptors").length === 1 ) {
-                                        $(item).html('<a href="/datasets/'+actualvalue+'/'+ds.get("fileDescriptors")[0].id+'/file">'+outputInfo.title+'</a>');
+                                        $(item).html('<a href=' + '"' + datawolfOptions.rest + '/datasets/'+actualvalue+'/'+ds.get("fileDescriptors")[0].id+'/file">'+outputInfo.title+'</a>');
                                     }
                                     else {
-                                        $(item).html('<a href="/datasets/'+actualvalue+'/zip">'+outputInfo.title+'</a>');
+                                        $(item).html('<a href=' + '"' + datawolfOptions.rest + '/datasets/'+actualvalue+'/zip">'+outputInfo.title+'</a>');
                                     }
                                 }
-
                                 index = index+1;
-
                             }
-
                         }, this);
                     });
                 }});
