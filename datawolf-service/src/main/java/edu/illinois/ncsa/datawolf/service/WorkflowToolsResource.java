@@ -42,10 +42,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -54,7 +56,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -230,10 +231,17 @@ public class WorkflowToolsResource {
         workflowToolDao.save(tool);
     }
 
+    /**
+     * Export a workflow tool by id
+     * 
+     * @param toolId
+     *            id of tool to export
+     * @return zip file of the workflow tool
+     */
     @GET
     @Path("{tool-id}/zip")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
-    public Response getWorkflowToolZip(@PathParam("tool-id") String toolId) {
+    public Response getWorkflowToolZip(@PathParam("tool-id") String toolId) throws BadRequestException, InternalServerErrorException {
         try {
             final File tempFile = File.createTempFile("workflow-tool", ".zip");
             ImportExport.exportTool(tempFile, toolId);
@@ -248,12 +256,12 @@ public class WorkflowToolsResource {
             response.header("Content-Disposition", "attachment; filename=\"workflow-tool.zip\"");
             return response.build();
         } catch (IOException e) {
-            logger.error("Error creating temporary file", e);
+            logger.error("Error creating temporary file to export tool", e);
+            throw new InternalServerErrorException("Error creating temporary file to export tool", e);
         } catch (Exception e) {
             logger.error("Error exporting tool", e);
+            throw new BadRequestException("Error exporting tool", e);
         }
-
-        return Response.status(Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON).build();
     }
 
 }
