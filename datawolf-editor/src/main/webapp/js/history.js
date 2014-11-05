@@ -15,33 +15,29 @@ var workflowCollection = new WorkflowCollection();
 var datasetCollection = new DatasetCollection();
 var personCollection = new PersonCollection();
 
-
 // Views
 var executionListView = null;
 var executionButtonView = null;
 
-// TODO
-var currentUser = null;//new Person({firstName: "John", lastName: "Doe", email: "john.doe@ncsa.uiuc.edu", id:"55"});
-
+var currentUser = null;
 
 var isInputConnected = function(inputKey){
-    // console.log(inputKey +" ----- " + inputOutputMap[inputKey]);
     return ((inputOutputMap[inputKey] !== undefined));
 }
 
 var buildInputOutputMap = function(wf){
     var outputMap = new Object();
     var inputMap = new Object();
-if(wf!==null){
-    _.each(wf.attributes.steps, function(step) {
-        _.each(_.keys(step.outputs), function(outputkey) {
-            outputMap[step.outputs[outputkey]]=outputkey;
+    if(wf!==null){
+        _.each(wf.attributes.steps, function(step) {
+            _.each(_.keys(step.outputs), function(outputkey) {
+                outputMap[step.outputs[outputkey]]=outputkey;
+            });
+            _.each(_.keys(step.inputs), function(inputkey) {
+                inputMap[step.inputs[inputkey]]=inputkey;
+            });
         });
-        _.each(_.keys(step.inputs), function(inputkey) {
-            inputMap[step.inputs[inputkey]]=inputkey;
-        });
-    });
-}
+    }
 
     var map = new Object();
     _.each(_.keys(inputMap),function(key){
@@ -117,8 +113,6 @@ var getLogFiles = function(execid) {
                 var obj = JSON.parse(msg);
                 console.log("log files:");
                 console.log(obj);
-                // for(var index = 0; index < obj.length; index++) {
-                // }
                 return obj;
             },
             error: function(msg) {
@@ -127,7 +121,6 @@ var getLogFiles = function(execid) {
 
         });
 }
-
 
 // Router
 var AppRouter = Backbone.Router.extend({
@@ -170,7 +163,6 @@ var AppRouter = Backbone.Router.extend({
 });
 
 function registerTabEvent() {
-    //console.log("register tab event");
     $("#tabs").children('li').each(function() {
         $(this).on('click', tabSelectionEvent);
     });
@@ -187,9 +179,7 @@ function registerOpenEvent() {
 }
 
 function registerCloseEvent() {
-
     $(".closeTab").click(function () {
-
         //there are multiple elements which has .closeTab icon so close the tab whose close icon is clicked
         var tabContentId = $(this).parent().attr("href");
         $(this).parent().parent().remove(); //remove li of tab
@@ -198,7 +188,6 @@ function registerCloseEvent() {
 
     });
 }
-
 
 var getBy = function(field, val, all_elements) {
     var found_element = null;
@@ -211,9 +200,7 @@ var getBy = function(field, val, all_elements) {
     return found_element;
 };
 
-
 var eventBus = _.extend({}, Backbone.Events);
-
 
 eventBus.on('clicked:newopenexecution', function(executionId) {
     numTabs=numTabs+1;
@@ -232,7 +219,7 @@ eventBus.on('clicked:newopenexecution', function(executionId) {
     $("#tabs").append(txt);
     var divTag = document.createElement("div");
 
-    divTag.id = tagid;//workflowId;
+    divTag.id = tagid;
 
     divTag.setAttribute("class", "tab-pane active dropzone canvas-selected");
 
@@ -244,7 +231,7 @@ eventBus.on('clicked:newopenexecution', function(executionId) {
 
     var executionView = new WorkflowExecutionView({
         model: ce, 
-        el: '#'+tagid//workflowId
+        el: '#'+tagid
     });
     executionView.render();
 
@@ -274,7 +261,6 @@ eventBus.on('clicked:tab', function(selected) {
 });
 
 eventBus.on("clicked:updateExecutions", function(){
-    // console.log("EVENTBUS updating executions");
     executionCollection.fetch({success: function() {
         executionListView = new ExecutionListView({model: executionCollection});
         $('#executions').html(executionListView.render().el);
@@ -288,8 +274,7 @@ var getExecutionIdFromTabLabel = function(tabId) {
     return id;
 }
 
-// Check if execution is still running and should be updated
-var isFinishedAndUpdated = function(executionId, status) {
+var isFinished = function(executionId) {
     var execution = null;
     executionCollection.each(function(model) {
         if(model.get('id') === executionId) {
@@ -305,6 +290,14 @@ var isFinishedAndUpdated = function(executionId, status) {
             update = false;
         }
     }
+
+    return update;
+}
+
+// Check if execution is still running and should be updated
+var isFinishedAndUpdated = function(executionId, status) {
+    // Check execution step states
+    var update = isFinished(executionId);
 
     // Check to see if the page has updated at least once
     status.each(function(index) {
@@ -326,8 +319,12 @@ function updateActiveExecution() {
         var elsruntime = els.find(".step-runtime");
 
         if(!isFinishedAndUpdated(execid, elstatus)) {
+            // TODO - why not fetch just the single execution?
             executionCollection.fetch({success: function() {
                 datasetCollection.fetch({success: function() {
+                    // Update cancel button
+                    document.getElementById("cancel-execution-btn").disabled = isFinished(execid);
+
                     var exec = getExecution(execid);
                     var wkid = exec.get("workflowId");
                     var wk = getWorkflow(wkid);
@@ -405,7 +402,7 @@ function updateActiveExecution() {
                     });
                 }});
             }});
-        }
+        } 
     }
     setTimeout(updateActiveExecution, 5000);
 }

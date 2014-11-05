@@ -32,6 +32,7 @@ var WorkflowExecutionView = Backbone.View.extend({
 			$(this.el).append(newstep.render().el);
 		}, this);
 
+		$(this.el).append(new WorkflowExecutionButtonBar({model: this.model}).render().el);
 		return this;
 	},
 
@@ -179,9 +180,6 @@ var WorkflowExecutionDatasetView = Backbone.View.extend({
 	},
 });
 
-
-
-
 var WorkflowExecutionOutputListView = Backbone.View.extend({
 	tagName: "ol",
 
@@ -233,7 +231,6 @@ var WorkflowExecutionOutputListView = Backbone.View.extend({
 	},
 
 });
-
 
 var WorkflowExecutionOutputView = Backbone.View.extend({
 	tagName: "li",
@@ -287,11 +284,51 @@ var WorkflowSubmitButtonView = Backbone.View.extend({
 
 });
 
-
 var getWorkflowIdFromTab = function(tabId) {
 	var index=tabId.lastIndexOf("-");
 	var id = tabId.substring(0,index);
     return id;
 }
+
+var WorkflowExecutionButtonBar = Backbone.View.extend({
+	template: _.template($("#execution-history-button-template").html()),
+	
+	events: {
+		"click button#cancel-execution-btn" : "cancelExecution"
+	},
+
+	render: function() {
+		var stepStates = this.model.get('stepState');
+
+		var cancel = {disabled: true};
+    	for(var key in stepStates) {
+	        if(stepStates[key] === 'WAITING' || stepStates[key] === 'QUEUED' || stepStates[key] === 'RUNNING') {
+	            cancel.disabled = false;
+	        }
+    	}
+
+    	cancel.disabled = false;
+
+		$(this.el).html(this.template(cancel));
+		return this;
+	},
+
+	cancelExecution: function() {
+		var executionId = this.model.get('id');
+		$.ajax({
+			url: datawolfOptions.rest + "/executions/" + executionId + "/cancel",
+			type: "PUT",
+			dataType: "text",
+			success: function(response) {
+				console.log("cancelled workflow");
+			},
+
+			error: function(response) {
+				console.log("Error cancelling workflow: "+response);
+			}
+		});
+	}
+
+});
 
 
