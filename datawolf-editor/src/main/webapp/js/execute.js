@@ -177,7 +177,7 @@ var addDataset = function(datasetId) {
 
 var getDataset = function(datasetId) {
     var dataset = null;
-        datasetCollection.each(function(model) {
+    datasetCollection.each(function(model) {
         if(model.get('id') === datasetId) {
             dataset = model;
             return false;
@@ -275,7 +275,6 @@ eventBus.on("clicked:updateDatasets", function(n){
         datasetListView = new DatasetListView({model: datasetCollection});
         $('#datasets').html(datasetListView.render().el);
      }});
- 
 });
 
 eventBus.on('clicked:newopenworkflow', function(workflowId) {

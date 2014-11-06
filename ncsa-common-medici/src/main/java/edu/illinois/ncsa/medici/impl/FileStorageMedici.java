@@ -248,7 +248,11 @@ public class FileStorageMedici implements FileStorage {
     }
 
     public InputStream readFile(FileDescriptor fd) throws IOException {
-        return new URL(fd.getDataURL()).openStream();
+        String requestUrl = fd.getDataURL();
+        if (key != null || !key.trim().equals("")) {
+            requestUrl += "?key=" + key.trim();
+        }
+        return new URL(requestUrl).openStream();
     }
 
 }

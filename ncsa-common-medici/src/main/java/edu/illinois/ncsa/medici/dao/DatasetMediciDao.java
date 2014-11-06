@@ -168,7 +168,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
             }
             HttpGet httpGet = new HttpGet(requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
-            logger.info("Executing request " + httpGet.getRequestLine());
+            logger.debug("Executing request " + httpGet.getRequestLine());
 
             try {
                 responseStr = httpclient.execute(httpGet, responseHandler);
@@ -211,7 +211,8 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
     }
 
     public Dataset findOne(String id) {
-        // TODO CMN - this should call SERVER + "api/datasets/id"
+        // Medici doesn't support single fetch: SERVER + "api/datasets/id"
+        // TODO Improve efficiency of finding 1 dataset
         List<Dataset> results = findAll();
         for (Dataset dataset : results) {
             if (dataset.getId().equals(id)) {
@@ -233,7 +234,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
         String requestUrl = SERVER + "api/datasets/" + id + "/listFiles";
         HttpGet httpGet = new HttpGet(requestUrl);
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
-        logger.info("Executing request " + httpGet.getRequestLine());
+        logger.debug("Executing request " + httpGet.getRequestLine());
 
         String responseStr = null;
         List<FileDescriptor> results = new ArrayList<FileDescriptor>();

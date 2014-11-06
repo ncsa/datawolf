@@ -113,8 +113,12 @@ var DatasetButtonView = Backbone.View.extend({
         // console.log(selectedDataset);
         if(selectedDataset!=null && selectedDataset.length !=0){
             var dsid = selectedDataset.attr("id");
-            // var model = getDataset(dsid);
-            window.open('/datasets/'+dsid+'/zip');
+            var dataset = getDataset(dsid);
+            if(dataset.get("fileDescriptors").length == 1) {
+                window.location.href = datawolfOptions.rest + "/datasets/" + dsid + "/" + dataset.get("fileDescriptors")[0].id + "/file";
+            } else {
+                window.location.href = datawolfOptions.rest + "/datasets/" + dsid + "/zip";
+            }
         }
     },
 
