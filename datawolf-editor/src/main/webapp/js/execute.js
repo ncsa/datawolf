@@ -144,14 +144,15 @@ function registerOpenEvent() {
 }
 
 function registerCloseEvent() {
-
     $(".closeTab").click(function () {
+        // TODO - fix WOLF-141
+        // TODO - this cleanup should all happen with backbone views. 
         //there are multiple elements which has .closeTab icon so close the tab whose close icon is clicked
         var tabContentId = $(this).parent().attr("href");
         $(this).parent().parent().remove(); //remove li of tab
         $('#tabs a:last').tab('show'); // Select first tab
+        eventBus.trigger("close", tabContentId.slice(1, tabContentId.length));
         $(tabContentId).remove(); //remove respective tab content
-
     });
 }
 
@@ -325,7 +326,6 @@ eventBus.on('clicked:tab', function(selected) {
         } else if(this.id === 'add-workflow') {
             // Do nothing
         } else {
-            //console.log("unselected label is "+$(this).find('label').text());
             var child = $(this).find('label');
             child.removeClass('canvastab-text-selected');
             child.addClass('canvastab-text-unselected');

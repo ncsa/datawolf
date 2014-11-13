@@ -1,3 +1,9 @@
+
+// key = tab id, value = inputMap
+var executionInputMap = {};
+// key = tab id, value = parameterList
+var executionParameterMap = {};
+
 var WorkflowExecutionView = Backbone.View.extend({
 	tagName: "ol",
 	className: 'cbi-execlist',
@@ -6,23 +12,35 @@ var WorkflowExecutionView = Backbone.View.extend({
 
 	initialize: function() {
 		this.$el.attr('size', '10');
+		this.listenTo(eventBus, 'close', this.close);
 	},
 
 	render: function(e) {
 		$(this.el).empty();
 		$(this.el).html(this.template(this.model.attributes));
+		
+		// Create parameter and input map
+		executionInputMap[this.el.id] = {};
+		executionParameterMap[this.el.id] = [];
+
 		var num=0;
 		_.each(this.model.attributes.steps, function(step) {
 			num = num+1;
 			step["num"]=num;
-			var newstep=new WorkflowExecutionStepView({model: step});
+			var newstep=new WorkflowExecutionStepView({model: step, storageId: this.el.id});
 			$(this.el).append(newstep.render().el);
 		}, this);
-		$(this.el).append(new WorkflowSubmitButtonView().render().el);
+		$(this.el).append(new WorkflowSubmitButtonView({storageId: this.el.id}).render().el);
 
 		return this;
 	},
 
+	close: function(id) {
+		if(id === this.el.id) {
+			delete executionInputMap[this.el.id];
+			delete executionParameterMap[this.el.id];
+		}
+	}
 });
 
 var WorkflowExecutionStepView = Backbone.View.extend({
@@ -39,12 +57,11 @@ var WorkflowExecutionStepView = Backbone.View.extend({
 
 	render: function(e) {
 		$(this.el).html(this.template(this.model));
-		$(this.el).append(new WorkflowExecutionParamListView({model: this.model}).render().el);
-		$(this.el).append(new WorkflowExecutionDatasetListView({model: this.model}).render().el);
+		$(this.el).append(new WorkflowExecutionParamListView({model: this.model, storageId: this.options.storageId}).render().el);
+		$(this.el).append(new WorkflowExecutionDatasetListView({model: this.model, storageId: this.options.storageId}).render().el);
 		return this;
 	}
 });
-
 
 var WorkflowExecutionParamListView = Backbone.View.extend({
 	tagName: "ol",
@@ -66,6 +83,11 @@ var WorkflowExecutionParamListView = Backbone.View.extend({
 			if(paraminfo !== null && paraminfo.hidden === false){
 				var wepv = new WorkflowExecutionParamView({model: paraminfo});
 				wepv.inputboxId=parameterInputBoxId;
+				
+				// Add parameter to the list of checked parameters if null is not allowed
+				if(!paraminfo.allowNull) {
+					executionParameterMap[this.options.storageId].push(parameterInputBoxId);
+				} 
 				$(this.el).append(wepv.render().el);
 			}
 		}, this);
@@ -78,7 +100,6 @@ var WorkflowExecutionParamListView = Backbone.View.extend({
 	},
 
 });
-
 
 var WorkflowExecutionParamView = Backbone.View.extend({
 	tagName: "li",
@@ -97,8 +118,6 @@ var WorkflowExecutionParamView = Backbone.View.extend({
 		return this;
 	}
 });
-
-
 
 var WorkflowExecutionDatasetListView = Backbone.View.extend({
 	tagName: "ol",
@@ -120,10 +139,9 @@ var WorkflowExecutionDatasetListView = Backbone.View.extend({
 				var datasetInfo = getBy('dataId', inputkey, this.model.tool.inputs);			
 
 				if(datasetInfo !== null){
-					var wedsv = new WorkflowExecutionDatasetView({model: datasetInfo});
+					var wedsv = new WorkflowExecutionDatasetView({model: datasetInfo, storageId: this.options.storageId});
 					wedsv.datasetElementId=datasetElementId;
 					$(this.el).append(wedsv.render().el);
-
 				}
 			}
 		}, this);
@@ -137,8 +155,6 @@ var WorkflowExecutionDatasetListView = Backbone.View.extend({
 
 });
 
-
-
 var WorkflowExecutionDatasetView = Backbone.View.extend({
 	tagName: "li",
 	className: 'cbi-execdataset',
@@ -147,7 +163,6 @@ var WorkflowExecutionDatasetView = Backbone.View.extend({
         'dragenter .cbi-execdataset': 'handleDragEnter',
         'drop .cbi-execdataset': 'handleDrop'
     },
-
 
 	template: _.template($('#dataset-select-item').html()),
 
@@ -165,16 +180,13 @@ var WorkflowExecutionDatasetView = Backbone.View.extend({
 
     handleDragEnter: function(e){
         e.preventDefault();
-        //console.log('drag enter');
     },    
 
     handleDrop: function(e) {
         e.preventDefault();
-    	// console.log("Dropped!!!");
 
         if(datasetDrop) {
             var datasetId = e.originalEvent.dataTransfer.getData('Text');
-            // console.log(datasetId);
             datasetCollection.each(function(model) {
                 if(model.get('id') === datasetId) {
                     currentDataset = model;
@@ -185,17 +197,18 @@ var WorkflowExecutionDatasetView = Backbone.View.extend({
 			this.$el.children().find( "p" ).html(title);
 
 			this.$el.find("#"+this.datasetElementId)[0].value=""+datasetId;
+
+			executionInputMap[this.options.storageId][this.datasetElementId] = datasetId;
             datasetDrop = false;
         }
     },
 
 	render: function(e) {
+		executionInputMap[this.options.storageId][this.datasetElementId] = "";
 		$(this.el).html(this.template(this));
 		return this;
 	},
 });
-
-
 
 var WorkflowSubmitButtonView = Backbone.View.extend({
 	events: {
@@ -205,30 +218,54 @@ var WorkflowSubmitButtonView = Backbone.View.extend({
 	template: _.template($("#execute-workflow-button").html()),
 
 	render: function(e) {
-		// console.log('rendering submit button view');
 		$(this.el).html(this.template());
-
 		return this;
 	},
 
 	submitWorkflow: function(e) {
-		// e.preventDefault();
 		var parent=this.el.parentElement;
 		var title=$(parent).find('.cbi-submission-title')[0].value;
+		if(title.trim() === "") {
+			window.alert("Please specify a submission title.");
+			return;
+		}
+
+		var canExecute = true;
+		var inputMap = executionInputMap[this.options.storageId];
+		for(var key in inputMap) {
+			if(inputMap[key] === "") {
+				canExecute = false;
+			}
+		}	
+
+		var parameters = $(parent).find('.cbi-param-input');
+		var parameterList = executionParameterMap[this.options.storageId];
+		if(parameters != undefined) {
+			for(var index = 0; index < parameters.length; index++) {
+				var id = parameters[index].name;
+				if(_.contains(parameterList, id)) {
+					if(parameters[index].value === "") {
+						canExecute = false;
+					}
+				} 
+			}
+		}
+
+		if(!canExecute) {
+			window.alert("Please specify all required datasets and parameters");
+			return;
+		}
+
 		var description=$(parent).find('.cbi-submission-description')[0].value;
 
-		getWorkflowIdFromTab(parent.id);
+		//getWorkflowIdFromTab(parent.id);
 		return postSubmission(getWorkflowIdFromTab(parent.id), currentUser.get('id'), title, description, $(parent).find('.cbi-param-input'), $(parent).find('.cbi-dataset-selection'));
-
 	}
 
 });
-
 
 var getWorkflowIdFromTab = function(tabId) {
 	var index=tabId.lastIndexOf("-");
 	var id = tabId.substring(0,index);
     return id;
 }
-
-
