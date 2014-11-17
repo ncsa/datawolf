@@ -29,7 +29,11 @@
 		<attributes>
 			<basic name="userid" />
 			<basic name="password" />
-			<one-to-one name="person" fetch="EAGER" />
+			<one-to-one name="person" fetch="EAGER">
+				<cascade>
+					<cascade-merge/>
+				</cascade>
+			</one-to-one>
 		</attributes>
 	</entity>
 
