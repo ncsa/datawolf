@@ -156,6 +156,7 @@ var CommandLineOptionTab = Backbone.View.extend({
 		"click button#add-tool-param-btn" : "showAddToolParameter",
 		"click button#add-tool-data-btn" : "showAddToolData",
 		"click button#add-tool-value-btn" : "showAddToolValue",
+		"click button#edit-cloption-btn" : "editCommandlineOption",
 		"click button#move-cloption-up-btn" : "commandLineOptionUp",
 		"click button#move-cloption-down-btn" : "commandLineOptionDown",
 		"click button#delete-cloption-btn" : "deleteCommandlineOption"
@@ -260,6 +261,30 @@ var CommandLineOptionTab = Backbone.View.extend({
 			console.log('nothing selected');
 		}
 		
+	},
+
+	editCommandlineOption: function() {
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			var clOption = this.optionModel.at(index);
+
+			// Determine which kind of option (data/value/parameter)
+			if(clOption.get('type') === 'PARAMETER') {
+				var model = this.getParameter(clOption);
+				$('#newCommandLineOptionLabel').text("CommandLine Parameter");
+	        	$('#add-parameter-view').html(new CommandLineParameterView({model: model, clOption: clOption}).render().el);
+			} else if(clOption.get('type') === 'DATA') {
+				var model = this.getData(clOption);
+				$('#newCommandLineOptionLabel').text("CommandLine Input/Output");
+	        	$('#add-parameter-view').html(new CommandLineAddDataView({model: model, clOption: clOption}).render().el);
+			} else {
+				$('#newCommandLineOptionLabel').text("CommandLine Parameter");
+	        	$('#add-parameter-view').html(new CommandLineAddValueView({model: clOption}).render().el);
+			}
+
+			// Display view to edit option
+        	$('#modalParameterView').modal('show');
+		}
 	}
 
 });
@@ -274,12 +299,35 @@ var CommandLineParameterView = Backbone.View.extend({
 	},
 
 	render: function() {
-		$(this.el).html(this.template());
+		var flag = "";
+		var title = "";
+		var description = "";
+		var value = "";
+		var commandline = true;
+		var hidden = false;
+		var allowNull = false;
+		var type = "STRING";
+		if(this.model != undefined) {
+			flag = this.options.clOption.get('flag');
+			commandline = this.options.clOption.get('commandline');
+
+			title = this.model.get('title');
+			description = this.model.get('description');
+			value = this.model.get('value');
+			hidden = this.model.get('hidden');
+			allowNull = this.model.get('allowNull');
+			type = this.model.get('type');
+		}
+		var params = {flag: flag, title: title, description: description, value: value, commandline: commandline, hidden: hidden, allowNull: allowNull, type: type};
+		$(this.el).html(this.template(params));
+
 		return this;
 	},
 
 	addToolParameter: function(e) {
 		e.preventDefault();
+
+		var triggerUpdate = false;
 		var flag = $('#tool-parameter-flag').val();
 		var title = $('#tool-parameter-name').val();
 		var desc = $('#tool-parameter-description').val();
@@ -289,13 +337,28 @@ var CommandLineParameterView = Backbone.View.extend({
 		var allowNull = $('#tool-parameter-empty').is(':checked');
 		var commandline = $('#tool-parameter-commandline').is(':checked');
 
-		var param = createWorkflowToolParameter(title, desc, allowNull, type, hidden, value);
+		var param = this.model;
+		var clOption = this.options.clOption;
+		if(this.model === undefined) {
+			param = createWorkflowToolParameter(title, desc, allowNull, type, hidden, value);
+			clOption = createCommandLineOption('PARAMETER', commandline);
+			clOption.setOptionId(param.getParameterId());
+			clOption.setFlag(flag);
+			commandLineOptionView.addParameter(clOption, param);
+		} else {
+			param = updateWorkflowToolParameter(param, title, desc, allowNull, type, hidden, value);
+			if(clOption.get('flag') === flag && clOption.get('commandline') === commandline) {
+				triggerUpdate = true;
+			} 
+			clOption.setFlag(flag);
+			clOption.setCommandline(commandline);
 
-		var clOption = createCommandLineOption('PARAMETER', commandline);
-        clOption.setFlag(flag);
-        clOption.setOptionId(param.getParameterId());
-
-        commandLineOptionView.addParameter(clOption, param);
+			if(triggerUpdate) {
+				// Since changes are to an object that clOption refers to, we must manually fire a change event to update rendering
+				clOption.trigger('change');
+			}
+		}
+        
         $('#modalParameterView').modal('hide');
 	},
 
@@ -319,31 +382,66 @@ var CommandLineAddDataView = Backbone.View.extend({
 	},
 
 	render: function() {
-		$(this.el).html(this.template());
+		var flag = "";
+		var title = "";
+		var description = "";
+		var contentType = "";
+		var fileName = "";
+		var commandline = true;
+		var inputOutput = "INPUT";
+		if(this.model != undefined) {
+			flag = this.options.clOption.get('flag');
+			fileName = this.options.clOption.get('filename');
+			commandline = this.options.clOption.get('commandline');
+			inputOutput = this.options.clOption.get('inputOutput');
+			title = this.model.get('title');
+			description = this.model.get('description');
+			contentType = this.model.get('mimeType');
+		}
+		var dataFields = {flag: flag, title: title, description: description, mimeType: contentType, filename: fileName, commandline: commandline, inputOutput: inputOutput};
+		$(this.el).html(this.template(dataFields));
+
 		return this;
 	},
 
 	addToolData: function(e) {
 		e.preventDefault();
 
+		var triggerUpdate = false;
 		var title = $('#tool-data-name').val();
 		var description = $('#tool-data-description').val();
 		var mimeType = $('#tool-data-content').val();
-
-		var data = createWorkflowToolData(title, description, mimeType);
-
 		var flag = $('#tool-data-flag').val();
 		var inputOutput = $('#tool-data-type').val();
 		var fileName = $('#tool-data-filename').val();
 		var commandLine = $('#tool-data-commandline').is(':checked');
 
-		var option = createCommandLineOption('DATA', commandLine);
-		option.setFlag(flag);
-		option.setInputOutput(inputOutput);
-		option.setFilename(fileName);
-		option.setOptionId(data.get('dataId'));
+		var data = this.model;
+		var clOption = this.options.clOption;
+		if(this.model === undefined) {
+			data = createWorkflowToolData(title, description, mimeType);
+			clOption = createCommandLineOption('DATA', commandLine);
+			clOption.setOptionId(data.get('dataId'));
+			clOption.setFlag(flag);
+			clOption.setInputOutput(inputOutput);
+			clOption.setFilename(fileName);
+			commandLineOptionView.addData(clOption, data);
+		} else {
+			data = updateWorkflowToolData(data, title, description, mimeType);
+			if(clOption.get('flag') === flag && clOption.get('inputOutput') === inputOutput && clOption.get('filename') === fileName && clOption.get('commandline') === commandLine) {
+				// If none of the attributes of clOption have changed, manually trigger an update
+				triggerUpdate = true;
+			}
 
-		commandLineOptionView.addData(option, data);
+			clOption.setCommandline(commandLine);
+			clOption.setFlag(flag);
+			clOption.setInputOutput(inputOutput);
+			clOption.setFilename(fileName);
+
+			if(triggerUpdate) {
+				clOption.trigger('change');
+			}
+		}
 		$('#modalParameterView').modal('hide');
 	},
 
@@ -367,7 +465,15 @@ var CommandLineAddValueView = Backbone.View.extend({
 	},
 
 	render: function() {
-		$(this.el).html(this.template());
+		var flag = "";
+		var value = "";
+		if(this.model != undefined) {
+			flag = this.model.get('flag');
+			value = this.model.get('value');
+		}
+
+		var valueFields = {flag: flag, value: value};
+		$(this.el).html(this.template(valueFields));
 		return this;
 	},
 
@@ -376,11 +482,17 @@ var CommandLineAddValueView = Backbone.View.extend({
 
 		var flag = $('#tool-value-flag').val();
 		var value = $('#tool-value').val();
-		var option = createCommandLineOption('VALUE', true);
-		option.setFlag(flag);
-		option.setValue(value);
+		var clOption = this.model;
+		if(clOption === undefined) {
+			clOption = createCommandLineOption('VALUE', true);
+			clOption.setFlag(flag);
+			clOption.setValue(value);
+			commandLineOptionView.addCommandLineOption(clOption);
+		} else {
+			clOption.setFlag(flag);
+			clOption.setValue(value);
+		}
 
-		commandLineOptionView.addCommandLineOption(option);
 		$('#modalParameterView').modal('hide');
 	},
 
@@ -436,6 +548,10 @@ var CommandLineOptionListItemView = Backbone.View.extend({
 		return {
 			value: JSON.stringify(this.model)
 		}
+	},
+
+	initialize: function() {
+		this.model.bind("change", this.render, this);
 	},
 
 	render: function() {
@@ -799,6 +915,7 @@ var HPCToolOptionTab = Backbone.View.extend({
 		"click button#add-tool-param-btn" : "showAddToolParameter",
 		"click button#add-tool-data-btn" : "showAddToolData",
 		"click button#add-tool-value-btn" : "showAddToolValue",
+		"click button#edit-cloption-btn" : "editCommandlineOption",
 		"click button#move-cloption-up-btn" : "commandLineOptionUp",
 		"click button#move-cloption-down-btn" : "commandLineOptionDown",
 		"click button#delete-cloption-btn" : "deleteCommandlineOption"
@@ -887,6 +1004,30 @@ var HPCToolOptionTab = Backbone.View.extend({
 				this.getOptionModel().swapElements(index, index+1);
 				this.clOptionsView.render();
 			}
+		}
+	},
+
+	editCommandlineOption: function() {
+		if($('#commandLineOptionListView').val() != null) {
+			var index = $('#commandLineOptionListView')[0].selectedIndex;
+			var clOption = this.optionModel.at(index);
+
+			// Determine which kind of option (data/value/parameter)
+			if(clOption.get('type') === 'PARAMETER') {
+				var model = this.getParameter(clOption);
+				$('#newCommandLineOptionLabel').text("CommandLine Parameter");
+	        	$('#add-parameter-view').html(new CommandLineParameterView({model: model, clOption: clOption}).render().el);
+			} else if(clOption.get('type') === 'DATA') {
+				var model = this.getData(clOption);
+				$('#newCommandLineOptionLabel').text("CommandLine Input/Output");
+	        	$('#add-parameter-view').html(new CommandLineAddDataView({model: model, clOption: clOption}).render().el);
+			} else {
+				$('#newCommandLineOptionLabel').text("CommandLine Parameter");
+	        	$('#add-parameter-view').html(new CommandLineAddValueView({model: clOption}).render().el);
+			}
+
+			// Display view to edit option
+        	$('#modalParameterView').modal('show');
 		}
 	},
 
@@ -1179,25 +1320,34 @@ var createWorkflowToolData = function(title, description, mimeType) {
 	var toolData = new WorkflowToolData();
 	toolData.setId(generateUUID());
 	toolData.setDataId(generateUUID());
+	
+	return updateWorkflowToolData(toolData, title, description, mimeType);
+};
+
+var updateWorkflowToolData = function(toolData, title, description, mimeType) {
 	toolData.setTitle(title);
 	toolData.setDescription(description);
 	toolData.setMimeType(mimeType);
 
 	return toolData;
-};
+}
 
 var createWorkflowToolParameter = function(title, description, allowNull, type, hidden, value) {
 	var param = new WorkflowToolParameter();
     param.setId(generateUUID());
     param.setParameterId(generateUUID());
+    return updateWorkflowToolParameter(param, title, description, allowNull, type, hidden, value);
+};
+
+var updateWorkflowToolParameter = function(param, title, description, allowNull, type, hidden, value) {
     param.setTitle(title);
     param.setDescription(description);
     param.setAllowNull(allowNull);
     param.setType(type);
     param.setHidden(hidden);
     param.setValue(value);
-    return param;
-};
+	return param;
+}
 
 var createCommandLineOption = function(type, commandline) {
 	var option = new CommandLineOption({type: type, commandline: commandline});

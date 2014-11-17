@@ -419,43 +419,43 @@
             <div class="form-group">
                 <label for="tool-parameter-flag" class="col-lg-4 control-label">Flag</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-parameter-flag" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-parameter-flag" placeholder="" value="<%= flag %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-parameter-name" class="col-lg-4 control-label">Name</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-parameter-name" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-parameter-name" placeholder="" value="<%= title %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-parameter-description" class="col-lg-4 control-label">Description</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-parameter-description" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-parameter-description" placeholder="" value="<%= description %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-parameter-type" class="col-lg-4 control-label">Type</label>
                 <div class="col-lg-8">
                     <select id="tool-parameter-type">
-                        <option value="BOOLEAN">BOOLEAN</option>
-                        <option value="STRING" selected>STRING</option>
-                        <option value="NUMBER">NUMBER</option>
-                        <option value="OPTION">OPTION</option>
+                        <option value="BOOLEAN" <% print( type === 'BOOLEAN' ? 'selected' : '') %> >BOOLEAN</option>
+                        <option value="STRING" <% print( type === 'STRING' ? 'selected' : '') %> >STRING</option>
+                        <option value="NUMBER" <% print( type === 'NUMBER' ? 'selected' : '') %> >NUMBER</option>
+                        <option value="OPTION" <% print( type === 'OPTION' ? 'selected' : '') %> >OPTION</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-parameter-default" class="col-lg-4 control-label">Default value</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-parameter-default" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-parameter-default" placeholder="" value="<%= value %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <div class="col-lg-12">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="tool-parameter-hidden" />Hidden Parameter?
+                            <input type="checkbox" id="tool-parameter-hidden" <% print(hidden ? 'checked' : '') %> />Hidden Parameter?
                         </label>
                     </div>
                 </div>
@@ -464,7 +464,7 @@
                 <div class="col-lg-12">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="tool-parameter-empty" />Can be empty?
+                            <input type="checkbox" id="tool-parameter-empty" <% print(allowNull ? 'checked' : '') %> />Can be empty?
                         </label>
                     </div>
                 </div>
@@ -473,7 +473,7 @@
                 <div class="col-lg-12">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="tool-parameter-commandline" checked/>Commandline?
+                            <input type="checkbox" id="tool-parameter-commandline" <% print(commandline ? 'checked' : '') %> />Commandline?
                         </label>
                     </div>
                 </div>
@@ -500,41 +500,41 @@
                 <label for="tool-data-type" class="col-lg-4 control-label">Input/Output</label>
                 <div class="col-lg-8">
                     <select id="tool-data-type">
-                        <option value="INPUT" selected>INPUT</option>
-                        <option value="OUTPUT">OUTPUT</option>
-                        <option value="BOTH">BOTH</option>
+                        <option value="INPUT" <% print( inputOutput === 'INPUT' ? 'selected' : '') %> >INPUT</option>
+                        <option value="OUTPUT" <% print( inputOutput === 'OUTPUT' ? 'selected' : '') %> >OUTPUT</option>
+                        <option value="BOTH" <% print( inputOutput === 'BOTH' ? 'selected' : '') %> >BOTH</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-data-flag" class="col-lg-4 control-label">Flag</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-data-flag" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-data-flag" placeholder="" value="<%= flag %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-data-name" class="col-lg-4 control-label">Name</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-data-name" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-data-name" placeholder="" value="<%= title %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-data-description" class="col-lg-4 control-label">Description</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-data-description" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-data-description" placeholder="" value="<%= description %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-data-content" class="col-lg-4 control-label">Content Type</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-data-content" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-data-content" placeholder="" value="<%= mimeType %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <div class="col-lg-12">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="tool-data-commandline" checked />Commandline?
+                            <input type="checkbox" id="tool-data-commandline" <% print(commandline ? 'checked' : '') %> />Commandline?
                         </label>
                     </div>
                 </div>
@@ -542,7 +542,7 @@
             <div class="form-group">
                 <label for="tool-data-filename" class="col-lg-4 control-label">Filename</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-data-filename" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-data-filename" placeholder="" value="<%= filename %>"/>
                 </div>
             </div>
             <div class="form-group">
@@ -563,13 +563,13 @@
             <div class="form-group">
                 <label for="tool-data-flag" class="col-lg-4 control-label">Flag</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-value-flag" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-value-flag" placeholder="" value="<%= flag %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-value" class="col-lg-4 control-label">Value</label>
                 <div class="col-lg-8">
-                    <input type="text" class="form-control" id="tool-value" />
+                    <input type="text" class="form-control" id="tool-value" value="<%= value %>" />
                 </div>
             </div>
             <div class="form-group">
