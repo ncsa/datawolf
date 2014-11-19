@@ -104,8 +104,6 @@ var CommandLineImplementation = Backbone.Model.extend({
 	setJoinStdOutStdErr: function(joinStdOutStdErr) {
 		this.set('joinStdOutStdErr', joinStdOutStdErr);
 	},
-
-	
 });
 
 var EnvironmentModel = Backbone.Model.extend({

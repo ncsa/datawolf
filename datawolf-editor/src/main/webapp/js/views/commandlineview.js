@@ -159,7 +159,11 @@ var CommandLineOptionTab = Backbone.View.extend({
 		"click button#edit-cloption-btn" : "editCommandlineOption",
 		"click button#move-cloption-up-btn" : "commandLineOptionUp",
 		"click button#move-cloption-down-btn" : "commandLineOptionDown",
-		"click button#delete-cloption-btn" : "deleteCommandlineOption"
+		"click button#delete-cloption-btn" : "deleteCommandlineOption",
+		"keyup input#tool-executable" : "updateExecutionOptions",
+		"click input#capture-stdout" : "updateExecutionOptions",
+		"click input#capture-stderr" : "updateExecutionOptions",
+		"click input#join-stdout-stderr" : "updateExecutionOptions"
 
 	},
 	initialize: function() {
@@ -233,6 +237,7 @@ var CommandLineOptionTab = Backbone.View.extend({
 			if(index > 0) {
 				this.getOptionModel().swapElements(index, index-1);
 				this.clOptionsView.render();
+				this.updateExecutionOptions();
 			}
 		}
 	},
@@ -244,6 +249,7 @@ var CommandLineOptionTab = Backbone.View.extend({
 			if(index < this.getOptionModel().size()-1) {
 				this.getOptionModel().swapElements(index, index+1);
 				this.clOptionsView.render();
+				this.updateExecutionOptions();
 			}
 		}
 	},
@@ -257,10 +263,11 @@ var CommandLineOptionTab = Backbone.View.extend({
 				delete this.parameters[model];	
 			}
 			this.optionModel.remove(model);
+			this.updateExecutionOptions();
 		} else {
 			console.log('nothing selected');
 		}
-		
+
 	},
 
 	editCommandlineOption: function() {
@@ -285,6 +292,27 @@ var CommandLineOptionTab = Backbone.View.extend({
 			// Display view to edit option
         	$('#modalParameterView').modal('show');
 		}
+	},
+
+	updateExecutionOptions: function() {
+		var executionText = $('#tool-executable').val();
+
+		executionText += " ";
+		this.optionModel.each(function(option) {
+			executionText += getOptionString(option) + " "; 
+		});	
+
+		if($('#join-stdout-stderr').is(":checked")) {
+			executionText += " 2>&1";
+		} else if($('#capture-stderr').is(":checked")) {
+			executionText += " 2>" + $('#stderr-title').val();
+		}
+
+		if($('#capture-stdout').is(":checked")) {
+			executionText += " >" + $('#stdout-title').val();
+		}
+
+		$('#tool-execution-line').val(executionText);
 	}
 
 });
@@ -360,6 +388,7 @@ var CommandLineParameterView = Backbone.View.extend({
 		}
         
         $('#modalParameterView').modal('hide');
+        commandLineOptionView.updateExecutionOptions();
 	},
 
 	close: function(e) {
@@ -443,6 +472,7 @@ var CommandLineAddDataView = Backbone.View.extend({
 			}
 		}
 		$('#modalParameterView').modal('hide');
+		commandLineOptionView.updateExecutionOptions();
 	},
 
 	close: function(e) {
@@ -494,6 +524,7 @@ var CommandLineAddValueView = Backbone.View.extend({
 		}
 
 		$('#modalParameterView').modal('hide');
+		commandLineOptionView.updateExecutionOptions();
 	},
 
 	close: function(e) {
@@ -555,53 +586,7 @@ var CommandLineOptionListItemView = Backbone.View.extend({
 	},
 
 	render: function() {
-		var optionAsString = "";
-		if(this.model.getFlag() != null && !_.isEmpty(this.model.getFlag())) {
-			optionAsString += this.model.getFlag().trim() + " ";
-		}
-
-		switch(this.model.getType()) {
-			case 'PARAMETER': 
-				var param = commandLineOptionView.getParameter(this.model);
-				optionAsString += param.get('title');
-				optionAsString += '[';
-				optionAsString += param.get('type');
-				optionAsString += '] = ';
-				optionAsString += param.get('value');
-				break;
-			case 'VALUE':
-				if((this.model.getValue() != null) && (this.model.getValue().trim().length > 0)) {
-					optionAsString += this.model.getValue().trim();
-				}	
-				break;
-			case 'DATA':
-				optionAsString += "file(";
-					switch(this.model.getInputOutput()) {
-						case 'INPUT':
-							optionAsString += "in:";
-							break;
-						case 'OUTPUT':
-							optionAsString += "out:";
-							break;
-						case 'BOTH':
-							optionAsString += "in/out:";
-							break;
-					}
-
-					if((this.model.getFilename() != null) && (this.model.getFilename().trim().length > 0)) {
-						optionAsString += this.model.getFilename().trim();
-					} else {
-						optionAsString += "AUTO";
-					}
-
-					if(this.model.isCommandline()) {
-						optionAsString += '[not passed]';
-					}
-
-					optionAsString += ")";
-
-				break;
-		}
+		var optionAsString = getOptionString(this.model);	
 
 		$(this.el).html(this.template({optionAsString: optionAsString}));	
 		return this;
@@ -918,7 +903,8 @@ var HPCToolOptionTab = Backbone.View.extend({
 		"click button#edit-cloption-btn" : "editCommandlineOption",
 		"click button#move-cloption-up-btn" : "commandLineOptionUp",
 		"click button#move-cloption-down-btn" : "commandLineOptionDown",
-		"click button#delete-cloption-btn" : "deleteCommandlineOption"
+		"click button#delete-cloption-btn" : "deleteCommandlineOption",
+		"keyup input#tool-executable" : "updateExecutionOptions",
 
 	},
 	initialize: function() {
@@ -992,6 +978,7 @@ var HPCToolOptionTab = Backbone.View.extend({
 			if(index > 0) {
 				this.getOptionModel().swapElements(index, index-1);
 				this.clOptionsView.render();
+				this.updateExecutionOptions();
 			}
 		}
 	},
@@ -1003,6 +990,7 @@ var HPCToolOptionTab = Backbone.View.extend({
 			if(index < this.getOptionModel().size()-1) {
 				this.getOptionModel().swapElements(index, index+1);
 				this.clOptionsView.render();
+				this.updateExecutionOptions();
 			}
 		}
 	},
@@ -1040,10 +1028,32 @@ var HPCToolOptionTab = Backbone.View.extend({
 				delete this.parameters[model];	
 			}
 			this.optionModel.remove(model);
+			this.updateExecutionOptions();
 		} else {
 			console.log('nothing selected');
 		}
 		
+	},
+
+	updateExecutionOptions: function() {
+		var executionText = $('#tool-executable').val();
+
+		executionText += " ";
+		this.optionModel.each(function(option) {
+			executionText += getOptionString(option) + " "; 
+		});	
+
+		if($('#join-stdout-stderr').is(":checked")) {
+			executionText += " 2>&1";
+		} else if($('#capture-stderr').is(":checked")) {
+			executionText += " 2>" + $('#stderr-title').val();
+		}
+
+		if($('#capture-stdout').is(":checked")) {
+			executionText += " >" + $('#stdout-title').val();
+		}
+
+		$('#tool-execution-line').val(executionText);
 	}
 
 });
@@ -1352,4 +1362,55 @@ var updateWorkflowToolParameter = function(param, title, description, allowNull,
 var createCommandLineOption = function(type, commandline) {
 	var option = new CommandLineOption({type: type, commandline: commandline});
 	return option;
+}
+
+var getOptionString = function(option) {
+	var optionAsString = "";
+	if(option.getFlag() != null && !_.isEmpty(option.getFlag())) {
+		optionAsString += option.getFlag().trim() + " ";
+	}
+
+	switch(option.getType()) {
+		case 'PARAMETER': 
+			var param = commandLineOptionView.getParameter(option);
+			optionAsString += param.get('title');
+			optionAsString += '[';
+			optionAsString += param.get('type');
+			optionAsString += '] = ';
+			optionAsString += param.get('value');
+			break;
+		case 'VALUE':
+			if((option.getValue() != null) && (option.getValue().trim().length > 0)) {
+				optionAsString += option.getValue().trim();
+			}	
+			break;
+		case 'DATA':
+			optionAsString += "file(";
+				switch(option.getInputOutput()) {
+					case 'INPUT':
+						optionAsString += "in:";
+						break;
+					case 'OUTPUT':
+						optionAsString += "out:";
+						break;
+					case 'BOTH':
+						optionAsString += "in/out:";
+						break;
+				}
+
+				if((option.getFilename() != null) && (option.getFilename().trim().length > 0)) {
+					optionAsString += option.getFilename().trim();
+				} else {
+					optionAsString += "AUTO";
+				}
+
+				if(!option.isCommandline()) {
+					optionAsString += '[not passed]';
+				}
+
+				optionAsString += ")";
+
+			break;
+	}
+	return optionAsString;
 }
