@@ -822,7 +822,7 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 .tool-selection-popover-bkgrd {
   background : #89792F;
   background : rgba(137, 121, 47, 1);
-  width : 160px;
+  width : 170px;
   height : 21px;
   margin: 0 auto;
 }
