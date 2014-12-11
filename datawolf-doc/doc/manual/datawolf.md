@@ -34,15 +34,15 @@ A workflow does not have to be a sequential set of steps since the workflow engi
 
 ## Architecture
 
-Data Wolf is designed to facilitate the documentation and dissemination of scientific work with a system that makes it easy to create and share workflows while separating the science from the logistics of execution. This allows scientists to focus on research without concerning themselves with the details of where the workflow will execute, how will the data be stored, how do I share my results, etc. Models, algorithms, and data are kept in open formats so they are accessible outside the scientific workflow system and models that are encapsulated by a workflow can be exposed as a RESTful web service. Data Wolf has 3 main components: 1) Editor, 2) Service layer (RESTful service) and 3) Engine as shown in the diagram below:
+Data Wolf is designed to facilitate the documentation and dissemination of scientific work with a system that makes it easy to create and share workflows while separating the science from the logistics of execution. This allows scientists to focus on research without concerning themselves with the details of where the workflow will execute, how will the data be stored, how do I share my results, etc. Models, algorithms, and data are kept in open formats so they are accessible outside the scientific workflow system and models that are encapsulated by a workflow can be exposed as a RESTful web service. Data Wolf has 3 main components: 1) Editor (DataWolf JS), 2) Service layer (RESTful service) and 3) Engine as shown in the diagram below:
 
-![Data Wolf Architecture Diagram.](images/Data Wolf-arch.png)
+![Data Wolf Architecture Diagram.](images/datawolf-arch2.png)
 
 Each part will be elaborated on in the next few sections, starting at the bottom and working our way up to the Editor (Data Wolf JS).
 
 ### Technologies
 
-Data Wolf is a Java application that uses the Spring Framework, specifically [Spring-Data](http://projects.spring.io/spring-data/) for persisting application information using Java Persistance API (JPA). The Object Relational Mapping (ORM) uses Hibernate and Spring Data handles the Create/Read/Update/Delete (CRUD) repository. Application data is stored in a HSQL database by default for simplicity, but this can be any relational database. For example, in production, we have used MySQL extensively in large projects with very good performance. 
+Data Wolf is a Java application that uses the Guice dependency injection framework to bind data access objects for persisting application information. A generic Create/Read/Update/Delete (CRUD) service layer is implemented by a set of data access objects (DAO) that follow the Java Persistance API (JPA). The Object Relational Mapping (ORM) uses Hibernate and the injected data access objects handle the CRUD operations. In addition to the available JPA data access objects, some DAOs have been written for the Medici Content Management system. This allows finer control over where certain objects are persisted. For example, workflows, tools, steps, etc can be persisted using JPA and data can be persisted to a content management system. For simplicity, the default DataWolf download uses the JPA DAOs to store application data in a HSQL database; however, this can be any relational database. For example, in production, we have used MySQL extensively in large projects with very good performance. 
 
 ### Engine
 
@@ -192,159 +192,163 @@ We'll begin with a brief discussion of the architecture and technologies used in
 The web editor is an HTML5/Javascript application that allows a user to interact with Data Wolf to build and execute workflows. For reference, a brief description of the Javascript libraries used in the Web Editor can be seen below: 
 
 * Twitter Bootstrap
-  * is a Mobile first front end that eases the task of developing the client user interface for multiple screen sizes. Twitter-Bootstrap will scale widgets to best fit the device that you are using. It includes a lot of general components and examples that can be customized further based on the needs of the application.
+    * a Mobile first front end that eases the task of developing the client user interface for multiple screen sizes. Twitter-Bootstrap will scale widgets to best fit the device that you are using. It includes a lot of general components and examples that can be customized further based on the needs of the application.
 * Backbone JS
-  * is a framework that gives structure to web applications by providing models with key-value binding and custom events, collections with a rich API of enumerable functions, views with declarative event handling, and connects it all to to an existing API over a RESTful JSON interface. 
+    * a framework that gives structure to web applications by providing models with key-value binding and custom events, collections with a rich API of enumerable functions, views with declarative event handling, and connects it all to to an existing API over a RESTful JSON interface. 
 * Underscore JS
-  * is a utility-belt library for JavaScript that provides a lot of functional programming support that you would expect in Prototype JS or Ruby, but without extending any of the built-in JavaScript objects. 
+    * a utility-belt library for JavaScript that provides a lot of functional programming support that you would expect in Prototype JS or Ruby, but without extending any of the built-in JavaScript objects. 
 * jQuery
-  * is a fast, small, and feature-rich JavaScript library that makes things like HTML document traversal and manipulation, event handling, animation, and Ajax much simpler with an easy-to-use API that works across a multitude of web browsers.
+    * a fast, small, and feature-rich JavaScript library that makes things like HTML document traversal and manipulation, event handling, animation, and Ajax much simpler with an easy-to-use API that works across a multitude of web browsers.
 * jQuery-UI
-  * is a curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript library.
+    * a curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript library.
 * jsPlumb
-  * is a JavaScript library that provides a means for a developer to visually connect elements on their web pages. It uses SVG or Canvas in modern browsers, and VML on IE 8 and below. 
+    * a JavaScript library that provides a means for a developer to visually connect elements on their web pages. It uses SVG or Canvas in modern browsers, and VML on IE 8 and below. 
 * dualStorage
-  * is an adapter for Backbone's Backbone.Sync() method to handle saving to a localStorage database as a cache for the remote models. This allows us to provide offline capabilities so users can continue to work while disconnected from the internet and then when reconnected, the model changes will be synchronized with the server.
+    * an adapter for Backbone's Backbone.Sync() method to handle saving to a localStorage database as a cache for the remote models. This allows us to provide offline capabilities so users can continue to work while disconnected from the internet and then when reconnected, the model changes will be synchronized with the server.
 
 ### Download
 
 The latest version of Data Wolf can be downloaded from: 
 
-http://isda.ncsa.illinois.edu/drupal/software/Data Wolf
+https://opensource.ncsa.illinois.edu/projects/artifacts.php?key=WOLF
 
-* Click on **Downloads** 
-  * Expand **binary** 
-  * Expand **3.0-latest** 
-  * Click on **Data Wolf-webapp-all-3.0.0-SNAPSHOT-bin.zip**
+* Click on **Version** 
+    * Select **3.1.0-SNAPSHOT** 
+    * Under **Files** select **datawolf-webapp-all-3.1.0-SNAPSHOT-bin.zip**
 * Click **I Accept** to accept the License.
 
-This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the source code there (as well as at the end of this document) and more information about the project. 
+This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the javacode there as well as the manual. The link to the source code can be found at the end of this document.
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **Data Wolf-webapp-all-3.0.0-SNAPSHOT**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-3.1.0-SNAPSHOT**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
-#### Application Context
+#### Data Wolf properties
 
-Open the folder that was created by unzipping the installation zip file and go into the **Conf** folder. You should see a file called **applicationContext.xml**. For the purpose of running Data Wolf server and editor, you won't need to make any changes to this file or understand its contents. However, for those who are interested, the rest of this section will dissect the file for informational purposes to highlight the important parts of the file you might want to modify to configure available executors and where information is stored. If you open the **applicationContext.xml** in a text editor, you should see the snippet below:
-
-```
-<bean id="engine" class="edu.illinois.ncsa.Data Wolf.Engine">
-	<property name="executors">
-		<set>
-			<bean class="edu.illinois.ncsa.Data Wolf.executor.java.JavaExecutor" />
- 			<bean class="edu.illinois.ncsa.Data Wolf.executor.commandline.CommandLineExecutor" />
- 			<bean class="edu.illinois.ncsa.Data Wolf.executor.hpc.HPCExecutor" />
-		</set>
-	</property>
-	<property name="extraLocalExecutor" value="1" />
-	<property name="localExecutorThreads" value="8" />
-	<property name="storeLogs" value="false" />
-	<property name="timeout" value="3600" />
-</bean>
-```
-* **property**
-  * **executors** property configures the available executors. This is where you configure the executors that are available for a particular Data Wolf Server instance. For example, if you don't have an HPC resource available, you can remove the HPCExecutor bean by deleting it from the file or commenting it out so it is unavailable. This will prevent HPC tools from attempting to execute. Leaving this in there will not cause any issues if you don't have an HPC resource available to the server, but workflows with HPC tools will fail if you try to execute them.
-  * **extraLocalExecutor** - number of jobs that can be in local executor queue
-  * **localExecutorThreads** - sets the number of worker threads for the local executor
-  * **storeLogs** - store logs execution logs in the database
-  * **timeout** - time, in seconds, before a workflow execution times out
-
-The next part of the application context to look at is where we specify file storage:
+Open the folder that was created by unzipping the installation zip file and go into the **Conf** folder. You should see a file called **datawolf.properties**. For the purpose of running Data Wolf server and editor, you won't need to make any changes to this file or understand its contents. However, for those who are interested, the rest of this section will dissect the file for informational purposes to highlight the important parts of the file you might want to modify to configure available executors and where information is stored. If you open the **datawolf.properties** in a text editor, you should see the snippet below:
 
 ```
-<bean id="fileStorage" class="edu.illinois.ncsa.springdata.FileStorageDisk">
-	<property name="levels" value="3" />
-	<property name="folder" value="data/files" />
-</bean>
+#Medici settings
+#medici.server=http://localhost:9000/
+#medici.key=
+
+#Local Disk settings
+disk.levels=3
+disk.folder=data/files
 ```
 
-This statement specifies that file storage will be on disk with the following properties
+* **Medici settings**
+    * **medici.server** Uncomment this to specify the Medici server URL. 
+  * * **medici.key** Uncomment this to specify the key for the Medici server. 
+* **Local Disk settings** By default, Data Wolf is configured to store data on local disk. 
+    * **disk.levels** - indicates the number of folder levels to use, this prevents too many files in a single folder
+    * **disk.folder** - indicates the location on disk to store the files. 
 
-* **property**
-  * **levels** - indicates the number of levels to use, this prevents too many files in a single folder.
-  * **folder** - indicates the location on disk to store the files.
-
-Data Wolf has a **FileStorage** interface that allows users to implement different storage options to meet their application needs if the provided ones are insufficient. One planned storage option is **FileStorageMedici** to use Medici for storing files. 
-
-The next part of the file to look at is where object information will be stored as seen in the snippet below:  	
-
-```
-<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
-	<property name="dataSource" ref="hsqldata" />
-	<property name="jpaVendorAdapter">
-		<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
-			<property name="generateDdl" value="true" />
-		</bean>
-	</property>
-	<property name="packagesToScan">
-		<list>
-			<value>edu.illinois.ncsa</value>
-		</list>
-	</property>
-</bean>
-<!-- hsqldb data setting -->
-<bean id="hsqldata" class="com.jolbox.bonecp.BoneCPDataSource">
-	<property name="driverClass" value="org.hsqldb.jdbcDriver" />
-	<property name="jdbcUrl" value="jdbc:hsqldb:file:data/db;shutdown=true" />
-	<property name="username" value="sa" />
-	<property name="password" value="" />
-	<property name="idleConnectionTestPeriod" value="60" />
-	<property name="idleMaxAgeInMinutes" value="5" />
-	<property name="maxConnectionsPerPartition" value="30" />
-	<property name="minConnectionsPerPartition" value="10" />
-	<property name="partitionCount" value="3" />
-	<property name="acquireIncrement" value="5" />
-	<property name="statementsCacheSize" value="100" />
-	<property name="releaseHelperThreads" value="3" />
-</bean>
-```
-
-The important parts are **dataSource** and the bean it refers to **hsqldata**. This specifies the bean that will define where object information is stored. By default, object information is stored in a Hyper SQL Database because it requires no additional setup by the user to get started with Data Wolf. There are two additional **dataSource** options defined in the application context that demonstrate other storage options; however, the storage could be any relational database. The snippet below shows how to specify an in memory hsql database.
+The next snippet will discuss the available Engine and Executor settings in the properties file.
 
 ```
-<!-- hsqldb memory setting -->
-<bean id="hsqlmemory" class="com.jolbox.bonecp.BoneCPDataSource">
-	<property name="driverClass" value="org.hsqldb.jdbcDriver" />
-	<property name="jdbcUrl" value="jdbc:hsqldb:mem:." />
-	<property name="username" value="sa" />
-	<property name="password" value="" />
-	<property name="idleConnectionTestPeriod" value="60" />
-	<property name="idleMaxAgeInMinutes" value="5" />
-	<property name="maxConnectionsPerPartition" value="30" />
-	<property name="minConnectionsPerPartition" value="10" />
-	<property name="partitionCount" value="3" />
-	<property name="acquireIncrement" value="5" />
-	<property name="statementsCacheSize" value="100" />
-	<property name="releaseHelperThreads" value="3" />
-</bean>
+#Engine settings
+engine.extraLocalExecutor = 1
+engine.localExecutorThreads = 8
+engine.storeLogs = false
+engine.timeout = 3600
+
+# Executors
+java.executor=edu.illinois.ncsa.datawolf.executor.java.JavaExecutor
+commandline.executor=edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor
+hpc.executor=edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor
 ```
 
-Another alternative and one that we have tested in production is storing object information in a MySQL database. 
+* **Engine settings**
+    * **extraLocalExecutor** - number of jobs that can be in local executor queue
+    * **localExecutorThreads** - sets the number of worker threads for the local executor
+    * **storeLogs** - store logs execution logs in the database. By default, step execution logs are not stored.
+    * **timeout** - time, in seconds, before a workflow execution times out
+* **Executors**
+    * **java.executor** - Comment this out to exclude the Java executor.
+    * **commandline.executor** - Comment this out to exclude the Commandline executor.
+    * **hpc.executor** - Comment this out to exclude the HPC executor.
 
-```	 
-<!-- mysql setting -->
-<bean id="mysql" class="com.jolbox.bonecp.BoneCPDataSource">
-		<property name="driverClass" value="com.mysql.jdbc.Driver" />
-		<property name="jdbcUrl" value="jdbc:mysql://localhost/Data Wolf" />
-		<property name="username" value="Data Wolf" />
-		<property name="password" value="Data Wolf" />
-		<property name="idleConnectionTestPeriod" value="60" />
-		<property name="idleMaxAgeInMinutes" value="5" />
-		<property name="maxConnectionsPerPartition" value="30" />
-		<property name="minConnectionsPerPartition" value="10" />
-		<property name="partitionCount" value="3" />
-		<property name="acquireIncrement" value="5" />
-		<property name="statementsCacheSize" value="100" />
-		<property name="releaseHelperThreads" value="3" />
-</bean>
+This specifies the bean that will define where object information is stored. By default, object information is stored in a Hyper SQL Database because it requires no additional setup by the user to get started with Data Wolf. There are two additional **dataSource** options defined in the application context that demonstrate other storage options; however, the storage could be any relational database. The snippet below shows how to specify an in memory hsql database.
+
+The next snippet covers where object information is stored. By default, this information is stored in a Hyper SQL Database (HSQL DB) because it requires no additional setup by the user to get started with Data Wolf. There are two additional options defined in the **datawolf.properties** that demonstrate other storage options; however, the storage could be any relational database. Below you will see the settings for a file based hsql database (default):
+
+```
+#HSQL File
+hibernate.hikari.dataSourceClassName=org.hsqldb.jdbc.JDBCDataSource
+hibernate.dialect=org.hibernate.dialect.HSQLDialect
+hibernate.hikari.dataSource.url=jdbc:hsqldb:file:data/db;shutdown=true;hsqldb.write_delay=false
+hibernate.hikari.dataSource.user=sa
+hibernate.hikari.dataSource.password=
 ```
 
-As mentioned previously, this is not the default because additional setup would be required by the user to install MySQL and is beyond the scope of this manual.
+The snippet below highlights the sample settings for using an in memory HSQL database:
+
+```
+#HSQL Memory DB
+#hibernate.hikari.dataSourceClassName=org.hsqldb.jdbc.JDBCDataSource
+#hibernate.dialect=org.hibernate.dialect.HSQLDialect
+#hibernate.hikari.dataSource.url=jdbc:hsqldb:mem:.
+#hibernate.hikari.dataSource.user=sa
+#hibernate.hikari.dataSource.password=
+```
+
+The snippet below highlights the sample settings for using a MySQL database instead of the default. This would require additional setup and configuration of the machine and is beyond the scope of this manual.
+
+```
+#HikariCP MySQL settings
+#hibernate.hikari.maximumPoolSize=100
+#hibernate.hikari.idleTimeout=30000
+#hibernate.hikari.dataSourceClassName=com.mysql.jdbc.jdbc2.optional.MysqlDataSource
+#hibernate.hikari.dataSource.url=jdbc:mysql://localhost/datawolf
+#hibernate.hikari.dataSource.user=datawolf
+#hibernate.hikari.dataSource.password=datawolf
+
+```
+
+Below you will see the section that defines the DAOs to bind for the CRUD service layer, in this case the JPA DAOs. You should not need to modify this section unless you will be using Medici to store datasets.
+
+```
+# JPA DAO Configuration
+person.dao = edu.illinois.ncsa.jpa.dao.PersonJPADao
+submission.dao = edu.illinois.ncsa.datawolf.jpa.dao.SubmissionJPADao
+workflow.dao = edu.illinois.ncsa.datawolf.jpa.dao.WorkflowJPADao
+workflowstep.dao = edu.illinois.ncsa.datawolf.jpa.dao.WorkflowStepJPADao
+workflowtool.dao = edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolJPADao
+workflowtoolparameter.dao = edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolParameterJPADao
+workflowtooldata.dao = edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolDataJPADao
+execution.dao = edu.illinois.ncsa.datawolf.jpa.dao.ExecutionJPADao
+logfile.dao = edu.illinois.ncsa.datawolf.jpa.dao.LogFileJPADao
+hpcjobinfo.dao = edu.illinois.ncsa.datawolf.jpa.dao.HPCJobInfoJPADao
+account.dao = edu.illinois.ncsa.jpa.dao.AccountJPADao
+dataset.dao = edu.illinois.ncsa.jpa.dao.DatasetJPADao
+filedescriptor.dao = edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao
+```
+
+The snippet below defines two additional DAOs that are used for storing datasets in Medici. If Medici is configured to store datasets, then you must comment out the equivalent JPA DAOs so there is no binding conflict (e.g. comment out the dataset.dao and filedescriptor.dao). In addition, this will also require a Medici server to be configured and the correct properties in the Medici section above to be specified (e.g. medici.server, medici.key).
+
+```
+# Medici DAO Configuration
+#filedescriptor.dao = edu.illinois.ncsa.medici.dao.FileDescriptorMediciDao
+#dataset.dao = edu.illinois.ncsa.medici.dao.DatasetMediciDao
+```
+
+The last part of the file defines the storage configuration options currently available in Data Wolf. These options represent two implementations of Data Wolf's **FileStorage** interface; developers that are interested in providing new storage options should look at that interface in the **ncsa-common-domain** project.  
+
+```
+# Storage configuration
+#filestorage = edu.illinois.ncsa.medici.impl.FileStorageMedici
+filestorage = edu.illinois.ncsa.domain.impl.FileStorageDisk
+```
+
+* **Storage configuration**
+    * **filestorage** - specify whether data should be stored in Medici or local disk. Default is local disk. If using the Medici Dataset dao, you will need to configure data to be stored in Medici. 
+   
+The next section will discuss the launch script for Data Wolf.
 
 #### Launch Scripts
 
-If you go back to the folder **Data Wolf-webapp-all-3.0.0-SNAPSHOT** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **Data Wolf-service** and **Data Wolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring Data Wolf Server and Editor. We will show snippets of the file **Data Wolf-service** and discuss what each section is configuring.
+If you go back to the folder **Data Wolf-webapp-all-3.1.0-SNAPSHOT** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
 
 ```
 # port for the jetty server
@@ -378,10 +382,6 @@ if [ "${WAR}" != "" ]; then
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">${CONTEXT}/</Set>
   <Set name="war">${WAR}</Set>
-  <Call name="setInitParameter">
-    <Arg>contextConfigLocation</Arg>
-    <Arg>file://${PWD}/conf/applicationContext.xml</Arg>
-  </Call>
 </Configure>
 EOF
 fi
@@ -391,9 +391,8 @@ The above snippet specifies where to find the war file for the Data Wolf Server 
 
 * **contextPath** - specifies the link for the server, in this case it will be the root of the URL http://localhost:8888/datawolf. 
 * **war** - specifies where Jetty can find the war file.
-* **contextConfigLocation** - specifies where the application context can be found
 
-You can modify these settings to change the server path and application context used by the server.
+You can modify these settings to change the server path used by the server.
 
 ```
 # setup for the editor
@@ -416,8 +415,6 @@ Similar to the server, this generates an **editor.xml** file inside the **conf**
 * **contextPath** - specifies the link for the web editor, in this case it will be http://localhost:8888/datawolf/editor. 
 * **war** - specifies where Jetty can find the war file.
 
-Unlike the server, the editor does not need an application context because it will talk to the server using the REST endpoints.
-
 #### Running Data Wolf Server and Editor
 
 To start Data Wolf Server and Editor, do the following:
@@ -425,22 +422,22 @@ To start Data Wolf Server and Editor, do the following:
 On Linux/Mac:
 
 ```dos
-> Data Wolf-service
+> datawolf-service
 ```
 
 on Windows:
 
 ```dos
-> Data Wolf-service.bat
+> datawolf-service.bat
 ```
 
 ### Launch the Web Editor
 
-After launching the Data Wolf-service, you will have both a Data Wolf Server and Web Editor running. To open the web editor, go to http://localhost:8888/datawolf/editor. You should see a login page similar to the one below:
+After launching the datawolf-service script, you will have both a Data Wolf Server and Web Editor running. To open the web editor, go to http://localhost:8888/datawolf/editor. You should see a login page similar to the one below:
 
 ![Web Editor login page.](images/login-page.png)
 
-If you don't have an account on Data Wolf, fill in the registration form and click **Register** to create an account. 
+If you don't have an account on Data Wolf, fill in the registration form and click **Register with email** link to create an account. 
 
 After you register an account, the next time you see the login page just enter the email address you registered and click the **Sign-in** button. This should bring you to a page that looks similar to the one below:
 
@@ -449,14 +446,14 @@ After you register an account, the next time you see the login page just enter t
 There are three main tabs associated with the Web Editor. 
 
 * **Build** 
-  * Tools view - allows users to create tools and get more information about tools that the system has available. 
-  * Workflows view - allows users to create new workflows, open existing workflows for editing, delete existing workflows, and get more information about existing workflows.
-  * Workflow Graph - one graph per workflow can be opened at any one time. Users can drag and drop tools onto the graph, connect tools, remove tools, and specify the workflow name. In the above image, the workflow graph is shown as **untitled** since it is an empty canvas. Once a tool is dropped onto the canvas, a new workflow will be created.
+    * Tools view - allows users to create tools and get more information about tools that the system has available. 
+    * Workflows view - allows users to create new workflows, open existing workflows for editing, delete existing workflows, and get more information about existing workflows.
+    * Workflow Graph - one graph per workflow can be opened at any one time. Users can drag and drop tools onto the graph, connect tools, remove tools, and specify the workflow name. In the above image, the workflow graph is shown as **untitled** since it is an empty canvas. Once a tool is dropped onto the canvas, a new workflow will be created.
 * **Execute** 
-  * Workflows view - allows users to open existing workflows and prepare them for submission to the Data Wolf server. Users can specify parameters and inputs and then execute the workflow by submitting the form page. 
-  * Datasets view - allows users to add new datasets, get information about datasets and delete datasets from Data Wolf.
+    * Workflows view - allows users to open existing workflows and prepare them for submission to the Data Wolf server. Users can specify parameters and inputs and then execute the workflow by submitting the form page. 
+    * Datasets view - allows users to add new datasets, get information about datasets and delete datasets from Data Wolf.
 * **History**
-  * Executions view - allows users to see past submissions, get information about each workflow step, obtain step logs, download results, etc.
+    * Executions view - allows users to see past submissions, get information about each workflow step, obtain step logs, download results, etc.
 
 ### Creating Tools in Data Wolf
 

@@ -33,10 +33,6 @@ if [ "${WAR}" != "" ]; then
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
   <Set name="contextPath">${CONTEXT}/</Set>
   <Set name="war">${WAR}</Set>
-  <Call name="setInitParameter">
-    <Arg>contextConfigLocation</Arg>
-    <Arg>file://${PWD}/conf/applicationContext.xml</Arg>
-  </Call>
 </Configure>
 EOF
 fi
