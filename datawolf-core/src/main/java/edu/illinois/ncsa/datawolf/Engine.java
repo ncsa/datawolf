@@ -82,9 +82,13 @@ public class Engine {
     private boolean               storeLogs          = true;
 
     /** timeout of a workflow in seconds */
+    @Inject
+    @Named("engine.timeout")
     private int                   timeout            = 3600;
 
     /** number of jobs that can be in local executor queue */
+    @Inject
+    @Named("engine.extraLocalExecutor")
     private int                   extraLocalExecutor = 1;
 
     /** flag indicating if queue has been checked for unfinished jobs on startup */
@@ -108,7 +112,8 @@ public class Engine {
         // loadQueue();
     }
 
-    public void setLocalExecutorThreads(int threads) {
+    @Inject
+    public void setLocalExecutorThreads(@Named("engine.localExecutorThreads") int threads) {
         LocalExecutor.setWorkers(threads);
     }
 
@@ -555,13 +560,17 @@ public class Engine {
 
                                     // check to see if all inputs of the
                                     // step are ready
-                                    for (String id : step.getInputs().values()) {
-                                        if (!execution.hasDataset(id)) {
-                                            canrun = 1;
-                                        } else if (execution.getDataset(id) == null) {
-                                            canrun = 2;
-                                        } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
-                                            canrun = 2;
+                                    if (step != null) {
+                                        for (String id : step.getInputs().values()) {
+                                            if (execution != null) {
+                                                if (!execution.hasDataset(id)) {
+                                                    canrun = 1;
+                                                } else if (execution.getDataset(id) == null) {
+                                                    canrun = 2;
+                                                } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                    canrun = 2;
+                                                }
+                                            }
                                         }
                                     }
                                 }

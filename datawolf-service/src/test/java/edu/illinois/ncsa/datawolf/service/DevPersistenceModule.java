@@ -61,6 +61,9 @@ public class DevPersistenceModule extends AbstractModule {
                 properties.load(new FileInputStream(file));
                 properties.setProperty("disk.folder", System.getProperty("java.io.tmpdir")); //$NON-NLS-1$//$NON-NLS-2$
                 properties.setProperty("disk.levels", "2"); //$NON-NLS-1$ //$NON-NLS-2$
+                properties.setProperty("engine.timeout", "3600");
+                properties.setProperty("engine.extraLocalExecutor", "4");
+                properties.setProperty("engine.localExecutorThreads", "4");
                 Names.bindProperties(binder(), properties);
                 jpa.properties(properties);
             } catch (IOException e) {
