@@ -160,6 +160,7 @@ var WorkflowGraphView = Backbone.View.extend({
                     _this.addToolToGraph(toolId, workflowStep.get('id'), x+'px', y+'px');//graphLocation.getX(), graphLocation.getY());
                 }
                 x = x + 200;
+
             });
 
             var stepCollectionSource = workflow.getSteps();
@@ -379,9 +380,10 @@ var WorkflowGraphView = Backbone.View.extend({
                 jsPlumb.addEndpoint(id, { anchor: inputAnchors[index], beforeDrop: handleConnect }, endpoint);
             } else {
                 // Grow the input anchors as needed by the tool
-                var anchorLocation = inputAnchors[4];
-                anchorLocation[1] = index * 0.25;
-                jsPlumb.addEndpoint(id, { anchor: anchorLocation, beforeDrop: handleConnect }, endpoint);
+                var lastAnchorLocation = inputAnchors[4];
+                var newYLocation = index * 0.25;
+                var newAnchorLocation = [lastAnchorLocation[0], newYLocation, lastAnchorLocation[2], lastAnchorLocation[3]];
+                jsPlumb.addEndpoint(id, { anchor: newAnchorLocation, beforeDrop: handleConnect }, endpoint);
             }  
             index++;
             //console.log(length);
