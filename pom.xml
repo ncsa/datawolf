@@ -12,7 +12,7 @@
 		<hibernate.jpa.version>1.0.0.Final</hibernate.jpa.version>
 		<hibernate.version>4.3.5.Final</hibernate.version>
 		<hsql.version>2.3.2</hsql.version>
-		<mysql.version>5.1.32</mysql.version>
+		<mysql.version>5.1.34</mysql.version>
 		<postgresql.version>9.1-901-1.jdbc4</postgresql.version>
 		<apache.http.version>4.3.5</apache.http.version>
 		<slf4j.version>1.7.0</slf4j.version>
@@ -22,7 +22,7 @@
 		<resteasy.version>3.0.8.Final</resteasy.version>
 		<jetty.version>9.2.2.v20140723</jetty.version>
 		<!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
-		<hikaricp.version>2.0.1</hikaricp.version>
+		<hikaricp.version>2.2.5</hikaricp.version>
 	</properties>
 
 	<repositories>
