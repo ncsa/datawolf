@@ -22,7 +22,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.junit.Test;
 
 public class SoftwareServerToolTest {
     private String  host           = "http://localhost:8182";
@@ -30,6 +29,50 @@ public class SoftwareServerToolTest {
     private String  targetMimeType = "image/gif";
 
     private MimeMap mimeMap        = new MimeMap();
+
+    // @Test
+    public void testConvertToHTML() throws Exception {
+        String fileLocation = "src/test/resources/stdout.txt";
+        targetMimeType = "text/html";
+        application = "txt2html";
+        // InputStream is = new URL(fileUrl).openStream();
+
+        File tmpFolder = File.createTempFile("nara", ".cbi");
+        tmpFolder.delete();
+        tmpFolder.mkdirs();
+
+        File sourceFile;
+        File targetFile;
+        try {
+            sourceFile = File.createTempFile("source", ".txt", tmpFolder);
+            writeFile(new FileInputStream(fileLocation), sourceFile);
+            targetFile = File.createTempFile("target", "." + mimeMap.getFileExtension(targetMimeType), tmpFolder);
+
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            HttpClient client = builder.build();
+
+            String taskUri = getTaskURI();
+            System.out.println("task uri = " + taskUri);
+            HttpPost httpPost = new HttpPost(taskUri);
+
+            FileBody fileBody = new FileBody(sourceFile);
+
+            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+            entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            entityBuilder.addPart("file", fileBody);
+
+            httpPost.setEntity(entityBuilder.build());
+            BasicResponseHandler responseHandler = new BasicResponseHandler();
+            String response = client.execute(httpPost, responseHandler);
+
+            parseResult(response, targetFile);
+
+            System.out.println("content: " + response);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     // @Test
     public void testApplications() throws Exception {
@@ -62,7 +105,7 @@ public class SoftwareServerToolTest {
         }
     }
 
-    @Test
+    // @Test
     public void testFileConversion() throws Exception {
         String fileLocation = "src/test/resources/ergo-splash.png";
         // InputStream is = new URL(fileUrl).openStream();

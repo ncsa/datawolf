@@ -1,0 +1,2 @@
+tmp folder is: /tmp/cib7358055169098957470.dir
+task uri = http://localhost:8182/software/ImageMagick/convert/gif
