@@ -83,7 +83,6 @@ var WorkflowExecutionParamListView = Backbone.View.extend({
 			if(paraminfo !== null && paraminfo.hidden === false){
 				var wepv = new WorkflowExecutionParamView({model: paraminfo});
 				wepv.inputboxId=parameterInputBoxId;
-				
 				// Add parameter to the list of checked parameters if null is not allowed
 				if(!paraminfo.allowNull) {
 					executionParameterMap[this.options.storageId].push(parameterInputBoxId);
@@ -112,6 +111,41 @@ var WorkflowExecutionParamView = Backbone.View.extend({
 			value: this.model.title
 		}
 	},
+
+	render: function(e) {
+		if(this.model.type != 'OPTION') {
+			$(this.el).html(this.template(this));
+		} else {
+			// Label the select box with the parameter title and build the drop down selection
+			$(this.el).append(this.model.title + ": ");
+			var optionSelectionView = new WorkflowExecutionParamSelectView({model: this.model});
+			optionSelectionView.inputboxId = this.inputboxId;
+			$(this.el).append(optionSelectionView.render().el);
+		}
+		return this;
+	}
+});
+
+var WorkflowExecutionParamSelectView = Backbone.View.extend({
+	tagName: "select",
+	className: 'cbi-param-input',
+
+	render: function(e) {
+		// when creating the submission, the name field is used to determine which parameter id to set
+		$(this.el).attr("name", this.inputboxId);
+		for(var idx = 0; idx < this.model.options.length; idx++) {
+			// Create a simple model for each select option
+			var model = {"value" : this.model.options[idx]};
+			$(this.el).append(new WorkflowExecutionParamOptionView({model: model}).render().el);
+		}
+
+		return this;
+	}
+});
+
+var WorkflowExecutionParamOptionView = Backbone.View.extend({
+	tagName: "option",
+	template: _.template($('#param-option-list-item').html()),
 
 	render: function(e) {
 		$(this.el).html(this.template(this));
