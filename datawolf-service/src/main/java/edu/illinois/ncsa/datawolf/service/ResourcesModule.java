@@ -3,6 +3,8 @@ package edu.illinois.ncsa.datawolf.service;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.google.inject.AbstractModule;
 
+import edu.illinois.ncsa.file.service.FilesResource;
+
 /**
  * Binds resource files
  * 
@@ -14,6 +16,7 @@ public class ResourcesModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(AuthenticationInterceptor.class);
+        bind(FilesResource.class);
         bind(DatasetsResource.class);
         bind(ExecutionsResource.class);
         bind(ExecutorsResource.class);
