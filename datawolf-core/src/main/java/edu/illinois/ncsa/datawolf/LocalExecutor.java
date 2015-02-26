@@ -170,19 +170,23 @@ public abstract class LocalExecutor extends Executor implements Runnable {
         Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
 
         // Transaction t = SpringData.getTransaction();
+
         try {
+            work.begin();
             // t.start(true);
             WorkflowStep step = workflowStepDao.findOne(getStepId());
             blobs.addAll(step.getTool().getBlobs());
         } catch (Exception e) {
             throw (new FailedException("Could not get all blobs.", e));
-        } // finally {
-          // try {
-          // t.commit();
-          // } catch (Exception e) {
-          // throw (new FailedException("Could not get all blobs.", e));
-          // }
-          // }
+        } finally {
+            System.out.println("work end");
+            work.end();
+            // try {
+            // t.commit();
+            // } catch (Exception e) {
+            // throw (new FailedException("Could not get all blobs.", e));
+            // }
+        }
 
         try {
             for (FileDescriptor blob : blobs) {

@@ -9,6 +9,8 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
@@ -18,6 +20,7 @@ import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
  * @author "Chris Navarro <cmnavarr@illinois.edu>"
  * 
  */
+@Transactional
 public class ExecutionDAOTest {
     private static Injector injector;
 
@@ -53,6 +56,8 @@ public class ExecutionDAOTest {
         dao.save(execution);
 
         // TODO fix this unit test, it was testing transaction.commit()
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
+        work.begin();
         Execution execution2 = dao.findOne(execution.getId());
 
         // This is the issue we work around by using EMPTY_DATASET
@@ -67,7 +72,7 @@ public class ExecutionDAOTest {
         // This is the value for the dataset if everything goes well.
         Assert.assertTrue("check key is in map", execution2.hasDataset("3"));
         Assert.assertEquals("check value is correct", uuid, execution2.getDataset("3"));
-
+        work.end();
     }
 
 }

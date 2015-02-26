@@ -6,6 +6,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
@@ -40,12 +41,15 @@ public class WorkflowDAOTest {
         workflow.addStep(step);
         dao.save(workflow);
 
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
         workflow = dao.findOne(workflow.getId());
         workflow.setTitle("test");
 
         dao.save(workflow);
 
+        work.begin();
         Workflow workflow1 = dao.findOne(workflow.getId());
         assert (workflow.getId().equals(workflow1.getId()));
+        work.end();
     }
 }

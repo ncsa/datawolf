@@ -22,6 +22,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 import edu.illinois.ncsa.datawolf.AbortException;
 import edu.illinois.ncsa.datawolf.FailedException;
@@ -131,6 +132,8 @@ public class JavaExecutorTest {
             fail("Execution NEVER FINISHED");
         }
 
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
+        work.begin();
         execution = injector.getInstance(ExecutionDao.class).findOne(execution.getId());
 
         String outputid = step.getOutputs().values().iterator().next();
@@ -145,6 +148,7 @@ public class JavaExecutorTest {
         is.close();
 
         assertEquals("HELLO WORLD", new String(buf, "UTF-8"));
+        work.end();
 
     }
 

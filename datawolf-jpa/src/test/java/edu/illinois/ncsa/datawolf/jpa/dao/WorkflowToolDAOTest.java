@@ -9,6 +9,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 import edu.illinois.ncsa.datawolf.domain.WorkflowTool;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
@@ -52,10 +53,13 @@ public class WorkflowToolDAOTest {
     @Test
     public void testCheckInputs() throws Exception {
         WorkflowToolDao dao = injector.getInstance(WorkflowToolDao.class);
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
+        work.begin();
         WorkflowTool tool1 = dao.findOne(id);
         for (WorkflowToolData data : tool1.getInputs()) {
             System.out.println(data.getId() + " " + data.getTitle());
         }
         assertEquals(4, tool1.getInputs().size());
+        work.end();
     }
 }

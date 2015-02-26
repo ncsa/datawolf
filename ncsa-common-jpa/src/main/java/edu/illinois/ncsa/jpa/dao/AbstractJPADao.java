@@ -35,39 +35,30 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
         getEntityManager().remove(entity);
     }
 
+    @Transactional
     public T findOne(ID id) {
         EntityManager em = getEntityManager();
+
         T entity = null;
-        try {
-            em.getTransaction().begin();
-            entity = em.find(getEntityType(), id);
-            // TODO this seems like a caching problem
-            if (entity != null) {
-                em.refresh(entity);
-            }
-        } finally {
-            em.getTransaction().commit();
-        }
+        entity = em.find(getEntityType(), id);
+
         return entity;
     }
 
+    @Transactional
     public List<T> findAll() {
         List<T> results = null;
         EntityManager entityManager = this.getEntityManager();
-        try {
-            entityManager.getTransaction().begin();
-            // CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-            // CriteriaQuery<T> query = builder.createQuery(getEntityType());
+        // entityManager.getTransaction().begin();
+        // CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        // CriteriaQuery<T> query = builder.createQuery(getEntityType());
 
-            // Root<T> root = query.from(getEntityType());
-            // query.select(root);
-            TypedQuery<T> query = entityManager.createQuery("SELECT e FROM " + getEntityType().getSimpleName() + " e", getEntityType());
-            results = query.getResultList();// entityManager.createQuery(query).getResultList();
-            // TODO this seems like a caching problem
-            return refreshList(results);
-        } finally {
-            entityManager.getTransaction().commit();
-        }
+        // Root<T> root = query.from(getEntityType());
+        // query.select(root);
+        TypedQuery<T> query = entityManager.createQuery("SELECT e FROM " + getEntityType().getSimpleName() + " e", getEntityType());
+        results = query.getResultList();// entityManager.createQuery(query).getResultList();
+        // TODO this seems like a caching problem
+        return refreshList(results);
 
     }
 
@@ -81,7 +72,7 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
 
     protected List<T> refreshList(List<T> results) {
         for (T entity : results) {
-            getEntityManager().refresh(entity);
+            // getEntityManager().refresh(entity);
         }
         return results;
     }

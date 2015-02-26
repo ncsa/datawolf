@@ -13,6 +13,8 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.persist.UnitOfWork;
+
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.LogFile;
@@ -59,6 +61,9 @@ public abstract class Executor {
 
     @Inject
     protected DatasetDao        datasetDao;
+
+    @Inject
+    protected UnitOfWork        work;
 
     /**
      * Should the executor store the logfiles generated.
@@ -323,6 +328,7 @@ public abstract class Executor {
         logger.debug("Job " + executionId + ":" + stepId + " entered " + state);
         // Transaction t = SpringData.getTransaction();
         try {
+            work.begin();
             // t.start();
             WorkflowStep step = workflowStepDao.findOne(stepId);
             Execution execution = executionDao.findOne(executionId);
@@ -353,7 +359,7 @@ public abstract class Executor {
                 logger.info("a new state is entered that is not known.");
             }
             executionDao.save(execution);
-
+            work.end();
             // fire an event to inform everybody of the new state
             StepStateChangedEvent event = new StepStateChangedEvent(step, execution, state);
 
@@ -374,6 +380,7 @@ public abstract class Executor {
                 logger.error("Could not roll back transaction.", e2);
             }
             logger.error("Could not set state of step in execution.", e);
-        }
+        } // finally {
+          // }
     }
 }

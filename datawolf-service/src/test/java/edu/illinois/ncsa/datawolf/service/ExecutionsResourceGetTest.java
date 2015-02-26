@@ -9,6 +9,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.persist.UnitOfWork;
+
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
@@ -72,23 +74,24 @@ public class ExecutionsResourceGetTest {
         logger.info("Test get workflow by id");
 
         // Execution execution = executionDao.findOne(id);
-
         DataWolfServiceClient.startExecution(id);
         for (int i = 0; i < 100; i++) {
             Thread.sleep(1000);
             // Transaction transaction = SpringData.getTransaction();
-            // try {
-            // transaction.start();
-            Execution execution = Persistence.getBean(ExecutionDao.class).findOne(id);
-
-            // Execution execution = DataWolfServiceClient.getExecution(id);
-            logger.info("Status of the job:" + stepId + " state = " + execution.getStepState(stepId));
-            if (execution.getStepState(stepId) == Execution.State.FINISHED) {
-                return;
+            UnitOfWork work = EmbededJetty.injector.getInstance(UnitOfWork.class);
+            try {
+                // transaction.start();
+                work.begin();
+                Execution execution = Persistence.getBean(ExecutionDao.class).findOne(id);
+                // Execution execution = DataWolfServiceClient.getExecution(id);
+                logger.info("Status of the job:" + stepId + " state = " + execution.getStepState(stepId));
+                if (execution.getStepState(stepId) == Execution.State.FINISHED) {
+                    return;
+                }
+            } finally {
+                work.end();
+                // transaction.commit();
             }
-            // } finally {
-            // transaction.commit();
-            // }
         }
         throw new AssertionError("workflow never finished.");
 //        assertEquals(workflowJson, wfJson);

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
@@ -83,6 +84,8 @@ public class CommandLineExecutorTest {
         // Transaction t = SpringData.getTransaction();
         // t.start(true);
 
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
+        work.begin();
         execution = injector.getInstance(ExecutionDao.class).findOne(execution.getId());
 
         String outputid = step.getOutputs().values().iterator().next();
@@ -105,7 +108,7 @@ public class CommandLineExecutorTest {
             System.out.println("Date          = " + lf.getDate());
             System.out.println("LOG           = " + lf.getLog().getDataURL());
         }
-
+        work.end();
         // t.commit();
     }
 

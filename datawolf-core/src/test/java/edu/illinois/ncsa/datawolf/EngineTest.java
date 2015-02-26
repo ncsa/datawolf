@@ -4,6 +4,7 @@
 package edu.illinois.ncsa.datawolf;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
@@ -141,14 +143,17 @@ public class EngineTest {
 
         // Transaction t = SpringData.getTransaction();
         // t.start();
-        // try {
-        execution = executionDao.findOne(execution.getId());
-        assertEquals("WORLD", execution.getProperty("HELLO"));
-        assertEquals(State.FAILED, execution.getStepState(workflow.getSteps().get(0).getId()));
-        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
-        // } finally {
-        // t.commit();
-        // }
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
+        try {
+            work.begin();
+            execution = executionDao.findOne(execution.getId());
+            assertEquals("WORLD", execution.getProperty("HELLO"));
+            assertEquals(State.FAILED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            work.end();
+            // t.commit();
+        }
     }
 
 //    @Test
@@ -346,18 +351,26 @@ public class EngineTest {
             loop++;
         }
 
+        // Add this check to see why sometimes the next assertion fails
+        // It's possible there is a race condition where the job
+        // is stopped, but the state hasn't been updated by the time the loop
+        // exits
+        assertTrue(loop < 100);
         // make sure everything is done
         assertEquals(0, engine.getSteps(execution.getId()).size());
 
         // Transaction t = SpringData.getTransaction();
         // t.start();
-        // try {
-        execution = executionDao.findOne(execution.getId());
-        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
-        assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
-        // } finally {
-        // t.commit();
-        // }
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
+        try {
+            work.begin();
+            execution = executionDao.findOne(execution.getId());
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(0).getId()));
+            assertEquals(State.ABORTED, execution.getStepState(workflow.getSteps().get(1).getId()));
+        } finally {
+            work.end();
+            // t.commit();
+        }
     }
 
     @Test
@@ -409,7 +422,6 @@ public class EngineTest {
         datasetDao.save(dataset);
         execution.setDataset("dataset", dataset.getId());
         executionDao.save(execution);
-
         // check to see if all workflows are done
         int loop = 0;
         while ((loop < 1000) && engine.getSteps(execution.getId()).size() > 0) {
@@ -422,14 +434,17 @@ public class EngineTest {
 
         // Transaction t = SpringData.getTransaction();
         // t.start(false);
-        // try {
-        execution = executionDao.findOne(execution.getId());
-        for (WorkflowStep step : workflow.getSteps()) {
-            assertEquals(State.FINISHED, execution.getStepState(step.getId()));
+        UnitOfWork work = injector.getInstance(UnitOfWork.class);
+        try {
+            work.begin();
+            execution = executionDao.findOne(execution.getId());
+            for (WorkflowStep step : workflow.getSteps()) {
+                assertEquals(State.FINISHED, execution.getStepState(step.getId()));
+            }
+        } finally {
+            work.end();
+            // t.commit();
         }
-        // } finally {
-        // t.commit();
-        // }
 
         // TODO add this back if event handling is added back
         // assert all steps send notification
@@ -529,7 +544,9 @@ public class EngineTest {
         @Override
         public void execute(File cwd) throws AbortException, FailedException {
             // Transaction t = SpringData.getTransaction();
+            UnitOfWork work = injector.getInstance(UnitOfWork.class);
             try {
+                work.begin();
                 // t.start();
                 WorkflowStep step = workflowStepDao.findOne(getStepId());
                 // ExecutionDao executionDao =
@@ -547,6 +564,7 @@ public class EngineTest {
 
                 // throw failed exception in case of error
                 if (STEP_WITH_ERROR.equals(step.getTitle())) {
+                    work.end();
                     throw (new FailedException("Some Error"));
                 }
 
@@ -571,6 +589,7 @@ public class EngineTest {
                 execution = executionDao.save(execution);
 
                 // t.commit();
+                work.end();
             } catch (Exception e) {
                 // try {
                 // t.rollback();
