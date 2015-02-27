@@ -57,8 +57,8 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
         // query.select(root);
         TypedQuery<T> query = entityManager.createQuery("SELECT e FROM " + getEntityType().getSimpleName() + " e", getEntityType());
         results = query.getResultList();// entityManager.createQuery(query).getResultList();
-        // TODO this seems like a caching problem
-        return refreshList(results);
+
+        return results;
 
     }
 
@@ -68,13 +68,6 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
 
     public long count() {
         return findAll().size();
-    }
-
-    protected List<T> refreshList(List<T> results) {
-        for (T entity : results) {
-            // getEntityManager().refresh(entity);
-        }
-        return results;
     }
 
     protected Class<T> getEntityType() {
