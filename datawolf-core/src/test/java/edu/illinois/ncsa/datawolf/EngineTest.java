@@ -133,7 +133,7 @@ public class EngineTest {
 
         // check to see if all workflows are done
         int loop = 0;
-        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+        while ((loop < 125) && engine.getSteps(execution.getId()).size() > 0) {
             Thread.sleep(100);
             loop++;
         }
@@ -346,7 +346,7 @@ public class EngineTest {
 
         // check to see if all workflows are done
         int loop = 0;
-        while ((loop < 100) && engine.getSteps(execution.getId()).size() > 0) {
+        while ((loop < 125) && engine.getSteps(execution.getId()).size() > 0) {
             Thread.sleep(100);
             loop++;
         }
@@ -355,7 +355,7 @@ public class EngineTest {
         // It's possible there is a race condition where the job
         // is stopped, but the state hasn't been updated by the time the loop
         // exits
-        assertTrue(loop < 100);
+        assertTrue(loop < 125);
         // make sure everything is done
         assertEquals(0, engine.getSteps(execution.getId()).size());
 
