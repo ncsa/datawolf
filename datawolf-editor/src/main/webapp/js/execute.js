@@ -255,14 +255,15 @@ var buildInputOutputMap = function(wf){
             outputMap[step.outputs[outputkey]]=outputkey;
         });
         _.each(_.keys(step.inputs), function(inputkey) {
-            inputMap[step.inputs[inputkey]]=inputkey;
+            inputMap[inputkey]=step.inputs[inputkey];
         });
     });
 
     var map = new Object();
     _.each(_.keys(inputMap),function(key){
-        if(outputMap[key] !== undefined){
-            map[inputMap[key]]=outputMap[key];
+        var outputKey = inputMap[key];
+        if(outputMap[outputKey] !== undefined){
+            map[key]=outputMap[outputKey];
         }
     });
 
