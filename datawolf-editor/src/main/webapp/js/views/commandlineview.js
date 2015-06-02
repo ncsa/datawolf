@@ -4,11 +4,19 @@ var CommandLineView = Backbone.View.extend({
 
 	events: {
 		"click button#new-tool-create-btn" : "createTool",
-		"click button#new-tool-cancel-btn" : "cancel"
+		"click button#new-tool-cancel-btn" : "cancel",
 	},
 
 	render: function() {
 		$(this.el).html(this.template());
+		if(oldTool) {
+			$('#newWorkflowToolDialogLabel').text("EDIT TOOL");
+		} else {
+			$('#newWorkflowToolDialogLabel').text("NEW TOOL");
+		}
+
+		// Binds dialog close event to cancel function
+		$('#modalWorkflowToolView').on('hidden.bs.modal', this.cancel);
 		
 		return this;
 	},
@@ -81,32 +89,55 @@ var CommandLineView = Backbone.View.extend({
         // Update Environment
         commandLineImpl.setEnv(commandLineEnvView.getEnvironmentMap());
 
+        // Set the previous version of the tool
+        if(oldTool) {
+        		tool.set('previousVersion', oldTool);
+        }
+
         tool.set('implementation', JSON.stringify(commandLineImpl));
         tool.set('inputs', inputs);
         tool.set('outputs', outputs);
         tool.set('parameters', parameters);
         tool.set('blobs', blobs);
 
-        var files = $('#tool-file-form')[0][0].files;
+        // Get the list of files selected by the user to add to the tool
+        var files = commandLineFileView.getFileList();//$('#tool-file-form')[0][0].files;
+        
+        // This is checked to determine when all files have been read and added to the zip before saving the tool
         this.numFiles = files.length;
         this.fileCounter = 0;
+
+        // Zip file containing files to add to the tool
         var zipfile = new JSZip();
         var instance = this;
+
+        // If editing a tool, get a list of file descriptors from the previous tool that will be
+        // associated with the new tool
+        var prevFileDescriptors = commandLineFileView.getFileDescriptors();
+
+        // If there are values, then the tool is being updated so we give the new tool 
+        // any previous files that were not changed
+        if(prevFileDescriptors.length > 0) {
+         	prevFileDescriptors.each(function(prevFileDescriptor) {
+         		blobs.push(prevFileDescriptor);
+         	});
+        }
         
         if(this.numFiles > 0) {
-			var blobFolder = zipfile.folder('blobs');
+					var blobFolder = zipfile.folder('blobs');
 	        for(var index = 0; index < files.length; index++) {
 
 		        var reader = new FileReader();
 		        reader.onload = (function(file) {
 		        	return function(e) {
 			        	var fileDescriptor = {};
-						fileDescriptor.id = generateUUID();
+
+								fileDescriptor.id = generateUUID();
 				        fileDescriptor.filename = file.name;
 				        fileDescriptor.mimeType = file.type;
 				        fileDescriptor.size = file.size;
 				        blobFolder.file(fileDescriptor.id + '/' + file.name, e.target.result);
-						blobs.push(fileDescriptor)
+								blobs.push(fileDescriptor)
 
 			        	instance.fileCounter++;
 				        // Check if ready to upload tool
@@ -118,14 +149,22 @@ var CommandLineView = Backbone.View.extend({
 		} else {
 			this.checkReadyState(tool, zipfile);
 		} 
-	    $('#modalWorkflowToolView').modal('hide');
-	    console.log("exit create tool");
-        
+	  $('#modalWorkflowToolView').modal('hide');
+		// Remove reference to previous tool
+		oldTool = null;
+		
+		// Remove the close event for the modal dialog
+		$('#modalWorkflowToolView').off('hidden.bs.modal', this.cancel);
 	},
 
 	cancel: function(e) {
 		e.preventDefault();
 		$('#modalWorkflowToolView').modal('hide');
+		// Remove reference to previous tool
+		oldTool = null;
+
+		// Remove the close event for the modal dialog
+		$('#modalWorkflowToolView').off('hidden.bs.modal', this.cancel);
 	},
 
 	checkReadyState: function(tool, zipfile) {
@@ -145,7 +184,17 @@ var CommandLineBasicTab = Backbone.View.extend({
 
 	render: function() {
 		$(this.el).empty();
-		$(this.el).html(this.template());
+		// If editing a tool, restore the previous values in the basic information tab from the model
+		if(oldTool) {
+			$(this.el).html(this.template(oldTool.toJSON()));
+		} else {
+			// Create an empty model to build the view from
+			var tmp = new Object();
+			tmp.title = '';
+			tmp.version = '';
+			tmp.description = '';
+			$(this.el).html(this.template(tmp));
+		}
 		return this;
 	}
 });
@@ -177,7 +226,104 @@ var CommandLineOptionTab = Backbone.View.extend({
 
 	render: function() {
 		$(this.el).empty();
-		$(this.el).html(this.template());
+
+		// If a tool is open for editing, restore the previous options as a starting point
+		if(oldTool) {
+			// Read the previous command line options for the tool
+			var previousCommandLineImpl = JSON.parse(oldTool.get('implementation'));
+			var ref = this;
+
+			// Go through the previous command line options and re-add them to collections that track them
+			// So users can edit any previous options and add new ones
+			_.each(previousCommandLineImpl.commandLineOptions, function(clOption) {
+				var tmp = new CommandLineOption(clOption);
+				var optionId = tmp.get('optionId');
+				if(tmp.get('type') === 'PARAMETER') {
+					var previousParameter = null;
+					_.each(oldTool.get('parameters'), function(parameter) {
+						if(parameter.parameterId === optionId) {
+							previousParameter = new WorkflowToolParameter(parameter);
+							return false;
+						}
+					});
+
+					// Give tool parameter unique IDs so they don't conflict with previous tools
+					previousParameter.set({"id": generateUUID(), "parameterId": generateUUID()});
+					tmp.set({"optionId": previousParameter.get('parameterId')});
+
+					ref.addParameter(tmp, previousParameter);
+				}
+
+				// Handle previous input fields
+				if(tmp.get('type') === 'DATA' && tmp.get('inputOutput') === 'INPUT') {
+					var previousInput = null;
+					_.each(oldTool.get('inputs'), function(input) {
+						if(input.dataId === optionId) {
+							previousInput = new WorkflowToolData(input);
+							return false;
+						}
+					});
+
+					// Give tool input unique IDs so they don't conflict with previous inputs
+					previousInput.set({"id": generateUUID(), "dataId": generateUUID()});
+					tmp.set({"optionId": previousInput.get('dataId')});
+
+					ref.addData(tmp, previousInput);
+				}
+
+				// Handle previous output fields
+				if(tmp.get('type') === 'DATA' && tmp.get('inputOutput') === 'OUTPUT') {
+					var previousOutput = null;
+					_.each(oldTool.get('outputs'), function(output) {
+						if(output.dataId === optionId) {
+							previousOutput = new WorkflowToolData(output);
+							return false;
+						}
+					});
+
+					// Give tool output unique IDs so they don't conflict with previous outputs
+					previousOutput.set({"id": generateUUID(), "dataId": generateUUID()});
+					tmp.set({"optionId": previousOutput.get('dataId')});
+					
+					ref.addData(tmp, previousOutput);
+				}
+			});
+
+			// Build the execution line options that are displayed in the view (e.g. netstat -an > stdout)
+			// This helps users see what will be passed to the executable and in what order
+			var executionText = previousCommandLineImpl.executable;
+			executionText += " ";
+			this.optionModel.each(function(option) {
+				executionText += getOptionString(option) + " "; 
+			});	
+
+			if(previousCommandLineImpl.joinStdOutStdErr) {
+				executionText += " 2>&1";
+			} else if(previousCommandLineImpl.captureStdErr) {
+				executionText += " 2>" + previousCommandLineImpl.captureStdErr;
+			}
+
+			if(previousCommandLineImpl.captureStdOut) {
+				executionText += " >" + previousCommandLineImpl.captureStdOut;
+			}
+
+			//$(this.el).find("#selected-files").val(executionText);
+			$('#tool-execution-line').val(executionText);
+			previousCommandLineImpl.executionLineOptions = executionText; 
+			
+			$(this.el).html(this.template(previousCommandLineImpl));
+
+		} else {
+			// Building a new tool, create an empty model to populate the UI
+			var tmpModel = new Object();
+			tmpModel.executable = '';
+			tmpModel.executionLineOptions = '';
+			tmpModel.captureStdOut = '';
+			tmpModel.captureStdErr = '';
+			tmpModel.joinStdOutStdErr = false;
+			$(this.el).html(this.template(tmpModel));
+		}
+		
 		this.clOptionsView = new CommandLineOptionListView({model: this.optionModel});
 		return this;
 	},
@@ -290,7 +436,7 @@ var CommandLineOptionTab = Backbone.View.extend({
 			}
 
 			// Display view to edit option
-        	$('#modalParameterView').modal('show');
+      $('#modalParameterView').modal('show');
 		}
 	},
 
@@ -387,8 +533,8 @@ var CommandLineParameterView = Backbone.View.extend({
 			}
 		}
         
-        $('#modalParameterView').modal('hide');
-        commandLineOptionView.updateExecutionOptions();
+    $('#modalParameterView').modal('hide');
+    commandLineOptionView.updateExecutionOptions();
 	},
 
 	close: function(e) {
@@ -550,7 +696,6 @@ var CommandLineOptionListView = Backbone.View.extend({
 		});
 
 		this.model.bind("remove", function(option) {
-			console.log("remove option");
 			var viewToRemove = _(self.clOptionViews).select(function(cv) {
 				return cv.model === option;
 			})[0];
@@ -596,16 +741,38 @@ var CommandLineOptionListItemView = Backbone.View.extend({
 var CommandLineFileTab = Backbone.View.extend({
 	template: _.template($('#new-tool-file-tab').html()),
 	events: {
-		"change input.tool-file-select" : "fileChange"
+		"change input.tool-file-select" : "fileChange",
+		"click button#select-file-btn" : "chooseFile"
 	},
 
 	initialize: function() {
-		
+		// Keep a list of the files chosen with the input field
+		this.fileList = [];
+		// Contains a collection of file descriptors if editing a previous tool
+		this.fileDescriptorCollection = new FileDescriptorCollection();	
 	},
 
 	render: function() {
 		$(this.el).html(this.template());
+		// Displays a list of files added to the tool
+		this.fileListView = new FileListView();
+
+		// Displays a list of previous files associated with a tool if editing a tool
+		this.fileDescriptorListView = new FileDescriptorListView({collection: this.fileDescriptorCollection});
+		$(this.el).find("#selected-files").html(this.fileListView.render().el);
+
+		// Show previous files associated with the tool if we are editing a tool
+		if(oldTool) {
+			$(this.el).find("#previous-files-lbl").text("Previous Files");
+			$(this.el).find("#previous-files").html(this.fileDescriptorListView.render().el);
+		} else {
+			$(this.el).find("#previous-files-lbl").text("");
+		}
 		return this;
+	},
+
+	chooseFile: function() {
+		$("#tool-files").click();
 	},
 
 	fileChange: function(e) {
@@ -613,15 +780,109 @@ var CommandLineFileTab = Backbone.View.extend({
 		if(!e.target.files) {
 			return;
 		}
-		var div = document.querySelector("#selected-files");
-		var myfile = $('#tool-file-form')[0][0].files[0];
 
 		var files = e.target.files;
 		var index;
 		for(index = 0; index < files.length; index++) {
 			var file = files[index];
-			div.innerHTML += file.name + "<br/>";
+			this.fileList.push(file);
+			this.fileListView.add(file);
 		}
+		
+	},
+
+	// Returns a list of files selected by the user
+	getFileList: function() {
+			return this.fileList;
+	},
+
+	// Returns a list of file descriptors
+	getFileDescriptors: function() {
+		return this.fileDescriptorCollection;
+	}
+
+});
+
+var FileListView = Backbone.View.extend({
+	tagName: 'table',
+
+	initialize: function() {
+		this._fileList = [];
+	},
+	render: function() {
+		this.$el.empty();
+		//$(this.el).html(this.template());
+		return this;
+	},
+
+	add: function(file) {
+		var fileItem = new FileListItem({model: file});
+		this._fileList.push(file);
+		this.$el.append(fileItem.render().el);
+	}
+});
+
+var FileListItem = Backbone.View.extend({
+	template: _.template($('#file-list-item-template').html()),
+
+	events: {
+		'click a.remove-file': 'remove'
+	},
+
+	render: function() {
+		this.$el.html(this.template(this.model));
+		return this;
+	},
+
+	remove: function(e) {
+		e.preventDefault();
+		this.$el.remove();
+		
+	}
+});
+
+var FileDescriptorListView = Backbone.View.extend({
+	tagName: 'table',
+
+	initialize: function() {
+	},
+
+	render: function() {
+		$(this.el).empty();
+
+		// If editing a tool, load the previous files into the view and track changes made (e.g. file associates removed)
+		if(oldTool) {
+			//Cycle through list of file descriptors for oldTool
+			_.each(oldTool.get('blobs'), function(fileDescriptor) {
+				var tmpDescriptor = new FileDescriptor(fileDescriptor);
+				this.collection.add(tmpDescriptor);
+
+				// Add the the file to the view with a control to remove it from the new tool
+				this.$el.append(new FileDescriptorListItemView({model: tmpDescriptor}).render().el);
+			}, this);
+		}
+		return this;
+	},
+});
+
+var FileDescriptorListItemView = Backbone.View.extend({
+	template: _.template($('#filedescriptor-list-item-template').html()),
+
+	events: {
+		'click a.remove-file': 'remove'
+	},
+
+	render: function() {
+		// each of these will be a file listed in the tool blob list 
+		$(this.el).html(this.template(this.model.toJSON()));
+		return this;
+	},
+
+	remove: function(e) {
+		e.preventDefault();
+	 	this.$el.remove();
+	 	this.model.id = null;
+	 	this.model.destroy();
 	}
 
 });
@@ -758,7 +1019,6 @@ var HPCToolView = Backbone.View.extend({
 	},
 
 	createTool: function(e) {
-		console.log("create tool");
 		var inputs = [];
 		var outputs = [];
 		var parameters = [];

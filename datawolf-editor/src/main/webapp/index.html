@@ -109,6 +109,9 @@
     <script type="text/template" id="workflow-tool-buttons">
         <div class="btn-toolbar nav-button-bar">
             <div class="btn-group pull-right cbi-btn-group">
+                <button id="workflow-tool-open-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" data-original-title="Open">
+                    <span class=""><img src="assets/img/icon-toolbar-open-active.png"></span>
+                </button>
                 <button id="workflow-tool-import-btn" type="button" class="btn btn-default btn-xs btn-toolbar-bkgrd" data-toggle="tooltip" data-placement="bottom" 
                     data-original-title="Import">
                     <span class="glyphicon glyphicon-import add-workflow-button"></span>
@@ -332,19 +335,19 @@
             <div class="form-group">
                 <label for="tool-title" class="col-lg-2 control-label">Name</label>
                 <div class="col-lg-10">
-                    <input type="text" class="form-control" id="tool-title" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-title" placeholder="" value="<%= title %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-version" class="col-lg-2 control-label">Version</label>
                 <div class="col-lg-10">
-                  <input type="text" class="form-control" id="tool-version" placeholder=""/>
+                  <input type="text" class="form-control" id="tool-version" placeholder="" value="<%= version %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <label for="tool-description" class="col-lg-2 control-label">Description</label>
                 <div class="col-lg-10">
-                  <textarea class="form-control" id="tool-description" placeholder="" rows="6"/>
+                  <textarea class="form-control" id="tool-description" placeholder="" rows="6" value="<%= description %>"/>
                 </div>
             </div>
         </form>
@@ -354,14 +357,14 @@
             <div class="form-group">
                 <label for="tool-executable" class="col-lg-3 control-label">Executable</label>
                 <div class="col-lg-6">
-                    <input type="text" class="form-control" id="tool-executable" placeholder=""/>
+                    <input type="text" class="form-control" id="tool-executable" placeholder="" value="<%= executable %>"/>
                 </div>
             </div>
             <div class="form-group">
                 <div class="col-lg-3">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="capture-stdout"/>Capture stdout?
+                            <input type="checkbox" id="capture-stdout" <% print(captureStdOut ? 'checked' : '') %> />Capture stdout?
                         </label>
                     </div>
                 </div>
@@ -373,7 +376,7 @@
                 <div class="col-lg-3">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="capture-stderr" name=""/>Capture stderr?
+                            <input type="checkbox" id="capture-stderr" name="" <% print(captureStdErr ? 'checked' : '') %>/>Capture stderr?
                         </label>
                     </div>
                 </div>
@@ -385,7 +388,7 @@
                 <div class="col-lg-12">
                     <div class="checkbox">
                         <label>
-                            <input type="checkbox" id="join-stdout-stderr" />Join stdout/stderr?
+                            <input type="checkbox" id="join-stdout-stderr" <% print(joinStdOutStdErr ? 'checked' : '') %>/>Join stdout/stderr?
                         </label>
                     </div>
                 </div>
@@ -409,7 +412,7 @@
             </div>
             <div class="form-group">
                 <div class="col-lg-12">
-                    <input type="text" class="form-control" id="tool-execution-line" readonly placeholder=""/>
+                    <input type="text" class="form-control" id="tool-execution-line" readonly placeholder="" value = "<%= executionLineOptions %>"/>
                 </div>
             </div>
         </form>
@@ -589,18 +592,25 @@
     <script type="text/template" id="new-tool-file-tab">
         <form enctype="multipart/form-data" id="tool-file-form" class="form-horizontal tool-wizard-content" role="form">
             <div class="form-group">
-                <label for="tool-file" class="col-lg-3 control-label">Files</label>
-                <div class="col-lg-9">
-                    <input type="file" class="form-control tool-file-select" id="tool-files" multiple /> 
-                </div>
+                <div class="col-lg-offset-9 col-lg-9">
+                    <button type="button" id="select-file-btn" class="btn btn-default">Add files</button>
+                    <input type="file" style="display:none" class="tool-file-select" id="tool-files" multiple />
+                </div> 
             </div>
             <div class="form-group"> 
                 <div class="col-lg-offset-3 col-lg-9">
                     <div id="selected-files"></div>
                 </div>
             </div>
+            <div class="form-group">
+                <label id="previous-files-lbl" for="previous-files" class="col-lg-3 control-label"></label>
+                <div class="col-lg-offset-3 col-lg-9">
+                    <div id="previous-files"></div>
+                </div>
+            </div>
         </form>
-    </script>
+    </script> 
+
     <!-- New Tool Environment Tab -->
     <script type="text/template" id="new-tool-env-tab">
         <div class="tool-wizard-content">
@@ -818,6 +828,22 @@
         <label>|</label>
         <a href="" id="logout-btn" class="hello-lbl">Logout</a>
         <span class=""><img src="assets/img/datawolf.png" height="25.776" width="105.273"></span>
+    </script>
+    <!-- Template for adding new files to a tool -->
+    <script type="text/template" id="file-list-item-template">
+        <tr>
+            <td style="width:200px"><%= name %></td>
+            <td style="width:200px"><%= (size / 1000).toFixed(2) %> KB</td>
+            <td style="width:50px"><a href="#remove" class="remove-file"><span class="glyphicon glyphicon-remove"></span></td>
+        </tr>
+    </script>
+    <!-- Template for adding existing files from a tool being edited -->
+    <script type="text/template" id="filedescriptor-list-item-template">
+        <tr>
+            <td style="width:200px"><%= filename %></td>
+            <td style="width:200px"><%= (size / 1000).toFixed(2) %> KB</td>            
+            <td style="width:50px"><a href="#remove" class="remove-file"><span class="glyphicon glyphicon-remove"></span></td>
+        </tr>
     </script>
     <div id='editor-app' class="container-liquid">
         <div class="row">

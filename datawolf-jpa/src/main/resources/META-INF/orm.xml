@@ -182,19 +182,13 @@
 					<cascade-merge />
 				</cascade>
 			</one-to-many>
-			<one-to-many name="blobs" fetch="LAZY">
-				<join-table name="ToolBlobs" />
-				<cascade>
-					<cascade-merge />
-				</cascade>
-			</one-to-many>
 			<one-to-many name="outputs" fetch="LAZY">
 				<join-table name="WorkflowToolOutputs" />
 				<cascade>
 					<cascade-merge />
 				</cascade>
 			</one-to-many>
-			<one-to-one name="previousVersion" fetch="LAZY">
+			<one-to-one name="previousVersion" fetch="EAGER">
 				<cascade>
 					<cascade-merge />
 				</cascade>
@@ -204,6 +198,12 @@
 					<cascade-merge />
 				</cascade>
 			</one-to-one>
+			<many-to-many name="blobs" fetch="LAZY">
+				<join-table name="ToolBlobs" />
+				<cascade>
+					<cascade-merge />
+				</cascade>
+			</many-to-many>
 		</attributes>
 	</entity>
 	

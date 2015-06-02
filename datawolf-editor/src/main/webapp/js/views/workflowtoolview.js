@@ -1,4 +1,8 @@
+// Tracks the id of the currently displayed tool information
 var previousTool = null;
+
+// When editing tools, keep a copy to save with the new tool as reference
+var oldTool = null;
 
 var WorkflowToolListView = Backbone.View.extend({
     tagName: 'ul',
@@ -179,7 +183,8 @@ var WorkflowToolButtonBar = Backbone.View.extend({
         "select .tool-select" : "handleSelection",
         "click button#delete-tool-btn" : "deleteWorkflowTool",
         "click button#workflow-tool-export-btn" : "exportWorkflowTool",
-        "click button#workflow-tool-import-btn" : "importWorkflowTool"
+        "click button#workflow-tool-import-btn" : "importWorkflowTool",
+        "click button#workflow-tool-open-btn" : "editWorkflowTool"
     },
 
     initialize: function() {
@@ -303,7 +308,6 @@ var WorkflowToolButtonBar = Backbone.View.extend({
                                 var stepIndex = workflowMap[key];
                                 var steps = workflow.get('steps');  
                                 steps.splice(stepIndex, 1);
-
                                 workflow.save({steps: steps}, {
                                     wait: true,
 
@@ -351,6 +355,27 @@ var WorkflowToolButtonBar = Backbone.View.extend({
 
             if(workflowTool != null) {
                 eventBus.trigger("clicked:exportworkflowtool", selectedToolId);
+            }
+        }
+    },
+
+    editWorkflowTool: function() {
+        var selectedToolId = $('.highlight').attr('value');
+        if(selectedToolId != null) {
+            var workflowTool = null;
+            workflowToolCollection.each(function(tool) {
+                if(tool.get('id') === selectedToolId) {
+                    workflowTool = tool;
+                    return false;
+                }
+            });
+
+            // TODO add support for editing Java and HPC tools
+            if(workflowTool != null && workflowTool.get('executor') === 'commandline') {
+                oldTool = workflowTool;
+                showCommandLineToolWizard();
+            } else {
+                window.alert("Editing Java and HPC tools is currently not supported.");
             }
         }
     }

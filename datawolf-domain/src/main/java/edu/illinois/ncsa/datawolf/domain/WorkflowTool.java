@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import edu.illinois.ncsa.domain.AbstractBean;
@@ -44,6 +45,9 @@ import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.jackson.JsonDateSerializer;
 
+// This tells jackson to ignore this when method when serializing tools that contain previous versions
+// When previousVersion is set, there is a "handler" field that jackson can't handle
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class WorkflowTool extends AbstractBean {
     /** Used for serialization of object */
     private static final long           serialVersionUID = 1L;
