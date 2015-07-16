@@ -227,15 +227,23 @@ var CommandLineOptionTab = Backbone.View.extend({
 	render: function() {
 		$(this.el).empty();
 
+		// Create an empty model to populate the UI
+		var tmpModel = new Object();
+		tmpModel.executable = '';
+		tmpModel.executionLineOptions = '';
+		tmpModel.captureStdOut = '';
+		tmpModel.captureStdErr = '';
+		tmpModel.joinStdOutStdErr = false;
+		
 		// If a tool is open for editing, restore the previous options as a starting point
 		if(oldTool) {
-			// Read the previous command line options for the tool
-			var previousCommandLineImpl = JSON.parse(oldTool.get('implementation'));
+			// Read the previous command line options for the tool into the model
+			tmpModel = JSON.parse(oldTool.get('implementation'));
 			var ref = this;
 
 			// Go through the previous command line options and re-add them to collections that track them
 			// So users can edit any previous options and add new ones
-			_.each(previousCommandLineImpl.commandLineOptions, function(clOption) {
+			_.each(tmpModel.commandLineOptions, function(clOption) {
 				var tmp = new CommandLineOption(clOption);
 				var optionId = tmp.get('optionId');
 				if(tmp.get('type') === 'PARAMETER') {
@@ -291,38 +299,28 @@ var CommandLineOptionTab = Backbone.View.extend({
 
 			// Build the execution line options that are displayed in the view (e.g. netstat -an > stdout)
 			// This helps users see what will be passed to the executable and in what order
-			var executionText = previousCommandLineImpl.executable;
+			var executionText = tmpModel.executable;
 			executionText += " ";
 			this.optionModel.each(function(option) {
 				executionText += getOptionString(option) + " "; 
 			});	
 
-			if(previousCommandLineImpl.joinStdOutStdErr) {
+			if(tmpModel.joinStdOutStdErr) {
 				executionText += " 2>&1";
-			} else if(previousCommandLineImpl.captureStdErr) {
-				executionText += " 2>" + previousCommandLineImpl.captureStdErr;
+			} else if(tmpModel.captureStdErr) {
+				executionText += " 2>" + tmpModel.captureStdErr;
 			}
 
-			if(previousCommandLineImpl.captureStdOut) {
-				executionText += " >" + previousCommandLineImpl.captureStdOut;
+			if(tmpModel.captureStdOut) {
+				executionText += " >" + tmpModel.captureStdOut;
 			}
 
 			//$(this.el).find("#selected-files").val(executionText);
 			$('#tool-execution-line').val(executionText);
-			previousCommandLineImpl.executionLineOptions = executionText; 
-			
-			$(this.el).html(this.template(previousCommandLineImpl));
+			tmpModel.executionLineOptions = executionText; 
+		} 
 
-		} else {
-			// Building a new tool, create an empty model to populate the UI
-			var tmpModel = new Object();
-			tmpModel.executable = '';
-			tmpModel.executionLineOptions = '';
-			tmpModel.captureStdOut = '';
-			tmpModel.captureStdErr = '';
-			tmpModel.joinStdOutStdErr = false;
-			$(this.el).html(this.template(tmpModel));
-		}
+		$(this.el).html(this.template(tmpModel));
 		
 		this.clOptionsView = new CommandLineOptionListView({model: this.optionModel});
 		return this;
