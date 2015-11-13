@@ -91,7 +91,8 @@ var getExecutions = function(workflowId) {
 // Router
 var AppRouter = Backbone.Router.extend({
     routes:{
-        "":"list"
+        "":"list",
+        ":workflowId":"openWorkflow"
     },
     
     list:function() {
@@ -123,8 +124,38 @@ var AppRouter = Backbone.Router.extend({
             }});
         }});
 
-    }
+    },
 
+    // Route for opening a workflow by ID in the execution view
+    openWorkflow: function(workflowId) {
+        var id = localStorage.currentUser;
+        personCollection.fetch({success: function() {
+
+            currentUser = personCollection.findWhere({id: id});
+            if(currentUser == null) {
+                location.replace('login.html');
+            }
+
+            $('#current-user').text('Hello '+currentUser.get('firstName'));
+
+            datasetCollection.fetch({success: function() {
+                datasetListView = new DatasetListView({model: datasetCollection});
+                $('#datasets').html(datasetListView.render().el);
+                $('#datasetbuttons').html(new DatasetButtonView().render().el);
+             }});
+
+            workflowCollection.fetch({success: function() {
+                workflowListView = new WorkflowListView({model: workflowCollection});
+                $('#workflows').html(workflowListView.render().el);
+                $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+                if(workflowCollection.findWhere({'id': workflowId})) {
+                    eventBus.trigger("clicked:newopenworkflow", workflowId);
+                } else {
+                    console.log("did not find workflow");
+                }
+            }});
+        }});
+    }
 });
 
 function registerTabEvent() {
