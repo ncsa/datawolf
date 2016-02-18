@@ -68,6 +68,9 @@ import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
+import edu.illinois.ncsa.datawolf.service.utils.WorkflowUtil;
+import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.domain.util.BeanUtil;
 
 @Path("/workflows")
@@ -82,6 +85,9 @@ public class WorkflowsResource {
 
     @Inject
     private WorkflowStepDao     workflowStepDao;
+
+    @Inject
+    private PersonDao           personDao;
 
     /**
      * Create a new workflow
@@ -432,4 +438,29 @@ public class WorkflowsResource {
         return workflowStep;
     }
 
+    @GET
+    @Path("clowder/{file-id}")
+    @Produces({ MediaType.TEXT_HTML })
+    public String createDTSWorkflow(@PathParam("file-id") @DefaultValue("") String fileId) throws Exception {
+        // Need credentials/token for a user
+        // Could be configured inside datawolf.properties
+
+        // Contains DataWolf and DTS configuration information
+        DataWolf dw = DataWolf.getInstance();
+        // DTS URI to communicate with
+        String clowder = dw.getDtsURI();
+
+        // DTS user for creating workflows
+        Person creator = personDao.findByEmail(dw.getDtsUser());
+
+        // Create workflow representing DTS extractors ran on a file
+        Workflow workflow = WorkflowUtil.createDTSWorkflow(fileId, clowder, creator);
+        workflowDao.save(workflow);
+
+        String workflowURL = dw.getDatawolfURI() + "/editor/execute.html#" + workflow.getId();
+        String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the Clowder file:</p>\n";
+        workflowLink += "<a href=\"" + workflowURL + "\" target=\"_blank\">" + workflowURL + "</a>\n</html>";
+
+        return workflowLink;
+    }
 }
