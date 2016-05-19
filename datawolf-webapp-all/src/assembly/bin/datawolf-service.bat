@@ -11,7 +11,7 @@ REM context root for datawolf server, needed when behind nginx
 set CONTEXT=/datawolf
 
 REM log file, leave blank for console
-REM set LOG="--out %cd%\log\datawolf-yyyy_mm_dd.log"
+REM set LOG=--out %cd%\log\datawolf-yyyy_mm_dd.log
 
 REM create some folders just in case
 if not exist log mkdir log
