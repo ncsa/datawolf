@@ -181,7 +181,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                     JsonObject jsonObject = jsonArray.get(index).getAsJsonObject();
                     Dataset dataset = new Dataset();
                     String id = jsonObject.get("id").getAsString();
-                    String title = jsonObject.get("datasetname").getAsString();
+                    String title = jsonObject.get("name").getAsString();
                     String description = jsonObject.get("description").getAsString();
                     String dateString = jsonObject.get("created").getAsString();
                     Date date = dateFormat.parse(dateString);
@@ -273,7 +273,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
     // TODO CMN implement delete
     public void delete(Dataset entity) {
-        System.out.println("delete " + entity.getClass().getName() + " from medici not yet implemented");
+        logger.warn("delete " + entity.getClass().getName() + " from Clowder not yet implemented");
     }
 
     @Override
