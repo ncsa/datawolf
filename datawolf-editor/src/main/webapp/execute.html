@@ -27,6 +27,9 @@
     <script type="text/template" id="param-list-item">
         <%= model.title %>: <input ondragover="return false" value= "<%= model.value %>"  name= <%= inputboxId %> class="cbi-param-input">
     </script>
+    <script type="text/template" id="param-option-list-item">
+        <%= model.value %>
+    </script>
     <script type="text/template" id="execute-workflow-button">
         <br></br>
         <button id="execute-workflow" class="btn btn-default cbi-exec-btn">Execute</button> 
