@@ -34,6 +34,16 @@ public class PersonMediciDao extends AbstractMediciDao<Person, String> implement
     @Named("medici.key")
     private String              key;
 
+    public Person findOne(String id) {
+        List<Person> users = findByDeleted(false);
+        for (Person user : users) {
+            if (user.getId().equals(id)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
     @Override
     public Person findByEmail(String email) {
         List<Person> users = findByDeleted(false);
