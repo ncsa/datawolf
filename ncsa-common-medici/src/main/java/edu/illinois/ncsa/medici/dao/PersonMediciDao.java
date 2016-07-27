@@ -26,6 +26,7 @@ import edu.illinois.ncsa.domain.dao.PersonDao;
 
 public class PersonMediciDao extends AbstractMediciDao<Person, String> implements PersonDao {
     private static final Logger logger = LoggerFactory.getLogger(PersonMediciDao.class);
+
     @Inject
     @Named("medici.server")
     private String              SERVER = "http://localhost:9000/";
@@ -35,24 +36,78 @@ public class PersonMediciDao extends AbstractMediciDao<Person, String> implement
     private String              key;
 
     public Person findOne(String id) {
-        List<Person> users = findByDeleted(false);
-        for (Person user : users) {
-            if (user.getId().equals(id)) {
-                return user;
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+        builder.setDefaultRequestConfig(config);
+        HttpClient httpClient = builder.build();
+
+        String requestUrl;
+        if ((key == null) || key.trim().equals("")) {
+            requestUrl = SERVER + "api/users/" + id;
+        } else {
+            requestUrl = SERVER + "api/users/" + id + "?key=" + key.trim();
+        }
+
+        HttpGet httpGet = new HttpGet(requestUrl);
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+        String responseStr = null;
+        Person user = null;
+        try {
+            responseStr = httpClient.execute(httpGet, responseHandler);
+            JsonElement jsonElement = new JsonParser().parse(responseStr);
+
+            JsonObject person = jsonElement.getAsJsonObject();
+            user = parseResponse(person);
+        } catch (IOException e) {
+            logger.error("Failed to get users", e);
+        } finally {
+            try {
+                ((CloseableHttpClient) httpClient).close();
+            } catch (IOException ignore) {
+                logger.error("Error closing http client", ignore);
             }
         }
-        return null;
+
+        return user;
     }
 
     @Override
     public Person findByEmail(String email) {
-        List<Person> users = findByDeleted(false);
-        for (Person p : users) {
-            if (p.getEmail().equals(email)) {
-                return p;
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+        builder.setDefaultRequestConfig(config);
+        HttpClient httpClient = builder.build();
+
+        String requestUrl;
+        if ((key == null) || key.trim().equals("")) {
+            requestUrl = SERVER + "api/users/email" + email;
+        } else {
+            requestUrl = SERVER + "api/users/email/" + email + "?key=" + key.trim();
+        }
+
+        HttpGet httpGet = new HttpGet(requestUrl);
+        ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+        String responseStr = null;
+        Person user = null;
+        try {
+            responseStr = httpClient.execute(httpGet, responseHandler);
+            JsonElement jsonElement = new JsonParser().parse(responseStr);
+
+            JsonObject person = jsonElement.getAsJsonObject();
+            user = parseResponse(person);
+        } catch (IOException e) {
+            logger.error("Failed to get users", e);
+        } finally {
+            try {
+                ((CloseableHttpClient) httpClient).close();
+            } catch (IOException ignore) {
+                logger.error("Error closing http client", ignore);
             }
         }
-        return null;
+
+        return user;
     }
 
     @Override
@@ -84,17 +139,9 @@ public class PersonMediciDao extends AbstractMediciDao<Person, String> implement
             // Parse users
             for (int index = 0; index < jsonArray.size(); index++) {
                 JsonObject person = jsonArray.get(index).getAsJsonObject();
-                String id = person.get("id").getAsString();
-                String firstName = person.get("firstName").getAsString();
-                String lastName = person.get("lastName").getAsString();
-                String email = person.get("email").getAsString();
 
-                Person p = new Person();
-                p.setId(id);
-                p.setEmail(email);
-                p.setFirstName(firstName);
-                p.setLastName(lastName);
-                results.add(p);
+                Person user = parseResponse(person);
+                results.add(user);
             }
         } catch (IOException e) {
             logger.error("Failed to get users", e);
@@ -107,6 +154,22 @@ public class PersonMediciDao extends AbstractMediciDao<Person, String> implement
         }
 
         return results;
+    }
+
+    // Parses a return user from the Clowder API
+    private Person parseResponse(JsonObject person) {
+        String id = person.get("id").getAsString();
+        String firstName = person.get("firstName").getAsString();
+        String lastName = person.get("lastName").getAsString();
+        String email = person.get("email").getAsString();
+
+        Person user = new Person();
+        user.setId(id);
+        user.setEmail(email);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+
+        return user;
     }
 
 }
