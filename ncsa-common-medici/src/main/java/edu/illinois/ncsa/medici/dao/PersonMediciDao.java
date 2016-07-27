@@ -48,7 +48,6 @@ public class PersonMediciDao extends AbstractMediciDao<Person, String> implement
     @Override
     public List<Person> findByDeleted(boolean deleted) {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        // builder.setRedirectStrategy(new MediciRedirectStrategy());
         RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
         builder.setDefaultRequestConfig(config);
         HttpClient httpClient = builder.build();
