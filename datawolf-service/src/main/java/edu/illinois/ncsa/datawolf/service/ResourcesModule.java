@@ -25,6 +25,7 @@ public class ResourcesModule extends AbstractModule {
         bind(PersonsResource.class);
         bind(WorkflowsResource.class);
         bind(WorkflowToolsResource.class);
+        bind(BrownDogResource.class);
         bind(JacksonJaxbJsonProvider.class);
     }
 }

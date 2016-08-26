@@ -14,6 +14,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -22,6 +25,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -58,13 +63,22 @@ public class WorkflowUtil {
      * @return workflow representing DTS extractors
      * @throws Exception
      */
-    public static Workflow createDTSWorkflow(String fileId, String dtsURL, Person creator) throws Exception {
-        // DTS script
-        FileStorage fileStorage = Persistence.getBean(FileStorage.class);
+    public static Workflow createDTSWorkflow(String fileId, String fenceURL, String token, Person creator) throws Exception {
+        // Find out which extractors were ran on the specified file
+        List<String> dtsExtractors = getDTSTools(fileId, fenceURL, token);
 
+        // Create empty workflow
         Workflow workflow = createWorkflow("workflow-" + fileId, "workflow representing dts extractors ran on a file", creator);
-        // Find out which extractors were ran
-        List<String> dtsExtractors = getDTSTools(fileId, dtsURL);
+
+        // TODO is there metadata we want to add at this point besides this?
+        // Is there metadata that can be associated per extractor?
+        JsonObject metadata = getFileMetadata(fileId, fenceURL, token);
+
+        JsonElement technicalMetadata = getTechnicalMetadata(fileId, fenceURL, token);
+        metadata.add("technicalmetadata", technicalMetadata);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        workflow.setDescription(gson.toJson(metadata));
 
         // Step inputs/outputs/parameters
         Map<String, String> inputs = null;
@@ -78,14 +92,13 @@ public class WorkflowUtil {
 
         Set<FileDescriptor> blobs = null;
 
+        FileStorage fileStorage = Persistence.getBean(FileStorage.class);
         for (String extractor : dtsExtractors) {
             toolParameters = new ArrayList<WorkflowToolParameter>();
-            toolParameters.add(createWorkflowToolParameter("DTS Host", "DTS Hostname", false, ParameterType.STRING, false, dtsURL));
-            toolParameters.add(createWorkflowToolParameter("Extractor", "extractor to run", false, ParameterType.STRING, true, extractor));
+            toolParameters.add(createWorkflowToolParameter("Fence URL", "Fence Hostname", false, ParameterType.STRING, false, fenceURL));
+            toolParameters.add(createWorkflowToolParameter("Extractor", "Extractor to run", false, ParameterType.STRING, true, extractor));
             toolParameters.add(createWorkflowToolParameter("File id", "ID of the file to process", false, ParameterType.STRING, false, fileId));
-            toolParameters.add(createWorkflowToolParameter("Key", "Secret key", false, ParameterType.STRING, false, ""));
-            // TODO add a parameter for passing in comma separated key/value
-            // parameter pairs for the extractor
+            toolParameters.add(createWorkflowToolParameter("Token", "Authorization token", false, ParameterType.STRING, false, ""));
 
             List<CommandLineOption> commandlineOptions = new ArrayList<CommandLineOption>();
             String executable = "./dts-script.sh";
@@ -96,9 +109,11 @@ public class WorkflowUtil {
                 commandlineOptions.add(createCommandlineOption(Type.PARAMETER, "", "", parameter.getParameterId(), null, null, true));
             }
 
+            toolInputs = new ArrayList<WorkflowToolData>();
+
             toolOutputs = new ArrayList<WorkflowToolData>();
 
-            // Std Out
+            // Standard Out
             WorkflowToolData stdOut = createWorkflowToolData("stdout", "stdout log file", "");
             toolOutputs.add(stdOut);
             outputs = new HashMap<String, String>();
@@ -108,11 +123,12 @@ public class WorkflowUtil {
 
             InputStream is = new ByteArrayInputStream(getDTSShellScript().getBytes(StandardCharsets.UTF_8));
             FileDescriptor fd = fileStorage.storeFile("dts-script.sh", is);
-            log.warn("File descriptor = " + fd.getDataURL());
 
             CommandLineImplementation impl = createCommandlineImplementation(executable, stdOut.getDataId(), null, false, commandlineOptions, null);
             blobs = new HashSet<FileDescriptor>();
             blobs.add(fd);
+
+            // TODO add extractor info if available
             WorkflowTool tool = createWorkflowTool(extractor, "dts extractor", "1.0", creator, toolParameters, toolInputs, toolOutputs, blobs, BeanUtil.objectToJSON(impl));
             WorkflowStep step = createWorkflowStep(extractor, creator, tool, inputs, outputs, parameters);
             workflow.addStep(step);
@@ -179,13 +195,19 @@ public class WorkflowUtil {
         return toolData;
     }
 
-    public static List<String> getDTSTools(String fileId, String dtsURL) {
+    public static List<String> getDTSTools(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient client = builder.build();
-        String extractionEndpoint = dtsURL + "/api/extractions/" + fileId + "/status";
 
+        String extractionEndpoint = fenceURL;
+        if (fenceURL.endsWith("/")) {
+            extractionEndpoint = fenceURL + "dts/api/extractions/" + fileId + "/status";
+        } else {
+            extractionEndpoint = fenceURL + "/dts/api/extractions/" + fileId + "/status";
+        }
         HttpGet httpGet = new HttpGet(extractionEndpoint);
-        httpGet.setHeader("Content-type", "application/json");
+        httpGet.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
 
         BasicResponseHandler responseHandler = new BasicResponseHandler();
 
@@ -195,7 +217,6 @@ public class WorkflowUtil {
             response = client.execute(httpGet, responseHandler);
             JsonElement jsonResponse = new JsonParser().parse(response);
             JsonObject object = jsonResponse.getAsJsonObject();
-            log.warn("Response = " + response);
             Iterator<Entry<String, JsonElement>> set = object.entrySet().iterator();
             while (set.hasNext()) {
                 Entry<String, JsonElement> element = set.next();
@@ -204,12 +225,70 @@ public class WorkflowUtil {
                 }
             }
         } catch (ClientProtocolException e) {
-            e.printStackTrace();
+            throw e;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw e;
         }
 
         return extractors;
+    }
+
+    private static JsonObject getFileMetadata(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient client = builder.build();
+
+        String extractionEndpoint = fenceURL;
+        if (fenceURL.endsWith("/")) {
+            extractionEndpoint = fenceURL + "dts/api/extractions/" + fileId + "/metadata";
+        } else {
+            extractionEndpoint = fenceURL + "/dts/api/extractions/" + fileId + "/metadata";
+        }
+
+        HttpGet httpGet = new HttpGet(extractionEndpoint);
+        httpGet.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
+
+        BasicResponseHandler responseHandler = new BasicResponseHandler();
+        String response = null;
+        try {
+            response = client.execute(httpGet, responseHandler);
+            JsonElement jsonResponse = new JsonParser().parse(response);
+
+            return jsonResponse.getAsJsonObject();
+        } catch (ClientProtocolException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
+    private static JsonElement getTechnicalMetadata(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient client = builder.build();
+
+        String extractionEndpoint = fenceURL;
+        if (fenceURL.endsWith("/")) {
+            extractionEndpoint = fenceURL + "dts/api/extractions/" + fileId + "/metadata";
+        } else {
+            extractionEndpoint = fenceURL + "/dts/api/files/" + fileId + "/technicalmetadatajson";
+        }
+
+        HttpGet httpGet = new HttpGet(extractionEndpoint);
+        httpGet.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
+
+        BasicResponseHandler responseHandler = new BasicResponseHandler();
+        String response = null;
+        try {
+            response = client.execute(httpGet, responseHandler);
+            JsonElement jsonResponse = new JsonParser().parse(response);
+
+            return jsonResponse;
+        } catch (ClientProtocolException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        }
     }
 
     public static CommandLineOption createCommandlineOption(Type type, String value, String flag, String optionId, InputOutput inputOutput, String filename, boolean commandline) {
@@ -250,9 +329,9 @@ public class WorkflowUtil {
      */
     // TODO add support for passing in parameters
     public static String getDTSShellScript() {
-        String script = "#!/bin/bash" + "\n\n" + "HOST=$1 \n" + "extractor=$2 \n" + "fileId=$3 \n" + "KEY=$4 \n" + "url=$HOST/api/extractions \n\n"
-                + "json=\"{\"\\\"extractor\"\\\" : \"\\\"$extractor\"\\\", \"\\\"file_id\"\\\" : \"\\\"$fileId\"\\\", \"\\\"parameters\"\\\" : {}  }\"" + "\n\n"
-                + "curl -i -X POST -H \"Accept:application/json\" -H \"Content-type: application/json\" --data \"$json\" $url?key=$KEY \n";
+        String script = "#!/bin/bash" + "\n\n" + "HOST=$1 \n" + "extractor=$2 \n" + "fileId=$3 \n" + "TOKEN=$4 \n" + "url=$HOST/dts/api/files/$fileId/extractions \n\n"
+                + "json=\"{\"\\\"extractor\"\\\" : \"\\\"$extractor\"\\\"}\"" + "\n\n"
+                + "curl -i -X POST -H \"Accept:application/json\" -H \"Content-type: application/json\" -H \"Authorization: $TOKEN\" --data \"$json\" $url \n";
 
         return script;
     }

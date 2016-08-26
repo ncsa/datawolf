@@ -59,20 +59,6 @@ public class PersistenceModule extends AbstractModule {
                 configuration.load(new FileInputStream(file));
                 Names.bindProperties(binder(), configuration);
                 jpa.properties(configuration);
-
-                // Server properties
-                DataWolf dw = DataWolf.getInstance();
-                if (configuration.containsKey("datawolf.uri")) {
-                    dw.setDatawolfURI(configuration.getProperty("datawolf.uri"));
-                }
-                // DTS properties
-                if (configuration.containsKey("dts.uri")) {
-                    dw.setDtsURI(configuration.getProperty("dts.uri"));
-                }
-                if (configuration.containsKey("dts.user")) {
-                    dw.setDtsUser(configuration.getProperty("dts.user"));
-                }
-
             } catch (IOException e) {
                 logger.error("Error reading properties file: " + System.getProperty("datawolf.properties"), e);
             }
