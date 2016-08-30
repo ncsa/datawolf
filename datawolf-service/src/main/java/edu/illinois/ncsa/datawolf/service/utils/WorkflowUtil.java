@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -70,14 +71,44 @@ public class WorkflowUtil {
         // Create empty workflow
         Workflow workflow = createWorkflow("workflow-" + fileId, "workflow representing dts extractors ran on a file", creator);
 
-        // TODO is there metadata we want to add at this point besides this?
-        // Is there metadata that can be associated per extractor?
+        // Get file metadata and technical metadata
+        // Is there additional metadata?
         JsonObject metadata = getFileMetadata(fileId, fenceURL, token);
 
         JsonElement technicalMetadata = getTechnicalMetadata(fileId, fenceURL, token);
         metadata.add("technicalmetadata", technicalMetadata);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        // Metadata per extractor
+        Map<String, String> extractorMetadata = new HashMap<String, String>();
+
+        // Handle preview metadata
+        JsonArray jsonArray = metadata.get("previews").getAsJsonArray();
+        for (int index = 0; index < jsonArray.size(); index++) {
+            JsonObject object = jsonArray.get(index).getAsJsonObject();
+            String extractorId = object.get("extractor_id").getAsString();
+
+            // Preserve the metadata key
+            JsonObject preview = new JsonObject();
+            preview.add("previews", object);
+
+            extractorMetadata.put(extractorId, gson.toJson(preview));
+        }
+
+        // Handle technical metadata
+        jsonArray = metadata.get("technicalmetadata").getAsJsonArray();
+        for (int index = 0; index < jsonArray.size(); index++) {
+            JsonObject object = jsonArray.get(index).getAsJsonObject();
+            String extractorId = object.get("extractor_id").getAsString();
+
+            // Preserve the metadata key
+            JsonObject dtsTechnicalMetadata = new JsonObject();
+            dtsTechnicalMetadata.add("technicalmetadata", object);
+
+            extractorMetadata.put(extractorId, gson.toJson(dtsTechnicalMetadata));
+        }
+
         workflow.setDescription(gson.toJson(metadata));
 
         // Step inputs/outputs/parameters
@@ -128,8 +159,11 @@ public class WorkflowUtil {
             blobs = new HashSet<FileDescriptor>();
             blobs.add(fd);
 
-            // TODO add extractor info if available
-            WorkflowTool tool = createWorkflowTool(extractor, "dts extractor", "1.0", creator, toolParameters, toolInputs, toolOutputs, blobs, BeanUtil.objectToJSON(impl));
+            String toolDescription = "dts extractor - no metadata found for this tool";
+            if (extractorMetadata.containsKey(extractor)) {
+                toolDescription = extractorMetadata.get(extractor);
+            }
+            WorkflowTool tool = createWorkflowTool(extractor, toolDescription, "1.0", creator, toolParameters, toolInputs, toolOutputs, blobs, BeanUtil.objectToJSON(impl));
             WorkflowStep step = createWorkflowStep(extractor, creator, tool, inputs, outputs, parameters);
             workflow.addStep(step);
         }
