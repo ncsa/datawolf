@@ -78,6 +78,7 @@ public class WorkflowUtil {
         JsonElement technicalMetadata = getTechnicalMetadata(fileId, fenceURL, token);
         metadata.add("technicalmetadata", technicalMetadata);
 
+        // Format the json attached to the tools and workflow
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         // Metadata per extractor
@@ -93,6 +94,7 @@ public class WorkflowUtil {
             JsonObject preview = new JsonObject();
             preview.add("previews", object);
 
+            // Store the preview metadata by extractor id
             extractorMetadata.put(extractorId, gson.toJson(preview));
         }
 
@@ -106,6 +108,7 @@ public class WorkflowUtil {
             JsonObject dtsTechnicalMetadata = new JsonObject();
             dtsTechnicalMetadata.add("technicalmetadata", object);
 
+            // Store the technical metadata by extractor id
             extractorMetadata.put(extractorId, gson.toJson(dtsTechnicalMetadata));
         }
 
@@ -141,10 +144,9 @@ public class WorkflowUtil {
             }
 
             toolInputs = new ArrayList<WorkflowToolData>();
-
             toolOutputs = new ArrayList<WorkflowToolData>();
 
-            // Standard Out
+            // Capture Standard Out from tool
             WorkflowToolData stdOut = createWorkflowToolData("stdout", "stdout log file", "");
             toolOutputs.add(stdOut);
             outputs = new HashMap<String, String>();
@@ -163,13 +165,27 @@ public class WorkflowUtil {
             if (extractorMetadata.containsKey(extractor)) {
                 toolDescription = extractorMetadata.get(extractor);
             }
-            WorkflowTool tool = createWorkflowTool(extractor, toolDescription, "1.0", creator, toolParameters, toolInputs, toolOutputs, blobs, BeanUtil.objectToJSON(impl));
+            // Create the workflow tool that wraps the dts extractor
+            WorkflowTool tool = createWorkflowTool(extractor, toolDescription, "1.0", creator, toolParameters, toolInputs, toolOutputs, blobs, BeanUtil.objectToJSON(impl), "commandline");
+
+            // Create the workflow step to setup the tool
             WorkflowStep step = createWorkflowStep(extractor, creator, tool, inputs, outputs, parameters);
             workflow.addStep(step);
         }
         return workflow;
     }
 
+    /**
+     * Create an empty workflow
+     * 
+     * @param title
+     *            Title of workflow
+     * @param description
+     *            description of workflow
+     * @param creator
+     *            workflow creator
+     * @return Empty workflow
+     */
     public static Workflow createWorkflow(String title, String description, Person creator) {
         Workflow workflow = new Workflow();
         workflow.setTitle(title);
@@ -179,6 +195,23 @@ public class WorkflowUtil {
         return workflow;
     }
 
+    /**
+     * Create workflow step
+     * 
+     * @param title
+     *            step title
+     * @param creator
+     *            step creator
+     * @param tool
+     *            workflow tool associated with the step
+     * @param inputs
+     *            step inputs
+     * @param outputs
+     *            step outputs
+     * @param parameters
+     *            step parameters
+     * @return workflow step
+     */
     public static WorkflowStep createWorkflowStep(String title, Person creator, WorkflowTool tool, Map<String, String> inputs, Map<String, String> outputs, Map<String, String> parameters) {
         WorkflowStep step = new WorkflowStep();
         step.setTitle(title);
@@ -191,9 +224,33 @@ public class WorkflowUtil {
         return step;
     }
 
+    /**
+     * Create workflow tool
+     * 
+     * @param title
+     *            tool title
+     * @param description
+     *            tool description
+     * @param version
+     *            tool version
+     * @param creator
+     *            tool creator
+     * @param parameters
+     *            tool parameters
+     * @param inputs
+     *            tool inputs
+     * @param outputs
+     *            tool outputs
+     * @param blobs
+     *            file blobs associated with the tool
+     * @param impl
+     *            tool implementation
+     * @param executor
+     *            tool executor type
+     * @return Workflow tool
+     */
     public static WorkflowTool createWorkflowTool(String title, String description, String version, Person creator, List<WorkflowToolParameter> parameters, List<WorkflowToolData> inputs,
-            List<WorkflowToolData> outputs, Set<FileDescriptor> blobs, String impl) {
-        String executor = "commandline";
+            List<WorkflowToolData> outputs, Set<FileDescriptor> blobs, String impl, String executor) {
         WorkflowTool tool = new WorkflowTool();
         tool.setTitle(title);
         tool.setDescription(description);
@@ -209,6 +266,23 @@ public class WorkflowUtil {
         return tool;
     }
 
+    /**
+     * Create workflow tool parameter
+     * 
+     * @param title
+     *            parameter title
+     * @param description
+     *            parameter description
+     * @param allowNull
+     *            parameter accepts null
+     * @param type
+     *            parameter type
+     * @param hidden
+     *            is parameter hidden
+     * @param value
+     *            initial parameter value
+     * @return Workflow tool parameter
+     */
     public static WorkflowToolParameter createWorkflowToolParameter(String title, String description, boolean allowNull, ParameterType type, boolean hidden, String value) {
         WorkflowToolParameter parameter = new WorkflowToolParameter();
         parameter.setTitle(title);
@@ -221,6 +295,17 @@ public class WorkflowUtil {
         return parameter;
     }
 
+    /**
+     * Create workflow tool data
+     * 
+     * @param title
+     *            tool data title
+     * @param description
+     *            tool data description
+     * @param mimeType
+     *            tool data mime type
+     * @return Workflow tool data
+     */
     public static WorkflowToolData createWorkflowToolData(String title, String description, String mimeType) {
         WorkflowToolData toolData = new WorkflowToolData();
         toolData.setTitle(title);
@@ -229,6 +314,19 @@ public class WorkflowUtil {
         return toolData;
     }
 
+    /**
+     * Get list of DTS tools
+     * 
+     * @param fileId
+     *            file id
+     * @param fenceURL
+     *            BD-API gateway URL
+     * @param token
+     *            authorization token
+     * @return List of DTS tools
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
     public static List<String> getDTSTools(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient client = builder.build();
@@ -267,6 +365,19 @@ public class WorkflowUtil {
         return extractors;
     }
 
+    /**
+     * Get file metadata from file extraction
+     * 
+     * @param fileId
+     *            file id
+     * @param fenceURL
+     *            BD-API gateway URL
+     * @param token
+     *            authorization token
+     * @return file metadata in json format
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
     private static JsonObject getFileMetadata(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient client = builder.build();
@@ -296,6 +407,19 @@ public class WorkflowUtil {
         }
     }
 
+    /**
+     * Get technical metadata for file extraction
+     * 
+     * @param fileId
+     *            file id
+     * @param fenceURL
+     *            BD-API gateway URL
+     * @param token
+     *            authorization token
+     * @return technical metadata in json format
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
     private static JsonElement getTechnicalMetadata(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient client = builder.build();
@@ -325,6 +449,26 @@ public class WorkflowUtil {
         }
     }
 
+    /**
+     * Create command line option
+     * 
+     * @param type
+     *            command line option type
+     * @param value
+     *            initial value of command line option
+     * @param flag
+     *            flag associated with the command line option
+     * @param optionId
+     *            command line option id
+     * @param inputOutput
+     *            specify whether command line option is an input, output or
+     *            both
+     * @param filename
+     *            filename for command line option, if applicable
+     * @param commandline
+     *            pass option at the command line
+     * @return Command line option
+     */
     public static CommandLineOption createCommandlineOption(Type type, String value, String flag, String optionId, InputOutput inputOutput, String filename, boolean commandline) {
         CommandLineOption option = new CommandLineOption();
         option.setCommandline(commandline);
@@ -343,6 +487,24 @@ public class WorkflowUtil {
         return option;
     }
 
+    /**
+     * Create command line implementation based on options, standard out/error
+     * logs, environment, etc
+     * 
+     * @param executable
+     *            Executable to run
+     * @param captureStdOut
+     *            data id to capture standard out
+     * @param captureStdErr
+     *            data id to capture standard error
+     * @param joinStdOutStdErr
+     *            Join standard out and error to a single file
+     * @param commandLineOptions
+     *            command line options
+     * @param env
+     *            environment variables to set before execution
+     * @return Commandline implementation description for the tool
+     */
     public static CommandLineImplementation createCommandlineImplementation(String executable, String captureStdOut, String captureStdErr, boolean joinStdOutStdErr,
             List<CommandLineOption> commandLineOptions, Map<String, String> env) {
 
@@ -358,10 +520,10 @@ public class WorkflowUtil {
     }
 
     /**
+     * Shell script to run DTS extractor
      * 
-     * @return
+     * @return shell script for running DTS extractor
      */
-    // TODO add support for passing in parameters
     public static String getDTSShellScript() {
         String script = "#!/bin/bash" + "\n\n" + "HOST=$1 \n" + "extractor=$2 \n" + "fileId=$3 \n" + "TOKEN=$4 \n" + "url=$HOST/dts/api/files/$fileId/extractions \n\n"
                 + "json=\"{\"\\\"extractor\"\\\" : \"\\\"$extractor\"\\\"}\"" + "\n\n"
