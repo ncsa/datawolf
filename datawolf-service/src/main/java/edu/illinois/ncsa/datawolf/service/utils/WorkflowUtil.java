@@ -79,6 +79,7 @@ public class WorkflowUtil {
         metadata.add("technicalmetadata", technicalMetadata);
 
         JsonElement metadataJsonLD = getMetadataJsonLD(fileId, fenceURL, token);
+        metadata.add("metadatajsonld", metadataJsonLD);
 
         // Format the json attached to the tools and workflow
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
