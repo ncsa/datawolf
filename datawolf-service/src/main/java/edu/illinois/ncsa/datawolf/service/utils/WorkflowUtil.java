@@ -78,6 +78,8 @@ public class WorkflowUtil {
         JsonElement technicalMetadata = getTechnicalMetadata(fileId, fenceURL, token);
         metadata.add("technicalmetadata", technicalMetadata);
 
+        JsonElement metadataJsonLD = getMetadataJsonLD(fileId, fenceURL, token);
+
         // Format the json attached to the tools and workflow
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -110,6 +112,20 @@ public class WorkflowUtil {
 
             // Store the technical metadata by extractor id
             extractorMetadata.put(extractorId, gson.toJson(dtsTechnicalMetadata));
+        }
+
+        // Handle metadata.jsonld
+        jsonArray = metadataJsonLD.getAsJsonArray();
+        for (int index = 0; index < jsonArray.size(); index++) {
+            JsonObject object = jsonArray.get(index).getAsJsonObject();
+            JsonObject agent = object.get("agent").getAsJsonObject();
+            String extractorId = agent.get("extractor_id").getAsString();
+
+            // Get just the extractor id
+            extractorId = extractorId.split("extractors/")[1];
+
+            // Store the technical metadata by extractor id
+            extractorMetadata.put(extractorId, gson.toJson(object));
         }
 
         workflow.setDescription(gson.toJson(metadata));
@@ -429,6 +445,48 @@ public class WorkflowUtil {
             extractionEndpoint = fenceURL + "dts/api/files/" + fileId + "/technicalmetadatajson";
         } else {
             extractionEndpoint = fenceURL + "/dts/api/files/" + fileId + "/technicalmetadatajson";
+        }
+
+        HttpGet httpGet = new HttpGet(extractionEndpoint);
+        httpGet.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
+
+        BasicResponseHandler responseHandler = new BasicResponseHandler();
+        String response = null;
+        try {
+            response = client.execute(httpGet, responseHandler);
+            JsonElement jsonResponse = new JsonParser().parse(response);
+
+            return jsonResponse;
+        } catch (ClientProtocolException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
+    /**
+     * Get metadata for file extraction from api/files/{file-id}/metadata.jsonld
+     * 
+     * @param fileId
+     *            file id
+     * @param fenceURL
+     *            BD-API gateway URL
+     * @param token
+     *            authorization token
+     * @return metadata in json format
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
+    public static JsonElement getMetadataJsonLD(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient client = builder.build();
+
+        String extractionEndpoint = fenceURL;
+        if (fenceURL.endsWith("/")) {
+            extractionEndpoint = fenceURL + "dts/api/files/" + fileId + "/metadata.jsonld";
+        } else {
+            extractionEndpoint = fenceURL + "/dts/api/files/" + fileId + "/metadata.jsonld";
         }
 
         HttpGet httpGet = new HttpGet(extractionEndpoint);
