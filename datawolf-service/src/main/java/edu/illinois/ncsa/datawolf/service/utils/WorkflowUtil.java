@@ -426,7 +426,7 @@ public class WorkflowUtil {
 
         String extractionEndpoint = fenceURL;
         if (fenceURL.endsWith("/")) {
-            extractionEndpoint = fenceURL + "dts/api/extractions/" + fileId + "/metadata";
+            extractionEndpoint = fenceURL + "dts/api/files/" + fileId + "/technicalmetadatajson";
         } else {
             extractionEndpoint = fenceURL + "/dts/api/files/" + fileId + "/technicalmetadatajson";
         }
