@@ -68,7 +68,6 @@ import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.domain.dao.WorkflowStepDao;
-import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.domain.util.BeanUtil;
 
 @Path("/workflows")
@@ -83,9 +82,6 @@ public class WorkflowsResource {
 
     @Inject
     private WorkflowStepDao     workflowStepDao;
-
-    @Inject
-    private PersonDao           personDao;
 
     /**
      * Create a new workflow
