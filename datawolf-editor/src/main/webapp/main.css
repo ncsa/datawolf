@@ -522,8 +522,8 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   border-color : #A6A8AC;
   border-color : rgba(166, 168, 172, 1);
   border-width : 1px;
-  max-width : 400px;
-  max-height : 489px;
+  max-width : 600px;
+  max-height : 700px;
   width: auto;
   height: auto;
   /*width: 323px;
@@ -622,7 +622,13 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 .info-content-body {
   padding: 10px;
   overflow: auto;
-  height: 55px;
+  height: 90px;
+}
+
+.workflow-info-content-body {
+  padding: 10px;
+  overflow: auto;
+  height: 110px;
 }
 
 .info-content-subhead
