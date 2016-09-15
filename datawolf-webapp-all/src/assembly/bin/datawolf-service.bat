@@ -11,7 +11,7 @@ REM context root for datawolf server, needed when behind nginx
 set CONTEXT=/datawolf
 
 REM log file, leave blank for console
-REM set LOG="--out %cd%\log\datawolf-yyyy_mm_dd.log"
+REM set LOG=--out %cd%\log\datawolf-yyyy_mm_dd.log
 
 REM create some folders just in case
 if not exist log mkdir log
@@ -52,4 +52,4 @@ FOR %%W in (lib\datawolf-editor*.war) do (
 )
 
 REM start actual webapp
-java -Xmx512m -Ddatawolf.properties=${PWD}/conf/datawolf.properties -Dlog4j.configuration="file:///%cd:\=/%/conf/log4j.properties" -jar "%cd:\=/%/lib/jetty-runner.jar" --port %PORT% %LOG% %SERVER% %EDITOR%
+java -Xmx512m -Ddatawolf.properties=%cd%/conf/datawolf.properties -Dlog4j.configuration="file:///%cd:\=/%/conf/log4j.properties" -jar "%cd:\=/%/lib/jetty-runner.jar" --port %PORT% %LOG% %SERVER% %EDITOR%
