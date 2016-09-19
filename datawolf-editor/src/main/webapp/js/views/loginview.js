@@ -150,7 +150,7 @@ var MediciRegistrationView = Backbone.View.extend({
 
 		if(user == null) {
 			showingRegistrationError = true;
-			document.getElementById("registration-error-text").innerHTML = "Error, please register with Medici first.";
+			document.getElementById("registration-error-text").innerHTML = "Error, please register with Clowder first.";
 			$("#registration-error").show();
 		}  else {
 
@@ -159,7 +159,27 @@ var MediciRegistrationView = Backbone.View.extend({
 				document.getElementById("registration-error-text").innerHTML = "Password is too short. Password must be 6 or more characters.";
 				$("#registration-error").show();
 			} else {
-				createAccount(email, password);
+				// Clowder account exists, check if user/pass is valid before allowing it to be used with DataWolf
+				$.ajax({
+					url: datawolfOptions.clowder + '/api/me',
+					method: 'GET',
+					beforeSend: function(xhr) {
+						xhr.setRequestHeader('Authorization', 'Basic '+ btoa(email + ':' + password));
+					},
+					success: function(message) {
+						// DataWolf needs to store basic information about the user
+						// It might be possible to eliminate this so we can always call Clowder API to validate user as needed
+						// TODO handle case if users change their clowder password
+						createAccount(email, password);
+					},
+
+					error: function(message) {
+						document.getElementById("registration-error-text").innerHTML = "Error validating Clowder account.";
+						$("#registration-error").show()
+					}
+
+				});
+
 			}
 		}
 	}
