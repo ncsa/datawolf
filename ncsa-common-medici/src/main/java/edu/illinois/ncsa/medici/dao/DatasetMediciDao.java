@@ -231,7 +231,17 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
         builder.setDefaultRequestConfig(config);
         HttpClient httpclient = builder.build();
 
-        String requestUrl = SERVER + "api/datasets/" + id + "/listFiles";
+        String requestUrl = SERVER;
+        if (!requestUrl.endsWith("/")) {
+            requestUrl += "/";
+        }
+
+        if ((key == null) || key.trim().equals("")) {
+            requestUrl += "api/datasets/" + id + "/listFiles";
+        } else {
+            requestUrl += "api/datasets/" + id + "/listFiles?key=" + key.trim();
+        }
+
         HttpGet httpGet = new HttpGet(requestUrl);
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
         logger.debug("Executing request " + httpGet.getRequestLine());
@@ -251,7 +261,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 String mimetype = jsonObject.get("contentType").getAsString();
                 fileDescriptor.setFilename(filename);
                 fileDescriptor.setMimeType(mimetype);
-                String dataUrl = SERVER + "api/files/" + fdId;
+                String dataUrl = SERVER;
+                if (!dataUrl.endsWith("/")) {
+                    dataUrl += "/";
+                }
+                dataUrl += "api/files/" + fdId;
                 fileDescriptor.setId(fdId);
                 fileDescriptor.setDataURL(dataUrl);
 
@@ -278,7 +292,6 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
     @Override
     public List<Dataset> findByDeleted(boolean deleted) {
-        // TODO implement this query
         return findAll();
     }
 
@@ -296,13 +309,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
     @Override
     public List<Dataset> findByCreatorEmail(String email) {
-        // TODO implement this query
         return findAll();
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted) {
-        // TODO implement this query
         return findAll();
     }
 
