@@ -67,10 +67,6 @@ public class BrownDogResource {
 
     private static final Logger log = LoggerFactory.getLogger(BrownDogResource.class);
 
-    // TODO this is a placeholder until we have a way to obtain the actual user
-    @Inject
-    @Named("browndog.user")
-    private String              datawolfUser;
     @Inject
     @Named("datawolf.url")
     private String              datawolfUrl;
@@ -97,55 +93,62 @@ public class BrownDogResource {
     @POST
     @Path("provenance")
     @Produces({ MediaType.TEXT_HTML })
-    public Response createWorkflow(@Context HttpServletRequest request, @HeaderParam("Authorization") String token) {
+    public Response createWorkflow(@Context HttpServletRequest request, @HeaderParam("X-BD-Username") String username, @HeaderParam("Authorization") String token) {
 
-        // TODO token should be handled by Authentication interceptor
-        if (token != null && !token.isEmpty()) {
-            try {
-                JsonElement jsonElement = new JsonParser().parse(request.getReader());
-                JsonObject body = jsonElement.getAsJsonObject();
+        if (username == null) {
+            return Response.status(500).entity("Username not found in the header").build();
+        } else {
+            // TODO token should be handled by Authentication interceptor
+            if (token != null && !token.isEmpty()) {
+                try {
+                    JsonElement jsonElement = new JsonParser().parse(request.getReader());
+                    JsonObject body = jsonElement.getAsJsonObject();
 
-                String fileId = body.get("file").getAsString();
+                    String fileId = body.get("file").getAsString();
 
-                if (!fileId.isEmpty()) {
-                    String fenceURL = body.get("fence").getAsString();
-                    String type = fileId.startsWith("http") ? "dap" : "dts";
+                    if (!fileId.isEmpty()) {
+                        String fenceURL = body.get("fence").getAsString();
+                        String type = fileId.startsWith("http") ? "dap" : "dts";
 
-                    if (!type.isEmpty() && !fenceURL.isEmpty()) {
-                        if (type.equals("dts")) {
-                            Person creator = personDao.findByEmail(datawolfUser);
-                            try {
-                                Workflow workflow = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
-                                workflowDao.save(workflow);
+                        if (!type.isEmpty() && !fenceURL.isEmpty()) {
+                            Person creator = personDao.findByEmail(username);
+                            if (creator == null) {
+                                return Response.status(500).entity(username + " is not a registered DataWolf user, please sign up for an account").build();
+                            }
+                            if (type.equals("dts")) {
+                                try {
+                                    Workflow workflow = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
+                                    workflowDao.save(workflow);
 
-                                String workflowURL = datawolfUrl + "/editor/execute.html#" + workflow.getId();
-                                String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the file:</p>\n";
-                                workflowLink += "<a href=\"" + workflowURL + "\" target=\"_blank\">" + workflowURL + "</a>\n</html>";
+                                    String workflowURL = datawolfUrl + "/editor/execute.html#" + workflow.getId();
+                                    String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the file:</p>\n";
+                                    workflowLink += "<a href=\"" + workflowURL + "\" target=\"_blank\">" + workflowURL + "</a>\n</html>";
 
-                                ResponseBuilder response = Response.ok(workflowLink);
-                                return response.build();
-                            } catch (Exception e) {
-                                log.error("Error creating workflow", e);
-                                return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
+                                    ResponseBuilder response = Response.ok(workflowLink);
+                                    return response.build();
+                                } catch (Exception e) {
+                                    log.error("Error creating workflow", e);
+                                    return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
+                                }
+                            } else {
+                                return Response.status(500).entity("DAP workflow requests not yet supported").build();
                             }
                         } else {
-                            return Response.status(500).entity("DAP workflow requests not yet supported").build();
+                            return Response.status(500).entity("Must specify type as DTS or DAP and the API endpoint.").build();
                         }
                     } else {
-                        return Response.status(500).entity("Must specify type as DTS or DAP and the API endpoint.").build();
+                        return Response.status(500).entity("Must specify a file.").build();
                     }
-                } else {
-                    return Response.status(500).entity("Must specify a file.").build();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return Response.status(500).entity("Could not build workflow for file").build();
                 }
 
-            } catch (IOException e) {
-                e.printStackTrace();
-                return Response.status(500).entity("Could not build workflow for file").build();
+            } else {
+                log.debug("User not authenticated");
+                return unauthorizedResponse("Not authenticated");
             }
-
-        } else {
-            log.debug("User not authenticated");
-            return unauthorizedResponse("Not authenticated");
         }
     }
 
