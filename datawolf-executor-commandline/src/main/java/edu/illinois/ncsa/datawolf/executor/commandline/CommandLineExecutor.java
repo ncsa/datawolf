@@ -160,18 +160,54 @@ public class CommandLineExecutor extends LocalExecutor {
                             if (ds == null) {
                                 throw (new AbortException("Dataset is missing."));
                             }
-                            try {
-                                InputStream is = fileStorage.readFile(ds.getFileDescriptors().get(0));
-                                FileOutputStream fos = new FileOutputStream(filename);
-                                byte[] buf = new byte[10240];
-                                int len = 0;
-                                while ((len = is.read(buf)) > 0) {
-                                    fos.write(buf, 0, len);
+
+                            if (ds.getFileDescriptors().size() == 1) {
+                                try {
+                                    InputStream is = fileStorage.readFile(ds.getFileDescriptors().get(0));
+                                    FileOutputStream fos = new FileOutputStream(filename);
+                                    byte[] buf = new byte[10240];
+                                    int len = 0;
+                                    while ((len = is.read(buf)) > 0) {
+                                        fos.write(buf, 0, len);
+                                    }
+                                    is.close();
+                                    fos.close();
+                                } catch (IOException e) {
+                                    throw (new FailedException("Could not get input file.", e));
                                 }
-                                is.close();
-                                fos.close();
-                            } catch (IOException e) {
-                                throw (new FailedException("Could not get input file.", e));
+                            } else {
+                                // This is for the case where the file has no
+                                // extension and we need unique local filenames
+                                int increment = 0;
+                                for (FileDescriptor fd : ds.getFileDescriptors()) {
+                                    try {
+                                        // Check for file extension
+                                        int fileExtensionIndex = fd.getFilename().lastIndexOf(".");
+
+                                        String localFileName = filename;
+
+                                        if (fileExtensionIndex != -1) {
+                                            String fileExtension = fd.getFilename().substring(fileExtensionIndex + 1);
+                                            localFileName = new File(localFileName + "." + fileExtension).getAbsolutePath();
+                                            logger.warn("file extension is " + fileExtension);
+                                        } else {
+                                            // Give files unique names
+                                            localFileName = localFileName + increment;
+                                            increment++;
+                                        }
+                                        InputStream is = fileStorage.readFile(fd);
+                                        FileOutputStream fos = new FileOutputStream(localFileName);
+                                        byte[] buf = new byte[10240];
+                                        int len = 0;
+                                        while ((len = is.read(buf)) > 0) {
+                                            fos.write(buf, 0, len);
+                                        }
+                                        is.close();
+                                        fos.close();
+                                    } catch (IOException e) {
+                                        throw (new FailedException("Could not get input file.", e));
+                                    }
+                                }
                             }
                         }
                         command.add(filename);
