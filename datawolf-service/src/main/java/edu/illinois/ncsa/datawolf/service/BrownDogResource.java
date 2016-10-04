@@ -73,16 +73,13 @@ public class BrownDogResource {
     private PersonDao           personDao;
 
     /**
-     * Creates a workflow representing all extractors ran on a particular file
      * 
-     * @param fileId
-     *            ID of the file
-     * @param type
-     *            DTS or DAP workflow
-     * @param fenceURL
-     *            URL to BD API
+     * @param username
+     *            User requesting workflow
+     * @param dwUrl
+     *            datawolf endpoint to build response
      * @param token
-     *            Access token for BD API
+     *            authorization token for BD-API
      * @return Link to workflow
      */
     @POST
