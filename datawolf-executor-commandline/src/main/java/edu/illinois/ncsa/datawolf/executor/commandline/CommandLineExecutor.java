@@ -161,49 +161,53 @@ public class CommandLineExecutor extends LocalExecutor {
                                 throw (new AbortException("Dataset is missing."));
                             }
 
+                            // Define read/write buffer
+                            byte[] buf = new byte[10240];
                             if (ds.getFileDescriptors().size() == 1) {
-                                try {
-                                    InputStream is = fileStorage.readFile(ds.getFileDescriptors().get(0));
-                                    FileOutputStream fos = new FileOutputStream(filename);
-                                    byte[] buf = new byte[10240];
+                                try (InputStream is = fileStorage.readFile(ds.getFileDescriptors().get(0)); FileOutputStream fos = new FileOutputStream(filename);) {
                                     int len = 0;
                                     while ((len = is.read(buf)) > 0) {
                                         fos.write(buf, 0, len);
                                     }
-                                    is.close();
-                                    fos.close();
                                 } catch (IOException e) {
                                     throw (new FailedException("Could not get input file.", e));
                                 }
                             } else {
-                                // This is for the case where the file has no
-                                // extension and we need unique local filenames
-                                int increment = 0;
+
+                                // Create a folder for the datasets
+                                File inputFolder = new File(filename);
+                                if (!inputFolder.mkdirs()) {
+                                    throw (new FailedException("Could not create folder for input files"));
+                                }
+
+                                int duplicate = 1;
                                 for (FileDescriptor fd : ds.getFileDescriptors()) {
-                                    try {
-                                        // Check for file extension
+                                    String localFileName = fd.getFilename();
+
+                                    // Check if file already exists
+                                    if (new File(inputFolder, localFileName).exists()) {
                                         int fileExtensionIndex = fd.getFilename().lastIndexOf(".");
 
-                                        String localFileName = filename;
-
+                                        String name = new File(inputFolder, localFileName).getName();
+                                        String fileExtension = "";
                                         if (fileExtensionIndex != -1) {
-                                            String fileExtension = fd.getFilename().substring(fileExtensionIndex + 1);
-                                            localFileName = new File(localFileName + "." + fileExtension).getAbsolutePath();
-                                            logger.warn("file extension is " + fileExtension);
-                                        } else {
-                                            // Give files unique names
-                                            localFileName = localFileName + increment;
-                                            increment++;
+                                            fileExtension = fd.getFilename().substring(fileExtensionIndex);
+                                            logger.debug("File extension is " + fileExtension);
                                         }
-                                        InputStream is = fileStorage.readFile(fd);
-                                        FileOutputStream fos = new FileOutputStream(localFileName);
-                                        byte[] buf = new byte[10240];
+
+                                        localFileName = new File(inputFolder, name + " (" + duplicate + ")" + fileExtension).getAbsolutePath();
+                                        duplicate++;
+                                    } else {
+                                        localFileName = new File(inputFolder, localFileName).getAbsolutePath();
+                                    }
+
+                                    logger.debug("Input file path is " + localFileName);
+
+                                    try (InputStream is = fileStorage.readFile(fd); FileOutputStream fos = new FileOutputStream(localFileName);) {
                                         int len = 0;
                                         while ((len = is.read(buf)) > 0) {
                                             fos.write(buf, 0, len);
                                         }
-                                        is.close();
-                                        fos.close();
                                     } catch (IOException e) {
                                         throw (new FailedException("Could not get input file.", e));
                                     }
