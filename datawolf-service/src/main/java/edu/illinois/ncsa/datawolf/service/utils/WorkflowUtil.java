@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -51,6 +53,194 @@ import edu.illinois.ncsa.domain.util.BeanUtil;
 public class WorkflowUtil {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowUtil.class);
+
+    public static Workflow createDAPWorkflow(String fileId, String fenceURL, String token, Person creator) throws Exception {
+        // Get DAP log file
+        String logfile = getDAPLogFile(fileId, fenceURL, token);
+        String[] logfileLines = logfile.split("\\r?\\n");
+
+        // Information we need to create/execute software server tools
+        String softwareServerURL = null;
+
+        // List of tools
+        List<String> softwareServerTools = new ArrayList<String>();
+        // List of Tasks
+        List<String> softwareServerTasks = new ArrayList<String>();
+        // List of outputs
+        List<String> softwareServerOutputs = new ArrayList<String>();
+        // List of inputs
+        List<String> softwareServerInputs = new ArrayList<String>();
+
+        // Traverse log file and locate softwareserver tools
+        for (String line : logfileLines) {
+            if (line.contains("Setting session to")) {
+                String urlPattern = "((https?|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
+                Pattern p = Pattern.compile(urlPattern, Pattern.CASE_INSENSITIVE);
+                Matcher m = p.matcher(line);
+                int i = 0;
+                String httpString = null;
+                while (m.find()) {
+                    httpString = m.group(i);
+                    i++;
+                }
+                if (httpString != null) {
+                    softwareServerURL = httpString.split("file")[0];
+                }
+            }
+
+            // Find Tool
+            if (line.contains("Executing")) {
+                String[] executionLine = line.split("Executing,")[1].split(" ");
+                // Software Server Tool and Task
+                String[] toolScript = executionLine[1].split("/")[2].split("_");
+                softwareServerTools.add(toolScript[0]);
+                softwareServerTasks.add(toolScript[1].split("\\.", 2)[0]);
+
+                String[] toolInput = executionLine[2].split("\\.");
+                softwareServerInputs.add(toolInput[toolInput.length - 1]);
+
+                // Software output
+                String[] toolOutput = executionLine[3].split("\\.");
+                softwareServerOutputs.add(toolOutput[toolOutput.length - 1]);
+
+            }
+
+        }
+
+        // Get individual software server logs
+        List<String> softwareServerLogs = getSoftwareServerLogs(logfileLines);
+
+        // Create empty workflow
+        Workflow workflow = createWorkflow("workflow-" + fileId, logfile, creator);
+
+        // Step inputs/outputs/parameters
+        Map<String, String> inputs = null;
+        Map<String, String> outputs = null;
+        Map<String, String> parameters = null;
+
+        // Tool inputs/outputs/parameters
+        List<WorkflowToolParameter> toolParameters = null;
+        List<WorkflowToolData> toolInputs = null;
+        List<WorkflowToolData> toolOutputs = null;
+
+        Set<FileDescriptor> blobs = null;
+
+        WorkflowStep prevStep = null;
+        FileStorage fileStorage = Persistence.getBean(FileStorage.class);
+        for (int index = 0; index < softwareServerTools.size(); index++) {
+            String toolName = softwareServerTools.get(index);
+            String toolTask = softwareServerTasks.get(index);
+            String toolOutput = softwareServerOutputs.get(index);
+            String toolInput = softwareServerInputs.get(index);
+
+            String title = toolName + "-" + toolInput + "-" + toolOutput;
+            String description = "Converts " + toolInput + " to " + toolOutput + "\n\n" + softwareServerLogs.get(index);
+
+            toolParameters = new ArrayList<WorkflowToolParameter>();
+
+            toolParameters.add(createWorkflowToolParameter("Host", "Software Server", false, ParameterType.STRING, true, softwareServerURL));
+            toolParameters.add(createWorkflowToolParameter("Application", "Application to run", false, ParameterType.STRING, true, toolName));
+            toolParameters.add(createWorkflowToolParameter("Task", "task to perform", false, ParameterType.STRING, true, toolTask));
+            toolParameters.add(createWorkflowToolParameter("Output", "Output type", false, ParameterType.STRING, true, toolOutput));
+
+            List<CommandLineOption> commandlineOptions = new ArrayList<CommandLineOption>();
+
+            // TODO Create windows .bat script
+            String executable = "./dap-script.sh";
+
+            parameters = new HashMap<String, String>();
+            for (WorkflowToolParameter parameter : toolParameters) {
+                parameters.put(parameter.getParameterId(), UUID.randomUUID().toString());
+                commandlineOptions.add(createCommandlineOption(Type.PARAMETER, "", "", parameter.getParameterId(), null, null, true));
+            }
+
+            toolInputs = new ArrayList<WorkflowToolData>();
+            toolOutputs = new ArrayList<WorkflowToolData>();
+
+            // Add input file
+            WorkflowToolData toolInputData = createWorkflowToolData(toolInput, toolTask + " file to " + toolOutput, "");
+            toolInputs.add(toolInputData);
+
+            inputs = new HashMap<String, String>();
+            inputs.put(toolInputData.getDataId(), UUID.randomUUID().toString());
+
+            commandlineOptions.add(createCommandlineOption(Type.DATA, "", "", toolInputData.getDataId(), InputOutput.INPUT, "input." + toolInput, true));
+
+            // Capture Standard Out from tool
+            WorkflowToolData stdOut = createWorkflowToolData("stdout", "stdout log file", "");
+            toolOutputs.add(stdOut);
+
+            // Capture the image output
+            // TODO We could capture the mime type from the conversion selected
+            WorkflowToolData imageOutput = createWorkflowToolData("output." + toolOutput, toolOutput + " output file", "");
+            toolOutputs.add(imageOutput);
+
+            outputs = new HashMap<String, String>();
+            for (WorkflowToolData output : toolOutputs) {
+                outputs.put(output.getDataId(), UUID.randomUUID().toString());
+                if (output != stdOut) {
+                    commandlineOptions.add(createCommandlineOption(Type.DATA, "", "", output.getDataId(), InputOutput.OUTPUT, "output." + toolOutput, true));
+                }
+            }
+
+            InputStream is = new ByteArrayInputStream(getDAPScript().getBytes(StandardCharsets.UTF_8));
+            FileDescriptor fd = fileStorage.storeFile("dap-script.sh", is);
+
+            CommandLineImplementation impl = createCommandlineImplementation(executable, stdOut.getDataId(), null, false, commandlineOptions, null);
+            blobs = new HashSet<FileDescriptor>();
+            blobs.add(fd);
+
+            // Create the workflow tool that wraps the software server tool
+            WorkflowTool tool = createWorkflowTool(title, description, "1.0", creator, toolParameters, toolInputs, toolOutputs, blobs, BeanUtil.objectToJSON(impl), "commandline");
+
+            // Create the workflow step to setup the tool
+            WorkflowStep step = createWorkflowStep(title, creator, tool, inputs, outputs, parameters);
+
+            WorkflowToolData prevStepOutput = null;
+            if (prevStep != null) {
+                List<WorkflowToolData> prevStepOutputs = prevStep.getTool().getOutputs();
+                for (WorkflowToolData output : prevStepOutputs) {
+                    if (!output.getTitle().equalsIgnoreCase("stdout")) {
+                        prevStepOutput = output;
+                        break;
+                    }
+                }
+
+                // Map previous step output as input for next conversion
+                // tool
+                if (prevStepOutput != null) {
+                    inputs.put(tool.getInputs().get(0).getDataId(), prevStep.getOutputs().get(prevStepOutput.getDataId()));
+                }
+            }
+
+            workflow.addStep(step);
+
+            prevStep = step;
+        }
+
+        return workflow;
+    }
+
+    // Returns the parts of the log for each software server
+    private static List<String> getSoftwareServerLogs(String[] logfileLines) {
+        StringBuffer log = null;
+        List<String> softwareServerLogs = new ArrayList<String>();
+        for (String line : logfileLines) {
+            if (line.contains("[Begin Software Server Log")) {
+                log = new StringBuffer();
+            }
+
+            if (log != null) {
+                log.append(line);
+            }
+
+            if (line.contains("End Software Server Log")) {
+                softwareServerLogs.add(log.toString());
+                log = null;
+            }
+        }
+        return softwareServerLogs;
+    }
 
     /**
      * Creates a workflow representing the DTS extractors ran on a file
@@ -508,6 +698,21 @@ public class WorkflowUtil {
         }
     }
 
+    public static String getDAPLogFile(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient client = builder.build();
+
+        String logfileUrl = fileId + ".log";
+
+        HttpGet httpGet = new HttpGet(logfileUrl);
+        httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
+
+        BasicResponseHandler handler = new BasicResponseHandler();
+        String logfile = client.execute(httpGet, handler);
+
+        return logfile;
+    }
+
     /**
      * Create command line option
      * 
@@ -587,6 +792,22 @@ public class WorkflowUtil {
         String script = "#!/bin/bash" + "\n\n" + "HOST=$1 \n" + "extractor=$2 \n" + "fileId=$3 \n" + "TOKEN=$4 \n" + "url=$HOST/dts/api/files/$fileId/extractions \n\n"
                 + "json=\"{\"\\\"extractor\"\\\" : \"\\\"$extractor\"\\\"}\"" + "\n\n"
                 + "curl -i -X POST -H \"Accept:application/json\" -H \"Content-type: application/json\" -H \"Authorization: $TOKEN\" --data \"$json\" $url \n";
+
+        return script;
+    }
+
+    /**
+     * Create DataWolf tool shell script for calling SoftwareServers
+     * 
+     * @return Shell script for calling SoftwareServers
+     */
+    public static String getDAPScript() {
+        String script = "#!/bin/bash" + "\n\n" + "host=$1 \n" + "application=$2 \n" + "task=$3 \n" + "output=$4 \n" + "input_file=$5 \n" + "dw_output=$6 \n"
+                + "url=$host/software/$application/$task/$output \n\n" + "output_url=`curl -s -H \"Accept:text/plain\" -F \"file=@$input_file\" $url` \n" + "output_file=${input_file%.*}.$output \n"
+                + "echo \"Converting: $input_file to $output_file\" \n\n" + "loop=0 \n\n" + "# Wait up to 5 minutes for the result file then fail \n" + "while [ $loop -lt 60 ] \n" + "do \n"
+                + "\twget -q -O $output_file $output_url \n" + "\tif [ -s \"$output_file\" ] \n" + "\tthen \n" + "\t\techo \"file downloaded\" \n" + "\t\tbreak \n" + "\telse \n"
+                + "\t\tloop=`expr $loop + 1` \n" + "\t\techo \"Retrying after 5 seconds\" \n" + "\t\tsleep 5 \n" + "\tfi \n" + "done \n\n" + "if [ -s \"$output_file\" ] \n" + "then \n"
+                + "\tmv $output_file $dw_output \n" + "else \n" + "\techo \"Failure - no result file was found after 5 minutes of retrying\" \n" + "fi";
 
         return script;
     }

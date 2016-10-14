@@ -112,29 +112,33 @@ public class BrownDogResource {
                         if (creator == null) {
                             return Response.status(500).entity(username + " is not a registered DataWolf user, please sign up for an account").build();
                         }
-                        if (type.equals("dts")) {
-                            try {
-                                Workflow workflow = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
-                                workflowDao.save(workflow);
 
-                                String datawolfUrl = dwUrl;
-                                if (!datawolfUrl.endsWith("/")) {
-                                    datawolfUrl += "/";
-                                }
-
-                                String workflowURL = datawolfUrl + "editor/execute.html#" + workflow.getId();
-                                String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the file:</p>\n";
-                                workflowLink += "<a href=\"" + workflowURL + "\" target=\"_blank\">" + workflowURL + "</a>\n</html>";
-
-                                ResponseBuilder response = Response.ok(workflowLink);
-                                return response.build();
-                            } catch (Exception e) {
-                                log.error("Error creating workflow", e);
-                                return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
+                        Workflow workflow = null;
+                        try {
+                            if (type.equals("dts")) {
+                                workflow = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
+                            } else {
+                                workflow = WorkflowUtil.createDAPWorkflow(fileId, fenceURL, token, creator);
                             }
-                        } else {
-                            return Response.status(500).entity("DAP workflow requests not yet supported").build();
+
+                        } catch (Exception e) {
+                            log.error("Error creating workflow", e);
+                            return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
                         }
+                        workflowDao.save(workflow);
+
+                        String datawolfUrl = dwUrl;
+                        if (!datawolfUrl.endsWith("/")) {
+                            datawolfUrl += "/";
+                        }
+
+                        String workflowURL = datawolfUrl + "editor/execute.html#" + workflow.getId();
+                        String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the file:</p>\n";
+                        workflowLink += "<a href=\"" + workflowURL + "\" target=\"_blank\">" + workflowURL + "</a>\n</html>";
+
+                        ResponseBuilder response = Response.ok(workflowLink);
+                        return response.build();
+
                     } else {
                         return Response.status(500).entity("Must specify type as DTS or DAP and the API endpoint.").build();
                     }
