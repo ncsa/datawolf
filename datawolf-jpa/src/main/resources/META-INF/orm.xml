@@ -98,7 +98,10 @@
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
 			<basic name="title" />
-			<basic name="description" />
+			<basic name="description"> 
+				<column length="65535"/>
+				<lob/>
+			</basic>
 			<basic name="created">
 				<temporal>TIMESTAMP</temporal>
 			</basic>
@@ -154,7 +157,10 @@
 		<inheritance strategy="TABLE_PER_CLASS" />
 		<attributes>
 			<basic name="title" />
-			<basic name="description" />
+			<basic name="description"> 
+				<column length="65535"/>
+				<lob/>
+			</basic>	
 			<basic name="version" />
 			<basic name="date">
 				<temporal>TIMESTAMP</temporal>
