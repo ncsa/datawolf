@@ -140,7 +140,7 @@ public class BrownDogResource {
                         return response.build();
 
                     } else {
-                        return Response.status(500).entity("Must specify type as DTS or DAP and the API endpoint.").build();
+                        return Response.status(500).entity("This DAP or DTS file doesn't appear to be a valid: " + fileId).build();
                     }
                 } else {
                     return Response.status(500).entity("Must specify a file.").build();
