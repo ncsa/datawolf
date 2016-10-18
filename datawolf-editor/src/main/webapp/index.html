@@ -846,8 +846,8 @@
         </tr>
     </script>
     <div id='editor-app' class="container-liquid">
-        <div class="row">
-            <div class="col-lg-2 panel-left-bkgrd">
+        <div class="row editor-row">
+            <div class="col-lg-2 panel-left-bkgrd no-float">
                 <div class="build-nav"id="my-nav">
                     <ul class="nav nav-pills nav-stacked">
                         <li class="Nav-1-link"><a href="#"><label class="Nav-1-Selected">Build</label></a></li>
@@ -894,7 +894,7 @@
                     <div id="workflowbuttons"></div>
                 </div>
             </div>
-            <div class="panel-right-bkgrd col-lg-10">
+            <div class="panel-right-bkgrd col-lg-10 no-float">
                 <div class="pull-right app-login" id="userview"></div> 
                 <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
                     <li id="add-workflow">
@@ -919,7 +919,7 @@
         </div>
         <!-- Modal save-as dialog -->
         <div id="modalWorkflowView" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog save-wf-content">
                 <div class="modal-content">
                     <div class="modal-header save-as-title-bkgrd">
                         <h5 class="modal-title" id="newWorkflowDialogLabel">SAVE AS</h5>
@@ -952,7 +952,7 @@
                     </div>
                 </div> 
             </div>
-        </div>
+        </div> 
         <!-- Import Workflow dialog -->
         <div id="modal-import-view" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
             <div class="modal-dialog">
