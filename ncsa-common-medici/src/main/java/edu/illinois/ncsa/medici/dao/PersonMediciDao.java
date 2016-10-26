@@ -18,8 +18,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.PersonDao;
@@ -27,25 +25,18 @@ import edu.illinois.ncsa.domain.dao.PersonDao;
 public class PersonMediciDao extends AbstractMediciDao<Person, String> implements PersonDao {
     private static final Logger logger = LoggerFactory.getLogger(PersonMediciDao.class);
 
-    @Inject
-    @Named("medici.server")
-    private String              SERVER = "http://localhost:9000/";
-
-    @Inject
-    @Named("medici.key")
-    private String              key;
-
     public Person findOne(String id) {
         HttpClientBuilder builder = HttpClientBuilder.create();
         RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
         builder.setDefaultRequestConfig(config);
         HttpClient httpClient = builder.build();
 
-        String requestUrl;
-        if ((key == null) || key.trim().equals("")) {
-            requestUrl = SERVER + "api/users/" + id;
+        String requestUrl = getServer();
+        String key = getKey();
+        if (key == null || key.trim().equals("")) {
+            requestUrl += "api/users/" + id;
         } else {
-            requestUrl = SERVER + "api/users/" + id + "?key=" + key.trim();
+            requestUrl += "api/users/" + id + "?key=" + key.trim();
         }
 
         HttpGet httpGet = new HttpGet(requestUrl);
@@ -79,11 +70,12 @@ public class PersonMediciDao extends AbstractMediciDao<Person, String> implement
         builder.setDefaultRequestConfig(config);
         HttpClient httpClient = builder.build();
 
-        String requestUrl;
-        if ((key == null) || key.trim().equals("")) {
-            requestUrl = SERVER + "api/users/email" + email;
+        String requestUrl = getServer();
+        String key = getKey();
+        if (key == null || key.trim().equals("")) {
+            requestUrl += "api/users/email" + email;
         } else {
-            requestUrl = SERVER + "api/users/email/" + email + "?key=" + key.trim();
+            requestUrl += "api/users/email/" + email + "?key=" + key.trim();
         }
 
         HttpGet httpGet = new HttpGet(requestUrl);
@@ -117,11 +109,12 @@ public class PersonMediciDao extends AbstractMediciDao<Person, String> implement
         builder.setDefaultRequestConfig(config);
         HttpClient httpClient = builder.build();
 
-        String requestUrl;
-        if ((key == null) || key.trim().equals("")) {
-            requestUrl = SERVER + "api/users";
+        String requestUrl = getServer();
+        String key = getKey();
+        if (key == null || key.trim().equals("")) {
+            requestUrl += "api/users";
         } else {
-            requestUrl = SERVER + "api/users?key=" + key.trim();
+            requestUrl += "api/users?key=" + key.trim();
         }
 
         HttpGet httpGet = new HttpGet(requestUrl);

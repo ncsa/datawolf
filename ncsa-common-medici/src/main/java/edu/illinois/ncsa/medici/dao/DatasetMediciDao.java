@@ -23,8 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
@@ -33,14 +31,6 @@ import edu.illinois.ncsa.medici.MediciRedirectStrategy;
 
 public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> implements DatasetDao {
     private static final Logger logger = LoggerFactory.getLogger(DatasetMediciDao.class);
-
-    @Inject
-    @Named("medici.server")
-    private String              SERVER = "http://localhost:9000/";
-
-    @Inject
-    @Named("medici.key")
-    private String              key;
 
     public Dataset save(Dataset dataset) {
         String responseStr = null;
@@ -53,8 +43,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
         ResponseHandler<String> responseHandler;
 
+        String clowderEndpoint = getServer();
+        String key = getKey();
+        String requestUrl = clowderEndpoint;
         try {
-            String requestUrl = SERVER + "api/datasets/" + dataset.getId();
+            requestUrl += "api/datasets/" + dataset.getId();
             HttpGet httpGet = new HttpGet(requestUrl);
 
             responseHandler = new BasicResponseHandler();
@@ -68,7 +61,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
                 // TODO add support for multiple files in a dataset
                 String fileId = dataset.getFileDescriptors().get(0).getDataURL();
-                fileId = fileId.replace(SERVER + "api/files/", "");
+                fileId = fileId.replace(clowderEndpoint + "api/files/", "");
 
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.addProperty("name", name);
@@ -76,11 +69,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 jsonObject.addProperty("file_id", fileId);
 
                 StringEntity params = new StringEntity(jsonObject.toString());
-                String requestUrl;
-                if ((key == null) || key.trim().equals("")) {
-                    requestUrl = SERVER + "api/datasets";
+                requestUrl = clowderEndpoint;
+                if (key == null || key.trim().equals("")) {
+                    requestUrl += "api/datasets";
                 } else {
-                    requestUrl = SERVER + "api/datasets?key=" + key.trim();
+                    requestUrl += "api/datasets?key=" + key.trim();
                 }
                 logger.debug("REQUEST URL = " + requestUrl);
 
@@ -98,11 +91,12 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 String id = jsonElement.getAsJsonObject().get("id").getAsString();
                 dataset.setId(id);
 
+                requestUrl = clowderEndpoint;
                 // Add datawolf tag
-                if ((key == null) || key.trim().equals("")) {
-                    requestUrl = SERVER + "api/datasets/" + dataset.getId() + "/tags";
+                if (key == null || key.trim().equals("")) {
+                    requestUrl += "api/datasets/" + dataset.getId() + "/tags";
                 } else {
-                    requestUrl = SERVER + "api/datasets/" + dataset.getId() + "/tags?key=" + key.trim();
+                    requestUrl += "api/datasets/" + dataset.getId() + "/tags?key=" + key.trim();
                 }
 
                 httpPost = new HttpPost(requestUrl);
@@ -123,11 +117,13 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 // Attach additional files
                 for (int idx = 1; idx < dataset.getFileDescriptors().size(); idx++) {
                     fileId = dataset.getFileDescriptors().get(idx).getDataURL();
-                    fileId = fileId.replace(SERVER + "api/files/", "");
-                    requestUrl = SERVER + "api/datasets/" + dataset.getId() + "/files/" + fileId;
+                    fileId = fileId.replace(getServer() + "api/files/", "");
 
-                    if ((key != null) || !key.trim().equals("")) {
-                        requestUrl += "?key=" + key.trim();
+                    requestUrl = clowderEndpoint;
+                    if (key == null || key.trim().equals("")) {
+                        requestUrl += "api/datasets/" + dataset.getId() + "/files/" + fileId;
+                    } else {
+                        requestUrl += "api/datasets/" + dataset.getId() + "/files/" + fileId + "?key=" + key.trim();
                     }
 
                     httpPost = new HttpPost(requestUrl);
@@ -159,12 +155,15 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
         RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
         builder.setDefaultRequestConfig(config);
         HttpClient httpclient = builder.build();
+
+        String clowderEndpoint = getServer();
+        String key = getKey();
+        String requestUrl = clowderEndpoint;
         try {
-            String requestUrl;
-            if ((key == null) || key.trim().equals("")) {
-                requestUrl = SERVER + "api/datasets";
+            if (key == null || key.trim().equals("")) {
+                requestUrl += "api/datasets";
             } else {
-                requestUrl = SERVER + "api/datasets?key=" + key.trim();
+                requestUrl += "api/datasets?key=" + key.trim();
             }
             HttpGet httpGet = new HttpGet(requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
@@ -211,8 +210,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
     }
 
     public Dataset findOne(String id) {
-        // Medici doesn't support single fetch: SERVER + "api/datasets/id"
-        // TODO Improve efficiency of finding 1 dataset
+        // TODO replace with clowder endpoint api/datasets/:id
         List<Dataset> results = findAll();
         for (Dataset dataset : results) {
             if (dataset.getId().equals(id)) {
@@ -231,12 +229,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
         builder.setDefaultRequestConfig(config);
         HttpClient httpclient = builder.build();
 
-        String requestUrl = SERVER;
-        if (!requestUrl.endsWith("/")) {
-            requestUrl += "/";
-        }
+        String clowderEndpoint = getServer();
+        String key = getKey();
+        String requestUrl = clowderEndpoint;
 
-        if ((key == null) || key.trim().equals("")) {
+        if (key == null || key.trim().equals("")) {
             requestUrl += "api/datasets/" + id + "/listFiles";
         } else {
             requestUrl += "api/datasets/" + id + "/listFiles?key=" + key.trim();
@@ -261,11 +258,8 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 String mimetype = jsonObject.get("contentType").getAsString();
                 fileDescriptor.setFilename(filename);
                 fileDescriptor.setMimeType(mimetype);
-                String dataUrl = SERVER;
-                if (!dataUrl.endsWith("/")) {
-                    dataUrl += "/";
-                }
-                dataUrl += "api/files/" + fdId;
+
+                String dataUrl = clowderEndpoint + "api/files/" + fdId;
                 fileDescriptor.setId(fdId);
                 fileDescriptor.setDataURL(dataUrl);
 

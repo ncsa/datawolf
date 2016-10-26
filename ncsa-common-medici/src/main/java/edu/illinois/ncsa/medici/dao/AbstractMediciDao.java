@@ -3,13 +3,23 @@ package edu.illinois.ncsa.medici.dao;
 import java.io.Serializable;
 import java.util.List;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+
 import edu.illinois.ncsa.domain.dao.IDao;
 
 /**
- * 
- * TODO - implement Medici CRUD operations
+ * Clowder Parent DAO
  */
 public abstract class AbstractMediciDao<T, ID extends Serializable> implements IDao<T, ID> {
+
+    @Inject
+    @Named("medici.server")
+    private String server;
+
+    @Inject
+    @Named("medici.key")
+    private String key = "";
 
     public T save(T entity) {
         return entity;
@@ -33,4 +43,32 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
         // TODO implement count
         return 0;
     }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getKey() {
+        return this.key;
+    }
+
+    /**
+     * @return clowder service endpoint
+     */
+    public String getServer() {
+        return server;
+    }
+
+    /**
+     * @param server
+     *            - configured clowder service
+     */
+    public void setServer(String server) {
+        if (server.endsWith("/")) {
+            this.server = server;
+        } else {
+            this.server = server + "/";
+        }
+    }
+
 }
