@@ -44,10 +44,6 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
         return 0;
     }
 
-    public void setKey(String key) {
-        this.key = key;
-    }
-
     public String getKey() {
         return this.key;
     }
@@ -56,19 +52,11 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
      * @return clowder service endpoint
      */
     public String getServer() {
-        return server;
-    }
-
-    /**
-     * @param server
-     *            - configured clowder service
-     */
-    public void setServer(String server) {
-        if (server.endsWith("/")) {
-            this.server = server;
-        } else {
-            this.server = server + "/";
+        // Make sure the service endpoint ends with a slash
+        if (!server.endsWith("/")) {
+            this.server += "/";
         }
+        return server;
     }
 
 }

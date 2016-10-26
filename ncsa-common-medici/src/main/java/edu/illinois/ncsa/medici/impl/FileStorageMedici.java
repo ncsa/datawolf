@@ -45,36 +45,14 @@ public class FileStorageMedici implements FileStorage {
     @Inject
     private FileDescriptorDao fileDescriptorDAO;
 
-    public FileStorageMedici() {
-        server = "http://localhost:9000/";
-        setKey("");
-    }
+    public FileStorageMedici() {}
 
-    /**
-     * @return the server
-     */
     public String getServer() {
-        return server;
-    }
-
-    /**
-     * @param server
-     *            the server to post to
-     */
-    public void setServer(String server) {
-        if (server.endsWith("/")) {
-            this.server = server;
-        } else {
-            this.server = server + "/";
+        // Make sure the injected service ends with a slash
+        if (!server.endsWith("/")) {
+            this.server += "/";
         }
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
+        return server;
     }
 
     public FileDescriptor storeFile(InputStream is) throws IOException {
@@ -117,9 +95,9 @@ public class FileStorageMedici implements FileStorage {
         // open a URL connection
         URL url;
         if ((key == null) || key.trim().equals("")) {
-            url = new URL(server + "api/files");
+            url = new URL(getServer() + "api/files");
         } else {
-            url = new URL(server + "api/files?key=" + key.trim());
+            url = new URL(getServer() + "api/files?key=" + key.trim());
         }
 
         // Open a HTTP connection to the URL
@@ -208,7 +186,7 @@ public class FileStorageMedici implements FileStorage {
         fd.setId(id);
         fd.setFilename(filename);
         fd.setMimeType(new MimetypesFileTypeMap().getContentType(filename));
-        fd.setDataURL(server + "api/files/" + mediciid);
+        fd.setDataURL(getServer() + "api/files/" + mediciid);
         if (md5 != null) {
             fd.setMd5sum(md5.digest());
         }
