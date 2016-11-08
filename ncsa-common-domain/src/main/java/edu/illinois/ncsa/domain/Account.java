@@ -42,6 +42,8 @@ public class Account extends AbstractBean {
     // TODO RK : password should really be encrypted
     private String            password         = "";  //$NON-NLS-1$
 
+    private String            token            = "";
+
     /** email of the person. */
     private Person            person           = null;
 
@@ -80,6 +82,24 @@ public class Account extends AbstractBean {
      */
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    /**
+     * 
+     * @return token for user account
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Associate a token with a user account
+     * 
+     * @param token
+     *            token to associate with user account
+     */
+    public void setToken(String token) {
+        this.token = token;
     }
 
     /**

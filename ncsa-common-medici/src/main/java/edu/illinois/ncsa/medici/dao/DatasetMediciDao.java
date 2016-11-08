@@ -42,6 +42,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
         HttpClient httpclient = builder.build();
 
         ResponseHandler<String> responseHandler;
+        String token = getToken(dataset.getCreator().getEmail());
 
         String clowderEndpoint = getServer();
         String key = getKey();
@@ -70,17 +71,20 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
                 StringEntity params = new StringEntity(jsonObject.toString());
                 requestUrl = clowderEndpoint;
-                if (key == null || key.trim().equals("")) {
+                if (token != null || key == null || key.trim().equals("")) {
                     requestUrl += "api/datasets";
                 } else {
                     requestUrl += "api/datasets?key=" + key.trim();
                 }
-                logger.debug("REQUEST URL = " + requestUrl);
 
                 // Create new dataset and associate files
                 HttpPost httpPost = new HttpPost(requestUrl);
                 httpPost.setEntity(params);
                 httpPost.setHeader("content-type", "application/json");
+
+                if (token != null) {
+                    httpPost.setHeader("Authorization", "Basic " + token);
+                }
 
                 responseHandler = new BasicResponseHandler();
                 responseStr = httpclient.execute(httpPost, responseHandler);
@@ -93,7 +97,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
                 requestUrl = clowderEndpoint;
                 // Add datawolf tag
-                if (key == null || key.trim().equals("")) {
+                if (token != null || key == null || key.trim().equals("")) {
                     requestUrl += "api/datasets/" + dataset.getId() + "/tags";
                 } else {
                     requestUrl += "api/datasets/" + dataset.getId() + "/tags?key=" + key.trim();
@@ -110,6 +114,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                 params = new StringEntity(jsonObject.toString());
                 httpPost.setEntity(params);
                 httpPost.setHeader("content-type", "application/json");
+
+                if (token != null) {
+                    httpPost.setHeader("Authorization", "Basic " + token);
+                }
+
                 responseHandler = new BasicResponseHandler();
                 responseStr = httpclient.execute(httpPost, responseHandler);
                 logger.debug("Add Tag response: " + responseStr);
@@ -120,7 +129,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
                     fileId = fileId.replace(getServer() + "api/files/", "");
 
                     requestUrl = clowderEndpoint;
-                    if (key == null || key.trim().equals("")) {
+                    if (token != null || key == null || key.trim().equals("")) {
                         requestUrl += "api/datasets/" + dataset.getId() + "/files/" + fileId;
                     } else {
                         requestUrl += "api/datasets/" + dataset.getId() + "/files/" + fileId + "?key=" + key.trim();
@@ -128,6 +137,11 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
                     httpPost = new HttpPost(requestUrl);
                     httpPost.setHeader("content-type", "text/plain");
+
+                    if (token != null) {
+                        httpPost.setHeader("Authorization", "Basic " + token);
+                    }
+
                     responseHandler = new BasicResponseHandler();
                     responseStr = httpclient.execute(httpPost, responseHandler);
 

@@ -29,6 +29,7 @@
 		<attributes>
 			<basic name="userid" />
 			<basic name="password" />
+			<basic name="token" />
 			<one-to-one name="person" fetch="EAGER">
 				<cascade>
 					<cascade-merge/>

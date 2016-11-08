@@ -5,6 +5,8 @@ import java.util.StringTokenizer;
 
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
@@ -47,22 +49,41 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
         if (!enabled) {
             return null;
         }
-        if (request.getHttpHeaders().getRequestHeader("Authorization") != null) {
-            String token = request.getHttpHeaders().getRequestHeader("Authorization").get(0);
+        // TODO fix web editor login so it doesn't need access to /persons
+        // Don't intercept /login or /persons endpoint
+        if (!request.getUri().getPath().contains("/login") && !request.getUri().getPath().contains("/persons")) {
 
-            if (token != null && checkLoggedIn(token)) {
-                log.debug("Authorization header found - Sucessfully authenticated");
-                return null;
+            if (request.getHttpHeaders().getCookies().containsKey("token")) {
+                Cookie cookie = request.getHttpHeaders().getCookies().get("token");
+                String token = cookie.getValue();
+                if (token != null && checkToken(token)) {
+                    log.debug("Valid cookie - successfully authenticated");
+                    return null;
+                } else {
+                    return unauthorizedResponse("Not authenticated");
+                }
+            } else if (request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
+                String token = null;
+                if (!request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
+                    token = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
+                }
+
+                if (token != null && checkLoggedIn(token)) {
+                    log.debug("Authorization header found - Sucessfully authenticated");
+                    return null;
+                } else {
+                    // TODO preprocessedPath not part of httprequest
+                    // return
+                    // unauthorizedResponse(request.getPreprocessedPath());
+                    return unauthorizedResponse("Not authenticated");
+                }
             } else {
                 // TODO preprocessedPath not part of httprequest
                 // return unauthorizedResponse(request.getPreprocessedPath());
                 return unauthorizedResponse("Not authenticated");
             }
         } else {
-            log.debug("Not authenticated");
-            // TODO preprocessedPath not part of httprequest
-            // return unauthorizedResponse(request.getPreprocessedPath());
-            return unauthorizedResponse("Not authenticated");
+            return null;
         }
     }
 
@@ -89,6 +110,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
      * @return
      */
     private boolean checkLoggedIn(String token) {
+        // TODO
         try {
             String decoded = new String(Base64.decode(token.substring(6)));
             StringTokenizer tokenizer = new StringTokenizer(decoded, ":");
@@ -112,5 +134,32 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
             log.error("Error decoding token");
         }
         return false;
+    }
+
+    /**
+     * Check token against local user database.
+     * 
+     * @param cookie
+     *            token in request
+     * @return true if token matches, false otherwise
+     */
+    private boolean checkToken(String cookie) {
+        StringTokenizer tokenizer = new StringTokenizer(cookie, ":");
+        if (tokenizer.countTokens() == 2) {
+            String user = tokenizer.nextToken();
+
+            String token = tokenizer.nextToken();
+            Account account = accountDao.findByUserid(user);
+            if ((account != null) && !account.isDeleted() && account.getToken().equals(token)) {
+                log.debug("REST Authentication successful");
+                return true;
+            } else {
+                log.debug("REST Authentication failed");
+                return false;
+            }
+        } else {
+            log.error("Authentication token not complete");
+            return false;
+        }
     }
 }

@@ -1,11 +1,14 @@
 package edu.illinois.ncsa.medici.dao;
 
 import java.io.Serializable;
+import java.util.Base64;
 import java.util.List;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
+import edu.illinois.ncsa.domain.Account;
+import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.IDao;
 
 /**
@@ -15,11 +18,14 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
 
     @Inject
     @Named("medici.server")
-    private String server;
+    private String     server;
 
     @Inject
     @Named("medici.key")
-    private String key = "";
+    private String     key = "";
+
+    @Inject
+    private AccountDao accountDao;
 
     public T save(T entity) {
         return entity;
@@ -57,6 +63,16 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
             this.server += "/";
         }
         return server;
+    }
+
+    protected String getToken(String userId) {
+        // TODO replace this with token from Clowder
+        Account acct = accountDao.findByUserid(userId);
+        String token = null;
+        if (acct != null) {
+            token = new String(Base64.getEncoder().encode(new String(acct.getUserid() + ":" + acct.getPassword()).getBytes()));
+        }
+        return token;
     }
 
 }

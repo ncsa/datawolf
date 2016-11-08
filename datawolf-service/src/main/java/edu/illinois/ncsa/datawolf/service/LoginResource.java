@@ -32,6 +32,8 @@
 package edu.illinois.ncsa.datawolf.service;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.StringTokenizer;
 
 import javax.inject.Inject;
@@ -44,6 +46,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
 
 import org.jboss.resteasy.util.Base64;
 import org.slf4j.Logger;
@@ -56,13 +60,16 @@ import edu.illinois.ncsa.domain.dao.PersonDao;
 
 @Path("/login")
 public class LoginResource {
-    private Logger     log = LoggerFactory.getLogger(LoginResource.class);
+    private Logger       log          = LoggerFactory.getLogger(LoginResource.class);
 
     @Inject
-    private PersonDao  personDao;
+    private PersonDao    personDao;
 
     @Inject
-    private AccountDao accountDao;
+    private AccountDao   accountDao;
+
+    // Generates temporary user token
+    private SecureRandom secureRandom = new SecureRandom();
 
     /**
      * Login a user by email and authorization string
@@ -75,7 +82,7 @@ public class LoginResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public Person login(@QueryParam("email") String email, @HeaderParam("Authorization") String auth) {
+    public Response login(@QueryParam("email") String email, @HeaderParam("Authorization") String auth) {
         if ((auth != null) && !auth.equals("")) {
             try {
                 String decoded = new String(Base64.decode(auth.substring(6)));
@@ -92,7 +99,11 @@ public class LoginResource {
                     }
 
                     if (userAccount.getPassword().equals(password) && userAccount.getPerson().getEmail().equals(email)) {
-                        return personDao.findByEmail(email);
+                        Person person = personDao.findByEmail(email);
+                        String token = new BigInteger(130, secureRandom).toString(32);
+                        userAccount.setToken(token);
+                        accountDao.save(userAccount);
+                        return Response.ok(person).cookie(new NewCookie("token", user + ":" + token, null, null, null, 86400, false)).build();
                     } else {
                         return null;
                     }
@@ -120,7 +131,7 @@ public class LoginResource {
      */
     @POST
     @Produces({ MediaType.TEXT_PLAIN })
-    public void createAccount(@QueryParam("email") String email, @QueryParam("password") String password) throws Exception {
+    public Response createAccount(@QueryParam("email") String email, @QueryParam("password") String password) throws Exception {
 
         if ((email == null) || email.equals("") || (password == null) || password.equals("")) {
             throw (new Exception("No email or password specified"));
@@ -139,7 +150,11 @@ public class LoginResource {
         }
         account.setPassword(password);
         account.setDeleted(false);
+        String token = new BigInteger(130, secureRandom).toString(32);
+        account.setToken(token);
+
         accountDao.save(account);
+        return Response.ok().cookie(new NewCookie("token", email + ":" + token, null, null, null, 86400, false)).build();
     }
 
     /**
