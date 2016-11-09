@@ -1,8 +1,9 @@
 package edu.illinois.ncsa.medici.dao;
 
 import java.io.Serializable;
-import java.util.Base64;
 import java.util.List;
+
+import org.apache.commons.codec.binary.Base64;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -24,7 +25,7 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
     @Named("medici.key")
     private String     key = "";
 
-    @Inject
+    @Inject(optional = true)
     private AccountDao accountDao;
 
     public T save(T entity) {
@@ -67,10 +68,12 @@ public abstract class AbstractMediciDao<T, ID extends Serializable> implements I
 
     protected String getToken(String userId) {
         // TODO replace this with token from Clowder
-        Account acct = accountDao.findByUserid(userId);
         String token = null;
-        if (acct != null) {
-            token = new String(Base64.getEncoder().encode(new String(acct.getUserid() + ":" + acct.getPassword()).getBytes()));
+        if (accountDao != null) {
+            Account acct = accountDao.findByUserid(userId);
+            if (acct != null) {
+                token = new String(Base64.encodeBase64(new String(acct.getUserid() + ":" + acct.getPassword()).getBytes()));
+            }
         }
         return token;
     }
