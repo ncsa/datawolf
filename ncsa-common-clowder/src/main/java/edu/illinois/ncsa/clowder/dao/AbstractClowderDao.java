@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.medici.dao;
+package edu.illinois.ncsa.clowder.dao;
 
 import java.io.Serializable;
 import java.util.List;
@@ -15,7 +15,7 @@ import edu.illinois.ncsa.domain.dao.IDao;
 /**
  * Clowder Parent DAO
  */
-public abstract class AbstractMediciDao<T, ID extends Serializable> implements IDao<T, ID> {
+public abstract class AbstractClowderDao<T, ID extends Serializable> implements IDao<T, ID> {
 
     @Inject
     @Named("medici.server")

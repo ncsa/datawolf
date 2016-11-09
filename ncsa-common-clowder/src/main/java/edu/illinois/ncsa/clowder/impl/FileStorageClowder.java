@@ -1,7 +1,7 @@
 /**
  * 
  */
-package edu.illinois.ncsa.medici.impl;
+package edu.illinois.ncsa.clowder.impl;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,17 +24,17 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.name.Named;
 
+import edu.illinois.ncsa.clowder.ClowderRedirectStrategy;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
-import edu.illinois.ncsa.medici.MediciRedirectStrategy;
 
 /**
  * @author Rob Kooper <kooper@illinois.edu>
  * 
  */
-public class FileStorageMedici implements FileStorage {
-    private static Logger     logger = LoggerFactory.getLogger(FileStorageMedici.class);
+public class FileStorageClowder implements FileStorage {
+    private static Logger     logger = LoggerFactory.getLogger(FileStorageClowder.class);
     @Inject
     @Named("medici.server")
     private String            server;
@@ -45,7 +45,7 @@ public class FileStorageMedici implements FileStorage {
     @Inject
     private FileDescriptorDao fileDescriptorDAO;
 
-    public FileStorageMedici() {}
+    public FileStorageClowder() {}
 
     public String getServer() {
         // Make sure the injected service ends with a slash
@@ -201,7 +201,7 @@ public class FileStorageMedici implements FileStorage {
         if (fd.getDataURL() != null) {
             logger.debug("Deleting existing file");
             HttpClientBuilder builder = HttpClientBuilder.create();
-            builder.setRedirectStrategy(new MediciRedirectStrategy());
+            builder.setRedirectStrategy(new ClowderRedirectStrategy());
             HttpClient httpClient = builder.build();
 
             String requestUrl = null;

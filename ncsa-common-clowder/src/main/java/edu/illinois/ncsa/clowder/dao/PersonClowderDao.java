@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.medici.dao;
+package edu.illinois.ncsa.clowder.dao;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,8 +22,8 @@ import com.google.gson.JsonParser;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 
-public class PersonMediciDao extends AbstractMediciDao<Person, String> implements PersonDao {
-    private static final Logger logger = LoggerFactory.getLogger(PersonMediciDao.class);
+public class PersonClowderDao extends AbstractClowderDao<Person, String> implements PersonDao {
+    private static final Logger logger = LoggerFactory.getLogger(PersonClowderDao.class);
 
     public Person findOne(String id) {
         HttpClientBuilder builder = HttpClientBuilder.create();
