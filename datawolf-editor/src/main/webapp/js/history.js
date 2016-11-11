@@ -97,9 +97,8 @@ var getStep = function(workflow, stepid){
     return step;
 }
 
-var getLogFiles = function(execid) {
+var getLogFiles = function(execid, stepid, logdiv) {
     var myurl = datawolfOptions.rest + '/executions/'+execid+"/logfiles";
-    console.log(myurl);
     $.ajax({
             type: "GET",
             beforeSend: function(request) {
@@ -111,8 +110,20 @@ var getLogFiles = function(execid) {
 
             success: function(msg) {
                 var obj = JSON.parse(msg);
-                console.log("log files:");
-                console.log(obj);
+
+                if(obj.length > 0) {
+                    // Find the log entry for the step
+                    var logEntry = _.findWhere(obj, {'stepId' : stepid});
+
+                    // Get the file descriptor section of the log entry
+                    var log = logEntry.log;
+                    var logId = log['id'];
+
+                    $(logdiv).html('<a href=' + '"' + datawolfOptions.rest + '/files/' + logId + '/file' + '">' + "Log file" + '</a>');
+                } else {
+                    $(logdiv).html('Log file - None');
+                    console.log("No log file found. Check the datawolf.properties file if you expected a log file.");
+                }
                 return obj;
             },
             error: function(msg) {
@@ -371,7 +382,9 @@ function updateActiveExecution() {
 
                         // Update log file links
                         var steplog = outputlog[0];
-                        $(steplog).html('<a href=' + '"' + datawolfOptions.rest + '/executions/' + exec.get('id') + '/logfiles/' + stepid + '">' + "Log file" + '</a>'); 
+
+                        // Obtain log file from execution 
+                        getLogFiles(exec.get('id'), stepid, steplog);
 
                         var index = 0;
                         _.each(_.keys(stepoutputs), function(outputkey) {
