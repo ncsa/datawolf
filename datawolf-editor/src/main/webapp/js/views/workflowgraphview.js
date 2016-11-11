@@ -135,8 +135,18 @@ var WorkflowGraphView = Backbone.View.extend({
             if(DEBUG) {
                 console.log(JSON.stringify(workflow, undefined, 2));
             }
-            var x = 5;
-            var y = 50;
+
+            // Get the height/width of the view
+            var windowHeight = $(window).height();
+
+            // The workflow window is only 5/6 of the total width of the screen
+            var windowWidth = $(window).width() * 5 / 6;
+
+            // Determine starting location of tools if we have no initial location
+            // Start near the top left and add tools left to right
+            // TODO would an update to jsPlumb provide an auto-layout option?
+            var x = 0.02 * windowWidth;
+            var y = 0.15 * windowHeight;
             var stepCollection = workflow.getSteps();
             var _this = this;
             stepCollection.each(function(workflowStep) {
@@ -159,7 +169,20 @@ var WorkflowGraphView = Backbone.View.extend({
                 } else {
                     _this.addToolToGraph(toolId, workflowStep.get('id'), x+'px', y+'px');//graphLocation.getX(), graphLocation.getY());
                 }
-                x = x + 200;
+
+                // Add next tool 300 pixels to the right
+                x = x + 300;
+
+                // If next tool will hit the edge, reset x position and increment y
+                if(x >= windowWidth - 300) {
+                    x = 0.02 * windowWidth;
+
+                    // If we're at the bottom of the screen, just add tools there
+                    // User will need to manually adjust tool positions
+                    if(!y + 0.15 * windowHeight > windowHeight) {
+                        y = y + 0.15 * windowHeight;
+                    }
+                }
 
             });
 

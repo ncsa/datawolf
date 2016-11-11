@@ -5,11 +5,12 @@
           src: local('Open Sans'), local('OpenSans'), url(assets/font/OpenSans.woff) format('woff');
         }
 
-body {
+html, body {
 	/* padding-top: 60px; */
     /* padding-bottom: 40px; */
     /* background: #222; */
     color: #FFFFFF;
+    height: 100%;
     /* font-family:'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; */
     /* font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif; */
 }
@@ -225,8 +226,9 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 }
 
 .container-liquid {
-  padding: 0 15px;
-  margin: 0 auto;
+  height: 100%;
+  width: 100%;
+  display: table;
 }
 
 /* New CSS */
@@ -277,7 +279,6 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 {
   background : #304A54;
   background : rgba(48, 74, 84, 1);
-  height : 41px;
   /* The CSS causes the background to not be as dark as intended */
   /*
   background : -moz-linear-gradient(50% 100% 90deg,rgba(48, 74, 84, 0.1) 0%,rgba(48, 74, 84, 0.09) 7.5%,rgba(48, 74, 84, 0) 53.07%,rgba(48, 74, 84, 0.09) 93.15%,rgba(48, 74, 84, 0.1) 100%);
@@ -301,12 +302,22 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
   color : rgb(230, 231, 232);
 }
 
+.editor-row {
+  height: 100%;
+  display: table-row;
+}
+
+.editor-row .no-float {
+  display: table-cell;
+  float: none;
+}
+
 .panel-left-bkgrd {
     background : #395763;
     background : rgba(57, 87, 99, 1);
     /* width : 243px; */
-    height : 1000px;
     /* Allows the darker background to fill the horizontal */
+    height: 100%;
     padding-right: 0px;
     padding-left: 0px;
 }
@@ -314,9 +325,9 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 .panel-right-bkgrd {
     
     background : #DCE2E5;
-    background : rgba(220, 226, 229, 1); 
+    background : rgba(220, 226, 229, 1);
+    height: 100%;
     /*width : 1376px; */
-    height : 1000px;
 }
 
 /* Endpoint */
@@ -375,8 +386,9 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     border-color : #A6A8AB;
     border-color : rgba(166, 168, 171, 1);
     border-width : 1px;
-    /*width : 1346px; */
-    height : 960px;
+    height: 94%;
+    width: 99%;
+    position: absolute;
     box-shadow : 2px 2px 2px rgba(35, 31, 32, 0.3);
     filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='#231F20') ;
     padding: 5px;
@@ -390,8 +402,6 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     border-color : #CCCBCB;
     border-color : rgba(204, 203, 203, 1);
     border-width : 1px;
-    width : 179px;
-    height : 52px;
 }
 
 .canvastab-text-selected
@@ -797,11 +807,14 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
     height : 515px;
     box-shadow : 2px 2px 2px rgba(35, 31, 32, 0.3);
     filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='#231F20') ;
-    padding: 5px;
 }
 
 .tool-modal-dialog {
   width: 750px;
+}
+
+.save-wf-content {
+  height: 125px;
 }
 
 .parameter-modal-bkgrd {
@@ -834,14 +847,13 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 }
 
 .build-nav {
-  height: 17%;
 }
 
 .tool-parent, .workflow-parent {
-  height: 38%;
+    height: 41%;
 }
 
 .workflow-tools-view, .workflows-view {
-    height: 58%;
+    height: 70%;
     overflow: auto;
 }

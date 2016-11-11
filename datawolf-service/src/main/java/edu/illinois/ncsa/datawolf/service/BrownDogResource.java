@@ -132,7 +132,7 @@ public class BrownDogResource {
                             datawolfUrl += "/";
                         }
 
-                        String workflowURL = datawolfUrl + "editor/execute.html#" + workflow.getId();
+                        String workflowURL = datawolfUrl + "editor/index.html#" + workflow.getId();
                         String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the file:</p>\n";
                         workflowLink += "<a href=\"" + workflowURL + "\" target=\"_blank\">" + workflowURL + "</a>\n</html>";
 
