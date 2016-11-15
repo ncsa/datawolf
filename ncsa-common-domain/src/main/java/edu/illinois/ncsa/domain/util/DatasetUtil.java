@@ -2,34 +2,25 @@ package edu.illinois.ncsa.domain.util;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.Persistence;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 
 public class DatasetUtil {
-    private static Logger            log = LoggerFactory.getLogger(DatasetUtil.class);
+    private static Logger log = LoggerFactory.getLogger(DatasetUtil.class);
 
-    @Inject
-    private static DatasetDao        datasetDao;
-
-    @Inject
-    private static FileDescriptorDao fileDescriptorDao;
-
-    @Inject
-    private static FileStorage       fileStorage;
-
-    // TODO: assuming that there is only 1 file for dataset
     public static boolean deleteDataset(String datasetId) {
         log.info("delete dataset by dataset id: " + datasetId);
 
         // Transaction t = SpringData.getTransaction();
+
+        DatasetDao datasetDao = Persistence.getBean(DatasetDao.class);
 
         // find dataset
         Dataset dataset = datasetDao.findOne(datasetId);
@@ -39,26 +30,28 @@ public class DatasetUtil {
 
         // get filestorage
         // FileStorage fileStorage = SpringData.getFileStorage();
+        FileStorage fileStorage = Persistence.getBean(FileStorage.class);
 
-        FileDescriptor fd = fdList.get(0);
+        FileDescriptorDao fileDescriptorDao = Persistence.getBean(FileDescriptorDao.class);
 
-        // delete fd
-
-        // TODO: need to check whether fd is used by other dataset
-        if (fileStorage.deleteFile(fd)) {
-            fileDescriptorDao.delete(fd);
-        } else {
-            // try {
-            // t.rollback();
-            // } catch (Exception e) {
-            // log.error("Can't rollback when deleting dataset id:" + datasetId,
-// e);
-            // }
-            return false;
-        }
-
-        // deleta dataset
+        // Delete dataset first, otherwise deleting filedescriptor(s) fails
+        // Because there is a dataset table that still contains references
         datasetDao.delete(dataset);
+
+        for (FileDescriptor fd : fdList) {
+            if (fileStorage.deleteFile(fd)) {
+                fileDescriptorDao.delete(fd);
+            } else {
+                // try {
+                // t.rollback();
+                // } catch (Exception e) {
+                // log.error("Can't rollback when deleting dataset id:" +
+                // datasetId,
+                // e);
+                // }
+                return false;
+            }
+        }
 
         // try {
         // t.commit();
