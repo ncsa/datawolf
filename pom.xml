@@ -96,7 +96,7 @@
 	<modules>
 		<module>ncsa-common-domain</module>
 		<module>ncsa-common-jpa</module>
-		<module>ncsa-common-medici</module>
+		<module>ncsa-common-clowder</module>
 		<module>file-service-client</module>
 		<module>file-service</module>
 		<module>file-webapp</module>

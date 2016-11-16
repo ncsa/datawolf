@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.medici.dao;
+package edu.illinois.ncsa.clowder.dao;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -24,19 +24,19 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import edu.illinois.ncsa.clowder.ClowderRedirectStrategy;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
-import edu.illinois.ncsa.medici.MediciRedirectStrategy;
 
-public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> implements DatasetDao {
-    private static final Logger logger = LoggerFactory.getLogger(DatasetMediciDao.class);
+public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> implements DatasetDao {
+    private static final Logger logger = LoggerFactory.getLogger(DatasetClowderDao.class);
 
     public Dataset save(Dataset dataset) {
         String responseStr = null;
 
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setRedirectStrategy(new MediciRedirectStrategy());
+        builder.setRedirectStrategy(new ClowderRedirectStrategy());
         RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
         builder.setDefaultRequestConfig(config);
         HttpClient httpclient = builder.build();
@@ -91,7 +91,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
 
                 JsonElement jsonElement = new JsonParser().parse(responseStr);
 
-                // Returned ID from Medici
+                // Returned ID from Clowder
                 String id = jsonElement.getAsJsonObject().get("id").getAsString();
                 dataset.setId(id);
 
@@ -165,7 +165,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
         List<Dataset> results = null;
         String responseStr = null;
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setRedirectStrategy(new MediciRedirectStrategy());
+        builder.setRedirectStrategy(new ClowderRedirectStrategy());
         RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
         builder.setDefaultRequestConfig(config);
         HttpClient httpclient = builder.build();
@@ -238,7 +238,7 @@ public class DatasetMediciDao extends AbstractMediciDao<Dataset, String> impleme
     private List<FileDescriptor> getFileDescriptor(String id) {
 
         HttpClientBuilder builder = HttpClientBuilder.create();
-        builder.setRedirectStrategy(new MediciRedirectStrategy());
+        builder.setRedirectStrategy(new ClowderRedirectStrategy());
         RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
         builder.setDefaultRequestConfig(config);
         HttpClient httpclient = builder.build();

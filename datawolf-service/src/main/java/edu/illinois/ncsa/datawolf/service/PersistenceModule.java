@@ -50,7 +50,7 @@ public class PersistenceModule extends AbstractModule {
     protected void configure() {
         JpaPersistModule jpa = new JpaPersistModule("WolfPersistence");
 
-        // This contains properties to set on injected files (e.g. medici key)
+        // This contains properties to set on injected files (e.g. clowder key)
         configuration = new Properties();
         String datawolfProperties = System.getProperty("datawolf.properties");
         if (datawolfProperties.trim() != "") {

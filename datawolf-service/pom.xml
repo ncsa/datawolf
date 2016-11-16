@@ -45,7 +45,7 @@
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
-			<artifactId>ncsa-common-medici</artifactId>
+			<artifactId>ncsa-common-clowder</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

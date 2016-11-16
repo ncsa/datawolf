@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.medici;
+package edu.illinois.ncsa.clowder;
 
 import java.net.URI;
 
@@ -20,7 +20,7 @@ import org.apache.http.protocol.HttpContext;
  * @author Chris Navarro
  *
  */
-public class MediciRedirectStrategy extends LaxRedirectStrategy {
+public class ClowderRedirectStrategy extends LaxRedirectStrategy {
 
     @Override
     protected boolean isRedirectable(final String method) {

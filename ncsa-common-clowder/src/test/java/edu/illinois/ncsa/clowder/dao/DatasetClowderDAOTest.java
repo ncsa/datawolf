@@ -1,4 +1,4 @@
-package edu.illinois.ncsa.medici.dao;
+package edu.illinois.ncsa.clowder.dao;
 
 import java.io.InputStream;
 import java.util.List;
@@ -8,19 +8,19 @@ import org.junit.BeforeClass;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import edu.illinois.ncsa.clowder.ClowderDevModule;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
-import edu.illinois.ncsa.medici.MediciDevModule;
 
-public class DatasetMediciDAOTest {
+public class DatasetClowderDAOTest {
 
     private static Injector injector;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        injector = Guice.createInjector(new MediciDevModule());
+        injector = Guice.createInjector(new ClowderDevModule());
 
         // Initialize persistence service
         // PersistService service = injector.getInstance(PersistService.class);

@@ -135,7 +135,7 @@ var MediciRegistrationView = Backbone.View.extend({
 
 	registerMediciUser: function(e) {
 		e.preventDefault();
-		console.log("create Medici account");
+		console.log("Create DataWolf account using Clowder account");
 		var email = $('input[name=email]').val();
 		var password = $('input[name=newpassword]').val();
 
