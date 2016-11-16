@@ -18,11 +18,11 @@ import edu.illinois.ncsa.domain.dao.IDao;
 public abstract class AbstractClowderDao<T, ID extends Serializable> implements IDao<T, ID> {
 
     @Inject
-    @Named("medici.server")
+    @Named("clowder.server")
     private String     server;
 
     @Inject
-    @Named("medici.key")
+    @Named("clowder.key")
     private String     key = "";
 
     @Inject(optional = true)

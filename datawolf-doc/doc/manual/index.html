@@ -42,7 +42,7 @@ Each part will be elaborated on in the next few sections, starting at the bottom
 
 ### Technologies
 
-Data Wolf is a Java application that uses the Guice dependency injection framework to bind data access objects for persisting application information. A generic Create/Read/Update/Delete (CRUD) service layer is implemented by a set of data access objects (DAO) that follow the Java Persistance API (JPA). The Object Relational Mapping (ORM) uses Hibernate and the injected data access objects handle the CRUD operations. In addition to the available JPA data access objects, some DAOs have been written for the Medici Content Management system. This allows finer control over where certain objects are persisted. For example, workflows, tools, steps, etc can be persisted using JPA and data can be persisted to a content management system. For simplicity, the default DataWolf download uses the JPA DAOs to store application data in a HSQL database; however, this can be any relational database. For example, in production, we have used MySQL extensively in large projects with very good performance. 
+Data Wolf is a Java application that uses the Guice dependency injection framework to bind data access objects for persisting application information. A generic Create/Read/Update/Delete (CRUD) service layer is implemented by a set of data access objects (DAO) that follow the Java Persistance API (JPA). The Object Relational Mapping (ORM) uses Hibernate and the injected data access objects handle the CRUD operations. In addition to the available JPA data access objects, some DAOs have been written for the Clowder Content Management system. This allows finer control over where certain objects are persisted. For example, workflows, tools, steps, etc can be persisted using JPA and data can be persisted to a content management system. For simplicity, the default DataWolf download uses the JPA DAOs to store application data in a HSQL database; however, this can be any relational database. For example, in production, we have used MySQL extensively in large projects with very good performance. 
 
 ### Engine
 
@@ -228,18 +228,18 @@ To install the files necessary for the Server and Editor, find where you downloa
 Open the folder that was created by unzipping the installation zip file and go into the **Conf** folder. You should see a file called **datawolf.properties**. For the purpose of running Data Wolf server and editor, you won't need to make any changes to this file or understand its contents. However, for those who are interested, the rest of this section will dissect the file for informational purposes to highlight the important parts of the file you might want to modify to configure available executors and where information is stored. If you open the **datawolf.properties** in a text editor, you should see the snippet below:
 
 ```
-#Medici settings
-#medici.server=http://localhost:9000/
-#medici.key=
+#Clowder settings
+#clowder.server=http://localhost:9000/
+#clowder.key=
 
 #Local Disk settings
 disk.levels=3
 disk.folder=data/files
 ```
 
-* **Medici settings**
-    * **medici.server** Uncomment this to specify the Medici server URL. 
-  * * **medici.key** Uncomment this to specify the key for the Medici server. 
+* **Clowder settings**
+    * **clowder.server** Uncomment this to specify the Clowder server URL. 
+  * * **clowder.key** Uncomment this to specify the key for the Clowder server. 
 * **Local Disk settings** By default, Data Wolf is configured to store data on local disk. 
     * **disk.levels** - indicates the number of folder levels to use, this prevents too many files in a single folder
     * **disk.folder** - indicates the location on disk to store the files. 
@@ -306,7 +306,7 @@ The snippet below highlights the sample settings for using a MySQL database inst
 
 ```
 
-Below you will see the section that defines the DAOs to bind for the CRUD service layer, in this case the JPA DAOs. You should not need to modify this section unless you will be using Medici to store datasets.
+Below you will see the section that defines the DAOs to bind for the CRUD service layer, in this case the JPA DAOs. You should not need to modify this section unless you will be using Clowder to store datasets.
 
 ```
 # JPA DAO Configuration
@@ -325,24 +325,25 @@ dataset.dao = edu.illinois.ncsa.jpa.dao.DatasetJPADao
 filedescriptor.dao = edu.illinois.ncsa.jpa.dao.FileDescriptorJPADao
 ```
 
-The snippet below defines two additional DAOs that are used for storing datasets in Medici. If Medici is configured to store datasets, then you must comment out the equivalent JPA DAOs so there is no binding conflict (e.g. comment out the dataset.dao and filedescriptor.dao). In addition, this will also require a Medici server to be configured and the correct properties in the Medici section above to be specified (e.g. medici.server, medici.key).
+The snippet below defines two additional DAOs that are used for storing datasets in Clowder. If Clowder is configured to store datasets, then you must comment out the equivalent JPA DAOs so there is no binding conflict (e.g. comment out the dataset.dao and filedescriptor.dao). In addition, this will also require a Clowder server to be configured and the correct properties in the Clowder section above to be specified (e.g. clowder.server, clowder.key).
 
 ```
-# Medici DAO Configuration
-#filedescriptor.dao = edu.illinois.ncsa.medici.dao.FileDescriptorMediciDao
-#dataset.dao = edu.illinois.ncsa.medici.dao.DatasetMediciDao
+# Clowder DAO Configuration
+#filedescriptor.dao = edu.illinois.ncsa.clowder.dao.FileDescriptorClowderDao
+#dataset.dao = edu.illinois.ncsa.clowder.dao.DatasetClowderDao
+#person.dao = edu.illinois.ncsa.clowder.dao.PersonClowderDao
 ```
 
 The last part of the file defines the storage configuration options currently available in Data Wolf. These options represent two implementations of Data Wolf's **FileStorage** interface; developers that are interested in providing new storage options should look at that interface in the **ncsa-common-domain** project.  
 
 ```
 # Storage configuration
-#filestorage = edu.illinois.ncsa.medici.impl.FileStorageMedici
+#filestorage = edu.illinois.ncsa.clowder.impl.FileStorageClowder
 filestorage = edu.illinois.ncsa.domain.impl.FileStorageDisk
 ```
 
 * **Storage configuration**
-    * **filestorage** - specify whether data should be stored in Medici or local disk. Default is local disk. If using the Medici Dataset dao, you will need to configure data to be stored in Medici. 
+    * **filestorage** - specify whether data should be stored in Clowder or local disk. Default is local disk. If using the Clowder Dataset dao, you will need to configure data to be stored in Clowder. 
    
 The next section will discuss the launch script for Data Wolf.
 

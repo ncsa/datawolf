@@ -21,8 +21,8 @@ public class ClowderDevModule extends AbstractModule {
         bind(DatasetDao.class).to(DatasetClowderDao.class);
         bind(FileDescriptorDao.class).to(FileDescriptorClowderDao.class);
 
-        bindConstant().annotatedWith(Names.named("medici.key")).to("");
-        bindConstant().annotatedWith(Names.named("medici.server")).to("http://localhost:9000/");
+        bindConstant().annotatedWith(Names.named("clowder.key")).to("");
+        bindConstant().annotatedWith(Names.named("clowder.server")).to("http://localhost:9000/");
         bind(FileStorage.class).to(FileStorageClowder.class);
     }
 

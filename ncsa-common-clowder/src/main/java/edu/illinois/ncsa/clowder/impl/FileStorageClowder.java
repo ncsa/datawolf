@@ -36,10 +36,10 @@ import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 public class FileStorageClowder implements FileStorage {
     private static Logger     logger = LoggerFactory.getLogger(FileStorageClowder.class);
     @Inject
-    @Named("medici.server")
+    @Named("clowder.server")
     private String            server;
     @Inject
-    @Named("medici.key")
+    @Named("clowder.key")
     private String            key;
 
     @Inject
