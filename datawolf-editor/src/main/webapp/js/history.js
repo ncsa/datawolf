@@ -119,7 +119,7 @@ var getLogFiles = function(execid, stepid, logdiv) {
                     var log = logEntry.log;
                     var logId = log['id'];
 
-                    $(logdiv).html('<a href=' + '"' + datawolfOptions.rest + '/files/' + logId + '/file' + '">' + "Log file" + '</a>');
+                    $(logdiv).html('<a href=' + '"' + datawolfOptions.rest + '/files/' + logId + '/file' + '" target="dwlog" >' + "Log file" + '</a>');
                 } else {
                     $(logdiv).html('Log file - None');
                     console.log("No log file found. Check the datawolf.properties file if you expected a log file.");
