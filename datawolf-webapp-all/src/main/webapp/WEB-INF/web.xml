@@ -38,12 +38,23 @@
     <filter>
 		<filter-name>CORS</filter-name>
 		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
-
+		<init-param>
+			<param-name>cors.allowOrigin</param-name>
+			<param-value>*</param-value>
+		</init-param>
 		<init-param>
 			<param-name>cors.supportedMethods</param-name>
-			<param-value>GET, POST, HEAD, PUT, DELETE</param-value>
+			<param-value>GET, POST, HEAD, PUT, OPTIONS, DELETE</param-value>
 		</init-param>
-	</filter>
+		<init-param>
+			<param-name>cors.supportedHeaders</param-name>
+			<param-value>*</param-value>
+		</init-param>
+		<init-param>
+			<param-name>cors.supportsCredentials</param-name>
+			<param-value>true</param-value>
+		</init-param>
+    </filter>
 	 -->
 	 
     <filter-mapping>
