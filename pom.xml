@@ -60,6 +60,17 @@
     </repository>
     -->
 	</repositories>
+	<profiles>
+	    <profile>
+	    <id>disable-java8-doclint</id>
+	    <activation>
+		<jdk>[1.8,)</jdk>
+	    </activation>
+	    <properties>
+		<additionalparam>-Xdoclint:none</additionalparam>
+	    </properties>
+	    </profile>
+	</profiles>
 
 	<scm>
 		<connection>https://opensource.ncsa.illinois.edu/stash/scm/wolf/datawolf.git</connection>
