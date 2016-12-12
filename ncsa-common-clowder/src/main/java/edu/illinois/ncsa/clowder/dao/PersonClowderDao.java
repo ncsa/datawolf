@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -154,7 +155,11 @@ public class PersonClowderDao extends AbstractClowderDao<Person, String> impleme
         String id = person.get("id").getAsString();
         String firstName = person.get("firstName").getAsString();
         String lastName = person.get("lastName").getAsString();
-        String email = person.get("email").getAsString();
+        String email = null;
+        // Handle case with no email
+        if (!(person.get("email") instanceof JsonNull)) {
+            email = person.get("email").getAsString();
+        }
 
         Person user = new Person();
         user.setId(id);
