@@ -19,7 +19,7 @@
 		<!-- DATABASE SUPPORT -->
 		<dependency>
 			<groupId>com.zaxxer</groupId>
-			<artifactId>HikariCP-java6</artifactId>
+			<artifactId>HikariCP</artifactId>
 			<version>${hikaricp.version}</version>
 			<scope>runtime</scope>
 		</dependency>

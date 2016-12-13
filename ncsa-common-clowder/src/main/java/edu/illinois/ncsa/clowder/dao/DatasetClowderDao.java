@@ -6,9 +6,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -27,12 +30,24 @@ import com.google.gson.JsonPrimitive;
 import edu.illinois.ncsa.clowder.ClowderRedirectStrategy;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
+import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 
 public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> implements DatasetDao {
     private static final Logger logger = LoggerFactory.getLogger(DatasetClowderDao.class);
 
+    @Inject
+    PersonDao                   personDao;
+
     public Dataset save(Dataset dataset) {
+        // Clowder does not support marking a dataset as deleted
+        // We could forward this to the delete method
+        if (dataset.isDeleted()) {
+            logger.warn("dataset marked as deleted, which Clowder doesn't support, returning");
+            return dataset;
+        }
+
         String responseStr = null;
 
         HttpClientBuilder builder = HttpClientBuilder.create();
@@ -197,12 +212,17 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
                     String title = jsonObject.get("name").getAsString();
                     String description = jsonObject.get("description").getAsString();
                     String dateString = jsonObject.get("created").getAsString();
+                    String userId = jsonObject.get("authorId").getAsString();
+
+                    Person creator = personDao.findOne(userId);
+
                     Date date = dateFormat.parse(dateString);
                     dataset.setId(id);
                     dataset.setDate(date);
                     dataset.setTitle(title);
                     dataset.setDescription(description);
                     dataset.setFileDescriptors(getFileDescriptor(id));
+                    dataset.setCreator(creator);
 
                     results.add(dataset);
 
@@ -293,9 +313,45 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
 
     }
 
-    // TODO CMN implement delete
-    public void delete(Dataset entity) {
-        logger.warn("delete " + entity.getClass().getName() + " from Clowder not yet implemented");
+    public void delete(Dataset dataset) {
+        HttpClient httpclient = null;
+        try {
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setRedirectStrategy(new ClowderRedirectStrategy());
+            RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+            builder.setDefaultRequestConfig(config);
+            httpclient = builder.build();
+
+            ResponseHandler<String> responseHandler;
+            String token = getToken(dataset.getCreator().getEmail());
+
+            String clowderEndpoint = getServer();
+            String key = getKey();
+            String requestUrl = clowderEndpoint;
+
+            if (token != null || key == null || key.trim().equals("")) {
+                requestUrl += "api/datasets/" + dataset.getId();
+            } else {
+                requestUrl += "api/datasets/" + dataset.getId() + "?key=" + key.trim();
+            }
+
+            HttpDelete httpDelete = new HttpDelete(requestUrl);
+            if (token != null) {
+                httpDelete.setHeader("Authorization", "Basic " + token);
+            }
+
+            responseHandler = new BasicResponseHandler();
+            String responseStr = httpclient.execute(httpDelete, responseHandler);
+            logger.debug("Delete response: " + responseStr);
+        } catch (Exception e) {
+            logger.error("Could not delete dataset. ", e);
+        } finally {
+            try {
+                ((CloseableHttpClient) httpclient).close();
+            } catch (IOException ignore) {
+                logger.warn("Error closing http client", ignore);
+            }
+        }
     }
 
     @Override
