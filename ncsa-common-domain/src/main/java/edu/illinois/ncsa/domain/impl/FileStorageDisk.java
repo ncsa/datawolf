@@ -182,7 +182,9 @@ public class FileStorageDisk implements FileStorage {
 
         if (f.exists()) {
             if (f.delete()) {
-                logger.debug("file is deleted: " + dataURL);
+                logger.debug("file deleted, attempting to cleanup empty folders");
+                // Delete parent folders if they are empty
+                deleteParentFolders(f.getParentFile());
                 return true;
             } else {
                 logger.error("Can't delete a file id(" + fd.getId() + ") :" + fd.getDataURL());
@@ -191,6 +193,26 @@ public class FileStorageDisk implements FileStorage {
         } else {
             logger.error("The file does not exist: id(" + fd.getId() + ") :" + fd.getDataURL());
             return true;
+        }
+    }
+
+    private void deleteParentFolders(File file) {
+        File parent = file.getParentFile();
+        if (file.list().length == 0) {
+            // Delete empty folder
+            file.delete();
+            logger.debug("deleted: " + file.getAbsolutePath());
+
+            String dataDirectory = folder;
+            // Remove end separator before comparing strings
+            if (dataDirectory.endsWith(File.separator)) {
+                dataDirectory = dataDirectory.substring(0, dataDirectory.length() - 1);
+            }
+
+            // Delete until we reach the data directory or non-empty folder
+            if (!parent.getAbsolutePath().endsWith(dataDirectory)) {
+                deleteParentFolders(parent);
+            }
         }
     }
 
