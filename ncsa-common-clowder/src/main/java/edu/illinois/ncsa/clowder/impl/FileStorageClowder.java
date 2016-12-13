@@ -12,8 +12,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import javax.activation.MimetypesFileTypeMap;
-import javax.inject.Inject;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpDelete;
@@ -22,11 +22,15 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 import edu.illinois.ncsa.clowder.ClowderRedirectStrategy;
+import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 
 /**
@@ -45,6 +49,9 @@ public class FileStorageClowder implements FileStorage {
     @Inject
     private FileDescriptorDao fileDescriptorDAO;
 
+    @Inject(optional = true)
+    private AccountDao        accountDao;
+
     public FileStorageClowder() {}
 
     public String getServer() {
@@ -59,8 +66,12 @@ public class FileStorageClowder implements FileStorage {
         return storeFile(new FileDescriptor().getId(), null, is);
     }
 
+    public FileDescriptor storeFile(String filename, InputStream is, Person creator) throws IOException {
+        return storeFile(new FileDescriptor().getId(), filename, is, creator);
+    }
+
     public FileDescriptor storeFile(String filename, InputStream is) throws IOException {
-        return storeFile(new FileDescriptor().getId(), filename, is);
+        return storeFile(filename, is, null);
     }
 
     public URL storeFile(FileDescriptor fd, InputStream is) throws IOException {
@@ -84,7 +95,12 @@ public class FileStorageClowder implements FileStorage {
         return storeFile(fd.getId(), filename, is);
     }
 
+    @Override
     public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
+        return storeFile(id, filename, is, null);
+    }
+
+    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator) throws IOException {
         String lineEnd = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";
@@ -92,9 +108,11 @@ public class FileStorageClowder implements FileStorage {
         long size = 0;
         byte[] buffer = new byte[10240];
 
+        String token = creator != null ? getToken(creator.getEmail()) : null;
+
         // open a URL connection
         URL url;
-        if ((key == null) || key.trim().equals("")) {
+        if (token != null || key == null || key.trim().equals("")) {
             url = new URL(getServer() + "api/files");
         } else {
             url = new URL(getServer() + "api/files?key=" + key.trim());
@@ -137,6 +155,10 @@ public class FileStorageClowder implements FileStorage {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Connection", "Keep-Alive");
         conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+
+        if (token != null) {
+            conn.setRequestProperty("Authorization", "Basic " + token);
+        }
 
         DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
 
@@ -198,20 +220,31 @@ public class FileStorageClowder implements FileStorage {
     }
 
     public boolean deleteFile(FileDescriptor fd) {
+        return deleteFile(fd, null);
+    }
+
+    public boolean deleteFile(FileDescriptor fd, Person creator) {
+        logger.debug("Deleting file in Clowder");
         if (fd.getDataURL() != null) {
-            logger.debug("Deleting existing file");
+            String token = creator != null ? getToken(creator.getEmail()) : null;
+
             HttpClientBuilder builder = HttpClientBuilder.create();
             builder.setRedirectStrategy(new ClowderRedirectStrategy());
             HttpClient httpClient = builder.build();
 
             String requestUrl = null;
-            if ((key == null) || key.trim().equals("")) {
+            if (token != null || key == null || key.trim().equals("")) {
                 requestUrl = fd.getDataURL();
             } else {
                 requestUrl = fd.getDataURL() + "?key=" + key.trim();
             }
 
             HttpDelete httpDelete = new HttpDelete(requestUrl);
+
+            if (token != null) {
+                httpDelete.setHeader("Authorization", "Basic " + token);
+            }
+
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String responseString = null;
             try {
@@ -231,6 +264,17 @@ public class FileStorageClowder implements FileStorage {
             requestUrl += "?key=" + key.trim();
         }
         return new URL(requestUrl).openStream();
+    }
+
+    protected String getToken(String userId) {
+        String token = null;
+        if (accountDao != null) {
+            Account acct = accountDao.findByUserid(userId);
+            if (acct != null) {
+                token = new String(Base64.encodeBase64(new String(acct.getUserid() + ":" + acct.getPassword()).getBytes()));
+            }
+        }
+        return token;
     }
 
 }

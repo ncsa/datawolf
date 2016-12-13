@@ -328,7 +328,7 @@ public class CommandLineExecutor extends LocalExecutor {
                         stdout.append(stderr);
                     }
                     ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais);
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, step.getCreator());
 
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
@@ -346,7 +346,7 @@ public class CommandLineExecutor extends LocalExecutor {
             if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
                 try {
                     ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais);
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais, step.getCreator());
 
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle());
@@ -381,14 +381,14 @@ public class CommandLineExecutor extends LocalExecutor {
                         for (File file : files) {
                             logger.debug("adding files to a dataset: " + file);
                             FileInputStream fis = new FileInputStream(file);
-                            FileDescriptor fd = fileStorage.storeFile(file.getName(), fis);
+                            FileDescriptor fd = fileStorage.storeFile(file.getName(), fis, ds.getCreator());
                             fis.close();
                             ds.addFileDescriptor(fd);
                         }
 
                     } else {
                         FileInputStream fis = new FileInputStream(entry.getValue());
-                        FileDescriptor fd = fileStorage.storeFile(new File(entry.getValue()).getName(), fis);
+                        FileDescriptor fd = fileStorage.storeFile(new File(entry.getValue()).getName(), fis, ds.getCreator());
                         ds.addFileDescriptor(fd);
                     }
                     ds = datasetDao.save(ds);

@@ -286,14 +286,14 @@ public abstract class Executor {
             } else {
                 // Delete existing file
                 if (logfile.getLog().getDataURL() != null) {
-                    fileStorage.deleteFile(logfile.getLog());
+                    fileStorage.deleteFile(logfile.getLog(), executionDao.findOne(executionId).getCreator());
                 }
             }
 
             try {
                 ByteArrayInputStream bais = new ByteArrayInputStream(log.toString().getBytes("UTF-8"));
                 FileDescriptor fd = logfile.getLog();
-                fd = fileStorage.storeFile(fd.getId(), "log.txt", bais);
+                fd = fileStorage.storeFile(fd.getId(), "log.txt", bais, executionDao.findOne(executionId).getCreator());
                 fileDescriptorDao.save(fd);
             } catch (Exception e) {
                 logger.error("Could not save log message.", e);

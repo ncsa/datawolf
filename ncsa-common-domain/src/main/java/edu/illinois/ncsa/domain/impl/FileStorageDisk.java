@@ -21,6 +21,7 @@ import com.google.inject.name.Named;
 
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 
 /**
@@ -83,6 +84,10 @@ public class FileStorageDisk implements FileStorage {
         return storeFile(new FileDescriptor().getId(), null, is);
     }
 
+    public FileDescriptor storeFile(String filename, InputStream is, Person creator) throws IOException {
+        return storeFile(filename, is);
+    }
+
     public FileDescriptor storeFile(String filename, InputStream is) throws IOException {
         return storeFile(new FileDescriptor().getId(), filename, is);
     }
@@ -102,6 +107,10 @@ public class FileStorageDisk implements FileStorage {
         fd.setDataURL(check.getDataURL());
 
         return new URL(check.getDataURL());
+    }
+
+    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator) throws IOException {
+        return storeFile(id, filename, is);
     }
 
     public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
@@ -176,6 +185,10 @@ public class FileStorageDisk implements FileStorage {
         return fd;
     }
 
+    public boolean deleteFile(FileDescriptor fd, Person creator) {
+        return deleteFile(fd);
+    }
+
     public boolean deleteFile(FileDescriptor fd) {
         String dataURL = fd.getDataURL();
         File f = new File(dataURL.split(":")[1]);
@@ -198,4 +211,5 @@ public class FileStorageDisk implements FileStorage {
         // TODO RK : add some caching
         return new URL(fd.getDataURL()).openStream();
     }
+
 }
