@@ -176,10 +176,9 @@ var WorkflowGraphView = Backbone.View.extend({
                 // If next tool will hit the edge, reset x position and increment y
                 if(x >= windowWidth - 300) {
                     x = 0.02 * windowWidth;
-
                     // If we're at the bottom of the screen, just add tools there
                     // User will need to manually adjust tool positions
-                    if(!y + 0.15 * windowHeight > windowHeight) {
+                    if(y + 0.15 * windowHeight < windowHeight) {
                         y = y + 0.15 * windowHeight;
                     }
                 }

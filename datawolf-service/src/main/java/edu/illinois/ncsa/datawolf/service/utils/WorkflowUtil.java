@@ -310,13 +310,29 @@ public class WorkflowUtil {
         for (int index = 0; index < jsonArray.size(); index++) {
             JsonObject object = jsonArray.get(index).getAsJsonObject();
             JsonObject agent = object.get("agent").getAsJsonObject();
-            String extractorId = agent.get("extractor_id").getAsString();
+            JsonObject content = object.get("content").getAsJsonObject();
+            String extractorId = null;
 
-            // Get just the extractor id
-            extractorId = extractorId.split("extractors/")[1];
+            if (agent.has("extractor_id")) {
+                extractorId = agent.get("extractor_id").getAsString();
 
-            // Store the technical metadata by extractor id
-            extractorMetadata.put(extractorId, gson.toJson(object));
+                // Check if extractor_id uses {URI}/extractor_id
+                String[] split = extractorId.split("extractors/");
+                if (split.length == 2) {
+                    extractorId = split[1];
+                }
+
+                // Handle case where deprecatedapi is returned
+                if (extractorId.equals("deprecatedapi")) {
+                    // Make one more attempt to determine extractor id
+                    if (content.has("extractor_id")) {
+                        extractorId = content.get("extractor_id").getAsString();
+                    }
+                }
+
+                // Store the technical metadata by extractor id
+                extractorMetadata.put(extractorId, gson.toJson(object));
+            }
         }
 
         workflow.setDescription(gson.toJson(metadata));
