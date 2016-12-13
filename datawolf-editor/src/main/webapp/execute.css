@@ -115,7 +115,6 @@
 }
 
 .execute-nav, .history-nav {
-    height: 17%;
 }
 
 .workflow-parent, .dataset-parent {
@@ -123,7 +122,8 @@
 }
 
 .workflows-view, .datasets-view {
-    height: 58%;
+    height: 60%;
+    max-height: 220px;
     overflow: auto;
 }
 

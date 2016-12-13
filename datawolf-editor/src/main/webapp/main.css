@@ -850,10 +850,11 @@ path, ._jsPlumb_endpoint { cursor:pointer; }
 }
 
 .tool-parent, .workflow-parent {
-    height: 41%;
+    height: 38%;
 }
 
 .workflow-tools-view, .workflows-view {
-    height: 70%;
+    height: 60%;
+    max-height: 350px;
     overflow: auto;
 }
