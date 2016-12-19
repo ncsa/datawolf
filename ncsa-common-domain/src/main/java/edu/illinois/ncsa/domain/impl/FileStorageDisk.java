@@ -183,7 +183,7 @@ public class FileStorageDisk implements FileStorage {
 
         if (f.exists()) {
             if (f.delete()) {
-                logger.debug("file deleted, attempting to cleanup empty folders");
+                logger.debug("file deleted: " + dataURL + ", attempting to cleanup empty folders");
                 // Cleanup parent folders if they are empty
                 f = f.getParentFile();
                 while (f.list().length == 0 && !dataFolder.endsWith(f.getName())) {
