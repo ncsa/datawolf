@@ -179,7 +179,6 @@ public abstract class LocalExecutor extends Executor implements Runnable {
         } catch (Exception e) {
             throw (new FailedException("Could not get all blobs.", e));
         } finally {
-            System.out.println("work end");
             work.end();
             // try {
             // t.commit();

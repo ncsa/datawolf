@@ -359,7 +359,6 @@ public abstract class Executor {
                 logger.info("a new state is entered that is not known.");
             }
             executionDao.save(execution);
-            work.end();
             // fire an event to inform everybody of the new state
             StepStateChangedEvent event = new StepStateChangedEvent(step, execution, state);
 
@@ -380,7 +379,8 @@ public abstract class Executor {
                 logger.error("Could not roll back transaction.", e2);
             }
             logger.error("Could not set state of step in execution.", e);
-        } // finally {
-          // }
+        } finally {
+            work.end();
+        }
     }
 }
