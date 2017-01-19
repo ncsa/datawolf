@@ -111,7 +111,7 @@
 					<cascade-merge />
 				</cascade>
 			</one-to-many>
-			<one-to-many name="steps" fetch="LAZY">
+			<one-to-many name="steps" fetch="EAGER">
 				<join-table name="WorkflowSteps" />
 				<cascade>
 					<cascade-merge />
