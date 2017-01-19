@@ -98,7 +98,7 @@ public class CommandLineExecutor extends LocalExecutor {
         // Transaction t = SpringData.getTransaction();
         try {
             // t.start();
-
+            work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
             Execution execution = executionDao.findOne(getExecutionId());
             CommandLineImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
@@ -232,13 +232,15 @@ public class CommandLineExecutor extends LocalExecutor {
             throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to get information about step.", e));
-        } // finally {
-          // try {
-          // if (t != null) {
-          // t.commit();
-          // }
-          // } catch (Exception e) {
-          // throw (new
+        } finally {
+            work.end();
+        }
+        // try {
+        // if (t != null) {
+        // t.commit();
+        // }
+        // } catch (Exception e) {
+        // throw (new
 // FailedException("Could not commit transaction to retrieve information about step.",
 // e));
         // }
@@ -355,6 +357,7 @@ public class CommandLineExecutor extends LocalExecutor {
         List<AbstractBean> datasets = new ArrayList<AbstractBean>();
         try {
             // t.start();
+            work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
             Execution execution = executionDao.findOne(getExecutionId());
             CommandLineImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), CommandLineImplementation.class);
@@ -450,12 +453,14 @@ public class CommandLineExecutor extends LocalExecutor {
             // throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to save information about step.", e));
-        } // finally {
-          // try {
-          // if (t != null) {
-          // t.commit();
-          // TODO is this still required?
-          // SpringData.getEventBus().fireEvent(new
+        } finally {
+            work.end();
+        }
+        // try {
+        // if (t != null) {
+        // t.commit();
+        // TODO is this still required?
+        // SpringData.getEventBus().fireEvent(new
 // ObjectCreatedEvent(datasets));
         // }
         // } catch (Exception e) {

@@ -48,6 +48,9 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
+
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Execution.State;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
@@ -102,6 +105,9 @@ public class Engine {
 
     @Inject
     private ExecutionDao          executionDao;
+
+    @Inject
+    private UnitOfWork            unitOfWork;
 
     /**
      * Create the engine with a single worker.
@@ -247,17 +253,20 @@ public class Engine {
      * @throws Exception
      *             if the step could not be added to the list.
      */
+    @Transactional
     public void execute(Execution execution) {
         try {
             // Transaction t = SpringData.getTransaction();
-            // try {
-            // t.start();
-            for (WorkflowStep step : workflowDao.findOne(execution.getWorkflowId()).getSteps()) {
-                execute(execution, step);
+            try {
+                // t.start();
+                // unitOfWork.begin();
+                for (WorkflowStep step : workflowDao.findOne(execution.getWorkflowId()).getSteps()) {
+                    execute(execution, step);
+                }
+                // unitOfWork.end();
+            } finally {
+                // t.commit();
             }
-            // } finally {
-            // t.commit();
-            // }
         } catch (Exception e) {
             logger.error("Could not get transaction to get steps.", e);
         }
@@ -278,12 +287,15 @@ public class Engine {
         try {
             // Transaction transaction = SpringData.getTransaction();
             // transaction.start();
+            // unitOfWork.begin();
             for (String step : steps) {
                 execute(execution, workflowStepDao.findOne(step));
             }
             // transaction.commit();
         } catch (Exception e) {
             logger.error("Could not execute steps.", e);
+        } finally {
+            // unitOfWork.end();
         }
     }
 
@@ -353,11 +365,13 @@ public class Engine {
                     // CMN: does this really need a transaction?
                     // Transaction t = SpringData.getTransaction();
                     try {
+                        // unitOfWork.begin();
                         // t.start();
                         exec.stopJob();
                     } catch (Exception e) {
                         logger.error("Error starting transaction to stop job", e);
                     } finally {
+                        // unitOfWork.end();
                         // try {
                         // t.commit();
                         // } catch (Exception e) {
@@ -416,6 +430,7 @@ public class Engine {
         // Transaction t = SpringData.getTransaction();
         try {
             // t.start(true);
+            unitOfWork.begin();
             List<String> steps = null;
             for (Execution execution : executionDao.findAll()) {
                 Map<String, State> stepStates = execution.getStepState();
@@ -445,13 +460,14 @@ public class Engine {
             }
         } catch (Exception e) {
             logger.error("Error opening transaction.", e);
-        } // finally {
-          // try {
-          // t.rollback();
-          // } catch (Exception e) {
-          // logger.error("Error closing transaction.", e);
-          // }
-          // }
+        } finally {
+            unitOfWork.end();
+            // try {
+            // t.rollback();
+            // } catch (Exception e) {
+            // logger.error("Error closing transaction.", e);
+            // }
+        }
 
         // CMN: Should/Does this need to be inside the transaction?
         if (queue.size() > 0) {
@@ -539,6 +555,7 @@ public class Engine {
                                 } else {
                                     // Transaction transaction = null;
                                     try {
+                                        unitOfWork.begin();
                                         // transaction =
 // SpringData.getTransaction();
                                         // transaction.start();
@@ -550,6 +567,7 @@ public class Engine {
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
                                     } finally {
+                                        unitOfWork.end();
                                         // try {
                                         // transaction.commit();
                                         // } catch (Exception e) {
@@ -598,7 +616,9 @@ public class Engine {
                                 idx++;
                                 break;
                             case 2:
+                                // unitOfWork.begin();
                                 exec.setState(edu.illinois.ncsa.datawolf.domain.Execution.State.ABORTED);
+                                // unitOfWork.end();
                                 exec.stopJob();
                                 synchronized (queue) {
                                     logger.warn("ABORTING " + exec.getExecutionId());

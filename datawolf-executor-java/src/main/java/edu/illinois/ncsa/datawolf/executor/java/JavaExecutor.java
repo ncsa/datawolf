@@ -108,7 +108,9 @@ public class JavaExecutor extends LocalExecutor {
         try {
 
             // Transaction t = SpringData.getTransaction();
+
             try {
+                work.begin();
                 // t.start();
 
                 WorkflowStep step = workflowStepDao.findOne(getStepId());
@@ -166,6 +168,7 @@ public class JavaExecutor extends LocalExecutor {
             } catch (Throwable e) {
                 throw (new FailedException("Could not run transaction to save information about step.", e));
             } finally {
+                work.end();
                 // try {
                 // if (t != null) {
                 // t.commit();
@@ -209,6 +212,7 @@ public class JavaExecutor extends LocalExecutor {
                 // List of created datasets
                 List<AbstractBean> datasets = new ArrayList<AbstractBean>();
                 try {
+                    work.begin();
                     // t.start();
                     WorkflowStep step = workflowStepDao.findOne(getStepId());
                     Execution execution = executionDao.findOne(getExecutionId());
@@ -239,6 +243,7 @@ public class JavaExecutor extends LocalExecutor {
                 } catch (Throwable e) {
                     throw (new FailedException("Error saving output from step.", e));
                 } finally {
+                    work.end();
                     // try {
                     // if (t != null) {
                     // t.commit();

@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 import edu.illinois.ncsa.datawolf.domain.HPCJobInfo;
 import edu.illinois.ncsa.datawolf.domain.dao.HPCJobInfoDao;
@@ -19,19 +20,15 @@ public class HPCJobInfoJPADao extends AbstractJPADao<HPCJobInfo, String> impleme
     }
 
     @Override
+    @Transactional
     public List<HPCJobInfo> findByExecutionId(String executionId) {
         List<HPCJobInfo> results = null;
 
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT o FROM HPCJobInfo o " + "WHERE o.executionId = :executionId";
-            TypedQuery<HPCJobInfo> typedQuery = getEntityManager().createQuery(queryString, HPCJobInfo.class);
-            typedQuery.setParameter("executionId", executionId);
-            results = typedQuery.getResultList();
+        String queryString = "SELECT o FROM HPCJobInfo o " + "WHERE o.executionId = :executionId";
+        TypedQuery<HPCJobInfo> typedQuery = getEntityManager().createQuery(queryString, HPCJobInfo.class);
+        typedQuery.setParameter("executionId", executionId);
+        results = typedQuery.getResultList();
 
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        return results;
     }
 }

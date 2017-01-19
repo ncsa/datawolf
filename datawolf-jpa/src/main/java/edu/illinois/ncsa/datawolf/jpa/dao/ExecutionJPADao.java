@@ -38,6 +38,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
@@ -51,84 +52,69 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
     }
 
     @Override
+    @Transactional
     public List<Execution> findByWorkflowId(String workflowId) {
 
         List<Execution> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId";
-            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
-            typedQuery.setParameter("workflowId", workflowId);
-            results = typedQuery.getResultList();
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId";
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("workflowId", workflowId);
+        results = typedQuery.getResultList();
 
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        return results;
     }
 
     @Override
+    @Transactional
     public List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted) {
         List<Execution> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId and e.deleted = :deleted";
-            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
-            typedQuery.setParameter("workflowId", workflowId);
-            typedQuery.setParameter("deleted", deleted);
-            results = typedQuery.getResultList();
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId and e.deleted = :deleted";
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("workflowId", workflowId);
+        typedQuery.setParameter("deleted", deleted);
+        results = typedQuery.getResultList();
 
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        return results;
     }
 
     @Override
+    @Transactional
     public List<Execution> findByDeleted(boolean deleted) {
         List<Execution> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT e FROM Execution e " + "WHERE e.deleted = :deleted";
-            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
-            typedQuery.setParameter("deleted", deleted);
-            results = typedQuery.getResultList();
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.deleted = :deleted";
+
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("deleted", deleted);
+        results = typedQuery.getResultList();
+
+        return results;
 
     }
 
     @Override
+    @Transactional
     public List<Execution> findByCreatorEmail(String email) {
         List<Execution> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email";
 
-            String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email";
-            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
-            typedQuery.setParameter("email", email);
-            results = typedQuery.getResultList();
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("email", email);
+        results = typedQuery.getResultList();
+
+        return results;
     }
 
     @Override
+    @Transactional
     public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted) {
         List<Execution> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email and e.deleted = :deleted";
-            TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
-            typedQuery.setParameter("email", email);
-            typedQuery.setParameter("deleted", deleted);
-            results = typedQuery.getResultList();
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email and e.deleted = :deleted";
+
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("email", email);
+        typedQuery.setParameter("deleted", deleted);
+        results = typedQuery.getResultList();
+
+        return results;
     }
 }

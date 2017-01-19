@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
@@ -19,18 +20,14 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
     }
 
     @Override
+    @Transactional
     public List<Dataset> findByDeleted(boolean deleted) {
         List<Dataset> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT d FROM Dataset d " + "WHERE d.deleted = :deleted";
-            TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
-            q.setParameter("deleted", deleted);
-            results = q.getResultList();
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.deleted = :deleted";
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("deleted", deleted);
+        results = q.getResultList();
+        return results;
     }
 
     @Override
@@ -46,35 +43,31 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
     }
 
     @Override
+    @Transactional
     public List<Dataset> findByCreatorEmail(String email) {
         List<Dataset> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email";
-            TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
-            q.setParameter("email", email);
-            results = q.getResultList();
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("email", email);
+        results = q.getResultList();
+
+        return results;
 
     }
 
     @Override
+    @Transactional
     public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted) {
         List<Dataset> results = null;
-        try {
-            getEntityManager().getTransaction().begin();
-            String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.deleted = :deleted";
-            TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
-            q.setParameter("email", email);
-            q.setParameter("deleted", deleted);
-            results = q.getResultList();
-            return refreshList(results);
-        } finally {
-            getEntityManager().getTransaction().commit();
-        }
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.deleted = :deleted";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("email", email);
+        q.setParameter("deleted", deleted);
+        results = q.getResultList();
+
+        return results;
     }
 
     @Override
