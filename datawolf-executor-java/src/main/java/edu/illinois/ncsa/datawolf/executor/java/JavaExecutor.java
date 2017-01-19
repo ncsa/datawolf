@@ -220,7 +220,7 @@ public class JavaExecutor extends LocalExecutor {
                     for (Entry<String, String> entry : step.getOutputs().entrySet()) {
                         WorkflowToolData data = step.getOutput(entry.getValue());
 
-                        FileDescriptor fd = fileStorage.storeFile(data.getTitle(), tool.getOutput(entry.getKey()));
+                        FileDescriptor fd = fileStorage.storeFile(data.getTitle(), tool.getOutput(entry.getKey()), execution.getCreator());
                         fd.setMimeType(data.getMimeType());
 
                         Dataset ds = new Dataset();

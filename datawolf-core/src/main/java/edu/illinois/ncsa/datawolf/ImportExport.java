@@ -227,7 +227,7 @@ public class ImportExport {
                     // save blob
                     InputStream is = zipfile.getInputStream(entry);
                     FileStorage fileStorage = Persistence.getBean(FileStorage.class);
-                    blob = fileStorage.storeFile(pieces[1], pieces[2], is);
+                    blob = fileStorage.storeFile(pieces[1], pieces[2], is, workflow.getCreator());
                     is.close();
                 }
 
@@ -382,7 +382,7 @@ public class ImportExport {
                     // save blob
                     InputStream is = zipfile.getInputStream(entry);
                     FileStorage fileStorage = Persistence.getBean(FileStorage.class);
-                    blob = fileStorage.storeFile(pieces[1], pieces[2], is);
+                    blob = fileStorage.storeFile(pieces[1], pieces[2], is, tool.getCreator());
                     is.close();
                 }
 
@@ -702,7 +702,7 @@ public class ImportExport {
 
                 // save blob
                 InputStream is = zipfile.getInputStream(entry);
-                FileDescriptor blob = fileStorage.storeFile(pieces[1], pieces[2], is);
+                FileDescriptor blob = fileStorage.storeFile(pieces[1], pieces[2], is, dataset.getCreator());
                 is.close();
 
                 // fix workflow
