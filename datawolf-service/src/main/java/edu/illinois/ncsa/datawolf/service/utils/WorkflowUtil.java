@@ -281,28 +281,33 @@ public class WorkflowUtil {
         JsonArray jsonArray = metadata.get("previews").getAsJsonArray();
         for (int index = 0; index < jsonArray.size(); index++) {
             JsonObject object = jsonArray.get(index).getAsJsonObject();
-            String extractorId = object.get("extractor_id").getAsString();
 
-            // Preserve the metadata key
-            JsonObject preview = new JsonObject();
-            preview.add("previews", object);
+            if (object.has("extractor_id")) {
+                String extractorId = object.get("extractor_id").getAsString();
 
-            // Store the preview metadata by extractor id
-            extractorMetadata.put(extractorId, gson.toJson(preview));
+                // Preserve the metadata key
+                JsonObject preview = new JsonObject();
+                preview.add("previews", object);
+
+                // Store the preview metadata by extractor id
+                extractorMetadata.put(extractorId, gson.toJson(preview));
+            }
         }
 
         // Handle technical metadata
         jsonArray = metadata.get("technicalmetadata").getAsJsonArray();
         for (int index = 0; index < jsonArray.size(); index++) {
             JsonObject object = jsonArray.get(index).getAsJsonObject();
-            String extractorId = object.get("extractor_id").getAsString();
+            if (object.has("extractor_id")) {
+                String extractorId = object.get("extractor_id").getAsString();
 
-            // Preserve the metadata key
-            JsonObject dtsTechnicalMetadata = new JsonObject();
-            dtsTechnicalMetadata.add("technicalmetadata", object);
+                // Preserve the metadata key
+                JsonObject dtsTechnicalMetadata = new JsonObject();
+                dtsTechnicalMetadata.add("technicalmetadata", object);
 
-            // Store the technical metadata by extractor id
-            extractorMetadata.put(extractorId, gson.toJson(dtsTechnicalMetadata));
+                // Store the technical metadata by extractor id
+                extractorMetadata.put(extractorId, gson.toJson(dtsTechnicalMetadata));
+            }
         }
 
         // Handle metadata.jsonld
@@ -384,7 +389,7 @@ public class WorkflowUtil {
             blobs = new HashSet<FileDescriptor>();
             blobs.add(fd);
 
-            String toolDescription = "dts extractor - no metadata found for this tool";
+            String toolDescription = "dts extractor - no metadata found for this tool. Make sure extractor_id is present in the metadata.";
             if (extractorMetadata.containsKey(extractor)) {
                 toolDescription = extractorMetadata.get(extractor);
             }
