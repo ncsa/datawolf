@@ -108,9 +108,15 @@ public class BrownDogResource {
                     String type = fileId.startsWith("http") ? "dap" : "dts";
 
                     if (!type.isEmpty() && !fenceURL.isEmpty()) {
+                        String datawolfUrl = dwUrl;
+                        if (!datawolfUrl.endsWith("/")) {
+                            datawolfUrl += "/";
+                        }
+
                         Person creator = personDao.findByEmail(username);
                         if (creator == null) {
-                            return Response.status(500).entity(username + " is not a registered DataWolf user, please sign up for an account").build();
+                            String signupUrl = datawolfUrl + "editor/login.html";
+                            return Response.status(500).entity(username + " is not a registered DataWolf user, please sign up for an account at " + signupUrl).build();
                         }
 
                         Workflow workflow = null;
@@ -126,11 +132,6 @@ public class BrownDogResource {
                             return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
                         }
                         workflowDao.save(workflow);
-
-                        String datawolfUrl = dwUrl;
-                        if (!datawolfUrl.endsWith("/")) {
-                            datawolfUrl += "/";
-                        }
 
                         String workflowURL = datawolfUrl + "editor/index.html#" + workflow.getId();
                         String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the file:</p>\n";
