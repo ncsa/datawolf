@@ -55,8 +55,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import edu.illinois.ncsa.datawolf.domain.Workflow;
-import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
+import edu.illinois.ncsa.datawolf.domain.Execution;
+import edu.illinois.ncsa.datawolf.domain.dao.ExecutionDao;
 import edu.illinois.ncsa.datawolf.service.utils.WorkflowUtil;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.PersonDao;
@@ -66,8 +66,11 @@ public class BrownDogResource {
 
     private static final Logger log = LoggerFactory.getLogger(BrownDogResource.class);
 
+//    @Inject
+//    private WorkflowDao         workflowDao;
+
     @Inject
-    private WorkflowDao         workflowDao;
+    private ExecutionDao        executionDao;
 
     @Inject
     private PersonDao           personDao;
@@ -80,12 +83,13 @@ public class BrownDogResource {
      *            datawolf endpoint to build response
      * @param token
      *            authorization token for BD-API
-     * @return Link to workflow
+     * @return Execution id
      */
     @POST
     @Path("provenance")
     @Produces({ MediaType.TEXT_HTML })
-    public Response createWorkflow(@Context HttpServletRequest request, @HeaderParam("X-BD-Username") String username, @HeaderParam("Host") String dwUrl, @HeaderParam("Authorization") String token) {
+    public Response createWorkflow(@Context HttpServletRequest request, @HeaderParam("X-BD-Username") String username, @HeaderParam("Host") String dwUrl,
+            @HeaderParam("BD-Access-Token") String token) {
 
         if (username == null || username.isEmpty()) {
             return Response.status(500).entity("Username not found in the request header").build();
@@ -119,25 +123,21 @@ public class BrownDogResource {
                             return Response.status(500).entity(username + " is not a registered DataWolf user, please sign up for an account at " + signupUrl).build();
                         }
 
-                        Workflow workflow = null;
+                        Execution execution = null;
                         try {
                             if (type.equals("dts")) {
-                                workflow = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
+                                execution = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
                             } else {
-                                workflow = WorkflowUtil.createDAPWorkflow(fileId, fenceURL, token, creator);
+                                execution = WorkflowUtil.createDAPWorkflow(fileId, fenceURL, token, creator);
                             }
 
                         } catch (Exception e) {
                             log.error("Error creating workflow", e);
                             return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
                         }
-                        workflowDao.save(workflow);
+                        executionDao.save(execution);
 
-                        String workflowURL = datawolfUrl + "editor/index.html#" + workflow.getId();
-                        String workflowLink = "<html><p>Follow the link to the DataWolf workflow generated for the file:</p>\n";
-                        workflowLink += "<a href=\"" + workflowURL + "\" target=\"_blank\">" + workflowURL + "</a>\n</html>";
-
-                        ResponseBuilder response = Response.ok(workflowLink);
+                        ResponseBuilder response = Response.ok(execution.getId());
                         return response.build();
 
                     } else {
