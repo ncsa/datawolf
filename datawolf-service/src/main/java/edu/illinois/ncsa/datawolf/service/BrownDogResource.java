@@ -41,13 +41,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.jboss.resteasy.core.Headers;
-import org.jboss.resteasy.core.ServerResponse;
-import org.jboss.resteasy.util.HttpResponseCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +61,6 @@ import edu.illinois.ncsa.domain.dao.PersonDao;
 public class BrownDogResource {
 
     private static final Logger log = LoggerFactory.getLogger(BrownDogResource.class);
-
-//    @Inject
-//    private WorkflowDao         workflowDao;
 
     @Inject
     private ExecutionDao        executionDao;
@@ -99,83 +92,59 @@ public class BrownDogResource {
             return Response.status(500).entity("DataWolf host not found in the request header").build();
         }
 
-        // TODO token should be handled by Authentication interceptor
-        if (token != null && !token.isEmpty()) {
-            try {
-                JsonElement jsonElement = new JsonParser().parse(request.getReader());
-                JsonObject body = jsonElement.getAsJsonObject();
+        if (token == null || token.isEmpty()) {
+            return Response.status(500).entity("Authorization token not found in the request header").build();
+        }
 
-                String fileId = body.get("file").getAsString();
+        try {
+            JsonElement jsonElement = new JsonParser().parse(request.getReader());
+            JsonObject body = jsonElement.getAsJsonObject();
 
-                if (!fileId.isEmpty()) {
-                    String fenceURL = body.get("fence").getAsString();
-                    String type = fileId.startsWith("http") ? "dap" : "dts";
+            String fileId = body.get("file").getAsString();
 
-                    if (!type.isEmpty() && !fenceURL.isEmpty()) {
-                        String datawolfUrl = dwUrl;
-                        if (!datawolfUrl.endsWith("/")) {
-                            datawolfUrl += "/";
-                        }
+            if (!fileId.isEmpty()) {
+                String fenceURL = body.get("fence").getAsString();
+                String type = fileId.startsWith("http") ? "dap" : "dts";
 
-                        Person creator = personDao.findByEmail(username);
-                        if (creator == null) {
-                            String signupUrl = datawolfUrl + "editor/login.html";
-                            return Response.status(500).entity(username + " is not a registered DataWolf user, please sign up for an account at " + signupUrl).build();
-                        }
-
-                        Execution execution = null;
-                        try {
-                            if (type.equals("dts")) {
-                                execution = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
-                            } else {
-                                execution = WorkflowUtil.createDAPWorkflow(fileId, fenceURL, token, creator);
-                            }
-
-                        } catch (Exception e) {
-                            log.error("Error creating workflow", e);
-                            return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
-                        }
-                        executionDao.save(execution);
-
-                        ResponseBuilder response = Response.ok(execution.getId());
-                        return response.build();
-
-                    } else {
-                        return Response.status(500).entity("This DAP or DTS file doesn't appear to be valid: " + fileId).build();
+                if (!type.isEmpty() && !fenceURL.isEmpty()) {
+                    String datawolfUrl = dwUrl;
+                    if (!datawolfUrl.endsWith("/")) {
+                        datawolfUrl += "/";
                     }
-                } else {
-                    return Response.status(500).entity("Must specify a file.").build();
-                }
 
-            } catch (IOException e) {
-                e.printStackTrace();
-                return Response.status(500).entity("Could not build workflow for file").build();
+                    Person creator = personDao.findByEmail(username);
+                    if (creator == null) {
+                        String signupUrl = datawolfUrl + "editor/login.html";
+                        return Response.status(500).entity(username + " is not a registered DataWolf user, please sign up for an account at " + signupUrl).build();
+                    }
+
+                    Execution execution = null;
+                    try {
+                        if (type.equals("dts")) {
+                            execution = WorkflowUtil.createDTSWorkflow(fileId, fenceURL, token, creator);
+                        } else {
+                            execution = WorkflowUtil.createDAPWorkflow(fileId, fenceURL, token, creator);
+                        }
+
+                    } catch (Exception e) {
+                        log.error("Error creating workflow", e);
+                        return Response.status(500).entity("Could not build workflow for file with id " + fileId).build();
+                    }
+                    executionDao.save(execution);
+
+                    ResponseBuilder response = Response.ok(execution.getId());
+                    return response.build();
+
+                } else {
+                    return Response.status(500).entity("This DAP or DTS file doesn't appear to be valid: " + fileId).build();
+                }
+            } else {
+                return Response.status(500).entity("Must specify a file.").build();
             }
 
-        } else {
-            log.debug("User not authenticated");
-            return unauthorizedResponse("Not authenticated");
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(500).entity("Could not build workflow for file").build();
         }
     }
-
-    /**
-     * Response in case of failed authentication.
-     * 
-     * TODO This is a temporary solution for this service endpoint. All
-     * authentication should go through the interceptor; however, this is
-     * checking the token against the bd-api, not DataWolf's user base.
-     * 
-     * @param preprocessedPath
-     * @return
-     */
-    private ServerResponse unauthorizedResponse(String preprocessedPath) {
-        ServerResponse response = new ServerResponse();
-        response.setStatus(HttpResponseCodes.SC_UNAUTHORIZED);
-        MultivaluedMap<String, Object> headers = new Headers<Object>();
-        headers.add("Content-Type", "text/plain");
-        response.setMetadata(headers);
-        response.setEntity("Error 401 Unauthorized: " + preprocessedPath);
-        return response;
-    }
-
 }
