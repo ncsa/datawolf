@@ -34,17 +34,27 @@ package edu.illinois.ncsa.datawolf.service;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -53,6 +63,11 @@ import org.jboss.resteasy.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.AccountDao;
@@ -67,6 +82,12 @@ public class LoginResource {
 
     @Inject
     private AccountDao   accountDao;
+
+    @Inject
+    @Named("initialAdmins")
+    private String       initialAdmins;
+
+    private List<String> admins       = null;
 
     // Generates temporary user token
     private SecureRandom secureRandom = new SecureRandom();
@@ -142,11 +163,27 @@ public class LoginResource {
             throw (new Exception("User does not exist"));
         }
 
+        // Initialize the list of admins the first time this is called
+        if (admins == null) {
+            // Remove double quotes around string
+            initialAdmins = initialAdmins.replaceAll("^\"|\"$", "").trim();
+
+            if (initialAdmins.isEmpty()) {
+                admins = new ArrayList<String>();
+            } else {
+                admins = Arrays.asList(initialAdmins.split(","));
+            }
+        }
+
         Account account = accountDao.findByUserid(email);
         if (account == null) {
             account = new Account();
             account.setPerson(person);
             account.setUserid(person.getEmail());
+            if (admins.contains(email)) {
+                account.setActive(true);
+                account.setAdmin(true);
+            }
         }
         account.setPassword(password);
         account.setDeleted(false);
@@ -155,6 +192,72 @@ public class LoginResource {
 
         accountDao.save(account);
         return Response.ok().cookie(new NewCookie("token", email + ":" + token, null, null, null, 86400, false)).build();
+    }
+
+    /**
+     * Enable/Disable user accounts
+     * 
+     * @param request
+     *            - Request body with key-value pair for active attribute
+     * @param personId
+     *            - User account to update
+     * @return Response from request, Success (200) or Error (500) with message
+     */
+    @PUT
+    @Path("{person-id}/active")
+    @Produces({ MediaType.TEXT_PLAIN })
+    public Response updateAccount(@Context HttpServletRequest request, @PathParam("person-id") String personId) {
+        String credential = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (credential != null && !credential.isEmpty()) {
+            try {
+                credential = new String(Base64.decode(credential.substring(6)));
+            } catch (IOException e) {
+                log.error("Error decoding authorization", e);
+                Response.status(500).entity("Error checking credential").build();
+            }
+        } else {
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("token")) {
+                    credential = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (credential != null) {
+            List<String> credentials = LoginUtil.parseCredentials(credential);
+            Person person = personDao.findOne(personId);
+            Account account = accountDao.findByUserid(credentials.get(0));
+
+            if (person != null && !account.isDeleted() && account.isActive() && account.isAdmin()) {
+
+                Account updateAccount = accountDao.findByUserid(person.getEmail());
+                if (updateAccount != null) {
+                    boolean active = updateAccount.isActive();
+                    try {
+                        JsonElement jsonElement = new JsonParser().parse(request.getReader());
+                        JsonObject body = jsonElement.getAsJsonObject();
+                        if (body.has("active")) {
+                            active = body.get("active").getAsBoolean();
+                        }
+                        updateAccount.setActive(active);
+                        accountDao.save(updateAccount);
+
+                        return Response.ok("Updated account").build();
+                    } catch (IOException e) {
+                        log.error("Could not parse request body.", e);
+                        return Response.status(500).entity("Could not parse request body").build();
+                    }
+
+                } else {
+                    return Response.status(500).entity("Could not find user account for specified user").build();
+                }
+            }
+
+        }
+
+        return Response.status(500).entity("Failed to updated account.").build();
+
     }
 
     /**
@@ -175,4 +278,5 @@ public class LoginResource {
             accountDao.save(account);
         }
     }
+
 }
