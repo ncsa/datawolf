@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataWolf Provenance</title>
+  <link href="assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="main.css" rel="stylesheet">
+</head>
+<body>
+
+ <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="row">
+      <div id="workflow-header" class="navbar-header">
+
+      </div>
+    </div>
+  </div>
+</nav>  
+
+
+<div  class="container">
+  <div  class="row">
+    <span style="display:block; height:100px;"></span>
+  </div>
+  <div id="graph" class="row center">
+  </div>
+</div>
+<script type="text/template" id="header-template">
+ <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+  <span class="sr-only">Toggle navigation</span>
+  <span class="icon-bar"></span>
+  <span class="icon-bar"></span>
+  <span class="icon-bar"></span>
+</button>
+<a class="navbar-brand" href="#"><%= title %></a>
+</script>
+
+<script type="text/template" id="input-graph-template">
+  <svg width="200" height="500" style="position:fixed; display:inline; margin-left:0; margin-top: 0;">
+
+    <rect x="0" y="<%= top %>" rx="14" ry="14" width="130" height="47" style="fill:#191970;" ></rect>
+    <text x="30%" y ="<%= toptext %>" alignment-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="12" fill="white">
+      <%= title %>
+    </text>
+
+    <g fill="none" stroke="#929497">
+
+      <path stroke-width="6" d="M130 <%= toptext %> l70 -<%= top %> " />
+      </g>
+
+    </svg>
+
+  </script>
+
+
+  <script type="text/template" id="execution-graph-template">
+    <svg width="150" height="50" style="position:fixed; display:inline; margin-left: <%= left %>; ">
+     <rect rx="14" ry="14" width="130" height="47" style="fill:#88782F;" ></rect>
+     <text x="40%" y ="45%" alignment-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="12" fill="white">
+      <%= title %>
+    </text>
+    <rect x="130" y="22" width="20" height="7" style="fill:#929497"></rect>   
+  </svg>
+</script>
+
+
+<script type="text/template" id="output-graph-template">
+ <svg width="200" height="500" style="position:fixed; display:inline; margin-left:<%= left %>px; margin-top: 0;">
+
+  <rect x="70" y="<%= top %>" rx="14" ry="14" width="130" height="47" style="fill:#191970;" ></rect>
+  <text x="150" y ="<%= toptext %>" alignment-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="12" fill="white">
+    <%= title %>
+  </text>
+  <g fill="none" stroke="#929497">
+
+    <path stroke-width="6" d="M0 26 l70 <%= top %> " />
+    </g>
+  </svg>
+</script>
+
+<style type="text/css">
+
+  .center {
+    margin: 0 0 auto;
+    width: 70%;
+    position:relative;
+  }
+</style>
+
+<script src="assets/jquery-1.9.0.js"></script>
+<script src="assets/jquery-ui-1.9.2-min.js"></script>
+<script src="assets/json2.js"></script>
+<script src="assets/underscore-min.js"></script>
+<script src="assets/backbone-min.js"></script> 
+<script src="assets/backbone.dualstorage.js"></script>
+<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+<script src="assets/jquery.jsPlumb-1.4.1-all-min.js"></script>
+<script src="assets/jszip.js"></script>
+<script src="js/config.js"></script>
+
+
+<!-- main application -->
+<script src="js/main.js"></script>
+</body>
+</html>
