@@ -124,6 +124,7 @@
 		<module>datawolf-service</module>
 		<module>datawolf-webapp</module>
 		<module>datawolf-editor</module>
+		<module>datawolf-provenance</module>
 		<!-- <module>datawolf-tool-creator</module> -->
 		<module>datawolf-webapp-all</module>
 	</modules>
