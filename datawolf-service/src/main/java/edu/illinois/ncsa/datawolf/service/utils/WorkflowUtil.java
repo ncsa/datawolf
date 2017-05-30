@@ -1,10 +1,14 @@
 package edu.illinois.ncsa.datawolf.service.utils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,6 +23,8 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -34,27 +40,31 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.Workflow;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.domain.WorkflowTool;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolParameter;
 import edu.illinois.ncsa.datawolf.domain.WorkflowToolParameter.ParameterType;
+import edu.illinois.ncsa.datawolf.domain.dao.WorkflowDao;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineImplementation;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption.InputOutput;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption.Type;
+import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Persistence;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.util.BeanUtil;
 
 public class WorkflowUtil {
 
     private static final Logger log = LoggerFactory.getLogger(WorkflowUtil.class);
 
-    public static Workflow createDAPWorkflow(String fileId, String fenceURL, String token, Person creator) throws Exception {
+    public static Execution createDAPWorkflow(String fileId, String fenceURL, String token, Person creator) throws Exception {
         // Get DAP log file
         String logfile = getDAPLogFile(fileId, fenceURL, token);
         String[] logfileLines = logfile.split("\\r?\\n");
@@ -71,8 +81,39 @@ public class WorkflowUtil {
         // List of inputs
         List<String> softwareServerInputs = new ArrayList<String>();
 
+        // Initial input to the conversion workflow
+        String initialInput = null;
+        // Base output name from each conversion step
+        String baseOutputName = null;
+        // Date of the conversion request
+        String startDate = null;
+        boolean firstLine = false;
+
+        List<String> datasets = new ArrayList<String>();
         // Traverse log file and locate softwareserver tools
         for (String line : logfileLines) {
+            // First line in log contains initial input and base result name
+            if (!firstLine) {
+                firstLine = true;
+
+                // Capture initial input
+                initialInput = line.split("->")[0];
+                initialInput = initialInput.substring(initialInput.lastIndexOf("/") + 1, initialInput.length());
+                datasets.add(initialInput);
+
+                // Find base output name of each conversion
+                baseOutputName = line.split("file/")[2];
+                baseOutputName = baseOutputName.substring(0, baseOutputName.lastIndexOf("."));
+
+                Pattern p = Pattern.compile("\\[(.*?)\\]");
+                Matcher m = p.matcher(line);
+
+                if (m.find()) {
+                    startDate = m.group(0);
+                    startDate = startDate.substring(1, startDate.lastIndexOf("]"));
+                }
+            }
+
             if (line.contains("Setting session to")) {
                 String urlPattern = "((https?|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
                 Pattern p = Pattern.compile(urlPattern, Pattern.CASE_INSENSITIVE);
@@ -103,15 +144,24 @@ public class WorkflowUtil {
                 String[] toolOutput = executionLine[3].split("\\.");
                 softwareServerOutputs.add(toolOutput[toolOutput.length - 1]);
 
+                // Capture each tools output for provenance graph
+                datasets.add(baseOutputName + "." + toolOutput[toolOutput.length - 1]);
             }
 
         }
+
+        // Get the input and output datasets from the original execution
+        List<Dataset> executionDatasets = getDapDatasets(datasets, fenceURL, token, creator);
 
         // Get individual software server logs
         List<String> softwareServerLogs = getSoftwareServerLogs(logfileLines);
 
         // Create empty workflow
         Workflow workflow = createWorkflow("workflow-" + fileId, logfile, creator);
+
+        // Capture the provenance of the initial execution
+        Map<String, String> executionDatasetMap = new HashMap<String, String>();
+        Map<String, String> executionParameterMap = new HashMap<String, String>();
 
         // Step inputs/outputs/parameters
         Map<String, String> inputs = null;
@@ -127,6 +177,8 @@ public class WorkflowUtil {
 
         WorkflowStep prevStep = null;
         FileStorage fileStorage = Persistence.getBean(FileStorage.class);
+
+        int resultDatasetIndex = 0;
         for (int index = 0; index < softwareServerTools.size(); index++) {
             String toolName = softwareServerTools.get(index);
             String toolTask = softwareServerTasks.get(index);
@@ -152,6 +204,9 @@ public class WorkflowUtil {
             for (WorkflowToolParameter parameter : toolParameters) {
                 parameters.put(parameter.getParameterId(), UUID.randomUUID().toString());
                 commandlineOptions.add(createCommandlineOption(Type.PARAMETER, "", "", parameter.getParameterId(), null, null, true));
+
+                // Capture initial execution parameters
+                executionParameterMap.put(parameters.get(parameter.getParameterId()), parameter.getValue());
             }
 
             toolInputs = new ArrayList<WorkflowToolData>();
@@ -211,14 +266,37 @@ public class WorkflowUtil {
                 if (prevStepOutput != null) {
                     inputs.put(tool.getInputs().get(0).getDataId(), prevStep.getOutputs().get(prevStepOutput.getDataId()));
                 }
+
+                executionDatasetMap.put(outputs.get(imageOutput.getDataId()), executionDatasets.get(resultDatasetIndex).getId());
+
+            } else {
+                // Add the initial dataset in the conversion chain
+                executionDatasetMap.put(inputs.get(toolInputData.getDataId()), executionDatasets.get(resultDatasetIndex).getId());
+                // Add output dataset
+                resultDatasetIndex++;
+                executionDatasetMap.put(outputs.get(imageOutput.getDataId()), executionDatasets.get(resultDatasetIndex).getId());
             }
 
             workflow.addStep(step);
 
             prevStep = step;
+            resultDatasetIndex++;
         }
+        WorkflowDao workflowDao = Persistence.getBean(WorkflowDao.class);
+        workflowDao.save(workflow);
 
-        return workflow;
+        DateFormat formatter = new SimpleDateFormat("E MMM dd HH:mm:ss yyyy");
+        Date date = (Date) formatter.parse(startDate);
+
+        Execution execution = new Execution();
+        execution.setWorkflowId(workflow.getId());
+        execution.setTitle("execution - " + fileId);
+        execution.setCreator(creator);
+        execution.setDate(date);
+        execution.setDatasets(executionDatasetMap);
+        execution.setParameters(executionParameterMap);
+
+        return execution;
     }
 
     // Returns the parts of the log for each software server
@@ -254,7 +332,7 @@ public class WorkflowUtil {
      * @return workflow representing DTS extractors
      * @throws Exception
      */
-    public static Workflow createDTSWorkflow(String fileId, String fenceURL, String token, Person creator) throws Exception {
+    public static Execution createDTSWorkflow(String fileId, String fenceURL, String token, Person creator) throws Exception {
         // Find out which extractors were ran on the specified file
         List<String> dtsExtractors = getDTSTools(fileId, fenceURL, token);
 
@@ -270,6 +348,8 @@ public class WorkflowUtil {
 
         JsonElement metadataJsonLD = getMetadataJsonLD(fileId, fenceURL, token);
         metadata.add("metadatajsonld", metadataJsonLD);
+
+        // TODO should the metadata for each extractor be stored in a file?
 
         // Format the json attached to the tools and workflow
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -352,6 +432,10 @@ public class WorkflowUtil {
         List<WorkflowToolData> toolInputs = null;
         List<WorkflowToolData> toolOutputs = null;
 
+        // Capture the provenance of the initial execution
+        Map<String, String> executionDatasetMap = new HashMap<String, String>();
+        Map<String, String> executionParameterMap = new HashMap<String, String>();
+
         Set<FileDescriptor> blobs = null;
 
         FileStorage fileStorage = Persistence.getBean(FileStorage.class);
@@ -369,6 +453,9 @@ public class WorkflowUtil {
             for (WorkflowToolParameter parameter : toolParameters) {
                 parameters.put(parameter.getParameterId(), UUID.randomUUID().toString());
                 commandlineOptions.add(createCommandlineOption(Type.PARAMETER, "", "", parameter.getParameterId(), null, null, true));
+
+                // Capture initial execution parameters
+                executionParameterMap.put(parameters.get(parameter.getParameterId()), parameter.getValue());
             }
 
             toolInputs = new ArrayList<WorkflowToolData>();
@@ -400,7 +487,27 @@ public class WorkflowUtil {
             WorkflowStep step = createWorkflowStep(extractor, creator, tool, inputs, outputs, parameters);
             workflow.addStep(step);
         }
-        return workflow;
+
+        // Save the workflow
+        WorkflowDao workflowDao = Persistence.getBean(WorkflowDao.class);
+        workflowDao.save(workflow);
+
+        JsonObject fileMetadata = getMetadata(fileId, fenceURL, token).getAsJsonObject();
+        String startDate = fileMetadata.get("date-created").getAsString();
+
+        DateFormat formatter = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
+        Date date = (Date) formatter.parse(startDate);
+
+        Execution execution = new Execution();
+        execution.setWorkflowId(workflow.getId());
+        execution.setTitle("execution - " + fileId);
+        execution.setDescription("Extraction results for " + fileId);
+        execution.setCreator(creator);
+        execution.setDate(date);
+        execution.setDatasets(executionDatasetMap);
+        execution.setParameters(executionParameterMap);
+
+        return execution;
     }
 
     /**
@@ -542,6 +649,63 @@ public class WorkflowUtil {
         return toolData;
     }
 
+    public static List<Dataset> getDapDatasets(List<String> datasets, String fenceURL, String token, Person creator) {
+
+        List<Dataset> datasetList = new ArrayList<Dataset>();
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient client = builder.build();
+
+        FileStorage fs = Persistence.getBean(FileStorage.class);
+
+        DatasetDao datasetDao = Persistence.getBean(DatasetDao.class);
+
+        int fileIndex = 0;
+        for (String fileId : datasets) {
+            String fileEndpoint = fenceURL;
+            if (fenceURL.endsWith("/")) {
+                fileEndpoint = fenceURL + "dap/file/" + fileId;
+            } else {
+                fileEndpoint = fenceURL + "/dap/file/" + fileId;
+            }
+            HttpGet httpGet = new HttpGet(fileEndpoint);
+            httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
+
+            File localFile = null;
+            try {
+                HttpResponse response = client.execute(httpGet);
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    FileDescriptor fd = fs.storeFile(fileId, response.getEntity().getContent());
+
+                    Dataset dataset = new Dataset();
+                    dataset.addFileDescriptor(fd);
+                    dataset.setCreator(creator);
+                    dataset.setTitle(fileId);
+
+                    String description = "";
+                    if (fileIndex == 0) {
+                        description = "beginning conversion file";
+                    } else if (fileIndex == datasets.size() - 1) {
+                        description = "final conversion file";
+                    } else {
+                        description = "intermediate conversion file";
+                    }
+                    dataset.setDescription(description);
+                    datasetDao.save(dataset);
+
+                    datasetList.add(dataset);
+                }
+            } catch (ClientProtocolException e) {
+                log.error("Error getting conversion dataset.", e); //$NON-NLS-1$
+            } catch (IOException e) {
+                log.error("Error getting conversion dataset.", e); //$NON-NLS-1$
+            }
+
+            fileIndex++;
+
+        }
+        return datasetList;
+    }
+
     /**
      * Get list of DTS tools
      * 
@@ -657,6 +821,48 @@ public class WorkflowUtil {
             extractionEndpoint = fenceURL + "dts/api/files/" + fileId + "/technicalmetadatajson";
         } else {
             extractionEndpoint = fenceURL + "/dts/api/files/" + fileId + "/technicalmetadatajson";
+        }
+
+        HttpGet httpGet = new HttpGet(extractionEndpoint);
+        httpGet.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
+
+        BasicResponseHandler responseHandler = new BasicResponseHandler();
+        String response = null;
+        try {
+            response = client.execute(httpGet, responseHandler);
+            JsonElement jsonResponse = new JsonParser().parse(response);
+
+            return jsonResponse;
+        } catch (ClientProtocolException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
+    /**
+     * Get metadata for file extraction from api/files/{file-id}/metadata.jsonld
+     * 
+     * @param fileId
+     *            file id
+     * @param fenceURL
+     *            BD-API gateway URL
+     * @param token
+     *            authorization token
+     * @return metadata in json format
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
+    public static JsonElement getMetadata(String fileId, String fenceURL, String token) throws ClientProtocolException, IOException {
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient client = builder.build();
+
+        String extractionEndpoint = fenceURL;
+        if (fenceURL.endsWith("/")) {
+            extractionEndpoint = fenceURL + "dts/api/files/" + fileId + "/metadata";
+        } else {
+            extractionEndpoint = fenceURL + "/dts/api/files/" + fileId + "/metadata";
         }
 
         HttpGet httpGet = new HttpGet(extractionEndpoint);
