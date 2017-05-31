@@ -47,26 +47,32 @@
     </text>
 
     <g fill="none" stroke="#929497">
-
       <path stroke-width="6" d="M130 <%= toptext %> l70 -<%= top %> " />
-      </g>
+    </g>
 
     </svg>
-
   </script>
 
 
   <script type="text/template" id="execution-graph-template">
-    <svg width="150" height="50" style="position:fixed; display:inline; margin-left: <%= left %>; ">
-     <rect rx="14" ry="14" width="130" height="47" style="fill:#88782F;" ></rect>
-     <text x="40%" y ="45%" alignment-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="12" fill="white">
-      <%= title %>
-    </text>
-    <rect x="130" y="22" width="20" height="7" style="fill:#929497"></rect>  
-    <polygon points="30,47 27,50  0,50  0,<%= loglength%=> 150,<%= loglength%=> 150,50  33,50"
-         style="stroke:green; fill:white;" visibility="hidden">  <set attributeName="visibility" from="hidden" to="visible" begin="thingyouhoverover.mouseover" end="thingyouhoverover.mouseout"/> </polygon>
-  </svg>
-</script>
+    <svg width="150" height="500" style="position:fixed; display:inline; margin-left: <%= left %>; ">
+      <rect id="<%= id %>" rx="14" ry="14" width="130" height="47" style="fill:#88782F;" ></rect>
+      <text  x="40%" y ="22" text-anchor="middle" font-family="Verdana" font-size="12" fill="white">
+        <%= title %>
+      </text>
+      <rect x="130" y="22" width="20" height="7" style="fill:#929497"></rect>  
+
+      <polygon points="30,47 27,50  0,50  0,<%= loglength %>  150,<%= loglength %> 150,50  33,50"
+           stroke="black" stroke-width="4" fill="white" visibility="hidden">  
+        <set attributeName="visibility" from="hidden" to="visible" begin="<%= id %>.mouseover" end="<%= id %>.mouseout"/> 
+      </polygon>
+      <text x="10" y="100" font-size="12" fill="black" visibility="hidden">
+        <%= description %>
+        <set attributeName="visibility" from="hidden" to="visible" begin="<%= id %>.mouseover" end="<%= id %>.mouseout"/>
+      </text>
+
+    </svg>
+  </script>
 
 
 <script type="text/template" id="output-graph-template">
@@ -77,9 +83,9 @@
     <%= title %>
   </text>
   <g fill="none" stroke="#929497">
-
     <path stroke-width="6" d="M0 26 l70 <%= top %> " />
-    </g>
+  </g>
+
   </svg>
 </script>
 

@@ -165,9 +165,11 @@ var ToolHistoryView = Backbone.View.extend({
         $(this.el).empty();
 
         var modelJson = {
-            "id" : this.model.attributes.id,
+            "id" : this.model.attributes.id.split('-')[0],
             "title": this.model.attributes.title,
-            "left": this.options.index * 150 +200
+            "description": this.model.attributes.tool.description,
+            "left": this.options.index * 150 +200,
+            "loglength": this.model.attributes.tool.description.length/10 +170
         }
         $(this.el).html(this.template(modelJson));
         return this;
