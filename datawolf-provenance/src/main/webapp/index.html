@@ -62,7 +62,9 @@
      <text x="40%" y ="45%" alignment-baseline="middle" text-anchor="middle" font-family="Verdana" font-size="12" fill="white">
       <%= title %>
     </text>
-    <rect x="130" y="22" width="20" height="7" style="fill:#929497"></rect>   
+    <rect x="130" y="22" width="20" height="7" style="fill:#929497"></rect>  
+    <polygon points="30,47 27,50  0,50  0,<%= loglength%=> 150,<%= loglength%=> 150,50  33,50"
+         style="stroke:green; fill:white;" visibility="hidden">  <set attributeName="visibility" from="hidden" to="visible" begin="thingyouhoverover.mouseover" end="thingyouhoverover.mouseout"/> </polygon>
   </svg>
 </script>
 
@@ -80,6 +82,8 @@
     </g>
   </svg>
 </script>
+
+
 
 <style type="text/css">
 
