@@ -1,61 +1,48 @@
 var dwApi = "http://127.0.0.1:8888/datawolf";
-var executeId = "16cea2e4-3386-47ad-a938-90b61a7830e4";
-
-var getExecution = function(executeId) {
-    var myurl = dwApi + '/executions/' + executeId;
-
-    $.ajax({
-        type: "GET",
-        beforeSend: function(request) {
-            request.setRequestHeader("Content-type", "application/json");
-            request.setRequestHeader("Accept", "application/json");
-        },
-        url: myurl,
-        dataType: "text",
-
-        success: function(msg) {
-            return JSON.parse(msg);
-            
-        },
-        error: function(msg) {
-            alert('error: '+JSON.stringify(msg));
-        }
-    }); 
-};
-
-var getWorkflow = function(workflowId) {
-    var myurl = dwApi + '/workflows/'+ workflowId;
-
-    $.ajax({
-        type: "GET",
-        beforeSend: function(request) {
-            request.setRequestHeader("Content-type", "application/json");
-            request.setRequestHeader("Accept", "application/json");
-        },
-        url: myurl,
-        dataType: "text",
-
-        success: function(msg) {
-            return JSON.parse(msg);
-            
-        },
-        error: function(msg) {
-            alert('error: '+JSON.stringify(msg));
-        }
-    }); 
-
-};
 
 var TempExecution = Backbone.Model.extend({
-
+    urlRoot: dwApi + '/executions'
 })
 
 var TempWorkflow = Backbone.Model.extend({
-
+    urlRoot: dwApi + '/workflows'
 })
 
-var execution =  new TempExecution(getExecution(executeId))
-var workflow = new TempWorkflow(getWorkflow(fackexecution.attributes.workflowId));
+var TempModel = Backbone.Model.extend({
+})
+
+var execution =  new TempModel();
+var workflow = new TempModel();
+
+var loadMainView = function(executeId) {
+
+    execution = new TempExecution({id:executeId})
+
+    execution.fetch();
+    // execution is reassign in loadMainView, so the listen function need to be here. 
+    execution.on("change", function(){
+        headerView.render(); 
+        workflow = new TempWorkflow({id:execution.attributes.workflowId})
+        workflow.fetch();
+        workflow.on("change", function(){
+            graphView.render(); 
+        }) 
+    });
+}
+
+
+var AppRouter = Backbone.Router.extend({
+    routes:{
+        "":"",
+        ":executeId":"executionGraph"
+    },
+
+    executionGraph: function(executeId) {
+        loadMainView(executeId);
+    }
+
+});
+
 
 var HeaderView = Backbone.View.extend({
     // ref: http://getbootstrap.com/examples/starter-template/
@@ -63,15 +50,16 @@ var HeaderView = Backbone.View.extend({
     el: $('#workflow-header'),
     template: _.template($("#header-template").html()),
 
-
     initialize: function() {
         this.render();
-        this.delegateEvents();
     },
 
     render: function() {
+        console.log(this.model.attributes);
         $(this.el).empty();
-        $(this.el).html(this.template(this.model.toJSON()));
+        if(execution.attributes.title){
+            $(this.el).html(this.template(execution.toJSON()));
+        }
         return this;
     }
 })
@@ -88,13 +76,15 @@ var WorkflowExecutionGraphView = Backbone.View.extend({
 
     render: function() {
         $(this.el).empty();
+        if(execution.attributes.title && workflow.attributes.steps){
+
 
         // this view contains 3 parts: input, tool and output. each is a for loop
         var self = this;
 
         // sort the step by the time start
         var stepstart = execution.attributes.stepsStart
-        var unsortsteps = this.model.attributes.steps;
+        var unsortsteps = workflow.attributes.steps;
         var steps = unsortsteps.sort(function(a, b) { return stepstart[a.id] > stepstart[b.id]});
 
 
@@ -134,18 +124,11 @@ var WorkflowExecutionGraphView = Backbone.View.extend({
 
             self.$el.append(outputHistory.render().el.childNodes);
         });
-
-        return this;
     }
+    return this;
+}
 
 });
-
-$(document).ready(function() {
-   var headerView = new WorkflowExecutionGraphView();
-   var graphView = new HeaderView();
-
-});
-
 
 var InputHistoryView = Backbone.View.extend({
     tagName:"svg", 
@@ -168,9 +151,9 @@ var InputHistoryView = Backbone.View.extend({
 
         this.$el.html(this.template(modelJson));
         this.$el.css({
-           'position': positionProperty,
-           'top': topProperty 
-       });
+         'position': positionProperty,
+         'top': topProperty 
+     });
         return this;
     }
 })
@@ -191,7 +174,6 @@ var ToolHistoryView = Backbone.View.extend({
     }
 })
 
-
 var OutputHistoryView = Backbone.View.extend({
     template: _.template($("#output-graph-template").html()),
     
@@ -211,9 +193,16 @@ var OutputHistoryView = Backbone.View.extend({
 
         this.$el.html(this.template(modelJson));
         this.$el.css({
-           'position': positionProperty,
-           'top': topProperty 
-       });
+         'position': positionProperty,
+         'top': topProperty 
+     });
         return this;
     }
 })
+
+var headerView = new HeaderView();
+var graphView = new WorkflowExecutionGraphView();
+
+var app = new AppRouter();
+
+Backbone.history.start();
