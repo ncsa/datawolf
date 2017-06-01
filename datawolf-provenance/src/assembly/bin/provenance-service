@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# change to folder of datawolf
+cd "$(dirname $0)/.."
+
+CONTEXT=/datawolf
+
+# port for the jetty server
+PORT=8889
+
+# setup for the viewer
+WAR=$( ls -1 lib/datawolf-provenance*.war | tail -1 )
+PROVENANCE=""
+if [ "${WAR}" != "" ]; then
+  PROVENANCE=${PWD}/conf/provenance.xml
+  WAR="${PWD}/${WAR}"
+  cat > "${PROVENANCE}" << EOF
+<Configure class="org.eclipse.jetty.webapp.WebAppContext">
+  <Set name="contextPath">${CONTEXT}/provenance</Set>
+  <Set name="war">${WAR}</Set>
+</Configure>
+EOF
+fi
+
+# start actual webapp
+java -Xmx512m -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} "${PROVENANCE}"

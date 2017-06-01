@@ -18,7 +18,7 @@
       <lineEnding>dos</lineEnding>
       <outputDirectory>bin</outputDirectory>
       <includes>
-        <include>datawolf-provenance.bat</include>
+        <include>provenance-service.bat</include>
       </includes>
     </fileSet>
     <fileSet>
@@ -28,7 +28,7 @@
       <lineEnding>unix</lineEnding>
       <outputDirectory>bin</outputDirectory>
       <includes>
-        <include>datawolf-provenance</include>
+        <include>provenance-service</include>
       </includes>
     </fileSet>
     <fileSet>
