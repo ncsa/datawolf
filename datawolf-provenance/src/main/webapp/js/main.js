@@ -1,11 +1,11 @@
-var dwApi = "http://127.0.0.1:8888/datawolf";
+var dwApi = datawolfOptions.dwApi;
 
 var TempExecution = Backbone.Model.extend({
-    urlRoot: dwApi + '/executions'
+    urlRoot: dwApi + '/dw/executions'
 })
 
 var TempWorkflow = Backbone.Model.extend({
-    urlRoot: dwApi + '/workflows'
+    urlRoot: dwApi + '/dw/workflows'
 })
 
 var TempModel = Backbone.Model.extend({
@@ -14,16 +14,27 @@ var TempModel = Backbone.Model.extend({
 var execution =  new TempModel();
 var workflow = new TempModel();
 
-var loadMainView = function(executeId) {
+function queryStringtoJSON(querystring) {
+   var paris = querystring.split('&');
+   var result = {};
+   paris.forEach(function(pair){
+    pair = pair.split('=');
+    result[pair[0]] = pair[1];
+   })
+
+   return JSON.parse(JSON.stringify(result));
+}
+
+var loadMainView = function(executeId, querystring) {
 
     execution = new TempExecution({id:executeId})
 
-    execution.fetch();
+    execution.fetch({data: $.param(queryStringtoJSON(querystring))});
     // execution is reassign in loadMainView, so the listen function need to be here. 
     execution.on("change", function(){
         headerView.render(); 
         workflow = new TempWorkflow({id:execution.attributes.workflowId})
-        workflow.fetch();
+        workflow.fetch({data: $.param(queryStringtoJSON(querystring))});
         workflow.on("change", function(){
             graphView.render(); 
         }) 
@@ -34,11 +45,11 @@ var loadMainView = function(executeId) {
 var AppRouter = Backbone.Router.extend({
     routes:{
         "":"",
-        ":executeId":"executionGraph"
+        ":executeId?*querystring":"executionGraph"
     },
 
-    executionGraph: function(executeId) {
-        loadMainView(executeId);
+    executionGraph: function(executeId, querystring) {
+        loadMainView(executeId, querystring);
     }
 
 });
@@ -78,7 +89,6 @@ var WorkflowExecutionGraphView = Backbone.View.extend({
         $(this.el).empty();
         if(execution.attributes.title && workflow.attributes.steps){
 
-
         // this view contains 3 parts: input, tool and output. each is a for loop
         var self = this;
 
@@ -106,7 +116,8 @@ var WorkflowExecutionGraphView = Backbone.View.extend({
             var m = new Backbone.Model(step);
             var toolHistory = new ToolHistoryView({
                 index: index,
-                model: m});
+                model: m
+            });
 
             self.$el.append(toolHistory.render().el.childNodes);
 
@@ -146,7 +157,6 @@ var InputHistoryView = Backbone.View.extend({
             "title": this.model.attributes.title,
             "top": (this.options.index * 50),
             "toptext": (this.options.index * 50 +20)
-
         }
 
         this.$el.html(this.template(modelJson));
