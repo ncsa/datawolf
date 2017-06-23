@@ -102,7 +102,15 @@ public class WorkflowUtil {
                 datasets.add(initialInput);
 
                 // Find base output name of each conversion
-                baseOutputName = line.split("file/")[2];
+                String[] nameSplit = line.split("file/");
+
+                // Handle file URLs
+                if (nameSplit.length == 2) {
+                    baseOutputName = nameSplit[1];
+                } else {
+                    baseOutputName = nameSplit[2];
+                }
+
                 baseOutputName = baseOutputName.substring(0, baseOutputName.lastIndexOf("."));
 
                 Pattern p = Pattern.compile("\\[(.*?)\\]");
