@@ -12,6 +12,9 @@ CONTEXT=/datawolf
 # log file, leave blank for console
 #LOG="--out ${PWD}/log/datawolf-yyyy_mm_dd.log"
 
+# Use authentication to access APIs
+USE_AUTH=false
+
 # create some folders just in case
 if [ ! -e log ]; then
   mkdir log
@@ -52,4 +55,4 @@ EOF
 fi
 
 # start actual webapp
-java -Xmx512m -Ddatawolf.properties=${PWD}/conf/datawolf.properties -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} ${LOG} "${SERVER}" "${EDITOR}"
+java -Xmx512m -Ddatawolf.properties=${PWD}/conf/datawolf.properties -Ddatawolf.authentication=${USE_AUTH} -Dlog4j.configuration=file:///${PWD}/conf/log4j.properties -jar "${PWD}/lib/jetty-runner.jar" --port ${PORT} ${LOG} "${SERVER}" "${EDITOR}"

@@ -13,6 +13,9 @@ set CONTEXT=/datawolf
 REM log file, leave blank for console
 REM set LOG=--out %cd%\log\datawolf-yyyy_mm_dd.log
 
+REM Use authentication to access APIs
+set USE_AUTH=false
+
 REM create some folders just in case
 if not exist log mkdir log
 if not exist data\db mkdir data\db
@@ -52,4 +55,4 @@ FOR %%W in (lib\datawolf-editor*.war) do (
 )
 
 REM start actual webapp
-java -Xmx512m -Ddatawolf.properties=%cd%/conf/datawolf.properties -Dlog4j.configuration="file:///%cd:\=/%/conf/log4j.properties" -jar "%cd:\=/%/lib/jetty-runner.jar" --port %PORT% %LOG% %SERVER% %EDITOR%
+java -Xmx512m -Ddatawolf.properties=%cd%/conf/datawolf.properties -Ddatawolf.authentication=%USE_AUTH% -Dlog4j.configuration="file:///%cd:\=/%/conf/log4j.properties" -jar "%cd:\=/%/lib/jetty-runner.jar" --port %PORT% %LOG% %SERVER% %EDITOR%
