@@ -36,16 +36,20 @@ public class Account extends AbstractBean {
     private static final long serialVersionUID = 1L;
 
     /** userid of the person, often email address. */
-    private String            userid           = "";  //$NON-NLS-1$
+    private String            userid           = "";   //$NON-NLS-1$
 
     /** password associated with the userid. */
     // TODO RK : password should really be encrypted
-    private String            password         = "";  //$NON-NLS-1$
+    private String            password         = "";   //$NON-NLS-1$
 
     private String            token            = "";
 
     /** email of the person. */
     private Person            person           = null;
+
+    private boolean           active           = false;
+
+    private boolean           admin            = false;
 
     public Account() {}
 
@@ -115,6 +119,44 @@ public class Account extends AbstractBean {
      */
     public void setPerson(Person person) {
         this.person = person;
+    }
+
+    /**
+     * Check if user account is active
+     * 
+     * @return true if account is enabled, false otherwise
+     */
+    public boolean isActive() {
+        return active;
+    }
+
+    /**
+     * Set the user account as active
+     * 
+     * @param active
+     *            - if true, user account is enabled, if false, user account is
+     *            disabled
+     */
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    /**
+     * Check if user account is an admin
+     * 
+     * @return true if account is an administrative account, false otherwose
+     */
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    /**
+     * Set the administrative privileges of the account
+     * 
+     * @param admin
+     */
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
     }
 
 }

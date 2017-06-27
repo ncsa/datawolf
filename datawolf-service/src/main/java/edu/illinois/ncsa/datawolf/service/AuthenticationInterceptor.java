@@ -1,7 +1,7 @@
 package edu.illinois.ncsa.datawolf.service;
 
 import java.io.IOException;
-import java.util.StringTokenizer;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -22,6 +22,7 @@ import org.jboss.resteasy.util.HttpResponseCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 
@@ -56,7 +57,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
             if (request.getHttpHeaders().getCookies().containsKey("token")) {
                 Cookie cookie = request.getHttpHeaders().getCookies().get("token");
                 String token = cookie.getValue();
-                if (token != null && checkToken(token)) {
+                if (token != null && checkLoggedIn(token, true)) {
                     log.debug("Valid cookie - successfully authenticated");
                     return null;
                 } else {
@@ -68,7 +69,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
                     token = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
                 }
 
-                if (token != null && checkLoggedIn(token)) {
+                if (token != null && checkLoggedIn(token, false)) {
                     log.debug("Authorization header found - Sucessfully authenticated");
                     return null;
                 } else {
@@ -104,62 +105,49 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
     }
 
     /**
-     * Decode token and check against local user database.
+     * Check if a user is logged into the system
      * 
-     * @param token
-     * @return
+     * @param credential
+     *            - user credential
+     * @param tokenAuth
+     *            - if true, using token authentication, otherwise using
+     *            password
+     *            authentication
+     * @return true is user is logged in, false otherwise
      */
-    private boolean checkLoggedIn(String token) {
-        // TODO
-        try {
-            String decoded = new String(Base64.decode(token.substring(6)));
-            StringTokenizer tokenizer = new StringTokenizer(decoded, ":");
-            if (tokenizer.countTokens() == 2) {
-                String user = tokenizer.nextToken();
-                // TODO RK : password should really be encrypted
-                String password = tokenizer.nextToken();
-                Account account = accountDao.findByUserid(user);
-                if ((account != null) && !account.isDeleted() && account.getPassword().equals(password)) {
-                    log.debug("REST Authentication successful");
-                    return true;
-                } else {
-                    log.debug("REST Authentication failed");
-                    return false;
-                }
-            } else {
-                log.error("Authentication token not complete");
+    private boolean checkLoggedIn(String credential, boolean tokenAuth) {
+
+        String tmpCredential = credential;
+        if (!tokenAuth) {
+            try {
+                log.warn("decoding auth string");
+                tmpCredential = new String(Base64.decode(credential.substring(6)));
+            } catch (IOException e) {
+                log.error("Error decoding token", e);
                 return false;
             }
-        } catch (IOException e) {
-            log.error("Error decoding token");
         }
-        return false;
-    }
 
-    /**
-     * Check token against local user database.
-     * 
-     * @param cookie
-     *            token in request
-     * @return true if token matches, false otherwise
-     */
-    private boolean checkToken(String cookie) {
-        StringTokenizer tokenizer = new StringTokenizer(cookie, ":");
-        if (tokenizer.countTokens() == 2) {
-            String user = tokenizer.nextToken();
-
-            String token = tokenizer.nextToken();
-            Account account = accountDao.findByUserid(user);
-            if ((account != null) && !account.isDeleted() && account.getToken().equals(token)) {
-                log.debug("REST Authentication successful");
-                return true;
-            } else {
-                log.debug("REST Authentication failed");
-                return false;
-            }
-        } else {
-            log.error("Authentication token not complete");
+        List<String> credentials = LoginUtil.parseCredentials(tmpCredential);
+        if (credentials.size() != 2) {
+            log.warn("Could not parse credential to obtain user and password/token.");
             return false;
+        }
+
+        String user = credentials.get(0);
+        String token = credentials.get(1);
+
+        Account account = accountDao.findByUserid(user);
+        if (account == null || account.isDeleted() || !account.isActive()) {
+            log.error("Authentication failed, user account does not exist, is deleted, or is not active.");
+            return false;
+        }
+
+        if (!tokenAuth) {
+            // TODO RK : password should really be encrypted
+            return account.getPassword().equals(token);
+        } else {
+            return account.getToken().equals(token);
         }
     }
 }

@@ -30,6 +30,8 @@
 			<basic name="userid" />
 			<basic name="password" />
 			<basic name="token" />
+			<basic name="active" />
+			<basic name="admin" />
 			<one-to-one name="person" fetch="EAGER">
 				<cascade>
 					<cascade-merge/>
