@@ -117,6 +117,15 @@ GET | persons/{person-id} | get a user by id
 POST | persons | create a new user
 DELETE | persons/{person-id} | id of user to delete
 
+**Login**
+
+request method | URL | Description
+-------------- | --- | -----------
+GET | login | Login a user by email and password
+POST | login | Create a user eaccount with specified email and password
+PUT | login/{person-id}/active | Enable/Disable user accounts 
+DELETE | login | Delete specified user account
+
 **Workflows**
 
 request method | URL | Description
@@ -212,16 +221,18 @@ The latest version of Data Wolf can be downloaded from:
 
 https://opensource.ncsa.illinois.edu/projects/artifacts.php?key=WOLF
 
+By default, the latest release is selected in the page (currently 4.1.0). To get early access to development releases, check the box **Show also prereleases.**
+
 * Click on **Version** 
-    * Select **3.1.0-SNAPSHOT** 
-    * Under **Files** select **datawolf-webapp-all-3.1.0-SNAPSHOT-bin.zip**
+    * Select **4.1.0** 
+    * Under **Files** select **datawolf-webapp-all-4.1.0-bin.zip**
 * Click **I Accept** to accept the License.
 
 This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the javacode there as well as the manual. The link to the source code can be found at the end of this document.
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-3.1.0-SNAPSHOT**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.1.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
 #### Data Wolf properties
 
@@ -244,7 +255,7 @@ disk.folder=data/files
     * **disk.levels** - indicates the number of folder levels to use, this prevents too many files in a single folder
     * **disk.folder** - indicates the location on disk to store the files. 
 
-The next snippet will discuss the available Engine and Executor settings in the properties file.
+The next snippet will discuss the available properties for configuring the Engine, Executors and initial set of administrators in the properties file.
 
 ```
 #Engine settings
@@ -257,6 +268,11 @@ engine.timeout = 3600
 java.executor=edu.illinois.ncsa.datawolf.executor.java.JavaExecutor
 commandline.executor=edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor
 hpc.executor=edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor
+
+# Initial admins for the DataWolf server, this is a comma separated list of 
+# email addresses who will automatically get active accounts with admin access 
+# when they sign up.
+initialAdmins=""
 ```
 
 * **Engine settings**
@@ -268,8 +284,10 @@ hpc.executor=edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor
     * **java.executor** - Comment this out to exclude the Java executor.
     * **commandline.executor** - Comment this out to exclude the Commandline executor.
     * **hpc.executor** - Comment this out to exclude the HPC executor.
+* **Initial admins**
+    * **initialAdmins** - a comma separated list of email addresses for administrators. When accounts with matching email addresses sign up, they will automatically be active and have admin level access.    
 
-This specifies the bean that will define where object information is stored. By default, object information is stored in a Hyper SQL Database because it requires no additional setup by the user to get started with Data Wolf. There are two additional **dataSource** options defined in the application context that demonstrate other storage options; however, the storage could be any relational database. The snippet below shows how to specify an in memory hsql database.
+The next section specifies the bean that will define where object information is stored. By default, object information is stored in a Hyper SQL Database because it requires no additional setup by the user to get started with Data Wolf. There are two additional **dataSource** options defined in the application context that demonstrate other storage options; however, the storage could be any relational database. The snippet below shows how to specify an in memory hsql database.
 
 The next snippet covers where object information is stored. By default, this information is stored in a Hyper SQL Database (HSQL DB) because it requires no additional setup by the user to get started with Data Wolf. There are two additional options defined in the **datawolf.properties** that demonstrate other storage options; however, the storage could be any relational database. Below you will see the settings for a file based hsql database (default):
 
@@ -371,6 +389,13 @@ This will set the path where datawolf can be reached at, the default is at /data
 ```
 
 If you remove the **#** in front of **LOG**, then this will have the server generate a log file in a folder called **log** in the folder you unzipped. This can be useful for debugging problems such as ports in use (in the case where port 8888 is unavailable) and other issues running workflows.
+
+```
+# Use authentication to access APIs
+USE_AUTH=false
+```
+
+By default, API authentication is disabled. Setting the USE_AUTH flag to true will enable API authentication.
 
 ```
 # setup for the server
@@ -477,9 +502,9 @@ After launching the datawolf-service script, you will have both a Data Wolf Serv
 
 ![Web Editor login page.](images/login-page.png)
 
-If you don't have an account on Data Wolf, fill in the registration form and click **Register with email** link to create an account. 
+If you don't have an account on Data Wolf, fill in the registration form and click **Register with email** link to create an account. Unless you are an administrator, you will need to contact the server administrator to enable your new account. 
 
-After you register an account, the next time you see the login page just enter the email address you registered and click the **Sign-in** button. This should bring you to a page that looks similar to the one below:
+After you register an account and it is activated, the next time you see the login page just enter the email address you registered and click the **Sign-in** button. This should bring you to a page that looks similar to the one below:
 
 ![Web Editor initial view displaying Tools, Workflows and Empty Workflow Graph](images/web-editor-blank.png)
 
