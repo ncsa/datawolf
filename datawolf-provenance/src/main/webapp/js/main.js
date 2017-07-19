@@ -29,7 +29,7 @@ var loadMainView = function(executeId, querystring) {
 
     execution = new TempExecution({id:executeId})
 
-    execution.fetch({data: $.param(queryStringtoJSON(querystring))});
+    execution.fetch({data: $.param(queryStringtoJSON(querystring)), error: showErrorView() });
     // execution is reassign in loadMainView, so the listen function need to be here. 
     execution.on("change", function(){
         if(execution.attributes.title){
@@ -80,7 +80,7 @@ var HeaderView = Backbone.View.extend({
     },
 
     render: function() {
-        console.log(this.model.attributes);
+        // console.log(this.model.attributes);
         $(this.el).empty();
         if(execution.attributes.title){
             $(this.el).html(this.template(execution.toJSON()));
