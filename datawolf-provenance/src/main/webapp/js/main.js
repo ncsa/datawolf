@@ -29,27 +29,41 @@ var loadMainView = function(executeId, querystring) {
 
     execution = new TempExecution({id:executeId})
 
-    execution.fetch({data: $.param(queryStringtoJSON(querystring))});
+    execution.fetch({data: $.param(queryStringtoJSON(querystring)), error: showErrorView() });
     // execution is reassign in loadMainView, so the listen function need to be here. 
     execution.on("change", function(){
-        headerView.render(); 
-        workflow = new TempWorkflow({id:execution.attributes.workflowId})
-        workflow.fetch({data: $.param(queryStringtoJSON(querystring))});
-        workflow.on("change", function(){
-            graphView.render(); 
-        }) 
+        if(execution.attributes.title){
+
+            headerView.render(); 
+            workflow = new TempWorkflow({id:execution.attributes.workflowId})
+            workflow.fetch({data: $.param(queryStringtoJSON(querystring))});
+            workflow.on("change", function(){
+                graphView.render(); 
+            }) 
+        } else {
+            showErrorView();
+        }
     });
 }
 
+var showErrorView = function() {
+    var errorView = new ErrorView();
+    errorView.render();
+}
 
 var AppRouter = Backbone.Router.extend({
     routes:{
-        "":"",
-        ":executeId?*querystring":"executionGraph"
+        // querystring contains token
+        ":executeId?*querystring":"executionGraph",
+        "*path":"defaultRoute"
     },
 
     executionGraph: function(executeId, querystring) {
         loadMainView(executeId, querystring);
+    },
+
+    defaultRoute: function(path) {
+        showErrorView();
     }
 
 });
@@ -66,11 +80,12 @@ var HeaderView = Backbone.View.extend({
     },
 
     render: function() {
-        console.log(this.model.attributes);
+        // console.log(this.model.attributes);
         $(this.el).empty();
         if(execution.attributes.title){
             $(this.el).html(this.template(execution.toJSON()));
         }
+        
         return this;
     }
 })
@@ -212,9 +227,22 @@ var OutputHistoryView = Backbone.View.extend({
     }
 })
 
+var ErrorView = Backbone.View.extend({
+    el: $('#graph'),
+    template: _.template($("#error-template").html()),
+
+    initialize: function() {
+        this.render();
+    },
+    render: function() {
+        $(this.el).empty();
+        $(this.el).html(this.template());
+        return this;
+    }
+})
+
 var headerView = new HeaderView();
 var graphView = new WorkflowExecutionGraphView();
-
 var app = new AppRouter();
 
 Backbone.history.start();
