@@ -1,4 +1,3 @@
-var personCollection = new PersonCollection();
 var showingLoginError = false;
 var showingRegistrationError = false;
 
@@ -10,30 +9,27 @@ var AppRouter = Backbone.Router.extend({
     // Show login form
     list:function() {
     	
-    	personCollection.fetch({success: function() {
-    		$('#login-form').html(new LoginView().render().el);
+		$('#login-form').html(new LoginView().render().el);
 
-            // Registration buttons to display forms
-            $('#register-buttons').html(new RegistrationButtonView().render().el);
+        // Registration buttons to display forms
+        $('#register-buttons').html(new RegistrationButtonView().render().el);
 
-    		$('#username').keypress(function() {
-    			if(showingLoginError) {
-    				$("#login-error").hide();
-    			}
-    		});
+		$('#username').keypress(function() {
+			if(showingLoginError) {
+				$("#login-error").hide();
+			}
+		});
 
-			$('#password').keypress(function() {
-				if(showingLoginError) {
-    				$("#login-error").hide();
-    			}
-    		});
+		$('#password').keypress(function() {
+			if(showingLoginError) {
+				$("#login-error").hide();
+			}
+		});
 
-            $('#firstname').keypress(registrationError);
-            $('#lastname').keypress(registrationError);
-            $('#email').keypress(registrationError);
-            $('#newpassword').keypress(registrationError);
-
-    	}});
+        $('#firstname').keypress(registrationError);
+        $('#lastname').keypress(registrationError);
+        $('#email').keypress(registrationError);
+        $('#newpassword').keypress(registrationError);
     }
 });
 
@@ -67,7 +63,8 @@ var checkLogin = function(email, password) {
         },
 
         error: function(msg) {
-            console.log(msg);
+            showingLoginError = true;
+            $("#login-error").show();
         }
     })
 }
@@ -79,30 +76,35 @@ var createAccount = function(email, password) {
         url: url,
         dataType: "text",
         success: function(msg) {
-            var user = null;
-            // Find if person exists, might need to refetch
-            personCollection.fetch({
-                success: function() {
-                    // TODO make this a function so we can check collection to avoid unnecessary fetch
-                    personCollection.each(function(person) {
-                        if(person.get('email') === email) {
-                            user = person;
-                            return false;
+            // Handles Clowder first login where currentUser isn't set because createPerson isn't called
+            var user = localStorage.currentUser;
+            if(user == null || user) {
+                var personCollection = new PersonCollection();
+                personCollection.fetch({
+                    success: function() {
+                        personCollection.each(function(person) {
+                            if(person.get('email') === email) {
+                                user = person;
+                                return false;
+                            }
+                        });
+
+                        if(user != null || user) {
+                            localStorage.currentUser = user.get('id');
+                            location.replace("index.html");
                         }
-                    });
-                    console.log(user.get('id'));
-                    localStorage.currentUser = user.get('id');
-                    location.replace("index.html");
-                },
-                error: function() {
-                    console.log("Error fetching user list");
-                }
-            });
+                    }
+                });
+            } else {
+                location.replace("index.html");
+            }
         },
         error: function(msg) {
             console.log(JSON.stringify(msg));
             // TODO add more user friendly error message
-            alert('error: '+JSON.stringify(msg));
+            showingRegistrationError = true;
+            document.getElementById("registration-error-text").innerHTML = msg.responseText;
+            $("#registration-error").show();
         }
     });
 }
