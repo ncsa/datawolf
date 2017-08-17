@@ -45,11 +45,15 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 
 @Path("/persons")
 public class PersonsResource {
+    private Logger    log = LoggerFactory.getLogger(PersonsResource.class);
 
     @Inject
     private PersonDao personDao;
@@ -117,12 +121,16 @@ public class PersonsResource {
         Person p = personDao.findByEmail(email);
         if (p == null) {
             p = new Person();
+            p.setFirstName(firstName);
+            p.setLastName(lastName);
+            p.setEmail(email);
+            p = personDao.save(p);
+            return p.getId();
+        } else {
+            log.warn("Person with specified email already exists.");
         }
-        p.setFirstName(firstName);
-        p.setLastName(lastName);
-        p.setEmail(email);
-        p = personDao.save(p);
-        return p.getId();
+
+        return null;
     }
 
     /**
