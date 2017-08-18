@@ -59,6 +59,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
+import org.apache.http.HttpStatus;
 import org.jboss.resteasy.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,14 +185,19 @@ public class LoginResource {
                 account.setActive(true);
                 account.setAdmin(true);
             }
-        }
-        account.setPassword(password);
-        account.setDeleted(false);
-        String token = new BigInteger(130, secureRandom).toString(32);
-        account.setToken(token);
+            account.setPassword(password);
+            account.setDeleted(false);
+            String token = new BigInteger(130, secureRandom).toString(32);
+            account.setToken(token);
 
-        accountDao.save(account);
-        return Response.ok().cookie(new NewCookie("token", email + ":" + token, null, null, null, 86400, false)).build();
+            accountDao.save(account);
+            return Response.ok().cookie(new NewCookie("token", email + ":" + token, null, null, null, 86400, false)).build();
+        } else {
+            log.warn("Account for specified user already exists.");
+        }
+
+        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Account for specified user already exists").build();
+
     }
 
     /**
