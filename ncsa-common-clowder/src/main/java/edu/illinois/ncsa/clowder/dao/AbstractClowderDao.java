@@ -46,7 +46,7 @@ public abstract class AbstractClowderDao<T, ID extends Serializable> implements 
         return null;
     }
 
-    public long count() {
+    public long count(boolean deleted) {
         // TODO implement count
         return 0;
     }

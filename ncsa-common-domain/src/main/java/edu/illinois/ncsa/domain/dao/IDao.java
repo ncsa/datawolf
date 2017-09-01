@@ -17,5 +17,5 @@ public interface IDao<T, ID extends Serializable> {
 
     boolean exists(ID id);
 
-    long count();
+    long count(boolean deleted);
 }

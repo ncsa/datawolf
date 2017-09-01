@@ -66,8 +66,12 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
         return findOne(id) != null;
     }
 
-    public long count() {
-        return findAll().size();
+    @Transactional
+    public long count(boolean deleted) {
+        EntityManager entityManager = this.getEntityManager();
+        TypedQuery<Long> query = entityManager.createQuery("SELECT COUNT(e) FROM " + getEntityType().getSimpleName() + " e WHERE e.deleted = :deleted", Long.class);
+        query.setParameter("deleted", deleted);
+        return query.getSingleResult();
     }
 
     protected Class<T> getEntityType() {
