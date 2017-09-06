@@ -51,7 +51,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
         if (!enabled) {
             return null;
         }
-        // Don't intercept /login or /persons for creating users or loggin in
+        // Don't intercept /login or /persons for creating users or log in attempts
         // TODO Consider making this more specific so future POST endpoints are
         // not included in this
         String requestPath = request.getUri().getPath();
