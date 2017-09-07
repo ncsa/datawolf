@@ -31,7 +31,9 @@
  ******************************************************************************/
 package edu.illinois.ncsa.datawolf.service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -41,8 +43,6 @@ import java.util.StringTokenizer;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -54,12 +54,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,20 +214,19 @@ public class LoginResource {
     @PUT
     @Path("{person-id}/active")
     @Produces({ MediaType.TEXT_PLAIN })
-    public Response updateAccount(@Context HttpServletRequest request, @PathParam("person-id") String personId) {
-        String credential = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (credential != null && !credential.isEmpty()) {
-            try {
-                credential = new String(Base64.decode(credential.substring(6)));
-            } catch (IOException e) {
-                log.error("Error decoding authorization", e);
-                Response.status(500).entity("Error checking credential").build();
-            }
-        } else {
-            for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals("token")) {
-                    credential = cookie.getValue();
-                    break;
+    public Response updateAccount(@Context HttpRequest request, @PathParam("person-id") String personId) {
+        String credential = null;
+
+        if (request.getHttpHeaders().getCookies().containsKey("token")) {
+            Cookie cookie = request.getHttpHeaders().getCookies().get("token");
+            credential = cookie.getValue();
+        } else if (request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
+            if (!request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
+                String authorization = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
+                try {
+                    credential = new String(Base64.decode(authorization.substring(6)));
+                } catch (IOException e) {
+                    log.error("Error decoding authorization", e);
                 }
             }
         }
@@ -235,13 +236,13 @@ public class LoginResource {
             Person person = personDao.findOne(personId);
             Account account = accountDao.findByUserid(credentials.get(0));
 
-            if (person != null && !account.isDeleted() && account.isActive() && account.isAdmin()) {
+            if (person != null && account.isAdmin()) {
 
                 Account updateAccount = accountDao.findByUserid(person.getEmail());
                 if (updateAccount != null) {
                     boolean active = updateAccount.isActive();
                     try {
-                        JsonElement jsonElement = new JsonParser().parse(request.getReader());
+                        JsonElement jsonElement = new JsonParser().parse(new BufferedReader(new InputStreamReader(request.getInputStream())));
                         JsonObject body = jsonElement.getAsJsonObject();
                         if (body.has("active")) {
                             active = body.get("active").getAsBoolean();
@@ -250,19 +251,19 @@ public class LoginResource {
                         accountDao.save(updateAccount);
 
                         return Response.ok("Updated account").build();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         log.error("Could not parse request body.", e);
-                        return Response.status(500).entity("Could not parse request body").build();
+                        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Could not parse request body").build();
                     }
 
                 } else {
-                    return Response.status(500).entity("Could not find user account for specified user").build();
+                    return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Could not find user account for specified user").build();
                 }
             }
 
         }
 
-        return Response.status(500).entity("Failed to updated account.").build();
+        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Failed to updated account.").build();
 
     }
 
@@ -273,16 +274,43 @@ public class LoginResource {
      *            the email for whom the account to be deleted
      */
     @DELETE
-    public void disable(@QueryParam("email") @DefaultValue("") String email) throws Exception {
+    public Response disable(@Context HttpRequest request, @QueryParam("email") @DefaultValue("") String email) throws Exception {
         if ((email == null) || email.equals("")) {
-            throw (new Exception("No email specified"));
+            log.error("No email specified.");
+            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("No email specified.").build();
         }
 
-        Account account = accountDao.findByUserid(email);
-        if (account != null) {
-            account.setDeleted(true);
-            accountDao.save(account);
+        String credential = null;
+
+        if (request.getHttpHeaders().getCookies().containsKey("token")) {
+            Cookie cookie = request.getHttpHeaders().getCookies().get("token");
+            credential = cookie.getValue();
+        } else if (request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
+            if (!request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
+                String authorization = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
+                credential = new String(Base64.decode(authorization.substring(6)));
+            }
         }
+
+        if (credential != null) {
+            List<String> credentials = LoginUtil.parseCredentials(credential);
+            Account adminAccount = accountDao.findByUserid(credentials.get(0));
+
+            if (adminAccount.isAdmin()) {
+                Account deleteAccount = accountDao.findByUserid(email);
+                if (deleteAccount != null) {
+                    deleteAccount.setDeleted(true);
+                    deleteAccount.setActive(false);
+                    accountDao.save(deleteAccount);
+                    return Response.status(HttpStatus.SC_OK).entity("Account deleted.").build();
+                }
+            } else {
+                log.error("Only administrators can delete accounts.");
+                return Response.status(HttpStatus.SC_FORBIDDEN).entity("Only administrators can delete accounts.").build();
+            }
+        }
+
+        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Failed to delete account.").build();
     }
 
 }
