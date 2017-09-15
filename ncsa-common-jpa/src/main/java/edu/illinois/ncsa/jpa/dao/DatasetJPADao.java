@@ -6,6 +6,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 
@@ -13,6 +16,7 @@ import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 
 public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements DatasetDao {
+    private static final Logger log = LoggerFactory.getLogger(DatasetJPADao.class);
 
     @Inject
     protected DatasetJPADao(Provider<EntityManager> entityManager) {
@@ -22,59 +26,84 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
     @Override
     @Transactional
     public List<Dataset> findByDeleted(boolean deleted) {
-        List<Dataset> results = null;
         String queryString = "SELECT d FROM Dataset d " + "WHERE d.deleted = :deleted";
         TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
         q.setParameter("deleted", deleted);
-        results = q.getResultList();
+
+        List<Dataset> results = q.getResultList();
         return results;
     }
 
     @Transactional
     public List<Dataset> findByDeleted(boolean deleted, int page, int size) {
-        List<Dataset> results = null;
         String queryString = "SELECT d FROM Dataset d " + "WHERE d.deleted = :deleted";
         TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
         q.setParameter("deleted", deleted);
         q.setFirstResult(page * size);
         q.setMaxResults(size);
-        results = q.getResultList();
+
+        List<Dataset> results = q.getResultList();
         return results;
     }
 
     @Override
     public List<Dataset> findByTitleLike(String titlePattern) {
-        // TODO implement query
-        return null;
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.title LIKE :title";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+
+        List<Dataset> results = q.getResultList();
+        return results;
     }
 
     @Override
     public List<Dataset> findByTitleLike(String titlePattern, int page, int size) {
-        // TODO Auto-generated method stub
-        return null;
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.title LIKE :title";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+        q.setFirstResult(page * size);
+        q.setMaxResults(size);
+
+        List<Dataset> results = q.getResultList();
+        return results;
     }
 
     @Override
     public List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted) {
-        // TODO implement query
-        return null;
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.title LIKE :title and d.deleted = :deleted";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+        q.setParameter("deleted", deleted);
+
+        List<Dataset> results = q.getResultList();
+        return results;
     }
 
     @Override
     public List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted, int page, int size) {
-        // TODO implement query
-        return null;
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.title LIKE :title and d.deleted = :deleted";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+        q.setParameter("deleted", deleted);
+        q.setFirstResult(page * size);
+        q.setMaxResults(size);
+
+        List<Dataset> results = q.getResultList();
+        return results;
     }
 
     @Transactional
     public List<Dataset> findByCreatorEmail(String email) {
-        List<Dataset> results = null;
         String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email";
 
         TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
         q.setParameter("email", email);
-        results = q.getResultList();
 
+        List<Dataset> results = q.getResultList();
         return results;
 
     }
@@ -82,35 +111,32 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
     @Override
     @Transactional
     public List<Dataset> findByCreatorEmail(String email, int page, int size) {
-        List<Dataset> results = null;
         String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email";
 
         TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
         q.setParameter("email", email);
         q.setFirstResult(page * size);
         q.setMaxResults(size);
-        results = q.getResultList();
 
+        List<Dataset> results = q.getResultList();
         return results;
 
     }
 
     @Transactional
     public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted) {
-        List<Dataset> results = null;
         String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.deleted = :deleted";
 
         TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
         q.setParameter("email", email);
         q.setParameter("deleted", deleted);
-        results = q.getResultList();
 
+        List<Dataset> results = q.getResultList();
         return results;
     }
 
     @Transactional
     public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size) {
-        List<Dataset> results = null;
         String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.deleted = :deleted";
 
         TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
@@ -118,33 +144,62 @@ public class DatasetJPADao extends AbstractJPADao<Dataset, String> implements Da
         q.setParameter("deleted", deleted);
         q.setFirstResult(page * size);
         q.setMaxResults(size);
-        results = q.getResultList();
 
+        List<Dataset> results = q.getResultList();
         return results;
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLike(String email, String titlePattern) {
-        // TODO implement query
-        return null;
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.title LIKE :title";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+        q.setParameter("email", email);
+
+        List<Dataset> results = q.getResultList();
+        return results;
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLike(String email, String titlePattern, int page, int size) {
-        // TODO Auto-generated method stub
-        return null;
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.title LIKE :title";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+        q.setParameter("email", email);
+        q.setFirstResult(page * size);
+        q.setMaxResults(size);
+
+        List<Dataset> results = q.getResultList();
+        return results;
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted) {
-        // TODO implement query
-        return null;
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.deleted = :deleted and d.title LIKE :title";
+
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+        q.setParameter("email", email);
+        q.setParameter("deleted", deleted);
+
+        List<Dataset> results = q.getResultList();
+        return results;
     }
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted, int page, int size) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+        String queryString = "SELECT d FROM Dataset d " + "WHERE d.creator.email = :email and d.deleted = :deleted and d.title LIKE :title";
 
+        TypedQuery<Dataset> q = getEntityManager().createQuery(queryString, Dataset.class);
+        q.setParameter("title", "%" + titlePattern + "%");
+        q.setParameter("email", email);
+        q.setParameter("deleted", deleted);
+        q.setFirstResult(page * size);
+        q.setMaxResults(size);
+
+        List<Dataset> results = q.getResultList();
+        return results;
+    }
 }
