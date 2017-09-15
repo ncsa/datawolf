@@ -46,6 +46,19 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
     }
 
     @Transactional
+    public List<T> findAll(int page, int size) {
+        List<T> results = null;
+        EntityManager entityManager = this.getEntityManager();
+        TypedQuery<T> query = entityManager.createQuery("SELECT e FROM " + getEntityType().getSimpleName() + " e", getEntityType());
+        query.setFirstResult(page * size);
+        query.setMaxResults(size);
+        results = query.getResultList();
+
+        return results;
+
+    }
+
+    @Transactional
     public List<T> findAll() {
         List<T> results = null;
         EntityManager entityManager = this.getEntityManager();

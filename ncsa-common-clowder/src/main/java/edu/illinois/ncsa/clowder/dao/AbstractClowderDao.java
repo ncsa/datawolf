@@ -46,6 +46,10 @@ public abstract class AbstractClowderDao<T, ID extends Serializable> implements 
         return null;
     }
 
+    public List<T> findAll(int page, int size) {
+        return null;
+    }
+
     public long count(boolean deleted) {
         // TODO implement count
         return 0;
