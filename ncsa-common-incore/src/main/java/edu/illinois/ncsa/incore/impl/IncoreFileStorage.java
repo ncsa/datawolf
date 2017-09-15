@@ -12,7 +12,7 @@ import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 
-public class FileStorageIncore implements FileStorage {
+public class IncoreFileStorage implements FileStorage {
     @Inject
     @Named("incore.server")
     private String     server;
@@ -57,8 +57,8 @@ public class FileStorageIncore implements FileStorage {
 
     @Override
     public InputStream readFile(FileDescriptor fd) throws IOException {
-        // TODO Auto-generated method stub
-        return null;
+        String requestUrl = fd.getDataURL();
+        return new URL(requestUrl).openStream();
     }
 
     @Override

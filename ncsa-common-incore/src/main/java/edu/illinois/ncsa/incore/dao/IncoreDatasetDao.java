@@ -248,8 +248,8 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     @Override
     public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO fix this
+        return findAll();
     }
 
     @Override

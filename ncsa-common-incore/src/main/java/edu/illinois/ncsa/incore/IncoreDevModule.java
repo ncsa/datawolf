@@ -8,7 +8,7 @@ import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 import edu.illinois.ncsa.incore.dao.IncoreDatasetDao;
 import edu.illinois.ncsa.incore.dao.IncoreFileDescriptorDao;
-import edu.illinois.ncsa.incore.impl.FileStorageIncore;
+import edu.illinois.ncsa.incore.impl.IncoreFileStorage;
 
 public class IncoreDevModule extends AbstractModule {
 
@@ -18,6 +18,6 @@ public class IncoreDevModule extends AbstractModule {
         bind(FileDescriptorDao.class).to(IncoreFileDescriptorDao.class);
 
         bindConstant().annotatedWith(Names.named("incore.server")).to("http://localhost:9000/");
-        bind(FileStorage.class).to(FileStorageIncore.class);
+        bind(FileStorage.class).to(IncoreFileStorage.class);
     }
 }
