@@ -19,22 +19,7 @@ var LoginView = Backbone.View.extend({
 		var email = $('input[name=username]').val();
 		var password = $('input[name=password]').val();
 
-		var user = null;
-
-		// Find if person exists
-		personCollection.each(function(person) {
-			if(person.get('email') === email) {
-				user = person;
-				return false;
-			}
-		});
-
-		if(user != null) {
-			checkLogin(email, password);
-		} else {
-			showingLoginError = true;
-			$("#login-error").show();
-		}
+		checkLogin(email, password);
 	}
 
 });
@@ -85,32 +70,16 @@ var RegistrationView = Backbone.View.extend({
 		e.preventDefault();
 
 		var email = $('input[name=email]').val();
+		var firstName = $('input[name=firstname]').val();
+		var lastName = $('input[name=lastname]').val();
+		var password = $('input[name=newpassword]').val();
 
-		var user = null;
-		// Find if person exists
-		personCollection.each(function(person) {
-			if(person.get('email') === email) {
-				user = person;
-				return false;
-			}
-		});
-
-		if(user != null) {
+		if(password.length < 6) {
 			showingRegistrationError = true;
-			document.getElementById("registration-error-text").innerHTML = "An account is already registered to that email address.";
+			document.getElementById("registration-error-text").innerHTML = "Password is too short. Password must be 6 or more characters.";
 			$("#registration-error").show();
 		} else {
-			var firstName = $('input[name=firstname]').val();
-			var lastName = $('input[name=lastname]').val();
-			var password = $('input[name=newpassword]').val();
-
-			if(password.length < 6) {
-				showingRegistrationError = true;
-				document.getElementById("registration-error-text").innerHTML = "Password is too short. Password must be 6 or more characters.";
-				$("#registration-error").show();
-			} else {
-				createPerson(firstName, lastName, email, password);
-			}
+			createPerson(firstName, lastName, email, password);
 		}
 	}
 
@@ -139,48 +108,26 @@ var MediciRegistrationView = Backbone.View.extend({
 		var email = $('input[name=email]').val();
 		var password = $('input[name=newpassword]').val();
 
-		var user = null;
-		// Find if person exists
-		personCollection.each(function(person) {
-			if(person.get('email') === email) {
-				user = person;
-				return false;
+		// Check if user/pass is valid before allowing it to be used with DataWolf
+		$.ajax({
+			url: datawolfOptions.clowder + '/api/me',
+			method: 'GET',
+			beforeSend: function(xhr) {
+				xhr.setRequestHeader('Authorization', 'Basic '+ btoa(email + ':' + password));
+			},
+			success: function(message) {
+				// DataWolf needs to store basic information about the user
+				// It might be possible to eliminate this so we can always call Clowder API to validate user as needed
+				// TODO handle case if users change their clowder password
+				createAccount(email, password);
+			},
+
+			error: function(message) {
+				document.getElementById("registration-error-text").innerHTML = "Error validating Clowder account.";
+				$("#registration-error").show()
 			}
+
 		});
 
-		if(user == null) {
-			showingRegistrationError = true;
-			document.getElementById("registration-error-text").innerHTML = "Error, please register with Clowder first.";
-			$("#registration-error").show();
-		}  else {
-
-			if(password.length < 6) {
-				showingRegistrationError = true;
-				document.getElementById("registration-error-text").innerHTML = "Password is too short. Password must be 6 or more characters.";
-				$("#registration-error").show();
-			} else {
-				// Clowder account exists, check if user/pass is valid before allowing it to be used with DataWolf
-				$.ajax({
-					url: datawolfOptions.clowder + '/api/me',
-					method: 'GET',
-					beforeSend: function(xhr) {
-						xhr.setRequestHeader('Authorization', 'Basic '+ btoa(email + ':' + password));
-					},
-					success: function(message) {
-						// DataWolf needs to store basic information about the user
-						// It might be possible to eliminate this so we can always call Clowder API to validate user as needed
-						// TODO handle case if users change their clowder password
-						createAccount(email, password);
-					},
-
-					error: function(message) {
-						document.getElementById("registration-error-text").innerHTML = "Error validating Clowder account.";
-						$("#registration-error").show()
-					}
-
-				});
-
-			}
-		}
 	}
 });
