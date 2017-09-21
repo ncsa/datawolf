@@ -119,7 +119,8 @@ var MediciRegistrationView = Backbone.View.extend({
 				// DataWolf needs to store basic information about the user
 				// It might be possible to eliminate this so we can always call Clowder API to validate user as needed
 				// TODO handle case if users change their clowder password
-				createAccount(email, password);
+				var response = JSON.parse(JSON.stringify(message));
+				createAccount(email, password, response.id);
 			},
 
 			error: function(message) {

@@ -122,6 +122,10 @@ public class LoginResource {
                         return null;
                     }
 
+                    if (!userAccount.isActive()) {
+                        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Not Active").build();
+                    }
+
                     if (userAccount.getPassword().equals(password) && userAccount.getPerson().getEmail().equals(email)) {
                         Person person = personDao.findByEmail(email);
                         String token = new BigInteger(130, secureRandom).toString(32);
@@ -183,17 +187,24 @@ public class LoginResource {
             account = new Account();
             account.setPerson(person);
             account.setUserid(person.getEmail());
+            account.setPassword(password);
+
+            String token = null;
             if (admins.contains(email)) {
+                token = new BigInteger(130, secureRandom).toString(32);
+
                 account.setActive(true);
                 account.setAdmin(true);
+                account.setToken(token);
             }
-            account.setPassword(password);
-            account.setDeleted(false);
-            String token = new BigInteger(130, secureRandom).toString(32);
-            account.setToken(token);
 
             accountDao.save(account);
-            return Response.ok().cookie(new NewCookie("token", email + ":" + token, null, null, null, 86400, false)).build();
+            if (token != null) {
+                return Response.ok().cookie(new NewCookie("token", email + ":" + token, null, null, null, 86400, false)).build();
+            } else {
+                return Response.ok("Not Active").build();
+            }
+
         } else {
             log.warn("Account for specified user already exists.");
         }

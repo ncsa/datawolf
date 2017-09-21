@@ -69,33 +69,19 @@ var checkLogin = function(email, password) {
     })
 }
 
-var createAccount = function(email, password) {
+var createAccount = function(email, password, userId) {
     var url = datawolfOptions.rest + '/login?email='+email+'&password='+password;
     $.ajax({
         type: "POST",
         url: url,
         dataType: "text",
         success: function(msg) {
-            // Handles Clowder first login where currentUser isn't set because createPerson isn't called
-            var user = localStorage.currentUser;
-            if(user == null || user) {
-                var personCollection = new PersonCollection();
-                personCollection.fetch({
-                    success: function() {
-                        personCollection.each(function(person) {
-                            if(person.get('email') === email) {
-                                user = person;
-                                return false;
-                            }
-                        });
-
-                        if(user != null || user) {
-                            localStorage.currentUser = user.get('id');
-                            location.replace("index.html");
-                        }
-                    }
-                });
+            if(msg === 'Not Active') {
+                showingRegistrationError = true;
+                document.getElementById("registration-error-text").innerHTML = "Registration successful, but the account is not active. Please contact an administrator.";
+                $("#registration-error").show();
             } else {
+                localStorage.currentUser = userId;
                 location.replace("index.html");
             }
         },
@@ -117,9 +103,7 @@ var createPerson = function(firstName, lastName, email, password) {
         dataType: "text",
 
         success: function(msg) {
-            console.log("created person");
-            localStorage.currentUser = msg;
-            createAccount(email, password);
+            createAccount(email, password, msg);
         },
         error: function(msg) {
             alert('error: '+JSON.stringify(msg));
