@@ -94,7 +94,9 @@ public class Engine {
     @Named("engine.extraLocalExecutor")
     private int                   extraLocalExecutor = 1;
 
-    /** flag indicating if queue has been checked for unfinished jobs on startup */
+    /**
+     * flag indicating if queue has been checked for unfinished jobs on startup
+     */
     private boolean               loadedQueue        = false;
 
     @Inject
@@ -108,6 +110,9 @@ public class Engine {
 
     @Inject
     private UnitOfWork            unitOfWork;
+
+    /** Page size when loading queue */
+    private int                   pageSize           = 50;
 
     /**
      * Create the engine with a single worker.
@@ -432,30 +437,36 @@ public class Engine {
             // t.start(true);
             unitOfWork.begin();
             List<String> steps = null;
-            for (Execution execution : executionDao.findAll()) {
-                Map<String, State> stepStates = execution.getStepState();
-                steps = new ArrayList<String>();
-                Iterator<String> stepIterator = stepStates.keySet().iterator();
-                while (stepIterator.hasNext()) {
-                    String stepId = stepIterator.next();
-                    State stepState = stepStates.get(stepId);
-                    if (stepState.equals(State.WAITING) || stepState.equals(State.QUEUED) || stepState.equals(State.RUNNING)) {
-                        // Check if step already associated with executor
-                        boolean addStep = true;
-                        for (Executor exec : this.queue) {
-                            if (exec.getStepId().equals(stepId)) {
-                                addStep = false;
-                                break;
+
+            long count = executionDao.count(false);
+            int pageCount = (int) Math.ceil(count / (double) pageSize);
+
+            for (int page = 0; page < pageCount; page++) {
+                for (Execution execution : executionDao.findByDeleted(false, page, pageSize)) {
+                    Map<String, State> stepStates = execution.getStepState();
+                    steps = new ArrayList<String>();
+                    Iterator<String> stepIterator = stepStates.keySet().iterator();
+                    while (stepIterator.hasNext()) {
+                        String stepId = stepIterator.next();
+                        State stepState = stepStates.get(stepId);
+                        if (stepState.equals(State.WAITING) || stepState.equals(State.QUEUED) || stepState.equals(State.RUNNING)) {
+                            // Check if step already associated with executor
+                            boolean addStep = true;
+                            for (Executor exec : this.queue) {
+                                if (exec.getStepId().equals(stepId)) {
+                                    addStep = false;
+                                    break;
+                                }
+                            }
+                            if (addStep) {
+                                steps.add(stepId);
                             }
                         }
-                        if (addStep) {
-                            steps.add(stepId);
-                        }
                     }
-                }
 
-                if (steps.size() > 0) {
-                    queue.put(execution, steps);
+                    if (steps.size() > 0) {
+                        queue.put(execution, steps);
+                    }
                 }
             }
         } catch (Exception e) {

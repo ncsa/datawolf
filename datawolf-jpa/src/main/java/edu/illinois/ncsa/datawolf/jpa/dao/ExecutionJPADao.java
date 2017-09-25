@@ -66,12 +66,42 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
 
     @Override
     @Transactional
+    public List<Execution> findByWorkflowId(String workflowId, int page, int size) {
+
+        List<Execution> results = null;
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId";
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("workflowId", workflowId);
+        results = typedQuery.getResultList();
+        typedQuery.setFirstResult(page * size);
+        typedQuery.setMaxResults(size);
+
+        return results;
+    }
+
+    @Override
+    @Transactional
     public List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted) {
         List<Execution> results = null;
         String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId and e.deleted = :deleted";
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("workflowId", workflowId);
         typedQuery.setParameter("deleted", deleted);
+        results = typedQuery.getResultList();
+
+        return results;
+    }
+
+    @Override
+    @Transactional
+    public List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted, int page, int size) {
+        List<Execution> results = null;
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId and e.deleted = :deleted";
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("workflowId", workflowId);
+        typedQuery.setParameter("deleted", deleted);
+        typedQuery.setFirstResult(page * size);
+        typedQuery.setMaxResults(size);
         results = typedQuery.getResultList();
 
         return results;
@@ -93,12 +123,43 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
 
     @Override
     @Transactional
+    public List<Execution> findByDeleted(boolean deleted, int page, int size) {
+        List<Execution> results = null;
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.deleted = :deleted";
+
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("deleted", deleted);
+        typedQuery.setFirstResult(page * size);
+        typedQuery.setMaxResults(size);
+        results = typedQuery.getResultList();
+
+        return results;
+
+    }
+
+    @Override
+    @Transactional
     public List<Execution> findByCreatorEmail(String email) {
         List<Execution> results = null;
         String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email";
 
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("email", email);
+        results = typedQuery.getResultList();
+
+        return results;
+    }
+
+    @Override
+    @Transactional
+    public List<Execution> findByCreatorEmail(String email, int page, int size) {
+        List<Execution> results = null;
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email";
+
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("email", email);
+        typedQuery.setFirstResult(page * size);
+        typedQuery.setMaxResults(size);
         results = typedQuery.getResultList();
 
         return results;
@@ -113,6 +174,22 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("email", email);
         typedQuery.setParameter("deleted", deleted);
+        results = typedQuery.getResultList();
+
+        return results;
+    }
+
+    @Override
+    @Transactional
+    public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size) {
+        List<Execution> results = null;
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email and e.deleted = :deleted";
+
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("email", email);
+        typedQuery.setParameter("deleted", deleted);
+        typedQuery.setFirstResult(page * size);
+        typedQuery.setMaxResults(size);
         results = typedQuery.getResultList();
 
         return results;

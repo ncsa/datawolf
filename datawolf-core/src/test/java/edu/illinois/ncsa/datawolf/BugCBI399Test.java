@@ -70,9 +70,9 @@ public class BugCBI399Test {
         WorkflowDao workflowDao = injector.getInstance(WorkflowDao.class);
         WorkflowStepDao workflowStepDao = injector.getInstance(WorkflowStepDao.class);
         // make sure people are reused
-        assertEquals(1, personDao.count());
-        assertEquals(2, workflowDao.count());
-        assertEquals(4, workflowStepDao.count());
+        assertEquals(1, personDao.count(false));
+        assertEquals(2, workflowDao.count(false));
+        assertEquals(4, workflowStepDao.count(false));
     }
 
     private File saveWorkflow(Workflow workflow) throws IOException {

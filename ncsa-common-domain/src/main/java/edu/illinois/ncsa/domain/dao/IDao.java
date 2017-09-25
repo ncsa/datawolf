@@ -15,7 +15,9 @@ public interface IDao<T, ID extends Serializable> {
 
     List<T> findAll();
 
+    List<T> findAll(int page, int size);
+
     boolean exists(ID id);
 
-    long count();
+    long count(boolean deleted);
 }
