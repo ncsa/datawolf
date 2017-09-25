@@ -465,4 +465,46 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
         return null;
     }
 
+    @Override
+    public List<Dataset> findByDeleted(boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByTitleLike(String titlePattern, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmail(String email, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndTitleLike(String email, String titlePattern, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

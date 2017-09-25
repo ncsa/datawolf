@@ -9,12 +9,16 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 
 import edu.illinois.ncsa.domain.dao.IDao;
 
 public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao<T, ID> {
+    private static final Logger     log = LoggerFactory.getLogger(AbstractJPADao.class);
 
     private Provider<EntityManager> entityManager;
     private Class<T>                entityType;
