@@ -298,7 +298,7 @@ public abstract class Executor {
             try {
                 ByteArrayInputStream bais = new ByteArrayInputStream(log.toString().getBytes("UTF-8"));
                 FileDescriptor fd = logfile.getLog();
-                fd = fileStorage.storeFile(fd.getId(), "log.txt", bais, executionDao.findOne(executionId).getCreator());
+                fd = fileStorage.storeFile(fd.getId(), "log.txt", bais, executionDao.findOne(executionId).getCreator(), null);
                 fileDescriptorDao.save(fd);
             } catch (Exception e) {
                 logger.error("Could not save log message.", e);

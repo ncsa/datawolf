@@ -202,7 +202,7 @@ public class DatasetsResource {
                         InputStream inputStream = inputPart.getBody(InputStream.class, null);
 
                         // Store the file
-                        fileDescriptor = fileStorage.storeFile(fileName, inputStream, creator);
+                        fileDescriptor = fileStorage.storeFile(fileName, inputStream, creator, null);
                         if (fileDescriptor == null)
                             return null;
                     } catch (IOException e) {

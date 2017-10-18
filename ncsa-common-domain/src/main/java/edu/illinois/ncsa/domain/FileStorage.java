@@ -48,11 +48,13 @@ public interface FileStorage {
      *            - inputstream of the file to store
      * @param creator
      *            - file creator
+     * @param ds
+     *            - dataset to attach file to
      * @return FileDescriptor for the stored file
      * @throws IOException
      *             if an I/O error occurs
      */
-    public FileDescriptor storeFile(String filename, InputStream is, Person creator) throws IOException;
+    public FileDescriptor storeFile(String filename, InputStream is, Person creator, Dataset ds) throws IOException;
 
     /**
      * Store file in file storage system
@@ -93,11 +95,14 @@ public interface FileStorage {
      *            - inputstream of the file to store
      * @param creator
      *            - file creator
+     * @param ds
+     *            - dataset to attach file to
+     * 
      * @return FileDescriptor for the stored file
      * @throws IOException
      *             if an I/O error occurs
      */
-    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator) throws IOException;
+    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator, Dataset ds) throws IOException;
 
     /**
      * Read file from storage

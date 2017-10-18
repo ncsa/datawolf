@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.name.Named;
 
+import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Person;
@@ -84,8 +85,8 @@ public class FileStorageDisk implements FileStorage {
         return storeFile(new FileDescriptor().getId(), null, is);
     }
 
-    public FileDescriptor storeFile(String filename, InputStream is, Person creator) throws IOException {
-        return storeFile(filename, is);
+    public FileDescriptor storeFile(String filename, InputStream is, Person creator, Dataset ds) throws IOException {
+        return storeFile(new FileDescriptor().getId(), filename, is, creator, ds);
     }
 
     public FileDescriptor storeFile(String filename, InputStream is) throws IOException {
@@ -109,11 +110,15 @@ public class FileStorageDisk implements FileStorage {
         return new URL(check.getDataURL());
     }
 
-    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator) throws IOException {
-        return storeFile(id, filename, is);
+    public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
+        return storeFile(id, filename, is, null);
     }
 
-    public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
+    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator, Dataset ds) throws IOException {
+        return storeFile(id, filename, is, ds);
+    }
+
+    public FileDescriptor storeFile(String id, String filename, InputStream is, Dataset ds) throws IOException {
         FileDescriptor fd = new FileDescriptor();
         fd.setId(id);
         fd.setFilename(filename);
@@ -181,6 +186,10 @@ public class FileStorageDisk implements FileStorage {
         fd.setSize(size);
 
         fileDescriptorDAO.save(fd);
+
+        if (ds != null) {
+            ds.addFileDescriptor(fd);
+        }
 
         return fd;
     }

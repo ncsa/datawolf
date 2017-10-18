@@ -370,13 +370,14 @@ public class CommandLineExecutor extends LocalExecutor {
                         stdout.append("\n");
                         stdout.append(stderr);
                     }
-                    ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, step.getCreator());
 
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                     ds.setCreator(execution.getCreator());
-                    ds.addFileDescriptor(fd);
+
+                    ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, step.getCreator(), ds);
+
                     ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
@@ -388,13 +389,13 @@ public class CommandLineExecutor extends LocalExecutor {
             }
             if (!impl.isJoinStdOutStdErr() && (impl.getCaptureStdErr() != null)) {
                 try {
-                    ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais, step.getCreator());
-
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle());
                     ds.setCreator(execution.getCreator());
-                    ds.addFileDescriptor(fd);
+
+                    ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais, step.getCreator(), ds);
+
                     ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds.getId());
@@ -411,6 +412,8 @@ public class CommandLineExecutor extends LocalExecutor {
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(entry.getKey()).getTitle());
                     ds.setCreator(execution.getCreator());
+                    ds.setDescription(step.getTool().getOutput(entry.getKey()).getDescription());
+                    ds = datasetDao.save(ds);
 
                     if (entry.getValue().contains("*")) {
                         final String matchme = entry.getValue().replace("*", ".*");
@@ -424,15 +427,13 @@ public class CommandLineExecutor extends LocalExecutor {
                         for (File file : files) {
                             logger.debug("adding files to a dataset: " + file);
                             FileInputStream fis = new FileInputStream(file);
-                            FileDescriptor fd = fileStorage.storeFile(file.getName(), fis, ds.getCreator());
+                            fileStorage.storeFile(file.getName(), fis, ds.getCreator(), ds);
                             fis.close();
-                            ds.addFileDescriptor(fd);
                         }
 
                     } else {
                         FileInputStream fis = new FileInputStream(entry.getValue());
-                        FileDescriptor fd = fileStorage.storeFile(new File(entry.getValue()).getName(), fis, ds.getCreator());
-                        ds.addFileDescriptor(fd);
+                        fileStorage.storeFile(new File(entry.getValue()).getName(), fis, ds.getCreator(), ds);
                     }
                     ds = datasetDao.save(ds);
 

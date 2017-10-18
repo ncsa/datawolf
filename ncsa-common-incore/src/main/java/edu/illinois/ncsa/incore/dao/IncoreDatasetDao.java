@@ -1,13 +1,8 @@
 package edu.illinois.ncsa.incore.dao;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
@@ -17,6 +12,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -27,6 +24,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.Person;
@@ -44,9 +42,69 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     @Override
     public Dataset save(Dataset entity) {
-        // This should create a dataset in in-core
 
-        return null;
+        // Check if this is a new entity (e.g. still has UUID)
+        if (entity.getId().contains("-")) {
+
+            // TODO replace this
+            // Description should contain type information
+            // This should be used to contact the semantic services
+            String description = entity.getDescription();
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("schema", "buildingDamagev4");
+            jsonObject.addProperty("type", "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0");
+            jsonObject.addProperty("title", entity.getTitle());
+            jsonObject.addProperty("sourceDataset", "");
+            jsonObject.addProperty("format", "csv");
+
+            JsonArray spaces = new JsonArray();
+            spaces.add(new JsonPrimitive("cnavarro"));
+            spaces.add(new JsonPrimitive("ergo"));
+            jsonObject.add("spaces", spaces);
+
+            String incoreEndpoint = getServer();
+            String requestUrl = incoreEndpoint;
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            HttpClient httpclient = builder.build();
+
+            try {
+                HttpResponse response = null;
+                ResponseHandler<String> responseHandler = new BasicResponseHandler();
+                String responseStr = null;
+                requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.CREATE_DATASET;
+
+                HttpPost httpPost = new HttpPost(requestUrl);
+                MultipartEntityBuilder params = MultipartEntityBuilder.create();
+                params.addTextBody("dataset", jsonObject.toString());
+
+                httpPost.setEntity(params.build());
+                response = httpclient.execute(httpPost);
+                responseStr = responseHandler.handleResponse(response);
+
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    JsonElement jsonElement = new JsonParser().parse(responseStr);
+                    JsonObject datasetProperties = jsonElement.getAsJsonObject();
+                    if (datasetProperties != null) {
+                        Dataset dataset = IncoreDataset.getDataset(datasetProperties, null);
+                        return dataset;
+                    }
+                } else {
+                    logger.error("Error saving the dataset. " + responseStr);
+                }
+            } catch (ClientProtocolException e) {
+                logger.error("Error saving dataset", e);
+            } catch (IOException e) {
+                logger.error("Error saving dataset ", e);
+            } finally {
+                try {
+                    ((CloseableHttpClient) httpclient).close();
+                } catch (IOException e) {
+                    logger.warn("Error closing http client", e);
+                }
+            }
+        }
+
+        return entity;
     }
 
     @Override
@@ -54,13 +112,8 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     @Override
     public Dataset findOne(String id) {
-
         String incoreEndpoint = getServer();
         String requestUrl = incoreEndpoint;
-        // Hack to work around no direct /datasets/dataset-id endpoint
-        if (typeIds == null) {
-            typeIds = getTypeIds();
-        }
 
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
@@ -70,27 +123,17 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
             HttpResponse response = null;
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String responseStr = null;
-            for (String typeId : typeIds) {
-                requestUrl = incoreEndpoint;
-                requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + typeId + "/" + id;
-                HttpGet httpGet = new HttpGet(requestUrl);
+            requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + id;
+            HttpGet httpGet = new HttpGet(requestUrl);
 
-                response = httpclient.execute(httpGet);
+            response = httpclient.execute(httpGet);
 
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                    responseStr = responseHandler.handleResponse(response);
-                    JsonElement jsonElement = new JsonParser().parse(responseStr);
-                    JsonObject datasetProperties = jsonElement.getAsJsonObject();
-                    JsonObject maevizMapping = datasetProperties.get(IncoreDataset.MAEVIZ_MAPPING).getAsJsonObject();
-                    if (datasetProperties != null && !maevizMapping.get(IncoreDataset.SCHEMA).isJsonNull()) {
-                        dataset = IncoreDataset.getDataset(datasetProperties, getCreator());
-                        break;
-                    }
-                } else {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                    // since you won't use the response content, just close
-                    // the stream
-                    br.close();
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                responseStr = responseHandler.handleResponse(response);
+                JsonElement jsonElement = new JsonParser().parse(responseStr);
+                JsonObject datasetProperties = jsonElement.getAsJsonObject();
+                if (datasetProperties != null) {
+                    dataset = IncoreDataset.getDataset(datasetProperties, getCreator());
                 }
             }
         } catch (ClientProtocolException e) {
@@ -109,48 +152,6 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
         return dataset;
     }
 
-    private List<String> getTypeIds() {
-        String incoreEndpoint = getServer();
-        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.LIST;
-
-        HttpClientBuilder builder = HttpClientBuilder.create();
-        HttpClient httpclient = builder.build();
-        List<String> typeIds = new LinkedList<String>();
-        try {
-            HttpGet httpGet = new HttpGet(requestUrl);
-
-            ResponseHandler<String> responseHandler = new BasicResponseHandler();
-            String responseStr = httpclient.execute(httpGet, responseHandler);
-
-            Pattern patternTag = Pattern.compile(IncoreDataset.HTML_A_TAG_PATTERN);
-            Pattern patternLink = Pattern.compile(IncoreDataset.HTML_A_HREF_TAG_PATTERN);
-            Matcher matcherTag = patternTag.matcher(responseStr);
-
-            while (matcherTag.find()) {
-                String href = matcherTag.group(1);
-                // String linkText = matcherTag.group(2);
-                Matcher matcherLink = patternLink.matcher(href);
-                while (matcherLink.find()) {
-                    String link = matcherLink.group(1);
-                    link = link.replace("\"", "");
-                    typeIds.add(link);
-                }
-            }
-        } catch (ClientProtocolException e) {
-            logger.error("Error getting list of type ids.", e);
-        } catch (IOException e) {
-            logger.error("Error getting list of type ids.", e);
-        } finally {
-            try {
-                ((CloseableHttpClient) httpclient).close();
-            } catch (IOException ignore) {
-                ignore.printStackTrace();
-            }
-        }
-
-        return typeIds;
-    }
-
     @Override
     public List<Dataset> findAll() {
         List<Dataset> results = new ArrayList<Dataset>();
@@ -162,7 +163,7 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
         String incoreEndpoint = getServer();
         String requestUrl = incoreEndpoint;
         try {
-            requestUrl += IncoreDataset.DATASETS_ENDPOINT;
+            requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.LIST;
             HttpGet httpGet = new HttpGet(requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
