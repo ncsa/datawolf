@@ -129,12 +129,12 @@ public class IncoreFileStorage implements FileStorage {
         requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.ADD_DATASET_FILES;
 
         jsonObject = new JsonObject();
-        jsonObject.addProperty("datasetId", ds.getId());
+        jsonObject.addProperty(IncoreDataset.DATASET_ID, ds.getId());
 
         paramBuilder = MultipartEntityBuilder.create();
         paramBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        paramBuilder.addTextBody("metadata", jsonObject.toString());
-        paramBuilder.addBinaryBody("file", output, ContentType.DEFAULT_BINARY, filename);
+        paramBuilder.addTextBody(IncoreDataset.PARENT_DATASET, jsonObject.toString());
+        paramBuilder.addBinaryBody(IncoreDataset.DATASET_FILE, output, ContentType.DEFAULT_BINARY, filename);
 
         httpPost = new HttpPost(requestUrl);
         httpPost.setEntity(paramBuilder.build());

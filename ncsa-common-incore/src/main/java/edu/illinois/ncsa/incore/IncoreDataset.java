@@ -12,9 +12,12 @@ public class IncoreDataset {
     // Datasets API
     public static final String  DATASETS_ENDPOINT       = "data/api/datasets";
     public static final String  CREATE_DATASET          = "ingest-dataset";
-    public static final String  ADD_DATASET_FILES       = "ingest-multi-files";
+    public static final String  ADD_DATASET_FILES       = "upload-files";
     public static final String  UPDATE                  = "update";
     public static final String  LIST                    = "list";
+    public static final String  PARENT_DATASET          = "parentdataset";
+    public static final String  DATASET_ID              = "datasetId";
+    public static final String  DATASET_FILE            = "file";
 
     // Dataset Attributes
     public static final String  MAEVIZ_MAPPING          = "maevizMapping";
