@@ -9,10 +9,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -159,8 +161,25 @@ public class IncoreFileStorage implements FileStorage {
 
     @Override
     public InputStream readFile(FileDescriptor fd) throws IOException {
-        String requestUrl = fd.getDataURL();
-        return new URL(requestUrl).openStream();
+        String incoreEndpoint = server;
+        if (!incoreEndpoint.endsWith("/")) {
+            incoreEndpoint += "/";
+        }
+        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.DATASET_FILES + "/" + fd.getId() + "/" + IncoreDataset.DATASET_FILE;
+        logger.debug("request is " + requestUrl);
+
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+        HttpGet httpGet = new HttpGet(requestUrl);
+
+        HttpResponse response = httpclient.execute(httpGet);
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            HttpEntity entity = response.getEntity();
+            return entity.getContent();
+        } else {
+            logger.error("Error getting file input stream for " + fd.getId() + ", service responded with status code " + response.getStatusLine().getStatusCode());
+            return null;
+        }
     }
 
     @Override

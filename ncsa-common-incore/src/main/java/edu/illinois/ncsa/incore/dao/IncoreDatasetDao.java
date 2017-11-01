@@ -163,7 +163,7 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
         String incoreEndpoint = getServer();
         String requestUrl = incoreEndpoint;
         try {
-            requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.LIST;
+            requestUrl += IncoreDataset.DATASETS_ENDPOINT;
             HttpGet httpGet = new HttpGet(requestUrl);
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
