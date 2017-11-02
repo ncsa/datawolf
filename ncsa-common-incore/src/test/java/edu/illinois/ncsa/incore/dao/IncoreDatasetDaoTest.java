@@ -36,7 +36,7 @@ public class IncoreDatasetDaoTest {
 
     // @Test
     public void testGetAllDatasets() throws Exception {
-        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.LIST;
+        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT;
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
         HttpGet httpGet = new HttpGet(requestUrl);
