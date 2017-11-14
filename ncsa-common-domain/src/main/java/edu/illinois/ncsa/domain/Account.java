@@ -39,7 +39,6 @@ public class Account extends AbstractBean {
     private String            userid           = "";   //$NON-NLS-1$
 
     /** password associated with the userid. */
-    // TODO RK : password should really be encrypted
     private String            password         = "";   //$NON-NLS-1$
 
     private String            token            = "";

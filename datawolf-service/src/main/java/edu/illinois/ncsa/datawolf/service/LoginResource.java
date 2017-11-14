@@ -63,6 +63,7 @@ import javax.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.util.Base64;
+import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +127,7 @@ public class LoginResource {
                         return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Not Active").build();
                     }
 
-                    if (userAccount.getPassword().equals(password) && userAccount.getPerson().getEmail().equals(email)) {
+                    if (BCrypt.checkpw(password, userAccount.getPassword()) && userAccount.getPerson().getEmail().equals(email)) {
                         Person person = personDao.findByEmail(email);
                         String token = new BigInteger(130, secureRandom).toString(32);
                         userAccount.setToken(token);
@@ -145,6 +146,7 @@ public class LoginResource {
         }
 
         return null;
+
     }
 
     /**
@@ -187,7 +189,7 @@ public class LoginResource {
             account = new Account();
             account.setPerson(person);
             account.setUserid(person.getEmail());
-            account.setPassword(password);
+            account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
 
             String token = null;
             if (admins.contains(email)) {
