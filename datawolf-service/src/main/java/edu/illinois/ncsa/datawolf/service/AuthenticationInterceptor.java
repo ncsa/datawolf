@@ -20,6 +20,7 @@ import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.interception.PreProcessInterceptor;
 import org.jboss.resteasy.util.Base64;
 import org.jboss.resteasy.util.HttpResponseCodes;
+import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +52,8 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
         if (!enabled) {
             return null;
         }
-        // Don't intercept /login or /persons for creating users or log in attempts
+        // Don't intercept /login or /persons for creating users or log in
+        // attempts
         // TODO Consider making this more specific so future POST endpoints are
         // not included in this
         String requestPath = request.getUri().getPath();
@@ -146,8 +148,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
         }
 
         if (!tokenAuth) {
-            // TODO RK : password should really be encrypted
-            return account.getPassword().equals(token);
+            return BCrypt.checkpw(token, account.getPassword());
         } else {
             return account.getToken().equals(token);
         }
