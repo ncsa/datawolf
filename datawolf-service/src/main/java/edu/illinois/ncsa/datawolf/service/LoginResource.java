@@ -71,7 +71,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.AccountDao;
@@ -203,7 +202,7 @@ public class LoginResource {
 
             accountDao.save(account);
             if (token != null) {
-                return Response.ok().cookie(new NewCookie("token", email + ":" + token, null, null, null, 86400, false)).build();
+                return Response.ok().cookie(new NewCookie("token", token, null, null, null, 86400, false)).build();
             } else {
                 return Response.ok("Not Active").build();
             }
@@ -236,19 +235,13 @@ public class LoginResource {
             credential = cookie.getValue();
         } else if (request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
             if (!request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
-                String authorization = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
-                try {
-                    credential = new String(Base64.decode(authorization.substring(6)));
-                } catch (IOException e) {
-                    log.error("Error decoding authorization", e);
-                }
+                credential = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
             }
         }
 
         if (credential != null) {
-            List<String> credentials = LoginUtil.parseCredentials(credential);
             Person person = personDao.findOne(personId);
-            Account account = accountDao.findByUserid(credentials.get(0));
+            Account account = accountDao.findByToken(credential);
 
             if (person != null && account.isAdmin()) {
 
@@ -301,16 +294,14 @@ public class LoginResource {
             credential = cookie.getValue();
         } else if (request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
             if (!request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
-                String authorization = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
-                credential = new String(Base64.decode(authorization.substring(6)));
+                credential = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
             }
         }
 
         if (credential != null) {
-            List<String> credentials = LoginUtil.parseCredentials(credential);
-            Account adminAccount = accountDao.findByUserid(credentials.get(0));
+            Account adminAccount = accountDao.findByToken(credential);
 
-            if (adminAccount.isAdmin()) {
+            if (adminAccount != null && adminAccount.isAdmin()) {
                 Account deleteAccount = accountDao.findByUserid(email);
                 if (deleteAccount != null) {
                     deleteAccount.setDeleted(true);
