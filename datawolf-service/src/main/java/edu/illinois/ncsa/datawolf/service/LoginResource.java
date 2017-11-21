@@ -132,7 +132,8 @@ public class LoginResource {
                         String token = new BigInteger(130, secureRandom).toString(32);
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
-                        return Response.ok(person).cookie(new NewCookie("token", user + ":" + token, null, null, null, 86400, false)).build();
+                        // TODO need to persist this token with a creation date
+                        return Response.ok(person).cookie(new NewCookie("token", token, null, null, null, 86400, false)).build();
                     } else {
                         return null;
                     }

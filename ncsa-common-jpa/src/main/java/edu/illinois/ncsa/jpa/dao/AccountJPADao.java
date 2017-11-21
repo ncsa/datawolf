@@ -35,4 +35,20 @@ public class AccountJPADao extends AbstractJPADao<Account, String> implements Ac
 
         return list.get(0);
     }
+
+    @Override
+    public Account findByToken(String token) {
+        EntityManager em = getEntityManager();
+        List<Account> list = null;
+        String queryString = "SELECT a FROM Account a " + "WHERE a.token = :token";
+
+        TypedQuery<Account> typedQuery = em.createQuery(queryString, Account.class);
+        typedQuery.setParameter("token", token);
+        list = typedQuery.getResultList();
+        if (list.isEmpty()) {
+            return null;
+        }
+
+        return list.get(0);
+    }
 }

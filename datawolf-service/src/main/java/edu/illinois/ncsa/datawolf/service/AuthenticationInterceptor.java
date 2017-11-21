@@ -1,8 +1,5 @@
 package edu.illinois.ncsa.datawolf.service;
 
-import java.io.IOException;
-import java.util.List;
-
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
@@ -18,13 +15,10 @@ import org.jboss.resteasy.core.ServerResponse;
 import org.jboss.resteasy.spi.Failure;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.interception.PreProcessInterceptor;
-import org.jboss.resteasy.util.Base64;
 import org.jboss.resteasy.util.HttpResponseCodes;
-import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 
@@ -57,13 +51,18 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
         // TODO Consider making this more specific so future POST endpoints are
         // not included in this
         String requestPath = request.getUri().getPath();
-        if ((requestPath.contains("/persons") || requestPath.contains("/login")) && request.getHttpMethod().equals(HttpMethod.POST)) {
+        if (requestPath.contains("/persons") && request.getHttpMethod().equals(HttpMethod.POST)) {
+            // This allows creating users
+            return null;
+        } else if (requestPath.contains("/login") && (request.getHttpMethod().equals(HttpMethod.POST) || request.getHttpMethod().equals(HttpMethod.GET))) {
+            // This allows creating accounts and logging in which will handle
+            // authentication internally
             return null;
         } else {
             if (request.getHttpHeaders().getCookies().containsKey("token")) {
                 Cookie cookie = request.getHttpHeaders().getCookies().get("token");
                 String token = cookie.getValue();
-                if (token != null && checkLoggedIn(token, true)) {
+                if (token != null && checkLoggedIn(token)) {
                     log.debug("Valid cookie - successfully authenticated");
                     return null;
                 } else {
@@ -75,7 +74,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
                     token = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
                 }
 
-                if (token != null && checkLoggedIn(token, false)) {
+                if (token != null && checkLoggedIn(token)) {
                     log.debug("Authorization header found - Sucessfully authenticated");
                     return null;
                 } else {
@@ -113,44 +112,18 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
      * 
      * @param credential
      *            - user credential
-     * @param tokenAuth
-     *            - if true, using token authentication, otherwise using
-     *            password
-     *            authentication
      * @return true is user is logged in, false otherwise
      */
-    private boolean checkLoggedIn(String credential, boolean tokenAuth) {
-
-        String tmpCredential = credential;
-        if (!tokenAuth) {
-            try {
-                log.warn("decoding auth string");
-                tmpCredential = new String(Base64.decode(credential.substring(6)));
-            } catch (IOException e) {
-                log.error("Error decoding token", e);
-                return false;
-            }
-        }
-
-        List<String> credentials = LoginUtil.parseCredentials(tmpCredential);
-        if (credentials.size() != 2) {
-            log.warn("Could not parse credential to obtain user and password/token.");
-            return false;
-        }
-
-        String user = credentials.get(0);
-        String token = credentials.get(1);
-
-        Account account = accountDao.findByUserid(user);
+    private boolean checkLoggedIn(String credential) {
+        // CMN: we could check if credential starts with Basic
+        // Assumption here is we always use tokens
+        String token = credential;
+        Account account = accountDao.findByToken(token);
         if (account == null || account.isDeleted() || !account.isActive()) {
             log.error("Authentication failed, user account does not exist, is deleted, or is not active.");
             return false;
         }
 
-        if (!tokenAuth) {
-            return BCrypt.checkpw(token, account.getPassword());
-        } else {
-            return account.getToken().equals(token);
-        }
+        return account.getToken().equals(token);
     }
 }
