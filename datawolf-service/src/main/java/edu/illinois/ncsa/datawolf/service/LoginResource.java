@@ -241,9 +241,19 @@ public class LoginResource {
 
         if (credential != null) {
             Person person = personDao.findOne(personId);
-            Account account = accountDao.findByToken(credential);
+            Account account = null;
+            if (credential.startsWith("Basic")) {
+                try {
+                    List<String> credentials = LoginUtil.parseCredentials(new String(Base64.decode(credential.substring(6))));
+                    account = accountDao.findByUserid(credentials.get(0));
+                } catch (IOException e) {
+                    log.error("Error decoding credential", e);
+                }
+            } else {
+                account = accountDao.findByToken(credential);
+            }
 
-            if (person != null && account.isAdmin()) {
+            if (person != null && account != null && account.isAdmin()) {
 
                 Account updateAccount = accountDao.findByUserid(person.getEmail());
                 if (updateAccount != null) {
@@ -334,7 +344,17 @@ public class LoginResource {
         }
 
         if (credential != null) {
-            Account adminAccount = accountDao.findByToken(credential);
+            Account adminAccount = null;
+            if (credential.startsWith("Basic")) {
+                try {
+                    List<String> credentials = LoginUtil.parseCredentials(new String(Base64.decode(credential.substring(6))));
+                    adminAccount = accountDao.findByUserid(credentials.get(0));
+                } catch (IOException e) {
+                    log.error("Error decoding credential", e);
+                }
+            } else {
+                adminAccount = accountDao.findByToken(credential);
+            }
 
             if (adminAccount != null && adminAccount.isAdmin()) {
                 Account deleteAccount = accountDao.findByUserid(email);
