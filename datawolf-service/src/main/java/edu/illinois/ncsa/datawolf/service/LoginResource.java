@@ -34,8 +34,6 @@ package edu.illinois.ncsa.datawolf.service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -73,27 +71,28 @@ import com.google.gson.JsonParser;
 
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 
 @Path("/login")
 public class LoginResource {
-    private Logger       log          = LoggerFactory.getLogger(LoginResource.class);
+    private Logger        log    = LoggerFactory.getLogger(LoginResource.class);
 
     @Inject
-    private PersonDao    personDao;
+    private PersonDao     personDao;
 
     @Inject
-    private AccountDao   accountDao;
+    private AccountDao    accountDao;
+
+    @Inject
+    private TokenProvider tokenProvider;
 
     @Inject
     @Named("initialAdmins")
-    private String       initialAdmins;
+    private String        initialAdmins;
 
-    private List<String> admins       = null;
-
-    // Generates temporary user token
-    private SecureRandom secureRandom = new SecureRandom();
+    private List<String>  admins = null;
 
     /**
      * Login a user by email and authorization string
@@ -128,10 +127,10 @@ public class LoginResource {
 
                     if (BCrypt.checkpw(password, userAccount.getPassword()) && userAccount.getPerson().getEmail().equals(email)) {
                         Person person = personDao.findByEmail(email);
-                        String token = new BigInteger(130, secureRandom).toString(32);
+                        String token = tokenProvider.getToken(user, password);
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
-                        // TODO need to persist this token with a creation date
+                        // TODO should we persist token with creation date?
                         return Response.ok(person).cookie(new NewCookie("token", token, null, null, null, 86400, false)).build();
                     } else {
                         return null;
@@ -193,7 +192,7 @@ public class LoginResource {
 
             String token = null;
             if (admins.contains(email)) {
-                token = new BigInteger(130, secureRandom).toString(32);
+                token = tokenProvider.getToken(email, password);
 
                 account.setActive(true);
                 account.setAdmin(true);

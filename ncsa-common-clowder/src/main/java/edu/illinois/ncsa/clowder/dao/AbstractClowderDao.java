@@ -3,8 +3,6 @@ package edu.illinois.ncsa.clowder.dao;
 import java.io.Serializable;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Base64;
-
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -71,12 +69,11 @@ public abstract class AbstractClowderDao<T, ID extends Serializable> implements 
     }
 
     protected String getToken(String userId) {
-        // TODO replace this with token from Clowder
         String token = null;
         if (accountDao != null) {
             Account acct = accountDao.findByUserid(userId);
             if (acct != null) {
-                token = new String(Base64.encodeBase64(new String(acct.getUserid() + ":" + acct.getPassword()).getBytes()));
+                token = acct.getToken();
             }
         }
         return token;

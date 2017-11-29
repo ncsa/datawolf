@@ -30,6 +30,7 @@ import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor;
 import edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor;
 import edu.illinois.ncsa.datawolf.executor.java.JavaExecutor;
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
@@ -81,6 +82,7 @@ public class PersistenceModule extends AbstractModule {
             bind(AccountDao.class).to(getRequestedDao(AccountDao.class, "account.dao")); //$NON-NLS-1$
             bind(FileDescriptorDao.class).to(getRequestedDao(FileDescriptorDao.class, "filedescriptor.dao")); //$NON-NLS-1$
             bind(FileStorage.class).to(getRequestedDao(FileStorage.class, "filestorage")); //$NON-NLS-1$
+            bind(TokenProvider.class).to(getRequestedDao(TokenProvider.class, "token.provider"));
 
             // Add executors
             MapBinder<String, Executor> binder = MapBinder.newMapBinder(binder(), String.class, Executor.class);

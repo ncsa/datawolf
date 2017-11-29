@@ -13,7 +13,6 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.activation.MimetypesFileTypeMap;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpDelete;
@@ -112,8 +111,8 @@ public class FileStorageClowder implements FileStorage {
 
         // open a URL connection
         URL url;
-        if (token != null || key == null || key.trim().equals("")) {
-            url = new URL(getServer() + "api/files");
+        if (token != null && !token.isEmpty()) {
+            url = new URL(getServer() + "api/files?key=" + token);
         } else {
             url = new URL(getServer() + "api/files?key=" + key.trim());
         }
@@ -155,10 +154,6 @@ public class FileStorageClowder implements FileStorage {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Connection", "Keep-Alive");
         conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-
-        if (token != null) {
-            conn.setRequestProperty("Authorization", "Basic " + token);
-        }
 
         DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
 
@@ -233,18 +228,13 @@ public class FileStorageClowder implements FileStorage {
             HttpClient httpClient = builder.build();
 
             String requestUrl = null;
-            if (token != null || key == null || key.trim().equals("")) {
-                requestUrl = fd.getDataURL();
+            if (token != null && !token.isEmpty()) {
+                requestUrl = fd.getDataURL() + "?key=" + token;
             } else {
                 requestUrl = fd.getDataURL() + "?key=" + key.trim();
             }
 
             HttpDelete httpDelete = new HttpDelete(requestUrl);
-
-            if (token != null) {
-                httpDelete.setHeader("Authorization", "Basic " + token);
-            }
-
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String responseString = null;
             try {
@@ -271,7 +261,7 @@ public class FileStorageClowder implements FileStorage {
         if (accountDao != null) {
             Account acct = accountDao.findByUserid(userId);
             if (acct != null) {
-                token = new String(Base64.encodeBase64(new String(acct.getUserid() + ":" + acct.getPassword()).getBytes()));
+                token = acct.getToken();
             }
         }
         return token;

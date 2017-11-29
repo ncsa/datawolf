@@ -38,7 +38,7 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
     private static final Logger logger = LoggerFactory.getLogger(DatasetClowderDao.class);
 
     @Inject
-    PersonDao                   personDao;
+    private PersonDao           personDao;
 
     public Dataset save(Dataset dataset) {
         // Clowder does not support marking a dataset as deleted
@@ -63,7 +63,14 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
         String key = getKey();
         String requestUrl = clowderEndpoint;
         try {
+            // Check if dataset already exists, update is not supported
             requestUrl += "api/datasets/" + dataset.getId();
+            if (token != null && !token.isEmpty()) {
+                requestUrl += "api/datasets" + "?key=" + token;
+            } else {
+                requestUrl += "api/datasets?key=" + key.trim();
+            }
+
             HttpGet httpGet = new HttpGet(requestUrl);
 
             responseHandler = new BasicResponseHandler();
@@ -75,7 +82,6 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
                 String name = dataset.getTitle();
                 String description = dataset.getDescription();
 
-                // TODO add support for multiple files in a dataset
                 String fileId = dataset.getFileDescriptors().get(0).getDataURL();
                 fileId = fileId.replace(clowderEndpoint + "api/files/", "");
 
@@ -86,8 +92,8 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
 
                 StringEntity params = new StringEntity(jsonObject.toString());
                 requestUrl = clowderEndpoint;
-                if (token != null || key == null || key.trim().equals("")) {
-                    requestUrl += "api/datasets";
+                if (token != null && !token.isEmpty()) {
+                    requestUrl += "api/datasets" + "?key=" + token;
                 } else {
                     requestUrl += "api/datasets?key=" + key.trim();
                 }
@@ -96,10 +102,6 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
                 HttpPost httpPost = new HttpPost(requestUrl);
                 httpPost.setEntity(params);
                 httpPost.setHeader("content-type", "application/json");
-
-                if (token != null) {
-                    httpPost.setHeader("Authorization", "Basic " + token);
-                }
 
                 responseHandler = new BasicResponseHandler();
                 responseStr = httpclient.execute(httpPost, responseHandler);
@@ -112,8 +114,8 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
 
                 requestUrl = clowderEndpoint;
                 // Add datawolf tag
-                if (token != null || key == null || key.trim().equals("")) {
-                    requestUrl += "api/datasets/" + dataset.getId() + "/tags";
+                if (token != null && !token.isEmpty()) {
+                    requestUrl += "api/datasets/" + dataset.getId() + "/tags" + "?key=" + token;
                 } else {
                     requestUrl += "api/datasets/" + dataset.getId() + "/tags?key=" + key.trim();
                 }
@@ -130,10 +132,6 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
                 httpPost.setEntity(params);
                 httpPost.setHeader("content-type", "application/json");
 
-                if (token != null) {
-                    httpPost.setHeader("Authorization", "Basic " + token);
-                }
-
                 responseHandler = new BasicResponseHandler();
                 responseStr = httpclient.execute(httpPost, responseHandler);
                 logger.debug("Add Tag response: " + responseStr);
@@ -144,18 +142,14 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
                     fileId = fileId.replace(getServer() + "api/files/", "");
 
                     requestUrl = clowderEndpoint;
-                    if (token != null || key == null || key.trim().equals("")) {
-                        requestUrl += "api/datasets/" + dataset.getId() + "/files/" + fileId;
+                    if (token != null && !token.isEmpty()) {
+                        requestUrl += "api/datasets/" + dataset.getId() + "/files/" + fileId + "?key=" + token;
                     } else {
                         requestUrl += "api/datasets/" + dataset.getId() + "/files/" + fileId + "?key=" + key.trim();
                     }
 
                     httpPost = new HttpPost(requestUrl);
                     httpPost.setHeader("content-type", "text/plain");
-
-                    if (token != null) {
-                        httpPost.setHeader("Authorization", "Basic " + token);
-                    }
 
                     responseHandler = new BasicResponseHandler();
                     responseStr = httpclient.execute(httpPost, responseHandler);
@@ -401,16 +395,13 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
             String key = getKey();
             String requestUrl = clowderEndpoint;
 
-            if (token != null || key == null || key.trim().equals("")) {
-                requestUrl += "api/datasets/" + dataset.getId();
+            if (token != null && !token.isEmpty()) {
+                requestUrl += "api/datasets/" + dataset.getId() + "?key=" + token;
             } else {
                 requestUrl += "api/datasets/" + dataset.getId() + "?key=" + key.trim();
             }
 
             HttpDelete httpDelete = new HttpDelete(requestUrl);
-            if (token != null) {
-                httpDelete.setHeader("Authorization", "Basic " + token);
-            }
 
             responseHandler = new BasicResponseHandler();
             String responseStr = httpclient.execute(httpDelete, responseHandler);

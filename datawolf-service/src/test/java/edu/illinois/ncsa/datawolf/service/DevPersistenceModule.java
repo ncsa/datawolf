@@ -36,10 +36,12 @@ import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolDataJPADao;
 import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolJPADao;
 import edu.illinois.ncsa.datawolf.jpa.dao.WorkflowToolParameterJPADao;
 import edu.illinois.ncsa.domain.FileStorage;
+import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
+import edu.illinois.ncsa.domain.impl.DataWolfTokenProvider;
 import edu.illinois.ncsa.domain.impl.FileStorageDisk;
 import edu.illinois.ncsa.jpa.dao.AccountJPADao;
 import edu.illinois.ncsa.jpa.dao.DatasetJPADao;
@@ -84,6 +86,7 @@ public class DevPersistenceModule extends AbstractModule {
         bind(LogFileDao.class).to(LogFileJPADao.class);
         bind(HPCJobInfoDao.class).to(HPCJobInfoJPADao.class);
         bind(AccountDao.class).to(AccountJPADao.class);
+        bind(TokenProvider.class).to(DataWolfTokenProvider.class);
 
         bind(FileDescriptorDao.class).to(FileDescriptorJPADao.class);
         bind(FileStorage.class).to(FileStorageDisk.class);
