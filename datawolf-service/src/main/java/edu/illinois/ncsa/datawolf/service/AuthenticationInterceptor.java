@@ -1,5 +1,8 @@
 package edu.illinois.ncsa.datawolf.service;
 
+import java.io.IOException;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
@@ -15,10 +18,13 @@ import org.jboss.resteasy.core.ServerResponse;
 import org.jboss.resteasy.spi.Failure;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.interception.PreProcessInterceptor;
+import org.jboss.resteasy.util.Base64;
 import org.jboss.resteasy.util.HttpResponseCodes;
+import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
@@ -119,14 +125,32 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
      * @return true is user is logged in, false otherwise
      */
     private boolean checkLoggedIn(String credential) {
-        // CMN: we could check if credential starts with Basic
-        // Assumption here is we always use tokens
+        boolean tokenAuth = true;
         String token = credential;
-        Account account = accountDao.findByToken(token);
+        Account account = null;
+        if (token.startsWith("Basic ")) {
+            try {
+                List<String> credentials = LoginUtil.parseCredentials(new String(Base64.decode(credential.substring(6))));
+                token = credentials.get(1);
+                account = accountDao.findByUserid(credentials.get(0));
+                tokenAuth = false;
+            } catch (IOException e) {
+                log.error("Error decoding credential", e);
+                return false;
+            }
+        } else {
+            account = accountDao.findByToken(token);
+        }
+
         if (account == null || account.isDeleted() || !account.isActive()) {
             log.error("Authentication failed, user account does not exist, is deleted, or is not active.");
             return false;
         }
-        return tokenProvider.isTokenValid(credential);
+
+        if (tokenAuth) {
+            return tokenProvider.isTokenValid(token);
+        } else {
+            return BCrypt.checkpw(token, account.getPassword());
+        }
     }
 }

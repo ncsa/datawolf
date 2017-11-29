@@ -69,6 +69,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.TokenProvider;
@@ -289,7 +290,18 @@ public class LoginResource {
         }
 
         if (credential != null) {
-            Account account = accountDao.findByToken(credential);
+            Account account = null;
+            if (credential.startsWith("Basic")) {
+                try {
+                    List<String> credentials = LoginUtil.parseCredentials(new String(Base64.decode(credential.substring(6))));
+                    account = accountDao.findByUserid(credentials.get(0));
+                } catch (IOException e) {
+                    log.error("Error decoding credential", e);
+                }
+            } else {
+                account = accountDao.findByToken(credential);
+            }
+
             if (account != null) {
                 account.setToken("");
                 accountDao.save(account);
