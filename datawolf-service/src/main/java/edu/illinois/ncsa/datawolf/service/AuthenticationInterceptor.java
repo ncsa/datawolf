@@ -19,6 +19,7 @@ import org.jboss.resteasy.util.HttpResponseCodes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 
@@ -120,6 +121,12 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
     private boolean checkLoggedIn(String credential) {
         // CMN: we could check if credential starts with Basic
         // Assumption here is we always use tokens
+        String token = credential;
+        Account account = accountDao.findByToken(token);
+        if (account == null || account.isDeleted() || !account.isActive()) {
+            log.error("Authentication failed, user account does not exist, is deleted, or is not active.");
+            return false;
+        }
         return tokenProvider.isTokenValid(credential);
     }
 }

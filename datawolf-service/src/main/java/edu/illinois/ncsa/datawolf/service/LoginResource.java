@@ -273,6 +273,30 @@ public class LoginResource {
 
     }
 
+    @DELETE
+    @Path("token")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public void deleteToken(@Context HttpRequest request) {
+        String credential = null;
+
+        if (request.getHttpHeaders().getCookies().containsKey("token")) {
+            Cookie cookie = request.getHttpHeaders().getCookies().get("token");
+            credential = cookie.getValue();
+        } else if (request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
+            if (!request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
+                credential = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
+            }
+        }
+
+        if (credential != null) {
+            Account account = accountDao.findByToken(credential);
+            if (account != null) {
+                account.setToken("");
+                accountDao.save(account);
+            }
+        }
+    }
+
     /**
      * Delete the account given the specific id.
      * 
