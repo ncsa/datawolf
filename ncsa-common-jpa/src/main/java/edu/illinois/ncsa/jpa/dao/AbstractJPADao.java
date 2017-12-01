@@ -9,12 +9,16 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
 
 import edu.illinois.ncsa.domain.dao.IDao;
 
 public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao<T, ID> {
+    private static final Logger     log = LoggerFactory.getLogger(AbstractJPADao.class);
 
     private Provider<EntityManager> entityManager;
     private Class<T>                entityType;
@@ -46,6 +50,19 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
     }
 
     @Transactional
+    public List<T> findAll(int page, int size) {
+        List<T> results = null;
+        EntityManager entityManager = this.getEntityManager();
+        TypedQuery<T> query = entityManager.createQuery("SELECT e FROM " + getEntityType().getSimpleName() + " e", getEntityType());
+        query.setFirstResult(page * size);
+        query.setMaxResults(size);
+        results = query.getResultList();
+
+        return results;
+
+    }
+
+    @Transactional
     public List<T> findAll() {
         List<T> results = null;
         EntityManager entityManager = this.getEntityManager();
@@ -66,8 +83,12 @@ public abstract class AbstractJPADao<T, ID extends Serializable> implements IDao
         return findOne(id) != null;
     }
 
-    public long count() {
-        return findAll().size();
+    @Transactional
+    public long count(boolean deleted) {
+        EntityManager entityManager = this.getEntityManager();
+        TypedQuery<Long> query = entityManager.createQuery("SELECT COUNT(e) FROM " + getEntityType().getSimpleName() + " e WHERE e.deleted = :deleted", Long.class);
+        query.setParameter("deleted", deleted);
+        return query.getSingleResult();
     }
 
     protected Class<T> getEntityType() {

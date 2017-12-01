@@ -9,6 +9,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 ### Fixed
 
+## [4.1.0] - 2017-10-06
+
+### Added
+- Accounts have two new attributes: admin attribute to indicate they are admin accounts and an active attribute to 
+  enabled/disable, default is disabled unless the account is an administrator. There is also an endpoint for administrators 
+  to enable/disable accounts.
+  [WOLF-222](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-222)
+- Server configuration file contains a list of initial administrators
+  [WOLF-226](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-226)
+- Documented in help docs how to specify admin accounts
+  [WOLF-229](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-229)
+- Authentication property now part of the startup script, default is false
+  [WOLF-211](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-211)
+- Dataset JPA dao now supports paging and find by title, creator and title, etc.
+  [WOLF-225](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-225)
+- Execution JPA dao now supports paging.
+  [WOLF-224](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-224)
+- Created initial landing page for datawolf.ncsa.illinois.edu that points to demonstration instance, documentation, etc.
+  [WOLF-198](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-198)
+
+### Changed
+- Only administrators can delete accounts
+  [WOLF-231](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-231)
+- Engine uses new pagination for checking unfinished executions if server shutdown before executions were finished
+- Web editor no longer requires access to the list of users to determine if account can be created. Error messages were
+  added to indicate why account creation failed
+  [WOLF-233](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-233)
+- Web editor informs user if their account is disabled since non-admin accounts are now disable by default.
+  [WOLF-232](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-232)
+
+### Fixed
+- Users could overwrite existing account and person information since there was no check for authorization or existing 
+  account/person. 
+  [WOLF-234](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-234)
+- Command line executor was not staging data in the run directory unless it was passed at the command line.
+  [WOLF-228](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-228)
+
 ## [4.0.0] - 2017-05-04
 
 ### Added

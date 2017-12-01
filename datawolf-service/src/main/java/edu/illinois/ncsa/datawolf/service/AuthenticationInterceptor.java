@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -19,6 +20,7 @@ import org.jboss.resteasy.spi.HttpRequest;
 import org.jboss.resteasy.spi.interception.PreProcessInterceptor;
 import org.jboss.resteasy.util.Base64;
 import org.jboss.resteasy.util.HttpResponseCodes;
+import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,10 +52,14 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
         if (!enabled) {
             return null;
         }
-        // TODO fix web editor login so it doesn't need access to /persons
-        // Don't intercept /login or /persons endpoint
-        if (!request.getUri().getPath().contains("/login") && !request.getUri().getPath().contains("/persons")) {
-
+        // Don't intercept /login or /persons for creating users or log in
+        // attempts
+        // TODO Consider making this more specific so future POST endpoints are
+        // not included in this
+        String requestPath = request.getUri().getPath();
+        if ((requestPath.contains("/persons") || requestPath.contains("/login")) && request.getHttpMethod().equals(HttpMethod.POST)) {
+            return null;
+        } else {
             if (request.getHttpHeaders().getCookies().containsKey("token")) {
                 Cookie cookie = request.getHttpHeaders().getCookies().get("token");
                 String token = cookie.getValue();
@@ -83,8 +89,6 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
                 // return unauthorizedResponse(request.getPreprocessedPath());
                 return unauthorizedResponse("Not authenticated");
             }
-        } else {
-            return null;
         }
     }
 
@@ -144,8 +148,7 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
         }
 
         if (!tokenAuth) {
-            // TODO RK : password should really be encrypted
-            return account.getPassword().equals(token);
+            return BCrypt.checkpw(token, account.getPassword());
         } else {
             return account.getToken().equals(token);
         }

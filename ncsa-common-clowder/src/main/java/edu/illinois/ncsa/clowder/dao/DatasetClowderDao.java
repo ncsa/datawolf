@@ -243,6 +243,78 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
         return results;
     }
 
+    @Override
+    public List<Dataset> findAll(int page, int size) {
+
+        // TODO need to determine if Clowder has an API to indicate which page
+        int limit = (page + 1) * size;
+
+        List<Dataset> results = null;
+        String responseStr = null;
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        builder.setRedirectStrategy(new ClowderRedirectStrategy());
+        RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
+        builder.setDefaultRequestConfig(config);
+        HttpClient httpclient = builder.build();
+
+        String clowderEndpoint = getServer();
+        String key = getKey();
+        String requestUrl = clowderEndpoint;
+        try {
+            if (key == null || key.trim().equals("")) {
+                requestUrl += "api/datasets?limit=" + limit;
+            } else {
+                requestUrl += "api/datasets?key=" + key.trim() + "&limit=" + limit;
+            }
+            HttpGet httpGet = new HttpGet(requestUrl);
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+            logger.debug("Executing request " + httpGet.getRequestLine());
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                JsonElement jsonElement = new JsonParser().parse(responseStr);
+                JsonArray jsonArray = jsonElement.getAsJsonArray();
+                results = new ArrayList<Dataset>();
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy");
+                for (int index = page * size; index < jsonArray.size(); index++) {
+                    JsonObject jsonObject = jsonArray.get(index).getAsJsonObject();
+                    Dataset dataset = new Dataset();
+                    String id = jsonObject.get("id").getAsString();
+                    String title = jsonObject.get("name").getAsString();
+                    String description = jsonObject.get("description").getAsString();
+                    String dateString = jsonObject.get("created").getAsString();
+                    String userId = jsonObject.get("authorId").getAsString();
+
+                    Person creator = personDao.findOne(userId);
+
+                    Date date = dateFormat.parse(dateString);
+                    dataset.setId(id);
+                    dataset.setDate(date);
+                    dataset.setTitle(title);
+                    dataset.setDescription(description);
+                    dataset.setFileDescriptors(getFileDescriptor(id));
+                    dataset.setCreator(creator);
+
+                    results.add(dataset);
+
+                }
+
+                logger.debug("Response String: " + responseStr);
+            } catch (Exception e) {
+                logger.error("HTTP Get failed.", e);
+            }
+
+        } finally {
+            try {
+                ((CloseableHttpClient) httpclient).close();
+            } catch (IOException ignore) {
+                logger.warn("Error closing http client", ignore);
+            }
+        }
+        return results;
+    }
+
     public Dataset findOne(String id) {
         // TODO replace with clowder endpoint api/datasets/:id
         List<Dataset> results = findAll();
@@ -389,6 +461,48 @@ public class DatasetClowderDao extends AbstractClowderDao<Dataset, String> imple
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByDeleted(boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByTitleLike(String titlePattern, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmail(String email, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndTitleLike(String email, String titlePattern, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted, int page, int size) {
         // TODO Auto-generated method stub
         return null;
     }

@@ -292,52 +292,36 @@ public class DatasetsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
             @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        // DatasetDAO datasetDao = SpringData.getBean(DatasetDAO.class);
-
         // TODO add sort capability
-//        Sort sort = new Sort(Sort.Direction.DESC, "date");
 
         // without paging
+        Iterable<Dataset> results = null;
         if (size < 1) {
-            Iterable<Dataset> results = null;
             if (email.equals("")) {
                 if (pattern.equals("")) {
                     if (showdeleted) {
-                        // results = datasetDao.findAll(sort);
                         results = datasetDao.findAll();
                     } else {
-                        // results = datasetDao.findByDeleted(false, sort);
                         results = datasetDao.findByDeleted(false);
                     }
                 } else {
                     if (showdeleted) {
-                        // results = datasetDao.findByTitleLike(pattern, sort);
                         results = datasetDao.findByTitleLike(pattern);
                     } else {
-                        // results =
-// datasetDao.findByTitleLikeAndDeleted(pattern, false, sort);
                         results = datasetDao.findByTitleLikeAndDeleted(pattern, false);
                     }
                 }
             } else {
                 if (pattern.equals("")) {
                     if (showdeleted) {
-                        // results = datasetDao.findByCreatorEmail(email, sort);
                         results = datasetDao.findByCreatorEmail(email);
                     } else {
-                        // results =
-// datasetDao.findByCreatorEmailAndDeleted(email, false, sort);
                         results = datasetDao.findByCreatorEmailAndDeleted(email, false);
                     }
                 } else {
                     if (showdeleted) {
-                        // results =
-// datasetDao.findByCreatorEmailAndTitleLike(email, pattern, sort);
                         results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
                     } else {
-                        // results =
-// datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false,
-// sort);
                         results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false);
                     }
                 }
@@ -350,40 +334,44 @@ public class DatasetsResource {
             return list;
 
         } else { // with paging
-            // TODO implement paging
-//            Page<Dataset> results = null;
-//            if (email.equals("")) {
-//                if (pattern.equals("")) {
-//                    if (showdeleted) {
-//                        results = datasetDao.findAll(new PageRequest(page, size, sort));
-//                    } else {
-//                        results = datasetDao.findByDeleted(false, new PageRequest(page, size, sort));
-//                    }
-//                } else {
-//                    if (showdeleted) {
-//                        results = datasetDao.findByTitleLike(pattern, new PageRequest(page, size, sort));
-//                    } else {
-//                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, new PageRequest(page, size, sort));
-//                    }
-//                }
-//            } else {
-//                if (pattern.equals("")) {
-//                    if (showdeleted) {
-//                        results = datasetDao.findByCreatorEmail(email, new PageRequest(page, size, sort));
-//                    } else {
-//                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, new PageRequest(page, size, sort));
-//                    }
-//                } else {
-//                    if (showdeleted) {
-//                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, new PageRequest(page, size, sort));
-//                    } else {
-//                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, new PageRequest(page, size, sort));
-//                    }
-//                }
-//            }
-//            return results.getContent();
-            return null;
+            if (email.equals("")) {
+                if (pattern.equals("")) {
+                    if (showdeleted) {
+                        results = datasetDao.findAll(page, size);
+                    } else {
+                        results = datasetDao.findByDeleted(false, page, size);
+                    }
+                } else {
+                    if (showdeleted) {
+                        results = datasetDao.findByTitleLike(pattern, page, size);
+                    } else {
+                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, page, size);
+                    }
+                }
+            } else {
+                if (pattern.equals("")) {
+                    if (showdeleted) {
+                        results = datasetDao.findByCreatorEmail(email, page, size);
+                    } else {
+                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, page, size);
+                    }
+                } else {
+                    if (showdeleted) {
+                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, page, size);
+                    } else {
+                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, page, size);
+                    }
+                }
+            }
+
+            ArrayList<Dataset> list = new ArrayList<Dataset>();
+            for (Dataset d : results) {
+                list.add(d);
+            }
+            return list;
+
         }
+
     }
 
     /**
