@@ -38,9 +38,15 @@ public class IncoreFileDescriptorDao extends AbstractIncoreDao<FileDescriptor, S
     }
 
     @Override
-    public long count() {
+    public long count(boolean deleted) {
         // TODO Auto-generated method stub
         return 0;
+    }
+
+    @Override
+    public List<FileDescriptor> findAll(int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

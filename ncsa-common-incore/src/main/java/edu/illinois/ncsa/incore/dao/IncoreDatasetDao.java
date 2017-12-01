@@ -198,6 +198,52 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     }
 
+    @Override
+    public List<Dataset> findAll(int page, int size) {
+        List<Dataset> results = new ArrayList<Dataset>();
+
+        String responseStr = null;
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String incoreEndpoint = getServer();
+        String requestUrl = incoreEndpoint;
+        try {
+            requestUrl += IncoreDataset.DATASETS_ENDPOINT;
+            HttpGet httpGet = new HttpGet(requestUrl);
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                JsonElement jsonElement = new JsonParser().parse(responseStr);
+                JsonArray jsonArray = jsonElement.getAsJsonArray();
+
+                Dataset dataset = null;
+                for (int index = 0; index < jsonArray.size(); index++) {
+
+                    JsonObject datasetProperties = jsonArray.get(index).getAsJsonObject();
+
+                    if (datasetProperties != null) {
+                        dataset = IncoreDataset.getDataset(datasetProperties, getCreator());
+                        results.add(dataset);
+                    }
+
+                }
+            } catch (Exception e) {
+                logger.error("HTTP Get failed.", e);
+            }
+
+        } finally {
+            try {
+                ((CloseableHttpClient) httpclient).close();
+            } catch (IOException e) {
+                logger.warn("Error closing http client", e);
+            }
+        }
+        return results;
+
+    }
+
     private Person getCreator() {
         // TODO Fix this later
         Person creator = personDao.findByEmail("incore-dev@lists.illinois.edu");
@@ -219,7 +265,7 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
     }
 
     @Override
-    public long count() {
+    public long count(boolean deleted) {
         // TODO Auto-generated method stub
         return 0;
     }
@@ -261,6 +307,48 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     @Override
     public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByDeleted(boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByTitleLike(String titlePattern, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByTitleLikeAndDeleted(String titlePattern, boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmail(String email, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndTitleLike(String email, String titlePattern, int page, int size) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted, int page, int size) {
         // TODO Auto-generated method stub
         return null;
     }
