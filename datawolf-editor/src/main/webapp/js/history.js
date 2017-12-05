@@ -142,33 +142,37 @@ var AppRouter = Backbone.Router.extend({
     list:function() {
 
         var id = localStorage.currentUser;
-        personCollection.fetch({success: function() {
-            personCollection.each(function(person) {
-                if(person.get('id') === id) {
-                    currentUser = person;
-                    return false;
+        var personEndpoint = datawolfOptions.rest + '/persons/'+id;
+        $.ajax({
+            type: "GET",
+            beforeSend: function(request) {
+                request.setRequestHeader("Accept", "application/json");
+            },
+            url: personEndpoint,
+            dataType: "text",
+
+            success: function(msg) {
+
+                currentUser = new Person(JSON.parse(msg));
+                if(currentUser == null) {
+                    location.replace('login.html');
                 }
-            });
 
-            if(currentUser == null) {
-                location.replace('login.html');
-            } 
+                $('#current-user').text('Hello '+currentUser.get('firstName'));
 
-            $('#current-user').text('Hello '+currentUser.get('firstName'));
-
-            workflowCollection.fetch({success: function() {
-                // console.log("workflows fetched");
-            }});
-            datasetCollection.fetch({success: function() {
-                // console.log("datasets fetched");
-            }});
-            executionCollection.fetch({success: function() {
-                executionListView = new ExecutionListView({model: executionCollection});
-                $('#executions').html(executionListView.render().el);
-                $('#executionbuttons').html(new ExecutionButtonView().render().el);
-             }});
-
-        }});
+                workflowCollection.fetch({success: function() {
+                    // console.log("workflows fetched");
+                }});
+                datasetCollection.fetch({success: function() {
+                    // console.log("datasets fetched");
+                }});
+                executionCollection.fetch({success: function() {
+                    executionListView = new ExecutionListView({model: executionCollection});
+                    $('#executions').html(executionListView.render().el);
+                    $('#executionbuttons').html(new ExecutionButtonView().render().el);
+                 }});
+            }
+        });
     }
 
 });

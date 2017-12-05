@@ -115,9 +115,7 @@ public class LoginResource {
                 if (tokenizer.countTokens() == 2) {
                     String user = tokenizer.nextToken();
                     String password = tokenizer.nextToken();
-
                     Account userAccount = accountDao.findByUserid(user);
-
                     if (userAccount == null) {
                         log.error("User account does not exist");
                         return null;
@@ -128,11 +126,10 @@ public class LoginResource {
                     }
 
                     if (BCrypt.checkpw(password, userAccount.getPassword()) && userAccount.getPerson().getEmail().equals(email)) {
-                        Person person = personDao.findByEmail(email);
                         String token = new BigInteger(130, secureRandom).toString(32);
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
-                        return Response.ok(person).cookie(new NewCookie("token", user + ":" + token, null, null, null, 86400, false)).build();
+                        return Response.ok(userAccount.getPerson()).cookie(new NewCookie("token", user + ":" + token, null, null, null, 86400, false)).build();
                     } else {
                         return null;
                     }
@@ -144,7 +141,6 @@ public class LoginResource {
                 return null;
             }
         }
-
         return null;
 
     }
@@ -161,13 +157,21 @@ public class LoginResource {
      */
     @POST
     @Produces({ MediaType.TEXT_PLAIN })
-    public Response createAccount(@QueryParam("email") String email, @QueryParam("password") String password) throws Exception {
+    public Response createAccount(@QueryParam("email") @DefaultValue("") String email, @QueryParam("personId") @DefaultValue("") String personId, @QueryParam("password") String password)
+            throws Exception {
 
-        if ((email == null) || email.equals("") || (password == null) || password.equals("")) {
-            throw (new Exception("No email or password specified"));
+        Person person = null;
+        Account account = null;
+        if (email != null && !email.equals("") && (password != null) && !password.equals("")) {
+            person = personDao.findByEmail(email);
+            account = accountDao.findByUserid(email);
+        } else if (personId != null && !personId.equals("") && (password != null) && !password.equals("")) {
+            person = personDao.findOne(personId);
+            account = accountDao.findByUserid(personId);
+        } else {
+            throw (new Exception("No email, personId or password specified"));
         }
 
-        Person person = personDao.findByEmail(email);
         if (person == null) {
             throw (new Exception("User does not exist"));
         }
@@ -183,8 +187,6 @@ public class LoginResource {
                 admins = Arrays.asList(initialAdmins.split(","));
             }
         }
-
-        Account account = accountDao.findByUserid(email);
         if (account == null) {
             account = new Account();
             account.setPerson(person);
@@ -192,7 +194,7 @@ public class LoginResource {
             account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
 
             String token = null;
-            if (admins.contains(email)) {
+            if (admins.contains(person.getEmail())) {
                 token = new BigInteger(130, secureRandom).toString(32);
 
                 account.setActive(true);

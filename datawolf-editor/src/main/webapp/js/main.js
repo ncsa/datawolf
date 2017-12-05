@@ -111,70 +111,79 @@ var getPerson = function(personId) {
 
 var loadMainView = function(workflowId) {
     var id = localStorage.currentUser;
-    personCollection.fetch({cache: false, success: function() {
-        personCollection.each(function(person) {
-            if(person.get('id') === id) {
-                currentUser = person;
-                return false;
+    var personEndpoint = datawolfOptions.rest + '/persons/'+id;
+    $.ajax({
+        type: "GET",
+        beforeSend: function(request) {
+            request.setRequestHeader("Accept", "application/json");
+        },
+        url: personEndpoint,
+        dataType: "text",
+
+        success: function(msg) {
+            currentUser = new Person(JSON.parse(msg));
+            if(currentUser == null) {
+                location.replace('login.html');
             }
-        });
-        if(currentUser == null) {
-            location.replace('login.html');
-        }
 
-        $('#userview').html(new UserView({model: currentUser}).render().el);
+            $('#userview').html(new UserView({model: currentUser}).render().el);
 
-        if(DEBUG) {
-            console.log("current user: "+JSON.stringify(currentUser, undefined, 2));
-        }
+            if(DEBUG) {
+                console.log("current user: "+JSON.stringify(currentUser, undefined, 2));
+            }
 
-        jsPlumb.bind("ready", function() {
-            // chrome fix.
-            document.onselectstart = function () { return false; };
+            jsPlumb.bind("ready", function() {
+                // chrome fix.
+                document.onselectstart = function () { return false; };
 
-            $(".rmode").bind("click", function() {
-                var desiredMode = $(this).attr("mode");
-                if (jsPlumbDemo.reset) jsPlumbDemo.reset();
-                jsPlumb.reset();
-                resetRenderMode(desiredMode);
+                $(".rmode").bind("click", function() {
+                    var desiredMode = $(this).attr("mode");
+                    if (jsPlumbDemo.reset) jsPlumbDemo.reset();
+                    jsPlumb.reset();
+                    resetRenderMode(desiredMode);
+                });
+
+                resetRenderMode(jsPlumb.SVG);
             });
 
-            resetRenderMode(jsPlumb.SVG);
-        });
+            workflowToolCollection.fetch({success: function() {
+                $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
+                $('#workflowToolButtons').html(new WorkflowToolButtonBar().render().el);
+            }});
 
-        workflowToolCollection.fetch({success: function() {
-            $('#workflow-tools').html(new WorkflowToolListView({model: workflowToolCollection}).render().el);
-            $('#workflowToolButtons').html(new WorkflowToolButtonBar().render().el);
-        }});
-
-        // Sync dirty/destroyed models with server, then fetch
-        workflowCollection.syncDirtyAndDestroyed();
-        workflowCollection.fetch({success: function() {
-            workflowListView = new WorkflowListView({model: workflowCollection});
-            $('#workflows').html(workflowListView.render().el);
-            $('#workflowbuttons').html(new WorkflowButtonView().render().el);
-            if(workflowId != null) {
-                if(workflowCollection.findWhere({'id': workflowId})) {
-                    eventBus.trigger("clicked:newopenworkflow", workflowId);
-                } else {
-                    console.log("did not find workflow");
+            // Sync dirty/destroyed models with server, then fetch
+            workflowCollection.syncDirtyAndDestroyed();
+            workflowCollection.fetch({success: function() {
+                workflowListView = new WorkflowListView({model: workflowCollection});
+                $('#workflows').html(workflowListView.render().el);
+                $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+                if(workflowId != null) {
+                    if(workflowCollection.findWhere({'id': workflowId})) {
+                        eventBus.trigger("clicked:newopenworkflow", workflowId);
+                    } else {
+                        console.log("did not find workflow");
+                    }
                 }
-            }
-        }});
+            }});
 
-        jsPlumb.bind("endpointClick", handleEndpointClick);
+            jsPlumb.bind("endpointClick", handleEndpointClick);
 
-        //openWorkflows = JSON.parse(localStorage["openWorkflows"]);
-        //localStorage["openWorkflows"] = JSON.stringify(openWorkflows);
+            //openWorkflows = JSON.parse(localStorage["openWorkflows"]);
+            //localStorage["openWorkflows"] = JSON.stringify(openWorkflows);
 
-        stepLocationCollection.fetch();
-        registerCloseEvent();
-        registerOpenEvent();
-        registerTabEvent();
-        getExecutors();
-        $('#tabs').find("[data-toggle='tooltip']").tooltip({'container':'body', 'delay': {show: 500 } });
-        //$('#tool-modal-content').html(new CommandLineView().render().el);
-    }});
+            stepLocationCollection.fetch();
+            registerCloseEvent();
+            registerOpenEvent();
+            registerTabEvent();
+            getExecutors();
+            $('#tabs').find("[data-toggle='tooltip']").tooltip({'container':'body', 'delay': {show: 500 } });
+        },
+        error: function(msg) {
+            alert('error: '+JSON.stringify(msg));
+        }
+    });
+            //$('#tool-modal-content').html(new CommandLineView().render().el);
+    //}});
     //$('#persons').html(new PersonListView({model: personCollection}).render().el);
 }
 
