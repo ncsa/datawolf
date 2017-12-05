@@ -118,6 +118,10 @@ public class IncoreFileStorage implements FileStorage {
         HttpPost httpPost = new HttpPost(requestUrl);
         httpPost.setEntity(paramBuilder.build());
 
+        if (creator != null) {
+            httpPost.setHeader("X-Credential-Username", creator.getId());
+        }
+
         HttpResponse response = null;
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
@@ -140,6 +144,9 @@ public class IncoreFileStorage implements FileStorage {
 
         httpPost = new HttpPost(requestUrl);
         httpPost.setEntity(paramBuilder.build());
+        if (creator != null) {
+            httpPost.setHeader("X-Credential-Username", creator.getId());
+        }
 
         response = httpclient.execute(httpPost);
         String responseStr = responseHandler.handleResponse(response);

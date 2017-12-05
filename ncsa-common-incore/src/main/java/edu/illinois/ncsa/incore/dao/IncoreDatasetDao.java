@@ -58,7 +58,12 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
             jsonObject.addProperty("format", "csv");
 
             JsonArray spaces = new JsonArray();
-            spaces.add(new JsonPrimitive("cnavarro"));
+
+            String creatorId = null;
+            if (entity.getCreator() != null) {
+                creatorId = entity.getCreator().getId();
+                spaces.add(new JsonPrimitive(creatorId));
+            }
             spaces.add(new JsonPrimitive("ergo"));
             jsonObject.add("spaces", spaces);
 
@@ -74,6 +79,10 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                 requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.CREATE_DATASET;
 
                 HttpPost httpPost = new HttpPost(requestUrl);
+                if (creatorId != null) {
+                    httpPost.setHeader("X-Credential-Username", creatorId);
+                }
+
                 MultipartEntityBuilder params = MultipartEntityBuilder.create();
                 params.addTextBody("dataset", jsonObject.toString());
 
@@ -133,7 +142,14 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                 JsonElement jsonElement = new JsonParser().parse(responseStr);
                 JsonObject datasetProperties = jsonElement.getAsJsonObject();
                 if (datasetProperties != null) {
-                    dataset = IncoreDataset.getDataset(datasetProperties, getCreator());
+                    Person creator = null;
+                    if (datasetProperties.has(IncoreDataset.CREATOR)) {
+                        String creatorId = datasetProperties.get(IncoreDataset.CREATOR).getAsString();
+                        if (creatorId != null) {
+                            creator = personDao.findOne(creatorId);
+                        }
+                    }
+                    dataset = IncoreDataset.getDataset(datasetProperties, creator);
                 }
             }
         } catch (ClientProtocolException e) {
@@ -178,7 +194,14 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                     JsonObject datasetProperties = jsonArray.get(index).getAsJsonObject();
 
                     if (datasetProperties != null) {
-                        dataset = IncoreDataset.getDataset(datasetProperties, getCreator());
+                        Person creator = null;
+                        if (datasetProperties.has(IncoreDataset.CREATOR)) {
+                            String creatorId = datasetProperties.get(IncoreDataset.CREATOR).getAsString();
+                            if (creatorId != null) {
+                                creator = personDao.findOne(creatorId);
+                            }
+                        }
+                        dataset = IncoreDataset.getDataset(datasetProperties, creator);
                         results.add(dataset);
                     }
 
@@ -224,7 +247,14 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                     JsonObject datasetProperties = jsonArray.get(index).getAsJsonObject();
 
                     if (datasetProperties != null) {
-                        dataset = IncoreDataset.getDataset(datasetProperties, getCreator());
+                        Person creator = null;
+                        if (datasetProperties.has(IncoreDataset.CREATOR)) {
+                            String creatorId = datasetProperties.get(IncoreDataset.CREATOR).getAsString();
+                            if (creatorId != null) {
+                                creator = personDao.findOne(creatorId);
+                            }
+                        }
+                        dataset = IncoreDataset.getDataset(datasetProperties, creator);
                         results.add(dataset);
                     }
 
@@ -242,20 +272,6 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
         }
         return results;
 
-    }
-
-    private Person getCreator() {
-        // TODO Fix this later
-        Person creator = personDao.findByEmail("incore-dev@lists.illinois.edu");
-        if (creator == null) {
-            creator = new Person();
-            creator.setEmail("incore-dev@lists.illinois.edu");
-            creator.setFirstName("IN-CORE");
-            creator.setLastName("Developer");
-            personDao.save(creator);
-        }
-
-        return creator;
     }
 
     @Override

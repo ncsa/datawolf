@@ -28,6 +28,7 @@ public class IncoreDataset {
     public static final String  DATA_URL                = "dataURL";
     public static final String  TITLE                   = "title";
     public static final String  TYPE                    = "type";
+    public static final String  CREATOR                 = "creator";
     public static final String  DESCRIPTION             = "description";
     public static final String  ENTITY_ID               = "id";
     private static final String FEATURE_TYPE_NAME       = "featuretypeName";
