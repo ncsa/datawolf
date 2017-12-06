@@ -376,7 +376,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.setCreator(execution.getCreator());
 
                     ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, step.getCreator(), ds);
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, execution.getCreator(), ds);
 
                     ds = datasetDao.save(ds);
 
@@ -394,7 +394,7 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.setCreator(execution.getCreator());
 
                     ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
-                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais, step.getCreator(), ds);
+                    FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais, execution.getCreator(), ds);
 
                     ds = datasetDao.save(ds);
 
