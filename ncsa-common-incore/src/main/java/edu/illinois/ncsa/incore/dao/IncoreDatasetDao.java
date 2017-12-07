@@ -46,13 +46,19 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
         // Check if this is a new entity (e.g. still has UUID)
         if (entity.getId().contains("-")) {
 
-            // TODO replace this
-            // Description should contain type information
-            // This should be used to contact the semantic services
+            // TODO is there a better way?
             String description = entity.getDescription();
+            String[] datasetInfo = description.split(",");
+            String schema = "Unknown";
+            String type = "Unknown";
+            if (datasetInfo.length == 2) {
+                schema = datasetInfo[0];
+                type = datasetInfo[1];
+            }
+
             JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("schema", "buildingDamagev4");
-            jsonObject.addProperty("type", "http://localhost:8080/semantics/edu.illinois.ncsa.ergo.eq.schemas.buildingDamageVer4.v1.0");
+            jsonObject.addProperty("schema", schema);
+            jsonObject.addProperty("type", type);
             jsonObject.addProperty("title", entity.getTitle());
             jsonObject.addProperty("sourceDataset", "");
             jsonObject.addProperty("format", "csv");
@@ -64,7 +70,6 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                 creatorId = entity.getCreator().getId();
                 spaces.add(new JsonPrimitive(creatorId));
             }
-            spaces.add(new JsonPrimitive("ergo"));
             jsonObject.add("spaces", spaces);
 
             String incoreEndpoint = getServer();

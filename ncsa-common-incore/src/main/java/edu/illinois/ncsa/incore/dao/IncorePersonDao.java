@@ -9,6 +9,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -17,9 +19,9 @@ import com.google.gson.JsonParser;
 import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.incore.IncoreUser;
-import edu.illinois.ncsa.incore.dao.AbstractIncoreDao;
 
 public class IncorePersonDao extends AbstractIncoreDao<Person, String> implements PersonDao {
+    private static final Logger logger = LoggerFactory.getLogger(IncorePersonDao.class);
 
     @Override
     public Person save(Person entity) {
@@ -53,14 +55,15 @@ public class IncorePersonDao extends AbstractIncoreDao<Person, String> implement
 
             return IncoreUser.getUser(personObj);
         } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.debug("Error fetching person.", e);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            logger.debug("Error fetching person.", e);
+        } catch (Exception e) {
+            logger.debug("Error fetching person.", e);
         }
 
         return null;
+
     }
 
     @Override
