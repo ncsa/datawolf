@@ -51,9 +51,11 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
             String[] datasetInfo = description.split(",");
             String schema = "Unknown";
             String type = "Unknown";
-            if (datasetInfo.length == 2) {
+            String format = "Unknown";
+            if (datasetInfo.length == 3) {
                 schema = datasetInfo[0];
                 type = datasetInfo[1];
+                format = datasetInfo[2];
             }
 
             JsonObject jsonObject = new JsonObject();
@@ -61,7 +63,7 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
             jsonObject.addProperty("type", type);
             jsonObject.addProperty("title", entity.getTitle());
             jsonObject.addProperty("sourceDataset", "");
-            jsonObject.addProperty("format", "csv");
+            jsonObject.addProperty("format", format);
 
             JsonArray spaces = new JsonArray();
 
