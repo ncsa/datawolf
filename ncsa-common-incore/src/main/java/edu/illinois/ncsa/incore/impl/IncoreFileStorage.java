@@ -16,6 +16,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -100,14 +101,13 @@ public class IncoreFileStorage implements FileStorage {
             incoreEndpoint += "/";
         }
 
-        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.UPDATE;
+        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + ds.getId() + "/" + IncoreDataset.UPDATE;
 
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
 
         // Hack to update the source dataset
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("datasetId", ds.getId());
         jsonObject.addProperty("property name", "sourceDataset");
         jsonObject.addProperty("property value", datasetId);
 
@@ -115,19 +115,19 @@ public class IncoreFileStorage implements FileStorage {
         paramBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
         paramBuilder.addTextBody("update", jsonObject.toString());
 
-        HttpPost httpPost = new HttpPost(requestUrl);
-        httpPost.setEntity(paramBuilder.build());
+        HttpPut httpPut = new HttpPut(requestUrl);
+        httpPut.setEntity(paramBuilder.build());
 
         if (creator != null) {
-            httpPost.setHeader("X-Credential-Username", creator.getId());
+            httpPut.setHeader("X-Credential-Username", creator.getId());
         }
 
         HttpResponse response = null;
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
-        response = httpclient.execute(httpPost);
+        response = httpclient.execute(httpPut);
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            logger.warn("failed to update parent dataset");
+            logger.warn("failed to update parent dataset - " + response);
         }
 
         // Add the file to the dataset
@@ -142,7 +142,7 @@ public class IncoreFileStorage implements FileStorage {
         paramBuilder.addTextBody(IncoreDataset.PARENT_DATASET, jsonObject.toString());
         paramBuilder.addBinaryBody(IncoreDataset.DATASET_FILE, output, ContentType.DEFAULT_BINARY, filename);
 
-        httpPost = new HttpPost(requestUrl);
+        HttpPost httpPost = new HttpPost(requestUrl);
         httpPost.setEntity(paramBuilder.build());
         if (creator != null) {
             httpPost.setHeader("X-Credential-Username", creator.getId());
