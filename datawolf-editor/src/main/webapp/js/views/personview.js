@@ -54,7 +54,8 @@ var UserView = Backbone.View.extend({
 
 	logout: function(e) {
 		e.preventDefault();
-		localStorage.currentUser = null;
+		// Remove current user from local storage
+		localStorage.removeItem("currentUser");
 		location.replace('login.html');
 	}
 
