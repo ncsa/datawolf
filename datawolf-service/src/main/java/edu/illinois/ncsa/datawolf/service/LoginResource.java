@@ -146,14 +146,18 @@ public class LoginResource {
     }
 
     /**
-     * Create a user account
+     * Create a user account by either specifying the email or the personId and
+     * a password
      * 
      * @param email
      *            email of the account to create
+     * @param personId
+     *            - the ID of the person to create the account for
      * @param password
      *            password for the user account
      * @throws Exception
-     *             If email/password not specified or if user does not exist
+     *             If email or personId and password are not specified or if
+     *             user does not exist
      */
     @POST
     @Produces({ MediaType.TEXT_PLAIN })
