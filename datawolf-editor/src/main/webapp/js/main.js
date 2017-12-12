@@ -142,7 +142,6 @@ var loadMainView = function(workflowId) {
 
                     $(".rmode").bind("click", function() {
                         var desiredMode = $(this).attr("mode");
-                        if (jsPlumbDemo.reset) jsPlumbDemo.reset();
                         jsPlumb.reset();
                         resetRenderMode(desiredMode);
                     });
