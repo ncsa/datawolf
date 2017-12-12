@@ -47,8 +47,7 @@ public class IncorePersonDao extends AbstractIncoreDao<Person, String> implement
             }
 
             BasicResponseHandler responseHandler = new BasicResponseHandler();
-            String responseStr;
-            responseStr = httpclient.execute(httpGet, responseHandler);
+            String responseStr = httpclient.execute(httpGet, responseHandler);
             JsonElement jsonElement = new JsonParser().parse(responseStr);
 
             JsonObject personObj = jsonElement.getAsJsonObject();
