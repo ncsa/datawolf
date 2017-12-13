@@ -90,35 +90,51 @@ var getExecutions = function(workflowId) {
 
 var loadExecuteView = function(workflowId) {
     var id = localStorage.currentUser;
-    personCollection.fetch({success: function() {
 
-        currentUser = personCollection.findWhere({id: id});
-        if(currentUser == null) {
-            location.replace('login.html');
-        }
+    if(id == null) {
+        location.replace('login.html');
+    } else {
+        var personEndpoint = datawolfOptions.rest + '/persons/'+id;
 
-        $('#current-user').text('Hello '+currentUser.get('firstName'));
+        $.ajax({
+            type: "GET",
+            beforeSend: function(request) {
+                request.setRequestHeader("Accept", "application/json");
+            },
+            url: personEndpoint,
+            dataType: "text",
 
-        datasetCollection.fetch({success: function() {
-            datasetListView = new DatasetListView({model: datasetCollection});
-            $('#datasets').html(datasetListView.render().el);
-            $('#datasetbuttons').html(new DatasetButtonView().render().el);
-         }});
+            success: function(msg) {
 
-        workflowCollection.fetch({success: function() {
-            workflowListView = new WorkflowListView({model: workflowCollection});
-            $('#workflows').html(workflowListView.render().el);
-            $('#workflowbuttons').html(new WorkflowButtonView().render().el);
-
-            if(workflowId != null) {
-                if(workflowCollection.findWhere({'id': workflowId})) {
-                    eventBus.trigger("clicked:newopenworkflow", workflowId);
-                } else {
-                    console.log("did not find workflow");
+                currentUser = new Person(JSON.parse(msg));
+                if(currentUser == null) {
+                    location.replace('login.html');
                 }
+
+                $('#current-user').text('Hello '+currentUser.get('firstName'));
+
+                datasetCollection.fetch({success: function() {
+                    datasetListView = new DatasetListView({model: datasetCollection});
+                    $('#datasets').html(datasetListView.render().el);
+                    $('#datasetbuttons').html(new DatasetButtonView().render().el);
+                 }});
+
+                workflowCollection.fetch({success: function() {
+                    workflowListView = new WorkflowListView({model: workflowCollection});
+                    $('#workflows').html(workflowListView.render().el);
+                    $('#workflowbuttons').html(new WorkflowButtonView().render().el);
+
+                    if(workflowId != null) {
+                        if(workflowCollection.findWhere({'id': workflowId})) {
+                            eventBus.trigger("clicked:newopenworkflow", workflowId);
+                        } else {
+                            console.log("did not find workflow");
+                        }
+                    }
+                }});
             }
-        }});
-    }}); 
+        });
+    }
 }
 
 // Router
