@@ -66,6 +66,7 @@ public class DevPersistenceModule extends AbstractModule {
                 properties.setProperty("engine.timeout", "3600");
                 properties.setProperty("engine.extraLocalExecutor", "4");
                 properties.setProperty("engine.localExecutorThreads", "4");
+                properties.setProperty("executor.cleanup", "true");
                 Names.bindProperties(binder(), properties);
                 jpa.properties(properties);
             } catch (IOException e) {

@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.util.Date;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,10 @@ public abstract class Executor {
     private boolean             storeLog    = true;
 
     @Inject
+    @Named("executor.cleanup")
+    private boolean             cleanUp     = true;
+
+    @Inject
     protected ExecutionDao      executionDao;
 
     @Inject
@@ -64,6 +69,28 @@ public abstract class Executor {
 
     @Inject
     protected UnitOfWork        work;
+
+    /**
+     * Should the executor cleanup temporary files/directories/etc.
+     *
+     * @return true if executor should cleanup temporary files/directories/etc
+     */
+    public boolean isCleanUp() {
+        return cleanUp;
+    }
+
+    /**
+     * Should the executor cleanup temporary files/directories/etc. Set this to
+     * true to indicate that temporary files/directories/etc should be removed
+     * when finished.
+     *
+     * @param cleanUp
+     *            set to true (default) to indicate temporary
+     *            files/directories/etc should be removed
+     */
+    public void setCleanUp(boolean cleanUp) {
+        this.cleanUp = cleanUp;
+    }
 
     /**
      * Should the executor store the logfiles generated.

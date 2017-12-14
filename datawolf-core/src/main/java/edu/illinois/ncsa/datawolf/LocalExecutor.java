@@ -152,10 +152,12 @@ public abstract class LocalExecutor extends Executor implements Runnable {
             println("Error during execution.", thr);
         } finally {
             // do some cleanup
-            if ((cwd != null) && !deleteDirectory(cwd)) {
-                String msg = String.format("Could not remove directory [%s].", cwd.getAbsolutePath());
-                logger.info(msg);
-                println(msg);
+            if (isCleanUp()) {
+                if ((cwd != null) && !deleteDirectory(cwd)) {
+                    String msg = String.format("Could not remove directory [%s].", cwd.getAbsolutePath());
+                    logger.info(msg);
+                    println(msg);
+                }
             }
             flushLog();
         }
