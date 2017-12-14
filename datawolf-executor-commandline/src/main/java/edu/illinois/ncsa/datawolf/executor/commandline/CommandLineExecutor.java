@@ -54,7 +54,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -67,7 +66,6 @@ import edu.illinois.ncsa.datawolf.LocalExecutor;
 import edu.illinois.ncsa.datawolf.domain.Execution;
 import edu.illinois.ncsa.datawolf.domain.WorkflowStep;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption.InputOutput;
-import edu.illinois.ncsa.domain.AbstractBean;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.util.BeanUtil;
@@ -352,11 +350,7 @@ public class CommandLineExecutor extends LocalExecutor {
         } while ((stdoutReader != null) || (stderrReader != null));
         flushLog();
 
-        // t = SpringData.getTransaction();
-        // List of created datasets
-        List<AbstractBean> datasets = new ArrayList<AbstractBean>();
         try {
-            // t.start();
             work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
             Execution execution = executionDao.findOne(getExecutionId());
@@ -381,7 +375,6 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
-                    datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
                     logger.warn("Could not store output.", exc);
@@ -399,7 +392,6 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds.getId());
-                    datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
                     logger.warn("Could not store output.", exc);
@@ -438,7 +430,6 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(entry.getKey()), ds.getId());
-                    datasets.add(ds);
                     saveExecution = true;
                 } catch (IOException exc) {
                     logger.warn("Could not store output.", exc);
