@@ -26,6 +26,7 @@ import com.google.inject.name.Named;
 
 import edu.illinois.ncsa.clowder.ClowderRedirectStrategy;
 import edu.illinois.ncsa.domain.Account;
+import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Person;
@@ -65,12 +66,12 @@ public class FileStorageClowder implements FileStorage {
         return storeFile(new FileDescriptor().getId(), null, is);
     }
 
-    public FileDescriptor storeFile(String filename, InputStream is, Person creator) throws IOException {
-        return storeFile(new FileDescriptor().getId(), filename, is, creator);
+    public FileDescriptor storeFile(String filename, InputStream is, Person creator, Dataset ds) throws IOException {
+        return storeFile(new FileDescriptor().getId(), filename, is, creator, ds);
     }
 
     public FileDescriptor storeFile(String filename, InputStream is) throws IOException {
-        return storeFile(filename, is, null);
+        return storeFile(filename, is, null, null);
     }
 
     public URL storeFile(FileDescriptor fd, InputStream is) throws IOException {
@@ -96,10 +97,10 @@ public class FileStorageClowder implements FileStorage {
 
     @Override
     public FileDescriptor storeFile(String id, String filename, InputStream is) throws IOException {
-        return storeFile(id, filename, is, null);
+        return storeFile(id, filename, is, null, null);
     }
 
-    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator) throws IOException {
+    public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator, Dataset ds) throws IOException {
         String lineEnd = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";

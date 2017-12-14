@@ -50,6 +50,11 @@
 		</dependency>
 		<dependency>
 			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>ncsa-common-incore</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
 			<artifactId>datawolf-executor-commandline</artifactId>
 			<version>${project.version}</version>
 		</dependency>
