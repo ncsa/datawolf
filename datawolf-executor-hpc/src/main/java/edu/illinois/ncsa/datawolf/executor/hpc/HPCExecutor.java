@@ -139,6 +139,7 @@ public class HPCExecutor extends RemoteExecutor {
         // Commands to append to command line
         ArrayList<String> command = new ArrayList<String>();
         try {
+            work.begin();
             if (scriptPath == null) {
                 WorkflowStep step = workflowStepDao.findOne(getStepId());
                 Execution execution = executionDao.findOne(getExecutionId());
@@ -305,6 +306,8 @@ public class HPCExecutor extends RemoteExecutor {
             // throw e;
         } catch (Throwable e) {
             throw (new FailedException("Could not run transaction to get information about step.", e));
+        } finally {
+            work.end();
         }
         // assume at this point it's queued, but we could run qstat to be sure
         return State.QUEUED;
@@ -707,10 +710,9 @@ public class HPCExecutor extends RemoteExecutor {
             // String log = getRemoteLog();
 
             // List of created datasets
-            List<AbstractBean> datasets = new ArrayList<AbstractBean>();
             try {
                 // TODO make this more generic
-
+                work.begin();
                 WorkflowStep step = workflowStepDao.findOne(getStepId());
                 Execution execution = executionDao.findOne(getExecutionId());
 
@@ -725,7 +727,7 @@ public class HPCExecutor extends RemoteExecutor {
                 }
 
                 ByteArrayInputStream bais = new ByteArrayInputStream(gondolaLogContent.toString().getBytes("UTF-8"));
-                FileDescriptor fd = fileStorage.storeFile(bais);
+                FileDescriptor fd = fileStorage.storeFile("gondola-log", bais);
 
                 Dataset ds = new Dataset();
                 ds.setTitle("gondola-log");
@@ -735,10 +737,11 @@ public class HPCExecutor extends RemoteExecutor {
 
                 String key = step.getOutputs().get(gondolaLogId);
                 execution.setDataset(key, ds.getId());
-                datasets.add(ds);
-
+                
+                executionDao.save(execution);
                 return State.FINISHED;
             } finally {
+                work.end();
                 session.close();
                 session = null;
             }
@@ -784,6 +787,7 @@ public class HPCExecutor extends RemoteExecutor {
                     jobResultDirectory = workingDir;
 
                     try {
+                        work.begin();
                         List<HPCJobInfo> jobs = hpcJobInfoDao.findByExecutionId(getExecutionId());
 
                         if (!jobs.isEmpty()) {
@@ -797,6 +801,7 @@ public class HPCExecutor extends RemoteExecutor {
                             logger.error("No job information bean found for execution id " + getExecutionId());
                         }
                     } finally {
+                        work.end();
                         stdoutReader.close();
                     }
                 }
@@ -911,7 +916,7 @@ public class HPCExecutor extends RemoteExecutor {
     private void storeStandardOutDataset() {
         // Store stdout and stderr as datasets
         try {
-
+            work.begin();
             StringBuilder stdout = new StringBuilder();
             StringBuilder stderr = new StringBuilder();
 
@@ -940,7 +945,6 @@ public class HPCExecutor extends RemoteExecutor {
                 br.close();
             }
 
-            List<AbstractBean> datasets = new ArrayList<AbstractBean>();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
             Execution execution = executionDao.findOne(getExecutionId());
 
@@ -969,11 +973,10 @@ public class HPCExecutor extends RemoteExecutor {
             execution.setDataset(key, ds.getId());
 
             executionDao.save(execution);
-
-            datasets.add(ds);
-
         } catch (Throwable e) {
             logger.error("Error getting log file from remote machine and saving it.", e);
+        } finally {
+            work.end();
         }
     }
 

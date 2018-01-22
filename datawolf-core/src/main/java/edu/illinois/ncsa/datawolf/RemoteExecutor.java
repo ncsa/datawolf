@@ -209,20 +209,15 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
     private void setup(File cwd) throws FailedException {
         Set<FileDescriptor> blobs = new HashSet<FileDescriptor>();
 
-        // Transaction t = SpringData.getTransaction();
         try {
-            // t.start(true);
+            work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
             blobs.addAll(step.getTool().getBlobs());
         } catch (Exception e) {
             throw (new FailedException("Could not get all blobs.", e));
-        } // finally {
-          // try {
-          // t.commit();
-          // } catch (Exception e) {
-          // throw (new FailedException("Could not get all blobs.", e));
-          // }
-          // }
+        } finally {
+            work.end();
+        }
 
         try {
             for (FileDescriptor blob : blobs) {
