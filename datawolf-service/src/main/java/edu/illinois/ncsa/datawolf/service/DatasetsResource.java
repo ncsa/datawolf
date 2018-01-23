@@ -94,11 +94,12 @@ public class DatasetsResource {
      * <input type="file" name="uploadedFile" />
      * <input type="text" name="title" />
      * <input type="text" name="description" />
+     * <input type="text" name="useremail" />
      * <input type="submit" value="Upload It" />
      * </form>
      * 
      * @param input
-     *            a dataset created from Zip or from a file
+     *            a dataset created from Zip or from a file(s)
      * @return
      *         datasetId
      */
@@ -181,19 +182,23 @@ public class DatasetsResource {
                 }
             }
 
-            FileDescriptor fileDescriptor = null;
+            List<FileDescriptor> fileDescriptors = new ArrayList<FileDescriptor>();
             if (virtualPath != null) {
+                FileDescriptor fileDescriptor = null;
                 try {
                     fileDescriptor = fileStorage.storeFile(virtualPath, null);
+
+                    if (fileDescriptor == null) {
+                        log.warn("Could not store the file");
+                    } else {
+                        fileDescriptors.add(fileDescriptor);
+                    }
                 } catch (IOException e) {
                     log.error("Error storing virtual file", e);
                     return null;
                 }
-                if (fileDescriptor == null)
-                    return null;
             } else {
                 for (InputPart inputPart : fileInputParts) {
-
                     try {
                         MultivaluedMap<String, String> header = inputPart.getHeaders();
                         String fileName = getFileName(header);
@@ -202,9 +207,12 @@ public class DatasetsResource {
                         InputStream inputStream = inputPart.getBody(InputStream.class, null);
 
                         // Store the file
-                        fileDescriptor = fileStorage.storeFile(fileName, inputStream, creator, null);
-                        if (fileDescriptor == null)
-                            return null;
+                        FileDescriptor fileDescriptor = fileStorage.storeFile(fileName, inputStream, creator, null);
+                        if (fileDescriptor == null) {
+                            log.warn("Could not store the file");
+                        } else {
+                            fileDescriptors.add(fileDescriptor);
+                        }
                     } catch (IOException e) {
                         log.warn("Could not parse the file", e);
                         return null;
@@ -212,7 +220,7 @@ public class DatasetsResource {
                 }
             }
 
-            String title = fileDescriptor.getFilename();
+            String title = "";
             String description = "";
 
             // if upload the file without "title" in the form,
@@ -224,6 +232,11 @@ public class DatasetsResource {
                         title = val.getBody(String.class, null);
                     } catch (IOException e) {
                         log.warn("Could not getbody for title", e);
+                        // If no title specified, use the first file in the list
+                        if (fileDescriptors.size() > 0) {
+                            title = fileDescriptors.get(0).getFilename();
+                        }
+
                     }
                 }
             }
@@ -243,13 +256,14 @@ public class DatasetsResource {
 
             dataset = new Dataset();
             dataset.setCreator(creator);
-            dataset.addFileDescriptor(fileDescriptor);
             dataset.setTitle(title);
             dataset.setDescription(description);
 
-            // Dataset savedDataset = datasetDao.save(dataset);
-            datasetDao.save(dataset);
+            for (FileDescriptor fileDescriptor : fileDescriptors) {
+                dataset.addFileDescriptor(fileDescriptor);
+            }
 
+            datasetDao.save(dataset);
             log.debug("Dataset uploaded");
 
             return dataset.getId();
