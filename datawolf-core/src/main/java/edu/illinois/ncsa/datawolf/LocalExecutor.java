@@ -151,8 +151,8 @@ public abstract class LocalExecutor extends Executor implements Runnable {
             setState(State.FAILED);
             println("Error during execution.", thr);
         } finally {
-            // do some cleanup
-            if (isCleanUp()) {
+            // do some cleanup unless in debug mode
+            if (!isDebug()) {
                 if ((cwd != null) && !deleteDirectory(cwd)) {
                     String msg = String.format("Could not remove directory [%s].", cwd.getAbsolutePath());
                     logger.info(msg);

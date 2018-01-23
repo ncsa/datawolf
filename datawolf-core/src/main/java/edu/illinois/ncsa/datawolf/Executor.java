@@ -46,8 +46,8 @@ public abstract class Executor {
     private boolean             storeLog    = true;
 
     @Inject
-    @Named("executor.cleanup")
-    private boolean             cleanUp     = true;
+    @Named("executor.debug")
+    private boolean             debug       = false;
 
     @Inject
     protected ExecutionDao      executionDao;
@@ -71,25 +71,25 @@ public abstract class Executor {
     protected UnitOfWork        work;
 
     /**
-     * Should the executor cleanup temporary files/directories/etc.
+     * Get debug flag for the executor. If true, the executor won't cleanup
+     * temporary files/directories/etc.
      *
-     * @return true if executor should cleanup temporary files/directories/etc
+     * @return true if executor is in debug mode, false otherwise
      */
-    public boolean isCleanUp() {
-        return cleanUp;
+    public boolean isDebug() {
+        return this.debug;
     }
 
     /**
-     * Should the executor cleanup temporary files/directories/etc. Set this to
-     * true to indicate that temporary files/directories/etc should be removed
-     * when finished.
+     * Set executor debug flag. Set this to true to indicate that temporary
+     * files/directories/etc should not be removed when finished.
      *
-     * @param cleanUp
-     *            set to true (default) to indicate temporary
+     * @param debug
+     *            set to false (default) to indicate temporary
      *            files/directories/etc should be removed
      */
-    public void setCleanUp(boolean cleanUp) {
-        this.cleanUp = cleanUp;
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     /**
