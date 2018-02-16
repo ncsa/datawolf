@@ -106,7 +106,7 @@ public class LoginResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response login(@QueryParam("email") String email, @HeaderParam("Authorization") String auth) {
+    public Response login(@QueryParam("email") String email, @HeaderParam("Authorization") String auth) throws Exception {
         if ((auth != null) && !auth.equals("")) {
             try {
                 String decoded = new String(Base64.decode(auth.substring(6)));
@@ -117,7 +117,7 @@ public class LoginResource {
                     Account userAccount = accountDao.findByUserid(user);
                     if (userAccount == null) {
                         log.error("User account does not exist");
-                        return null;
+                        return Response.status(Response.Status.UNAUTHORIZED).build();
                     }
 
                     if (!userAccount.isActive()) {
@@ -131,17 +131,20 @@ public class LoginResource {
                         // TODO should we persist token with creation date?
                         return Response.ok(userAccount.getPerson()).cookie(new NewCookie("token", token, null, null, null, 86400, false)).build();
                     } else {
-                        return null;
+                        log.error("Incorrect username or password");
+                        return Response.status(Response.Status.UNAUTHORIZED).build();
                     }
                 } else {
-                    return null;
+                    log.error("Incorrect authorization header.");
+                    return Response.status(Response.Status.UNAUTHORIZED).build();
                 }
             } catch (IOException e) {
                 log.error("Error decoding token", e);
-                return null;
+                return Response.status(Response.Status.UNAUTHORIZED).build();
             }
         }
-        return null;
+
+        return Response.status(Response.Status.UNAUTHORIZED).entity("Missing Authorization header.").build();
 
     }
 
