@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.util.Date;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,10 @@ public abstract class Executor {
     private boolean             storeLog    = true;
 
     @Inject
+    @Named("executor.debug")
+    private boolean             debug       = false;
+
+    @Inject
     protected ExecutionDao      executionDao;
 
     @Inject
@@ -64,6 +69,28 @@ public abstract class Executor {
 
     @Inject
     protected UnitOfWork        work;
+
+    /**
+     * Get debug flag for the executor. If true, the executor won't cleanup
+     * temporary files/directories/etc.
+     *
+     * @return true if executor is in debug mode, false otherwise
+     */
+    public boolean isDebug() {
+        return this.debug;
+    }
+
+    /**
+     * Set executor debug flag. Set this to true to indicate that temporary
+     * files/directories/etc should not be removed when finished.
+     *
+     * @param debug
+     *            set to false (default) to indicate temporary
+     *            files/directories/etc should be removed
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 
     /**
      * Should the executor store the logfiles generated.
