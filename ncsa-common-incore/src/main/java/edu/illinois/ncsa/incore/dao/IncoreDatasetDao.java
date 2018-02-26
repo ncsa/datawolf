@@ -83,7 +83,7 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                 HttpResponse response = null;
                 ResponseHandler<String> responseHandler = new BasicResponseHandler();
                 String responseStr = null;
-                requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.CREATE_DATASET;
+                requestUrl += IncoreDataset.DATASETS_ENDPOINT;
 
                 HttpPost httpPost = new HttpPost(requestUrl);
                 if (creatorId != null) {
