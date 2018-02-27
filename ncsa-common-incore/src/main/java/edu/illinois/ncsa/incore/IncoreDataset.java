@@ -17,7 +17,7 @@ public class IncoreDataset {
     public static final String  DATASET_FILES           = "files";
 
     // Files API
-    public static final String  FILES_ENDPOINT          = "files";
+    public static final String  FILES_ENDPOINT          = "data/api/files";
     public static final String  FILE_BLOB               = "blob";
 
     // Dataset Attributes
@@ -27,7 +27,7 @@ public class IncoreDataset {
     public static final String  LOCATION                = "location";
     public static final String  DATA_URL                = "dataURL";
     public static final String  TITLE                   = "title";
-    public static final String  TYPE                    = "type";
+    public static final String  TYPE                    = "dataType";
     public static final String  CREATOR                 = "creator";
     public static final String  DESCRIPTION             = "description";
     public static final String  ENTITY_ID               = "id";
