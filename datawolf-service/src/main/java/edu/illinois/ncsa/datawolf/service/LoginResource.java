@@ -45,6 +45,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -222,6 +223,54 @@ public class LoginResource {
 
         return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Account for specified user already exists").build();
 
+    }
+
+    @POST
+    @Path("updatePassword")
+    @Produces({ MediaType.TEXT_PLAIN })
+    public Response updateAccountPassword(@HeaderParam("Authorization") String auth, @QueryParam("password") String password) throws Exception {
+        String token = auth;
+        boolean tokenAuth = true;
+        Account account = null;
+        if ((auth != null) && !auth.equals("")) {
+            if (auth.startsWith("Basic ")) {
+                try {
+                    List<String> credentials = LoginUtil.parseCredentials(new String(Base64.decode(auth.substring(6))));
+                    token = credentials.get(1);
+                    account = accountDao.findByUserid(credentials.get(0));
+                    tokenAuth = false;
+                } catch (IOException e) {
+                    log.error("Error decoding credential", e);
+                    throw new NotAuthorizedException(Response.status(HttpStatus.SC_UNAUTHORIZED));
+                }
+            } else {
+                account = accountDao.findByToken(token);
+            }
+
+            if (account == null || account.isDeleted() || !account.isActive()) {
+                log.error("Authentication failed, user account does not exist, is deleted, or is not active.");
+                throw new NotAuthorizedException(Response.status(HttpStatus.SC_UNAUTHORIZED));
+            }
+
+            boolean authorized = false;
+            if (tokenAuth) {
+                authorized = tokenProvider.isTokenValid(token);
+            } else {
+                authorized = BCrypt.checkpw(token, account.getPassword());
+            }
+
+            if (!authorized) {
+                throw new NotAuthorizedException(Response.status(HttpStatus.SC_UNAUTHORIZED));
+            }
+
+            account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+            accountDao.save(account);
+
+            return Response.ok("Password changed.").build();
+
+        }
+
+        return Response.status(HttpStatus.SC_UNAUTHORIZED).build();
     }
 
     /**
