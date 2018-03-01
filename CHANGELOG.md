@@ -6,8 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Allow users to change passwords
+  [WOLF-241](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-241)
+- Allow tokens to be in authorization header, added token provider support
+  [WOLF-230](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-230)
+- Debug attribute to prevent executor cleanup
+  [WOLF-91](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-91)
+
 ### Changed
+- Changed datasets API to allow attaching multiple files
+  [WOLF-218](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-218)
+- User accounts secured by bcrypt salted passwords
+  [WOLF-227](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-227)
+- User accounts can be created by specifying an email or person id
+  [WOLF-248](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-248)
+
 ### Fixed
+- HPC Executor lazy initialization exception
+  [WOLF-253](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-253)
+- Authentication failed if token is expired and user sends Basic auth
+  [WOLF-238](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-238)
+- Login endpoint returning no content instead of unauthorized for failed login
+  [WOLF-255](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-255)
 
 ## [4.1.0] - 2017-10-06
 
