@@ -101,7 +101,7 @@ public class IncoreFileStorage implements FileStorage {
             incoreEndpoint += "/";
         }
 
-        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + ds.getId() + "/" + IncoreDataset.UPDATE;
+        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + ds.getId();
 
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
@@ -132,10 +132,7 @@ public class IncoreFileStorage implements FileStorage {
 
         // Add the file to the dataset
         requestUrl = incoreEndpoint;
-        requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.ADD_DATASET_FILES;
-
-        jsonObject = new JsonObject();
-        jsonObject.addProperty(IncoreDataset.DATASET_ID, ds.getId());
+        requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + ds.getId() + "/" + IncoreDataset.DATASET_FILES;
 
         paramBuilder = MultipartEntityBuilder.create();
         paramBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -172,7 +169,7 @@ public class IncoreFileStorage implements FileStorage {
         if (!incoreEndpoint.endsWith("/")) {
             incoreEndpoint += "/";
         }
-        String requestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + IncoreDataset.DATASET_FILES + "/" + fd.getId() + "/" + IncoreDataset.DATASET_FILE;
+        String requestUrl = incoreEndpoint + IncoreDataset.FILES_ENDPOINT + "/" + fd.getId() + "/" + IncoreDataset.FILE_BLOB;
         logger.debug("request is " + requestUrl);
 
         HttpClientBuilder builder = HttpClientBuilder.create();
