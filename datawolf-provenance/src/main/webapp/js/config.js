@@ -5,5 +5,5 @@ datawolfOptions = {
 	// Clowder endpoint
 	clowder: "http://localhost:9000",
 	// datawolf endpoint to get executions
-	dwApi: "http://bd-api-dev.ncsa.illinois.edu"
+	dwApi: "https://bd-api-dev.ncsa.illinois.edu"
 }

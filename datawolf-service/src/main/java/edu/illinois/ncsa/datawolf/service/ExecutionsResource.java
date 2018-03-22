@@ -216,13 +216,18 @@ public class ExecutionsResource {
      *            page number starting 0
      * @param email
      *            email of creator
+     * @param since
+     *            executions created after the given date, e.g. 2018-02-10 
+     * @param until
+     *            executions created before the given date, e.g. 2018-02-10 
      * @return
      *         list of executions
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
-            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
+    public List<Execution> getExecutions(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, 
+        @QueryParam("email") @DefaultValue("") String email, @QueryParam("since") @DefaultValue("") String since, 
+        @QueryParam("until") @DefaultValue("") String until, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
 
         // without paging
         if (size < 1) {
@@ -240,9 +245,9 @@ public class ExecutionsResource {
                 return list;
             } else {
                 if (showdeleted) {
-                    return executionDao.findByCreatorEmail(email);
+                    return executionDao.findByCreatorEmail(email, since, until);
                 } else {
-                    return executionDao.findByCreatorEmailAndDeleted(email, false);
+                    return executionDao.findByCreatorEmailAndDeleted(email, false, since, until);
                 }
             }
 
@@ -255,9 +260,9 @@ public class ExecutionsResource {
                 }
             } else {
                 if (showdeleted) {
-                    return executionDao.findByCreatorEmail(email, page, size);
+                    return executionDao.findByCreatorEmail(email, page, size, since, until);
                 } else {
-                    return executionDao.findByCreatorEmailAndDeleted(email, false, page, size);
+                    return executionDao.findByCreatorEmailAndDeleted(email, false, page, size, since, until);
                 }
             }
         }

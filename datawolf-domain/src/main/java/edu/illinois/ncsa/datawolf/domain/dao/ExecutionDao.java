@@ -10,13 +10,13 @@ public interface ExecutionDao extends IDao<Execution, String> {
 
     List<Execution> findByDeleted(boolean deleted, int page, int size);
 
-    List<Execution> findByCreatorEmail(String email);
+    List<Execution> findByCreatorEmail(String email, String since, String until);
 
-    List<Execution> findByCreatorEmail(String email, int page, int size);
+    List<Execution> findByCreatorEmail(String email, int page, int size, String since, String until);
 
-    List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted);
+    List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, String since, String until);
 
-    List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size);
+    List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size, String since, String until);
 
     List<Execution> findByWorkflowId(String workflowId);
 

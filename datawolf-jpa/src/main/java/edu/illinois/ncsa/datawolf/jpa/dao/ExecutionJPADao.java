@@ -32,10 +32,13 @@
 package edu.illinois.ncsa.datawolf.jpa.dao;
 
 import java.util.List;
+import java.util.Calendar;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.TemporalType;
+import javax.persistence.Temporal;
 
 import com.google.inject.Provider;
 import com.google.inject.persist.Transactional;
@@ -139,12 +142,22 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
 
     @Override
     @Transactional
-    public List<Execution> findByCreatorEmail(String email) {
+    public List<Execution> findByCreatorEmail(String email, String since, String until) {
         List<Execution> results = null;
         String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email";
+        if(!since.equals("")){
+            queryString = queryString + " AND e.date > :since";
+        }
 
+        if(!until.equals("")){
+            queryString = queryString + " AND e.date < :until";
+        }
+        
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("email", email);
+        addDateToQuery(typedQuery, since, "since");
+        addDateToQuery(typedQuery, until, "until");
+
         results = typedQuery.getResultList();
 
         return results;
@@ -152,12 +165,21 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
 
     @Override
     @Transactional
-    public List<Execution> findByCreatorEmail(String email, int page, int size) {
+    public List<Execution> findByCreatorEmail(String email, int page, int size, String since, String until) {
         List<Execution> results = null;
         String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email";
+        if(!since.equals("")){
+            queryString = queryString + " AND e.date > :since";
+        }
 
+        if(!until.equals("")){
+            queryString = queryString + " AND e.date < :until";
+        }
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("email", email);
+        addDateToQuery(typedQuery, since, "since");
+        addDateToQuery(typedQuery, until, "until");
+        
         typedQuery.setFirstResult(page * size);
         typedQuery.setMaxResults(size);
         results = typedQuery.getResultList();
@@ -167,13 +189,22 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
 
     @Override
     @Transactional
-    public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted) {
+    public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, String since, String until) {
         List<Execution> results = null;
         String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email and e.deleted = :deleted";
+        if(!since.equals("")){
+            queryString = queryString + " AND e.date > :since";
+        }
 
+        if(!until.equals("")){
+            queryString = queryString + " AND e.date < :until";
+        }
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("email", email);
         typedQuery.setParameter("deleted", deleted);
+        typedQuery.setParameter("email", email);
+        addDateToQuery(typedQuery, since, "since");
+        addDateToQuery(typedQuery, until, "until");
         results = typedQuery.getResultList();
 
         return results;
@@ -181,17 +212,39 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
 
     @Override
     @Transactional
-    public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size) {
+    public List<Execution> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size, String since, String until) {
         List<Execution> results = null;
-        String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email and e.deleted = :deleted";
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.creator.email = :email AND e.deleted = :deleted";
+        if(!since.equals("")){
+            queryString = queryString + " AND e.date > :since";
+        }
 
+        if(!until.equals("")){
+            queryString = queryString + " AND e.date < :until";
+        }
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("email", email);
         typedQuery.setParameter("deleted", deleted);
+        typedQuery.setParameter("email", email);
+        addDateToQuery(typedQuery, since, "since");
+        addDateToQuery(typedQuery, until, "until");
         typedQuery.setFirstResult(page * size);
         typedQuery.setMaxResults(size);
         results = typedQuery.getResultList();
 
         return results;
+    }
+
+    private void addDateToQuery(TypedQuery<Execution> typedQuery, String date, String matchString) {
+        if(!date.equals("")){
+            String [] dateArray= date.split("-");
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.YEAR, Integer.parseInt(dateArray[0]));
+            cal.set(Calendar.MONTH, Integer.parseInt(dateArray[1]) - 1);
+            cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateArray[2]));
+
+            typedQuery.setParameter(matchString, cal, TemporalType.DATE);
+            return; 
+        }
     }
 }
