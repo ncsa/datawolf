@@ -99,6 +99,9 @@ public class WorkflowUtil {
                 // Capture initial input
                 initialInput = line.split("->")[0];
                 initialInput = initialInput.substring(initialInput.lastIndexOf("/") + 1, initialInput.length());
+
+                // Remove file size from name
+                initialInput = initialInput.split(" ")[0];
                 datasets.add(initialInput);
 
                 // Find base output name of each conversion
@@ -110,6 +113,9 @@ public class WorkflowUtil {
                 } else {
                     baseOutputName = nameSplit[2];
                 }
+
+                // Remove file size from name
+                baseOutputName = baseOutputName.split(" ")[0];
 
                 baseOutputName = baseOutputName.substring(0, baseOutputName.lastIndexOf("."));
 
@@ -671,10 +677,11 @@ public class WorkflowUtil {
         for (String fileId : datasets) {
             String fileEndpoint = fenceURL;
             if (fenceURL.endsWith("/")) {
-                fileEndpoint = fenceURL + "dap/file/" + fileId;
+                fileEndpoint = fenceURL + "conversions/file/" + fileId;
             } else {
-                fileEndpoint = fenceURL + "/dap/file/" + fileId;
+                fileEndpoint = fenceURL + "/conversions/file/" + fileId;
             }
+            log.debug("Fetch DAP file at " + fileEndpoint);
             HttpGet httpGet = new HttpGet(fileEndpoint);
             httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
 
@@ -937,7 +944,8 @@ public class WorkflowUtil {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient client = builder.build();
 
-        String logfileUrl = fileId + ".log";
+        String logfileUrl = fileId + "/log";
+        log.debug("Fetch DAP log file " + logfileUrl);
 
         HttpGet httpGet = new HttpGet(logfileUrl);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION, token);
