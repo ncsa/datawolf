@@ -17,6 +17,10 @@ body {
   color: #FF0000;
 }
 
+.password-success {
+  color: #00FF00;
+}
+
 .form-signin {
   max-width: 330px;
   padding: 15px;
