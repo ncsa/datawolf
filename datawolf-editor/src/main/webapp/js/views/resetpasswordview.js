@@ -13,7 +13,6 @@ var ResetPasswordView = Backbone.View.extend({
 		return this;
 	},
 
-	// TODO - Add better authentication using OpenID or other authentication method
 	resetPassword: function(e) {
 		e.preventDefault();
 		var token = $('input[name=tokenInput]').val();

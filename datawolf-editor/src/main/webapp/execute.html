@@ -324,6 +324,12 @@
             </div>
         </div>
     </script>
+    <script type="text/template" id="userview-template">
+        <label id="current-user" class="hello-lbl">Hello <%= firstName %></label>
+        <label>|</label>
+        <a href="" id="logout-btn" class="hello-lbl">Logout</a>
+        <span class=""><img src="assets/img/datawolf.png" height="25.776" width="105.273"></span>
+    </script>
     <div id='editor-app' class="container-liquid">
         <div class="row editor-row">
             <div class="col-lg-2 panel-left-bkgrd">
@@ -374,12 +380,7 @@
                 </div>
             </div>
             <div class="panel-right-bkgrd col-lg-10">
-                <div class="pull-right app-login">
-                    <label id="current-user" class="hello-lbl"></label> 
-                    <label>|</label>
-                    <a href="" class="hello-lbl">Logout</a>
-                    <span class=""><img src="assets/img/datawolf.png" height="25.776" width="105.273"></img></span>
-                </div> 
+                <div class="pull-right app-login" id="userview"></div>
                 <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
                 </ul>
                 <div id="tab-content" class="tab-content">
@@ -412,7 +413,7 @@
     <script src="js/views/datasetview.js"></script>    
     <script src="js/views/workflowexecutionformview.js"></script>
     <script src="js/views/workflowview-execute-new.js"></script>
-
+    <script src="js/views/personview.js"></script>
     <!-- Configuration options -->
     <script src="js/config.js"></script>
     <!-- Models -->

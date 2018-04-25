@@ -111,7 +111,7 @@ var loadExecuteView = function(workflowId) {
                     location.replace('login.html');
                 }
 
-                $('#current-user').text('Hello '+currentUser.get('firstName'));
+                $('#userview').html(new UserView({model: currentUser}).render().el);
 
                 datasetCollection.fetch({success: function() {
                     datasetListView = new DatasetListView({model: datasetCollection});

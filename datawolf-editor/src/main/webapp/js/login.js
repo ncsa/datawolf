@@ -3,12 +3,11 @@ var showingRegistrationError = false;
 
 var AppRouter = Backbone.Router.extend({
     routes:{
-        "":"list"
+        "":"list",
     },
     
     // Show login form
     list:function() {
-    	
 		$('#login-form').html(new LoginView().render().el);
 
         // Registration buttons to display forms
@@ -30,7 +29,8 @@ var AppRouter = Backbone.Router.extend({
         $('#lastname').keypress(registrationError);
         $('#email').keypress(registrationError);
         $('#newpassword').keypress(registrationError);
-    }
+    },
+
 });
 
 var registrationError = function() {
@@ -109,6 +109,56 @@ var createPerson = function(firstName, lastName, email, password) {
             alert('error: '+JSON.stringify(msg));
         }
     }); 
+}
+
+// Can this be done through the router?
+var reloadLoginPage = function() {
+    location.replace("login.html");
+}
+
+var updatePassword = function(token, newPassword, confirmNewPassword) {
+    if(newPassword != confirmNewPassword) {
+        showingPasswordError = true;
+        $("#password-error").show();
+    } else {
+        var url = datawolfOptions.rest + '/login/updatePassword?password='+newPassword;
+        $.ajax({
+            type: "POST",
+            url: url,
+            dataType: "text",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader ("Authorization", token);
+            },
+
+            success: function(msg) {
+                url = datawolfOptions.rest + '/login/token';
+                $.ajax({
+                    type: "DELETE",
+                    url: url,
+                    dataType: "text",
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader ("Authorization", token);
+                    },
+
+                    success: function(msg) {
+                        $("#password-success").show();
+                        window.setTimeout(reloadLoginPage, 1000);
+                    },
+
+                    error: function(msg) {
+                        console.log("delete token was: "+token);
+                        showingPasswordError = true;
+                        $("#password-error").show();
+                    }
+                });
+            },
+
+            error: function(msg) {
+                showingPasswordError = true;
+                $("#password-error").show();
+            }
+        });
+    }
 }
 
 var app = new AppRouter();

@@ -2,7 +2,8 @@ var LoginView = Backbone.View.extend({
 
 	template: _.template($('#login-view-template').html()),
 	events: {
-		'click button#login-btn' : 'userLogin'
+		'click button#login-btn' : 'userLogin',
+		'click button#forgot-password' : 'forgotPassword'
 	},
 
 	initialize: function() {
@@ -20,7 +21,11 @@ var LoginView = Backbone.View.extend({
 		var password = $('input[name=password]').val();
 
 		checkLogin(email, password);
-	}
+	},
+
+	forgotPassword: function(e) {
+        $('#login-form').html(new ResetPasswordView().render().el);
+    }
 
 });
 
