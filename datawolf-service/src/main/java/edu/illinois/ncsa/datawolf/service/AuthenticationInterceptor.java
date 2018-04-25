@@ -75,6 +75,21 @@ public class AuthenticationInterceptor implements PreProcessInterceptor {
                 if (token != null && checkLoggedIn(token)) {
                     log.debug("Valid cookie - successfully authenticated");
                     return null;
+                } else if (request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION) != null) {
+                    // If cookie authentication fails, check for Auth headers
+                    if (!request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
+                        token = request.getHttpHeaders().getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
+                    }
+
+                    if (token != null && checkLoggedIn(token)) {
+                        log.debug("Authorization header found - Sucessfully authenticated");
+                        return null;
+                    } else {
+                        // TODO preprocessedPath not part of httprequest
+                        // return
+                        // unauthorizedResponse(request.getPreprocessedPath());
+                        return unauthorizedResponse("Not authenticated");
+                    }
                 } else {
                     return unauthorizedResponse("Not authenticated");
                 }
