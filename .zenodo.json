@@ -1,0 +1,49 @@
+{
+    "title": "DataWolf Workflow System", 
+    "description": "Data Wolf simplifies the integration of data and modeling tools to support research and enable cross disciplinary integration to produce targeted outputs that address particular engineering and educational needs.",
+    "creators": [
+        {
+            "affiliation": "National Center for Supercomputing Applications",
+            "name": "Rob Kooper",
+            "orcid": "0000-0002-5781-7287"
+        },
+        {
+            "affiliation": "National Center for Supercomputing Applications",
+            "name": "Chris Navarro",
+            "orcid": "0000-0003-2275-1895"
+        },
+        {
+            "affiliation": "National Center for Supercomputing Applications",
+            "name": "Luigi Marini",
+            "orcid": "0000-0002-8511-0211"
+        },
+        {
+            "affiliation": "National Center for Supercomputing Applications",
+            "name": "Jong Lee"
+        },
+        {
+            "affiliation": "National Center for Supercomputing Applications",
+            "name": "Kenton McHenry",
+            "orcid": "0000-0003-0367-2550"
+        },
+        {
+            "affiliation": "National Center for Supercomputing Applications",
+            "name": "Liana Diesendruck"
+        },
+        {
+            "affiliation": "National Center for Supercomputing Applications",
+            "name": "Yan Zhao"
+        }
+    ],
+    "upload_type": "software",
+    "license": "NCSA",
+    "access_right": "open",
+    "keywords": [
+        "java",
+        "datawolf",
+        "workflow",
+        "cyberinfrastructure",
+        "open-science"
+    ],
+    "notes": "This research has been partially funded by grants including, but not limited to: NSF #1261582 - BrownDog, KISTI supercomputing, NREC CoverCrop."
+}
