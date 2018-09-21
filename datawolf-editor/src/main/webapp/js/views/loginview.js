@@ -77,13 +77,18 @@ var RegistrationView = Backbone.View.extend({
 		var email = $('input[name=email]').val();
 		var firstName = $('input[name=firstname]').val();
 		var lastName = $('input[name=lastname]').val();
-		var password = $('input[name=newpassword]').val();
+        var password = $('input[name=newpassword]').val();
+        var confirmPassword = $('input[name=confirmPassword]').val();
 
 		if(password.length < 6) {
-			showingRegistrationError = true;
-			document.getElementById("registration-error-text").innerHTML = "Password is too short. Password must be 6 or more characters.";
-			$("#registration-error").show();
-		} else {
+            showingRegistrationError = true;
+            document.getElementById("registration-error-text").innerHTML = "Password is too short. Password must be 6 or more characters.";
+            $("#registration-error").show();
+		} else if (password != confirmPassword) {
+            showingRegistrationError = true;
+            document.getElementById("registration-error-text").innerHTML = "Passwords do not match.";
+            $("#registration-error").show();
+        } else {
 			createPerson(firstName, lastName, email, password);
 		}
 	}
