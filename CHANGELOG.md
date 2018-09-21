@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Filter executions by user and date
+  [WOLF-260](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-260)
+- Zenodo entry for citation
+  [WOLF-262](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-262)
+- Password reset page for DataWolf Editor
+  [WOLF-263](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-263)
+
+### Changed
+- Enable CORS by default
+  [WOLF-264](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-264)
+
+### Fixed
+
 ## [4.2.0] - 2018-03-13
 
 ### Added
