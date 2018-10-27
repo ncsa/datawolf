@@ -221,18 +221,18 @@ The latest version of Data Wolf can be downloaded from:
 
 https://opensource.ncsa.illinois.edu/projects/artifacts.php?key=WOLF
 
-By default, the latest release is selected in the page (currently 4.1.0). To get early access to development releases, check the box **Show also prereleases.**
+By default, the latest release is selected in the page (currently 4.2.0). To get early access to development releases, check the box **Show also prereleases.**
 
 * Click on **Version** 
-    * Select **4.1.0** 
-    * Under **Files** select **datawolf-webapp-all-4.1.0-bin.zip**
+    * Select **4.2.0**
+    * Under **Files** select **datawolf-webapp-all-4.2.0-bin.zip**
 * Click **I Accept** to accept the License.
 
 This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the javacode there as well as the manual. The link to the source code can be found at the end of this document.
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.1.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.2.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
 #### Data Wolf properties
 
@@ -442,8 +442,7 @@ Similar to the server, this generates an **editor.xml** file inside the **conf**
 * **war** - specifies where Jetty can find the war file.
 
 #### CORS Configuration
-
-If you plan on making DataWolf requests from a Web service (e.g. a web application), then you will need to enable cross origin resource sharing (CORS). To do this, locate the war file named **datawolf-webapp-all-{version}-SNAPSHOT.war** inside the **lib** folder where you installed DataWolf. Open the war file and locate the **web.xml** file inside the **WEB-INF** folder. If you open the web.xml file in a text editor, you should see the commented out lines below:
+To simplify web application development, CORS is enabled by default to allow cross origin service requests between the application and the DataWolf server that's managing workflows and workflow execution. If you want to disable CORS, locate the war file named **datawolf-webapp-all-{version}-SNAPSHOT.war** inside the **lib** folder where you installed DataWolf and open (or extract it). Locate the **web.xml** file inside the **WEB-INF** folder and open the web.xml file in a text editor. Locate the lines as shown below:
 
 ```
 <!-- Cross origin resource sharing filter -->
@@ -478,7 +477,7 @@ If you plan on making DataWolf requests from a Web service (e.g. a web applicati
 -->
 ```
 
-To enable CORS, uncomment the above sections in the web.xml file and restart DataWolf. While these parameters will enable CORS in DataWolf, there are additional parameters that can be tweaked depending on your setup.
+To disable CORS, comment out the above sections in the web.xml file, re-zip the war file if you extracted it and restart DataWolf. While these parameters will enable CORS in DataWolf, there are additional parameters that can be tweaked depending on your setup.
 
 #### Running Data Wolf Server and Editor
 
