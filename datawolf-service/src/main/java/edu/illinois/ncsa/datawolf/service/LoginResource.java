@@ -150,6 +150,57 @@ public class LoginResource {
     }
 
     /**
+     * Gets the key/token associated with a user account
+     * 
+     * @param auth
+     *            - Authorization header with username/password
+     * @return token`
+     * @throws Exception
+     */
+    @GET
+    @Path("key")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response getKey(@HeaderParam("Authorization") String auth) throws Exception {
+        if ((auth != null) && !auth.equals("")) {
+            try {
+                String decoded = new String(Base64.decode(auth.substring(6)));
+                StringTokenizer tokenizer = new StringTokenizer(decoded, ":");
+                if (tokenizer.countTokens() == 2) {
+                    String user = tokenizer.nextToken();
+                    String password = tokenizer.nextToken();
+                    Account userAccount = accountDao.findByUserid(user);
+                    if (userAccount == null) {
+                        log.error("User account does not exist");
+                        return Response.status(Response.Status.UNAUTHORIZED).build();
+                    }
+
+                    if (!userAccount.isActive()) {
+                        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Not Active").build();
+                    }
+
+                    if (BCrypt.checkpw(password, userAccount.getPassword())) {
+                        // Account valid, return token
+                        JsonObject token = new JsonObject();
+                        token.addProperty("token", userAccount.getToken());
+                        return Response.ok(token.toString()).build();
+                    } else {
+                        log.error("Incorrect username or password");
+                        return Response.status(Response.Status.UNAUTHORIZED).build();
+                    }
+                } else {
+                    log.error("Incorrect authorization header.");
+                    return Response.status(Response.Status.UNAUTHORIZED).build();
+                }
+            } catch (IOException e) {
+                log.error("Error decoding token", e);
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
+        }
+
+        return Response.status(Response.Status.UNAUTHORIZED).entity("Missing Authorization header.").build();
+    }
+
+    /**
      * Create a user account by either specifying the email or the personId and
      * a password
      * 
