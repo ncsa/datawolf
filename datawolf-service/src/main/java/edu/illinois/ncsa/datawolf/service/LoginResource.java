@@ -76,6 +76,7 @@ import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
+import edu.illinois.ncsa.domain.impl.DataWolfTokenProvider;
 
 @Path("/login")
 public class LoginResource {
@@ -125,8 +126,9 @@ public class LoginResource {
                         return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Not Active").build();
                     }
 
-                    if (BCrypt.checkpw(password, userAccount.getPassword()) && userAccount.getPerson().getEmail().equals(email)) {
-                        String token = tokenProvider.getToken(user, password);
+                    String token = null;
+                    if (userAccount.getPerson().getEmail().equals(email) && (token = tokenProvider.getToken(user, password)) != null) {
+//                        String token = tokenProvider.getToken(user, password);
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
                         // TODO should we persist token with creation date?
@@ -199,7 +201,10 @@ public class LoginResource {
             account = new Account();
             account.setPerson(person);
             account.setUserid(person.getEmail());
-            account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+            // Only save the user/pass if DataWolf is the authenticator
+            if (tokenProvider instanceof DataWolfTokenProvider) {
+                account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+            }
 
             String token = null;
             if (admins.contains(person.getEmail())) {

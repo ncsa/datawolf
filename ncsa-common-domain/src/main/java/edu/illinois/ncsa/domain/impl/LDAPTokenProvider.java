@@ -67,18 +67,18 @@ public class LDAPTokenProvider implements TokenProvider {
             String userNamespace = baseUserNamespace + "," + baseDN;
             // Try to bind, this will fail if not authorized
             conn.bind("uid=" + username + "," + baseUserNamespace, password);
-
             log.debug("authentication success");
+            Account account = accountDao.findByUserid(username);
+            if (account != null && account.getToken() != null && !account.getToken().isEmpty()) {
+                return account.getToken();
+            }
+            return new BigInteger(130, secureRandom).toString(32);
         } catch (LDAPException e) {
-            e.printStackTrace();
+            log.error("Error authenticating with LDAP.", e);
         } catch (GeneralSecurityException e) {
-            e.printStackTrace();
+            log.error("Error authenticating with LDAP.", e);
         }
-        Account account = accountDao.findByUserid(username);
-        if (account != null && account.getToken() != null && !account.getToken().isEmpty()) {
-            return account.getToken();
-        }
-        return new BigInteger(130, secureRandom).toString(32);
+        return null;
     }
 
     @Override
@@ -91,5 +91,4 @@ public class LDAPTokenProvider implements TokenProvider {
 
         return account.getToken().equals(token);
     }
-
 }
