@@ -33,10 +33,19 @@
 		</div>
 	</script>
 	<script type="text/template" id="register-button-view-template">
-				<div class="btn-group-vertical register-btn-div">
-					<button id="registerMedici" class="btn btn-default pull-right">Register with Clowder</button>
-					<button id="registerDefault" class="btn btn-default pull-right">Register with email</button>
-				</div>
+		<div class="btn-group-vertical register-btn-div">
+			<button id="registerDefault" class="btn btn-default pull-right">Register with email</button>
+		</div>
+	</script>
+	<script type="text/template" id="register-ldap-button-view-template">
+		<div class="btn-group-vertical register-btn-div">
+			<button id="registerLDAP" class="btn btn-default pull-right">Register with LDAP</button>
+		</div>
+	</script>
+	<script type="text/template" id="register-clowder-button-view-template">
+		<div class="btn-group-vertical register-btn-div">
+			<button id="registerMedici" class="btn btn-default pull-right">Register with Clowder</button>
+		</div>
 	</script>
 
 	<script type="text/template" id="register-view-template">
@@ -48,6 +57,24 @@
 					<input id='lastname' name="lastname" type="text" class="form-control" placeholder="Last Name">
 					<input id='email' name="email" type="text" class="form-control" placeholder="Email" autocomplete="off">
 					<input id='newpassword' name="newpassword" type="password" class="form-control" placeholder="Password" autocomplete="off">
+					<input id='confirmPassword' name="confirmPassword" type="password" class="form-control" placeholder="Confirm Password" autocomplete="off">
+					<button id="register-btn" class="btn btn-default pull-right" type="submit">Register</button>
+				</form>
+				<div class="alert fade in" id="registration-error" style="display:none;">
+					<p class="login-error" id="registration-error-text">An account is already registered to that email address.</p>
+				</div>
+			</div>
+		</div>
+	</script>
+	<script type="text/template" id="register-ldap-view-template">
+		<div class="panel panel-default">
+			<div class="panel-heading"><strong>New to DataWolf?</strong> Register with LDAP</div>
+			<div class="panel-body">
+				<form class="form-signin" role="form">
+					<input id='firstname' name="firstname" type="text" class="form-control" placeholder="First Name">
+					<input id='lastname' name="lastname" type="text" class="form-control" placeholder="Last Name">
+					<input id='ldapuser' name="ldapuser" type="text" class="form-control" placeholder="Username" autocomplete="off">
+					<input id='ldappassword' name="ldappassword" type="password" class="form-control" placeholder="Password" autocomplete="off">
 					<input id='confirmPassword' name="confirmPassword" type="password" class="form-control" placeholder="Confirm Password" autocomplete="off">
 					<button id="register-btn" class="btn btn-default pull-right" type="submit">Register</button>
 				</form>

@@ -29,12 +29,32 @@ var LoginView = Backbone.View.extend({
 
 });
 
-var RegistrationButtonView = Backbone.View.extend({
-	template: _.template($('#register-button-view-template').html()),
+var DataWolfRegistrationButtonView = Backbone.View.extend({
+    template: _.template($('#register-button-view-template').html()),
+
+    events: {
+        'click button#registerDefault' : "registerDefault"
+    },
+
+    initialize: function() {
+
+    },
+
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    },
+
+    registerDefault: function(e) {
+        $('#register-form').html(new DataWolfRegistrationView().render().el);
+    }
+});
+
+var ClowderRegistrationButtonView = Backbone.View.extend({
+	template: _.template($('#register-clowder-button-view-template').html()),
 
 	events: {
 		'click button#registerMedici' : "registerMedici",
-		'click button#registerDefault' : "registerDefault"
 	},
 
 	initialize: function() {
@@ -50,12 +70,31 @@ var RegistrationButtonView = Backbone.View.extend({
 		$('#register-form').html(new MediciRegistrationView().render().el);
 	},
 
-	registerDefault: function(e) {
-		$('#register-form').html(new RegistrationView().render().el);
-	}
 });
 
-var RegistrationView = Backbone.View.extend({
+var LDAPRegistrationButtonView = Backbone.View.extend({
+    template: _.template($('#register-ldap-button-view-template').html()),
+
+    events: {
+        'click button#registerLDAP' : "registerLDAP"
+    },
+
+    initialize: function() {
+
+    },
+
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    },
+
+    registerLDAP: function(e) {
+        $('#register-form').html(new LDAPRegistrationView().render().el);
+    }
+});
+
+
+var DataWolfRegistrationView = Backbone.View.extend({
 	template: _.template($('#register-view-template').html()),
 
 	events: {
@@ -142,3 +181,39 @@ var MediciRegistrationView = Backbone.View.extend({
 
 	}
 });
+
+var LDAPRegistrationView = Backbone.View.extend({
+    template: _.template($('#register-ldap-view-template').html()),
+
+    events: {
+        'click button#register-btn' : 'registerLDAPUser'
+    },
+
+    initialize: function() {
+
+    },
+
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    },
+
+    registerLDAPUser: function(e) {
+        e.preventDefault();
+
+        var ldapuser = $('input[name=ldapuser]').val();
+        var firstName = $('input[name=firstname]').val();
+        var lastName = $('input[name=lastname]').val();
+        var password = $('input[name=ldappassword]').val();
+        var confirmPassword = $('input[name=confirmPassword]').val();
+
+        if (password != confirmPassword) {
+            showingRegistrationError = true;
+            document.getElementById("registration-error-text").innerHTML = "Passwords do not match.";
+            $("#registration-error").show();
+        } else {
+            createPerson(firstName, lastName, ldapuser, password);
+        }
+    }
+});
+

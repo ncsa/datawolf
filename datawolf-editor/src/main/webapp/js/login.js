@@ -8,10 +8,16 @@ var AppRouter = Backbone.Router.extend({
     
     // Show login form
     list:function() {
-		$('#login-form').html(new LoginView().render().el);
+        $('#login-form').html(new LoginView().render().el);
 
         // Registration buttons to display forms
-        $('#register-buttons').html(new RegistrationButtonView().render().el);
+        if (datawolfOptions.authentication === "DataWolf") {
+            $('#register-buttons').html(new DataWolfRegistrationButtonView().render().el);
+        } else if(datawolfOptions.authentication === "Clowder") {
+            $('#register-buttons').html(new ClowderRegistrationButtonView().render().el);
+        } else if(datawolfOptions.authentication === "LDAP") {
+            $('#register-buttons').html(new LDAPRegistrationButtonView().render().el);
+        }
 
 		$('#username').keypress(function() {
 			if(showingLoginError) {
