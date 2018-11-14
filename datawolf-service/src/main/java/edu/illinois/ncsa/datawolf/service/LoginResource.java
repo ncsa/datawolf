@@ -128,7 +128,6 @@ public class LoginResource {
 
                     String token = null;
                     if (userAccount.getPerson().getEmail().equals(email) && (token = tokenProvider.getToken(user, password)) != null) {
-//                        String token = tokenProvider.getToken(user, password);
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
                         // TODO should we persist token with creation date?
@@ -252,21 +251,36 @@ public class LoginResource {
             account = new Account();
             account.setPerson(person);
             account.setUserid(person.getEmail());
-            // Only save the user/pass if DataWolf is the authenticator
-            if (tokenProvider instanceof DataWolfTokenProvider) {
-                account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
-            }
 
-            String token = null;
             if (admins.contains(person.getEmail())) {
-                token = tokenProvider.getToken(email, password);
-
                 account.setActive(true);
                 account.setAdmin(true);
-                account.setToken(token);
             }
-
+            String token = null;
+            if (tokenProvider instanceof DataWolfTokenProvider) {
+                // Only save the user/pass if DataWolf is the authenticator
+                account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+                if (admins.contains(person.getEmail())) {
+                    // If datawolf is the authenticator, we must save the account first
+                    // Otherwise, the token provider will not find the account
+                    // and cannot compare the user/pass
+                    accountDao.save(account);
+                    token = tokenProvider.getToken(email, password);
+                    account.setToken(token);
+                }
+            } else {
+                token = tokenProvider.getToken(email, password);
+                // If token is null, something went wrong verifying the user
+                // with the external service (e.g. LDAP, Clowder)
+                if (token == null) {
+                    throw new NotAuthorizedException(Response.status(HttpStatus.SC_UNAUTHORIZED));
+                }
+                if (admins.contains(person.getEmail())) {
+                    account.setToken(token);
+                }
+            }
             accountDao.save(account);
+
             if (token != null) {
                 return Response.ok().cookie(new NewCookie("token", token, null, null, null, 86400, false)).build();
             } else {

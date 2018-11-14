@@ -205,15 +205,7 @@ var LDAPRegistrationView = Backbone.View.extend({
         var firstName = $('input[name=firstname]').val();
         var lastName = $('input[name=lastname]').val();
         var password = $('input[name=ldappassword]').val();
-        var confirmPassword = $('input[name=confirmPassword]').val();
-
-        if (password != confirmPassword) {
-            showingRegistrationError = true;
-            document.getElementById("registration-error-text").innerHTML = "Passwords do not match.";
-            $("#registration-error").show();
-        } else {
-            createPerson(firstName, lastName, ldapuser, password);
-        }
+        createPerson(firstName, lastName, ldapuser, password);
     }
 });
 

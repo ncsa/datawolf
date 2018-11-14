@@ -95,7 +95,7 @@ var createAccount = function(email, password, userId) {
             console.log(JSON.stringify(msg));
             // TODO add more user friendly error message
             showingRegistrationError = true;
-            document.getElementById("registration-error-text").innerHTML = msg.responseText;
+            document.getElementById("registration-error-text").innerHTML = "Registration failed " + msg.statusText;
             $("#registration-error").show();
         }
     });
