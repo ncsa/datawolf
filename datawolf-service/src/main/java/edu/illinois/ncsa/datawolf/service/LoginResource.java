@@ -277,6 +277,8 @@ public class LoginResource {
                 }
                 if (admins.contains(person.getEmail())) {
                     account.setToken(token);
+                } else {
+                    token = null;
                 }
             }
             accountDao.save(account);
