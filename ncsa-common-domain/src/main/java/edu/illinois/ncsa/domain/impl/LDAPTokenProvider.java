@@ -9,8 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import com.unboundid.ldap.sdk.Filter;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
+import com.unboundid.ldap.sdk.SearchResult;
+import com.unboundid.ldap.sdk.SearchScope;
+import com.unboundid.util.ssl.JVMDefaultTrustManager;
 import com.unboundid.util.ssl.SSLUtil;
 import com.unboundid.util.ssl.TrustAllTrustManager;
 
@@ -52,31 +56,59 @@ public class LDAPTokenProvider implements TokenProvider {
     @Named("ldap.objectClass")
     private String       objectClass;
 
+    @Inject
+    @Named("ldap.trustAllCertificates")
+    private boolean      trustAllCertificates;
+
     // Generates temporary user token
     private SecureRandom secureRandom = new SecureRandom();
 
     @Override
     public String getToken(String username, String password) {
 
+        LDAPConnection ldapConnection = null;
         try {
             log.debug("base user namespace is: " + baseUserNamespace);
-            // TODO need to check for ldaps vs ldap
-            SSLUtil sslUtil = new SSLUtil(new TrustAllTrustManager());
-            LDAPConnection conn = new LDAPConnection(sslUtil.createSSLSocketFactory(), hostname, port);
-            log.debug("successfully created ldap connection");
-            String userNamespace = baseUserNamespace + "," + baseDN;
-            // Try to bind, this will fail if not authorized
-            conn.bind("uid=" + username + "," + baseUserNamespace, password);
-            log.debug("authentication success");
-            Account account = accountDao.findByUserid(username);
-            if (account != null && account.getToken() != null && !account.getToken().isEmpty()) {
-                return account.getToken();
+            SSLUtil sslUtil = null;
+            if (trustAllCertificates) {
+                sslUtil = new SSLUtil(new TrustAllTrustManager());
+            } else {
+                sslUtil = new SSLUtil(JVMDefaultTrustManager.getInstance());
             }
-            return new BigInteger(130, secureRandom).toString(32);
+            ldapConnection = new LDAPConnection(sslUtil.createSSLSocketFactory(), hostname, port);
+            log.debug("successfully created ldap connection");
+
+            // Try to bind, this will fail if not authorized
+            ldapConnection.bind("uid=" + username + "," + baseUserNamespace, password);
+            log.debug("authentication success");
+
+            // Filter to search the user's membership in the specified group
+            Filter searchFilter = Filter.create("(&(objectClass=" + objectClass + ")(memberOf=cn=" + group + "," + baseGroupNamespace + "," + baseDN + ")(uid=" + username + "))");
+
+            // Perform group membership search
+            SearchResult searchResult = ldapConnection.search(baseDN, SearchScope.SUB, searchFilter);
+            log.debug(searchResult.getEntryCount() + " LDAP entries returned.");
+
+            if (searchResult.getEntryCount() == 1) {
+                log.debug("User successfully validated. Forwarding request after checking against LDAP.");
+                Account account = accountDao.findByUserid(username);
+                // If a token is associated with the account, return it, otherwise, generate a
+                // new one
+                if (account != null && account.getToken() != null && !account.getToken().isEmpty()) {
+                    return account.getToken();
+                }
+                return new BigInteger(130, secureRandom).toString(32);
+            } else {
+                log.error("User not a member of the LDAP group: " + group);
+            }
         } catch (LDAPException e) {
             log.error("Error authenticating with LDAP.", e);
         } catch (GeneralSecurityException e) {
             log.error("Error authenticating with LDAP.", e);
+        } finally {
+            if (ldapConnection != null) {
+                ldapConnection.close();
+            }
         }
         return null;
     }
