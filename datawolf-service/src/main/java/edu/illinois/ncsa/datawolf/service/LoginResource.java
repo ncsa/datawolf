@@ -118,16 +118,27 @@ public class LoginResource {
                     String password = tokenizer.nextToken();
                     Account userAccount = accountDao.findByUserid(user);
                     if (userAccount == null) {
-                        log.error("User account does not exist");
-                        return Response.status(Response.Status.UNAUTHORIZED).build();
+                        if (tokenProvider instanceof DataWolfTokenProvider) {
+                            log.error("User account does not exist");
+                            return Response.status(Response.Status.UNAUTHORIZED).build();
+                        } else {
+                            // This initial call to the provider will create the account
+                            tokenProvider.getToken(user, password);
+                            userAccount = accountDao.findByUserid(user);
+                            // Check if user account creation failed
+                            if (userAccount == null) {
+                                log.warn("Failed to create user account");
+                                return Response.status(Response.Status.UNAUTHORIZED).build();
+                            }
+                        }
                     }
 
                     if (!userAccount.isActive()) {
-                        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Not Active").build();
+                        return Response.status(Response.Status.UNAUTHORIZED).entity("Not Active").build();
                     }
 
                     String token = null;
-                    if (userAccount.getPerson().getEmail().equals(email) && (token = tokenProvider.getToken(user, password)) != null) {
+                    if (userAccount.getUserid().equals(email) && (token = tokenProvider.getToken(user, password)) != null) {
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
                         // TODO should we persist token with creation date?
