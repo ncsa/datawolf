@@ -212,6 +212,10 @@ public class FileStorageClowder implements FileStorage {
 
         fileDescriptorDAO.save(fd);
 
+        if (ds != null) {
+            ds.addFileDescriptor(fd);
+        }
+
         return fd;
     }
 

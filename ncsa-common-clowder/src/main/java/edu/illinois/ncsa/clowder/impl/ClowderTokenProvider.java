@@ -1,6 +1,9 @@
 package edu.illinois.ncsa.clowder.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHeaders;
@@ -24,14 +27,30 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 import edu.illinois.ncsa.clowder.ClowderRedirectStrategy;
+import edu.illinois.ncsa.domain.Account;
+import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.TokenProvider;
+import edu.illinois.ncsa.domain.dao.AccountDao;
+import edu.illinois.ncsa.domain.dao.PersonDao;
 
 public class ClowderTokenProvider implements TokenProvider {
-    private Logger log = LoggerFactory.getLogger(ClowderTokenProvider.class);
+    private Logger       log    = LoggerFactory.getLogger(ClowderTokenProvider.class);
+
+    @Inject
+    private AccountDao   accountDao;
+
+    @Inject
+    private PersonDao    personDao;
 
     @Inject
     @Named("clowder.server")
-    private String server;
+    private String       server;
+
+    @Inject
+    @Named("initialAdmins")
+    private String       initialAdmins;
+
+    private List<String> admins = null;
 
     @Override
     public String getToken(String username, String password) {
@@ -53,29 +72,87 @@ public class ClowderTokenProvider implements TokenProvider {
 
             BasicResponseHandler responseHandler = new BasicResponseHandler();
             String responseStr = httpclient.execute(httpGet, responseHandler);
+
             JsonElement jsonElement = new JsonParser().parse(responseStr);
             JsonArray jsonArray = jsonElement.getAsJsonArray();
 
-            // Create a key named datawolf if no keys exist
-            if (jsonArray.size() == 0) {
-                requestUrl = getServer();
-                requestUrl += "api/users/keys?name=datawolf";
+            // Users is authorized, check if DataWolf Account exists
+            Account account = accountDao.findByUserid(username);
+            if (account != null) {
+                if (account.getToken() != null && !account.getToken().isEmpty()) {
+                    // Make sure the token still matches what's in DataWolf or generate a new key
+                    if (jsonArray.size() != 0) {
+                        for (int index = 0; index < jsonArray.size(); index++) {
+                            JsonObject obj = jsonArray.get(index).getAsJsonObject();
+                            if (obj.get("key").getAsString().equals(account.getToken())) {
+                                return account.getToken();
+                            }
+                        }
 
-                HttpPost httpPost = new HttpPost(requestUrl);
-                httpPost.setHeader(HttpHeaders.AUTHORIZATION, auth);
+                    }
+                    // Account exists, but no matching keys
+                    log.debug("Account token doesn't match Clowder keys, create a new one.");
+                    requestUrl = getServer();
+                    requestUrl += "api/users/keys?name=datawolf";
 
-                responseHandler = new BasicResponseHandler();
-                responseStr = httpclient.execute(httpPost, responseHandler);
-                jsonElement = new JsonParser().parse(responseStr);
-                JsonObject obj = jsonElement.getAsJsonObject();
-                return obj.get("key").getAsString();
+                    HttpPost httpPost = new HttpPost(requestUrl);
+                    httpPost.setHeader(HttpHeaders.AUTHORIZATION, auth);
+
+                    responseHandler = new BasicResponseHandler();
+                    responseStr = httpclient.execute(httpPost, responseHandler);
+                    jsonElement = new JsonParser().parse(responseStr);
+                    JsonObject obj = jsonElement.getAsJsonObject();
+
+                    return obj.get("key").getAsString();
+                } else {
+                    // Create a key named datawolf if no keys exist
+                    if (jsonArray.size() == 0) {
+                        log.debug("Account doesn't have a token, create a new one in Clowder.");
+                        requestUrl = getServer();
+                        requestUrl += "api/users/keys?name=datawolf";
+
+                        HttpPost httpPost = new HttpPost(requestUrl);
+                        httpPost.setHeader(HttpHeaders.AUTHORIZATION, auth);
+
+                        responseHandler = new BasicResponseHandler();
+                        responseStr = httpclient.execute(httpPost, responseHandler);
+                        jsonElement = new JsonParser().parse(responseStr);
+                        JsonObject obj = jsonElement.getAsJsonObject();
+                        log.debug("No API keys, create one for DataWolf");
+                        return obj.get("key").getAsString();
+                    } else {
+                        // Use existing API key - should we always just generate a datawolf key?
+                        JsonObject obj = jsonArray.get(0).getAsJsonObject();
+                        return obj.get("key").getAsString();
+                    }
+                }
             } else {
-                // Use existing API key
-                JsonObject obj = jsonArray.get(0).getAsJsonObject();
-                return obj.get("key").getAsString();
+                // Need to create an account
+                // Initialize the list of admins the first time this is called
+                log.debug("No Account exists in DataWolf, creating a new one from Clowder information.");
+                if (admins == null) {
+                    // Remove double quotes around string
+                    initialAdmins = initialAdmins.replaceAll("^\"|\"$", "").trim();
+                    if (initialAdmins.isEmpty()) {
+                        admins = new ArrayList<String>();
+                    } else {
+                        admins = Arrays.asList(initialAdmins.split(","));
+                    }
+                }
+                Person person = personDao.findByEmail(username);
+                account = new Account();
+                account.setPerson(person);
+                account.setUserid(username);
+                if (admins.contains(username)) {
+                    account.setActive(true);
+                    account.setAdmin(true);
+                }
+                accountDao.save(account);
             }
 
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             log.error("Error getting a token from Clowder.", e);
         } finally {
             try {
