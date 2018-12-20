@@ -130,7 +130,7 @@ public class LoginResource {
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
                         // TODO should we persist token with creation date?
-                        return Response.ok(userAccount.getPerson()).cookie(new NewCookie("token", token, null, null, null, 86400, false)).build();
+                        return Response.ok(userAccount.getPerson()).cookie(new NewCookie("token", token, "/", null, null, 86400, false)).build();
                     } else {
                         log.error("Incorrect username or password");
                         return Response.status(Response.Status.UNAUTHORIZED).build();
