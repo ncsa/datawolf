@@ -76,6 +76,7 @@ import edu.illinois.ncsa.domain.Person;
 import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
+import edu.illinois.ncsa.domain.impl.DataWolfTokenProvider;
 
 @Path("/login")
 public class LoginResource {
@@ -117,16 +118,27 @@ public class LoginResource {
                     String password = tokenizer.nextToken();
                     Account userAccount = accountDao.findByUserid(user);
                     if (userAccount == null) {
-                        log.error("User account does not exist");
-                        return Response.status(Response.Status.UNAUTHORIZED).build();
+                        if (tokenProvider instanceof DataWolfTokenProvider) {
+                            log.error("User account does not exist");
+                            return Response.status(Response.Status.UNAUTHORIZED).build();
+                        } else {
+                            // This initial call to the provider will create the account
+                            tokenProvider.getToken(user, password);
+                            userAccount = accountDao.findByUserid(user);
+                            // Check if user account creation failed
+                            if (userAccount == null) {
+                                log.warn("Failed to create user account");
+                                return Response.status(Response.Status.UNAUTHORIZED).build();
+                            }
+                        }
                     }
 
                     if (!userAccount.isActive()) {
-                        return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Not Active").build();
+                        return Response.status(Response.Status.UNAUTHORIZED).entity("Not Active").build();
                     }
 
-                    if (BCrypt.checkpw(password, userAccount.getPassword()) && userAccount.getPerson().getEmail().equals(email)) {
-                        String token = tokenProvider.getToken(user, password);
+                    String token = null;
+                    if (userAccount.getUserid().equals(email) && (token = tokenProvider.getToken(user, password)) != null) {
                         userAccount.setToken(token);
                         accountDao.save(userAccount);
                         // TODO should we persist token with creation date?
@@ -250,18 +262,38 @@ public class LoginResource {
             account = new Account();
             account.setPerson(person);
             account.setUserid(person.getEmail());
-            account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
 
-            String token = null;
             if (admins.contains(person.getEmail())) {
-                token = tokenProvider.getToken(email, password);
-
                 account.setActive(true);
                 account.setAdmin(true);
-                account.setToken(token);
             }
-
+            String token = null;
+            if (tokenProvider instanceof DataWolfTokenProvider) {
+                // Only save the user/pass if DataWolf is the authenticator
+                account.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+                if (admins.contains(person.getEmail())) {
+                    // If datawolf is the authenticator, we must save the account first
+                    // Otherwise, the token provider will not find the account
+                    // and cannot compare the user/pass
+                    accountDao.save(account);
+                    token = tokenProvider.getToken(email, password);
+                    account.setToken(token);
+                }
+            } else {
+                token = tokenProvider.getToken(email, password);
+                // If token is null, something went wrong verifying the user
+                // with the external service (e.g. LDAP, Clowder)
+                if (token == null) {
+                    throw new NotAuthorizedException(Response.status(HttpStatus.SC_UNAUTHORIZED));
+                }
+                if (admins.contains(person.getEmail())) {
+                    account.setToken(token);
+                } else {
+                    token = null;
+                }
+            }
             accountDao.save(account);
+
             if (token != null) {
                 return Response.ok().cookie(new NewCookie("token", token, null, null, null, 86400, false)).build();
             } else {

@@ -180,6 +180,7 @@ var loadMainView = function(workflowId) {
             },
             error: function(msg) {
                 console.log('Error loading editor: '+JSON.stringify(msg));
+                location.replace('login.html');
             }
         });
     }

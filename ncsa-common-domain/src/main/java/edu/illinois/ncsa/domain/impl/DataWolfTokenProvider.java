@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 
 import javax.inject.Inject;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,10 +25,15 @@ public class DataWolfTokenProvider implements TokenProvider {
     @Override
     public String getToken(String username, String password) {
         Account account = accountDao.findByUserid(username);
-        if (account != null && account.getToken() != null && !account.getToken().isEmpty()) {
-            return account.getToken();
+        if (account != null && BCrypt.checkpw(password, account.getPassword())) {
+            if (account.getToken() != null && !account.getToken().isEmpty()) {
+                return account.getToken();
+            } else {
+                return new BigInteger(130, secureRandom).toString(32);
+            }
         }
-        return new BigInteger(130, secureRandom).toString(32);
+
+        return null;
     }
 
     @Override

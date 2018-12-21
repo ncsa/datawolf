@@ -29,33 +29,28 @@ var LoginView = Backbone.View.extend({
 
 });
 
-var RegistrationButtonView = Backbone.View.extend({
-	template: _.template($('#register-button-view-template').html()),
+var DataWolfRegistrationButtonView = Backbone.View.extend({
+    template: _.template($('#register-button-view-template').html()),
 
-	events: {
-		'click button#registerMedici' : "registerMedici",
-		'click button#registerDefault' : "registerDefault"
-	},
+    events: {
+        'click button#registerDefault' : "registerDefault"
+    },
 
-	initialize: function() {
+    initialize: function() {
 
-	},
+    },
 
-	render: function() {
-		$(this.el).html(this.template());
-		return this;
-	},
+    render: function() {
+        $(this.el).html(this.template());
+        return this;
+    },
 
-	registerMedici: function(e) {
-		$('#register-form').html(new MediciRegistrationView().render().el);
-	},
-
-	registerDefault: function(e) {
-		$('#register-form').html(new RegistrationView().render().el);
-	}
+    registerDefault: function(e) {
+        $('#register-form').html(new DataWolfRegistrationView().render().el);
+    }
 });
 
-var RegistrationView = Backbone.View.extend({
+var DataWolfRegistrationView = Backbone.View.extend({
 	template: _.template($('#register-view-template').html()),
 
 	events: {
@@ -96,49 +91,4 @@ var RegistrationView = Backbone.View.extend({
 
 });
 
-var MediciRegistrationView = Backbone.View.extend({
-	template: _.template($('#register-medici-view-template').html()),
 
-	events: {
-		'click button#register-btn' : 'registerMediciUser'
-	},
-
-	initialize: function() {
-
-	},
-
-	render: function() {
-		$(this.el).html(this.template());
-		return this;
-	},
-
-	registerMediciUser: function(e) {
-		e.preventDefault();
-		console.log("Create DataWolf account using Clowder account");
-		var email = $('input[name=email]').val();
-		var password = $('input[name=newpassword]').val();
-
-		// Check if user/pass is valid before allowing it to be used with DataWolf
-		$.ajax({
-			url: datawolfOptions.clowder + '/api/me',
-			method: 'GET',
-			beforeSend: function(xhr) {
-				xhr.setRequestHeader('Authorization', 'Basic '+ btoa(email + ':' + password));
-			},
-			success: function(message) {
-				// DataWolf needs to store basic information about the user
-				// It might be possible to eliminate this so we can always call Clowder API to validate user as needed
-				// TODO handle case if users change their clowder password
-				var response = JSON.parse(JSON.stringify(message));
-				createAccount(email, password, response.id);
-			},
-
-			error: function(message) {
-				document.getElementById("registration-error-text").innerHTML = "Error validating Clowder account.";
-				$("#registration-error").show()
-			}
-
-		});
-
-	}
-});

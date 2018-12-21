@@ -8,10 +8,21 @@ var AppRouter = Backbone.Router.extend({
     
     // Show login form
     list:function() {
-		$('#login-form').html(new LoginView().render().el);
+        $('#login-form').html(new LoginView().render().el);
 
-        // Registration buttons to display forms
-        $('#register-buttons').html(new RegistrationButtonView().render().el);
+        var loginText = document.getElementById("login-text");
+        if (datawolfOptions.authentication === "DataWolf") {
+            loginText.innerHTML = "Login with your credentials from DataWolf";
+            // Registration buttons to display forms
+            $('#register-buttons').html(new DataWolfRegistrationButtonView().render().el);
+        } else if(datawolfOptions.authentication == "LDAP" || datawolfOptions.authentication == "Clowder") {
+            var aTag = document.createElement('a');
+            aTag.setAttribute('href', datawolfOptions.registrationLink);
+            aTag.innerHTML = datawolfOptions.serverName;
+            loginText.appendChild(aTag);
+            var forgotPasswordBtn = document.getElementById("forgot-password");
+            forgotPasswordBtn.style.display = "none";
+        }
 
 		$('#username').keypress(function() {
 			if(showingLoginError) {
@@ -64,6 +75,11 @@ var checkLogin = function(email, password) {
 
         error: function(msg) {
             showingLoginError = true;
+            if(msg.responseText === 'Not Active') {
+                document.getElementById("login-error-text").innerHTML = "The account is not active. Please contact an administrator.";
+            } else {
+                document.getElementById("login-error-text").innerHTML = "Incorrect username or password";
+            }
             $("#login-error").show();
         }
     })
@@ -89,7 +105,7 @@ var createAccount = function(email, password, userId) {
             console.log(JSON.stringify(msg));
             // TODO add more user friendly error message
             showingRegistrationError = true;
-            document.getElementById("registration-error-text").innerHTML = msg.responseText;
+            document.getElementById("registration-error-text").innerHTML = "Registration failed " + msg.statusText;
             $("#registration-error").show();
         }
     });
@@ -97,10 +113,15 @@ var createAccount = function(email, password, userId) {
 
 var createPerson = function(firstName, lastName, email, password) {
     var url = datawolfOptions.rest + '/persons?'+'firstname='+firstName+'&lastname='+lastName+'&email='+email;
+    var token = email + ':' + password;
+    var hash = btoa(token);
     $.ajax({
         type: "POST",
         url: url,
         dataType: "text",
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader ("Authorization", "Basic "+hash);
+        },
 
         success: function(msg) {
             createAccount(email, password, msg);

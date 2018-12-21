@@ -23,6 +23,7 @@
 		<jetty.version>9.2.2.v20140723</jetty.version>
 		<!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
 		<hikaricp.version>2.5.1</hikaricp.version>
+                <unboundid.version>4.0.7</unboundid.version>
 	</properties>
 
 	<repositories>

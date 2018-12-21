@@ -59,5 +59,17 @@
 			<artifactId>guice</artifactId>
 			<version>${guice.version}</version>
 		</dependency>
+		<!--  LDAP support -->
+		<dependency>
+    	<groupId>com.unboundid</groupId>
+    	<artifactId>unboundid-ldapsdk</artifactId>
+		<version>${unboundid.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mindrot</groupId>
+			<artifactId>jbcrypt</artifactId>
+			<version>0.4</version>
+		</dependency>
 	</dependencies>
+	
 </project>
