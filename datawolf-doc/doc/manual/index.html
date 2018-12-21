@@ -221,18 +221,18 @@ The latest version of Data Wolf can be downloaded from:
 
 https://opensource.ncsa.illinois.edu/projects/artifacts.php?key=WOLF
 
-By default, the latest release is selected in the page (currently 4.2.0). To get early access to development releases, check the box **Show also prereleases.**
+By default, the latest release is selected in the page (currently 4.3.0). To get early access to development releases, check the box **Show also prereleases.**
 
 * Click on **Version** 
-    * Select **4.2.0**
-    * Under **Files** select **datawolf-webapp-all-4.2.0-bin.zip**
+    * Select **4.3.0**
+    * Under **Files** select **datawolf-webapp-all-4.3.0-bin.zip**
 * Click **I Accept** to accept the License.
 
 This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the javacode there as well as the manual. The link to the source code can be found at the end of this document.
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.2.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.3.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
 #### Data Wolf properties
 
@@ -361,13 +361,39 @@ filestorage = edu.illinois.ncsa.domain.impl.FileStorageDisk
 ```
 
 * **Storage configuration**
-    * **filestorage** - specify whether data should be stored in Clowder or local disk. Default is local disk. If using the Clowder Dataset dao, you will need to configure data to be stored in Clowder. 
+    * **filestorage** - specify whether data should be stored in Clowder or local disk. Default is local disk. If using the Clowder Dataset dao, you will need to configure data to be stored in Clowder.
+
+DataWolf currently has 3 ways to provide authentication. DataWolf can be configured to authenticate through local accounts managed by DataWolf or external accounts managed by Clowder or LDAP. By default, DataWolf is configured to use local DataWolf accounts. Below are the configuration options you'll find in the properties file. Uncomment the authenticator to use.
+```
+#Clowder Token Provider
+#token.provider=edu.illinois.ncsa.clowder.impl.ClowderTokenProvider
+
+#DataWolf Token Provider
+token.provider=edu.illinois.ncsa.domain.impl.DataWolfTokenProvider
+
+#LDAP Token Provider
+#token.provider=edu.illinois.ncsa.domain.impl.LDAPTokenProvider
+```
+
+In order to use the LDAP token provider, the LDAP configuration will need to be updated to match your organizations settings. Below is a snippet from the datawolf properties file for configuring LDAP.
+
+```
+# LDAP server configurations. Only needed when token.provider is ldap.
+ldap.hostname=ldap.example.com
+ldap.group="test"
+ldap.port=636
+ldap.baseDN=dc=example,dc=com
+ldap.userDN=ou=people
+ldap.groupDN=ou=groups
+ldap.objectClass=inetorgperson
+ldap.trustAllCertificates=false
+```
    
 The next section will discuss the launch script for Data Wolf.
 
 #### Launch Scripts
 
-If you go back to the folder **Data Wolf-webapp-all-3.1.0-SNAPSHOT** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
+If you go back to the folder **Data Wolf-webapp-all-4.3.0** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
 
 ```
 # port for the jetty server
@@ -442,7 +468,7 @@ Similar to the server, this generates an **editor.xml** file inside the **conf**
 * **war** - specifies where Jetty can find the war file.
 
 #### CORS Configuration
-To simplify web application development, CORS is enabled by default to allow cross origin service requests between the application and the DataWolf server that's managing workflows and workflow execution. If you want to disable CORS, locate the war file named **datawolf-webapp-all-{version}-SNAPSHOT.war** inside the **lib** folder where you installed DataWolf and open (or extract it). Locate the **web.xml** file inside the **WEB-INF** folder and open the web.xml file in a text editor. Locate the lines as shown below:
+To simplify web application development, CORS is enabled by default to allow cross origin service requests between the application and the DataWolf server that's managing workflows and workflow execution. If you want to disable CORS, locate the war file named **datawolf-webapp-all-{version}.war** inside the **lib** folder where you installed DataWolf and open (or extract it). Locate the **web.xml** file inside the **WEB-INF** folder and open the web.xml file in a text editor. Locate the lines as shown below:
 
 ```
 <!-- Cross origin resource sharing filter -->
@@ -478,6 +504,30 @@ To simplify web application development, CORS is enabled by default to allow cro
 ```
 
 To disable CORS, comment out the above sections in the web.xml file, re-zip the war file if you extracted it and restart DataWolf. While these parameters will enable CORS in DataWolf, there are additional parameters that can be tweaked depending on your setup.
+
+If the default authentication has been modified, the web-editor configuration file, **config.js**, will need to be modified to display the correct Login screen. Locate the **datawolf-editor-{version}.war** file
+in the **lib** folder where you installed DataWolf and either extract or open the file for editing. Locate the **config.js** file inside the **js** folder and open it in a text editor. You should see parameters simliar to the ones below:
+```
+datawolfOptions = {
+showRegistration: true,
+// REST Endpoint for models
+rest: "/datawolf",
+// Clowder endpoint
+clowder: "http://localhost:9000",
+authentication: "DataWolf",
+
+// Clowder Login
+//authentication: "Clowder",
+//serverName: "Clowder",
+//registrationLink: "http://localhost:9000/clowder",
+
+// LDAP Login
+//authentication: "LDAP",
+//serverName: "MyOrganization LDAP",
+//registrationLink: "https://identity.example.com",
+}
+```
+If you enabled LDAP or Clowder for account management, you will need to uncomment the corresponding sections in the web editor config file.
 
 #### Running Data Wolf Server and Editor
 
