@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [4.3.0] - 2019-01-31
 
 ### Added
 - Filter executions by user and date
@@ -13,10 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   [WOLF-262](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-262)
 - Password reset page for DataWolf Editor
   [WOLF-263](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-263)
+- LDAP Authentication support
+  [WOLF-265](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-265)
+- Endpoint to fetch user access token
+  [WOLF-268](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-268)
 
 ### Changed
 - Enable CORS by default
   [WOLF-264](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-264)
+- Set login cookie path
+  [WOLF-267](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-267)
 
 ### Fixed
 
