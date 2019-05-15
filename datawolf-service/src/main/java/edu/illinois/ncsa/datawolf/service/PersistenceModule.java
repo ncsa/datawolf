@@ -70,7 +70,7 @@ public class PersistenceModule extends AbstractModule {
             try {
                 configuration.load(new FileInputStream(file));
             } catch (IOException e) {
-                logger.error("Error reading properties file: " + System.getProperty("datawolf.properties"), e);
+                logger.error("Error reading properties file: " + System.getProperty("custom.properties"), e);
             }
         }
 
