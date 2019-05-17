@@ -67,10 +67,12 @@ public class PersistenceModule extends AbstractModule {
         String customProperties = System.getProperty("custom.properties");
         if (customProperties.trim() != "") {
             File file = new File(customProperties);
-            try {
-                configuration.load(new FileInputStream(file));
-            } catch (IOException e) {
-                logger.error("Error reading properties file: " + System.getProperty("custom.properties"), e);
+            if (file.exists()) {
+                try {
+                    configuration.load(new FileInputStream(file));
+                } catch (IOException e) {
+                    logger.error("Error reading properties file: " + System.getProperty("custom.properties"), e);
+                }
             }
         }
 
