@@ -75,28 +75,20 @@ public class PersonsResource {
             @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         if ("".equals(email)) {
             // TODO implement paging
-//            Page<Person> results = null;
-//            if (showdeleted) {
-//                results = personDao.findAll(new PageRequest(page, size));
-//            } else {
-//                results = personDao.findByDeleted(false, new PageRequest(page, size));
-//            }
-//            return results.getContent();
             List<Person> results = null;
             if (showdeleted) {
-                // results = personDao.findAll(new PageRequest(page, size));
                 results = personDao.findAll();
             } else {
-                // results = personDao.findByDeleted(false, new
-// PageRequest(page, size));
                 results = personDao.findByDeleted(false);
             }
             return results;
 
         } else {
-            Person result = personDao.findByEmail(email);
             List<Person> results = new ArrayList<Person>();
-            results.add(result);
+            Person person = personDao.findByEmail(email);
+            if (person != null) {
+                results.add(person);
+            }
             return results;
         }
 
