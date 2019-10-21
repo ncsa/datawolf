@@ -1,0 +1,14 @@
+version: "3.5"
+
+services:
+  # DataWolf application
+  datawolf:
+    image: datawolf:latest
+    ports:
+      - 8888:8888
+    networks:
+      - datawolf
+
+networks:
+  datawolf:
+
