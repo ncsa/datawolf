@@ -3,7 +3,9 @@ version: "3.5"
 services:
   # DataWolf application
   datawolf:
-    image: datawolf:latest
+    image: datawolf/datawolf:latest
+    volumes:
+      - datawolf:/home/datawolf/data
     ports:
       - 8888:8888
     networks:
@@ -12,3 +14,5 @@ services:
 networks:
   datawolf:
 
+volumes:
+  datawolf:
