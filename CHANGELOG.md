@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Custom property file to customize datawolf properties
+  [WOLF-272](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-272)
 
 ### Fixed
 
