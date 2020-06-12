@@ -46,6 +46,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -53,6 +54,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -61,20 +63,26 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.datawolf.ImportExport;
+import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.domain.util.DatasetUtil;
 
 @Path("/datasets")
 public class DatasetsResource {
+
+    @Inject
+    private AccountDao          accountDao;
 
     @Inject
     private PersonDao           personDao;
@@ -304,9 +312,23 @@ public class DatasetsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
-            @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
+    public List<Dataset> getDatasets(@Context HttpRequest request, @QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("email") @DefaultValue("") String email, @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         // TODO add sort capability
+
+        // Check request headers for user information.
+        // For now, only users can get their own data
+        String userInfo = LoginUtil.getUserInfo(accountDao, request.getHttpHeaders());
+
+        // TODO open Jira issue to allow admins to see all data
+        // Eventually we'll have support so users can give access to their data
+        if (!email.isEmpty() && !email.equals(userInfo)) {
+            throw new NotAuthorizedException(userInfo + " is not authorized to view datasets owned by " + email, Response.status(Response.Status.UNAUTHORIZED));
+        }
+
+        if (email.isEmpty()) {
+            email = userInfo;
+        }
 
         // without paging
         Iterable<Dataset> results = null;
