@@ -48,7 +48,6 @@ import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -321,11 +320,12 @@ public class DatasetsResource {
         String userInfo = LoginUtil.getUserInfo(accountDao, request.getHttpHeaders());
 
         // TODO open Jira issue to allow admins to see all data
-        // Eventually we'll have support so users can give access to their data
+        // Eventually we should add support so users can give access to their data
         if (!email.isEmpty() && !email.equals(userInfo)) {
             throw new NotAuthorizedException(userInfo + " is not authorized to view datasets owned by " + email, Response.status(Response.Status.UNAUTHORIZED));
         }
 
+        // Only fetch the users datasets
         if (email.isEmpty()) {
             email = userInfo;
         }
@@ -422,10 +422,18 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Dataset getDataset(@PathParam("dataset-id") String datasetId) {
-        Dataset findOne = datasetDao.findOne(datasetId);
+    public Dataset getDataset(@Context HttpRequest request, @PathParam("dataset-id") String datasetId) {
+        Dataset dataset = datasetDao.findOne(datasetId);
 
-        return findOne;
+        if (dataset == null) {
+            return null;
+        }
+
+        if (isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
+        return dataset;
     }
 
     /**
@@ -438,7 +446,7 @@ public class DatasetsResource {
     @DELETE
     @Path("{dataset-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public boolean deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
+    public boolean deleteDataset(@Context HttpRequest request, @PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
         if ("".equals(datasetId)) {
             throw (new Exception("Invalid id passed in."));
         }
@@ -446,6 +454,11 @@ public class DatasetsResource {
         if (dataset == null) {
             throw (new Exception("Invalid id passed in."));
         }
+
+        if (isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to delete this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         dataset.setDeleted(true);
         datasetDao.save(dataset);
 
@@ -459,16 +472,28 @@ public class DatasetsResource {
      *            id of dataset to delete from repository
      * @return response message from delete operation
      */
-    @PUT
+    @DELETE
     @Path("{dataset-id}/purge")
-    public Response purgeDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) {
-        if ("".equals(datasetId))
+    public Response purgeDataset(@Context HttpRequest request, @PathParam("dataset-id") @DefaultValue("") String datasetId) {
+        if ("".equals(datasetId)) {
             return Response.status(500).entity("Must have dataset id").build();
+        }
 
-        if (DatasetUtil.deleteDataset(datasetId))
+        Dataset dataset = datasetDao.findOne(datasetId);
+
+        if (dataset == null) {
+            Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        if (isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to delete this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
+        if (DatasetUtil.deleteDataset(datasetId)) {
             return Response.ok().build();
-        else
+        } else {
             return Response.status(500).entity("Can't delete dataset: " + datasetId).build();
+        }
     }
 
     /**
@@ -483,8 +508,18 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}/zip")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
-    public Response getDatasetZip(@PathParam("dataset-id") String datasetId) {
+    public Response getDatasetZip(@Context HttpRequest request, @PathParam("dataset-id") String datasetId) {
         try {
+            Dataset dataset = datasetDao.findOne(datasetId);
+
+            if (dataset == null) {
+                Response.status(Response.Status.NOT_FOUND).build();
+            }
+
+            if (isAuthorized(request, dataset)) {
+                throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+            }
+
             final File tempfile = File.createTempFile("dataset", ".zip");
             ImportExport.exportDataset(tempfile, datasetId);
             ResponseBuilder response = Response.ok(new FileInputStream(tempfile) {
@@ -498,8 +533,8 @@ public class DatasetsResource {
             response.header("Content-Disposition", "attachment; filename=\"dataset.zip\"");
             return response.build();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            log.error("Error zipping dataset", e);
+            return Response.status(500).entity("Can't delete dataset: " + datasetId).build();
         }
     }
 
@@ -517,8 +552,17 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}/{filedescriptor-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public FileDescriptor getFileDescriptor(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+    public FileDescriptor getFileDescriptor(@Context HttpRequest request, @PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
         Dataset dataset = datasetDao.findOne(datasetId);
+
+        if (dataset == null) {
+            return null;
+        }
+
+        if (isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         for (FileDescriptor fd : fileDescriptors) {
             if (fd.getId().equals(fileDescriptorId))
@@ -538,8 +582,16 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}/{filedescriptor-id}/file")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
-    public Response getFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+    public Response getFile(@Context HttpRequest request, @PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
         Dataset dataset = datasetDao.findOne(datasetId);
+        if (dataset == null) {
+            Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        if (isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         FileDescriptor fileDescriptor = null;
         for (FileDescriptor fd : fileDescriptors) {
@@ -600,8 +652,18 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}/{filedescriptor-id}/delete")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response deleteFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+    public Response deleteFile(@Context HttpRequest request, @PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
         Dataset dataset = datasetDao.findOne(datasetId);
+
+        if (dataset == null) {
+            Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // Eventually we should add support so users can give access to their data
+        if (isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         FileDescriptor fileDescriptor = null;
         for (FileDescriptor fd : fileDescriptors) {
@@ -616,6 +678,18 @@ public class DatasetsResource {
         dataset.getFileDescriptors().remove(fileDescriptor);
         datasetDao.save(dataset);
         return Response.ok().build();
+    }
+
+    private boolean isAuthorized(HttpRequest request, Dataset dataset) {
+        // Check request headers for user information.
+        String userInfo = LoginUtil.getUserInfo(accountDao, request.getHttpHeaders());
+
+        String email = dataset.getCreator().getEmail();
+        if (!email.equals(userInfo)) {
+            return false;
+        }
+
+        return true;
     }
 
 }
