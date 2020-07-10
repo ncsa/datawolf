@@ -80,7 +80,7 @@ public class LoginUtil {
                 account = accountDao.findByToken(credential);
             }
 
-            return account.getUserid();
+            return account.getPerson().getEmail();
         }
 
         log.warn("Didn't find user information");
