@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 ### Changed
+- Datasets endpoint only returns users data and allows user to modify
+  [WOLF-286](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-286)
 
 ## [4.3.0] - 2019-01-31
 
