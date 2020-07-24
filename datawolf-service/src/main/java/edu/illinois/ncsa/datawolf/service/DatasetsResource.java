@@ -303,8 +303,6 @@ public class DatasetsResource {
      *            number of datasets per page
      * @param page
      *            page number starting 0
-     * @param email
-     *            email of creator
      * @param pattern
      *            filename pattern such as %.msh
      * @return
