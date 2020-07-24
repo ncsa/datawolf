@@ -39,25 +39,9 @@ public class LoginUtil {
     }
 
     public static String getUserInfo(AccountDao accountDao, HttpHeaders httpHeaders) {
-        String userInfo = null;
-
-        // Check for kong header
-        List<String> headers = httpHeaders.getRequestHeader("X-Userinfo");
-        if (headers != null && !headers.isEmpty()) {
-            String xUserinfoString = headers.get(0);
-            String xUserinfoJson = new String(Base64.getDecoder().decode(xUserinfoString));
-            JsonParser parser = new JsonParser();
-            JsonElement xUserinfoElement = parser.parse(xUserinfoJson);
-            JsonObject xUserinfo = xUserinfoElement.getAsJsonObject();
-            userInfo = xUserinfo.get("email").getAsString();
-            log.debug("Parsing X-Userinfo");
-
-            return userInfo;
-        }
-
         // Check for authorization header or cookie
         String credential = null;
-        headers = httpHeaders.getRequestHeader(HttpHeaders.AUTHORIZATION);
+        List<String> headers = httpHeaders.getRequestHeader(HttpHeaders.AUTHORIZATION);
         if (headers != null && !headers.isEmpty()) {
             if (!httpHeaders.getRequestHeader(HttpHeaders.AUTHORIZATION).isEmpty()) {
                 credential = httpHeaders.getRequestHeader(HttpHeaders.AUTHORIZATION).get(0);
@@ -79,12 +63,23 @@ public class LoginUtil {
             } else {
                 account = accountDao.findByToken(credential);
             }
-
             return account.getPerson().getEmail();
+        }
+
+        // Check for kong header if not using datawolf authentication
+        headers = httpHeaders.getRequestHeader("X-Userinfo");
+        if (headers != null && !headers.isEmpty()) {
+            String xUserinfoString = headers.get(0);
+            String xUserinfoJson = new String(Base64.getDecoder().decode(xUserinfoString));
+            JsonParser parser = new JsonParser();
+            JsonElement xUserinfoElement = parser.parse(xUserinfoJson);
+            JsonObject xUserinfo = xUserinfoElement.getAsJsonObject();
+            log.debug("Parsing X-Userinfo");
+            return xUserinfo.get("email").getAsString();
         }
 
         log.warn("Didn't find user information");
 
-        return userInfo;
+        return null;
     }
 }

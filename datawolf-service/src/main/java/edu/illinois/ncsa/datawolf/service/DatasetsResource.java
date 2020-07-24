@@ -312,54 +312,30 @@ public class DatasetsResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public List<Dataset> getDatasets(@Context HttpRequest request, @QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("email") @DefaultValue("") String email, @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
+            @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         // TODO add sort capability
 
         // Check request headers for user information.
         // For now, only users can get their own data
-        String userInfo = LoginUtil.getUserInfo(accountDao, request.getHttpHeaders());
+        String email = LoginUtil.getUserInfo(accountDao, request.getHttpHeaders());
 
         // TODO open Jira issue to allow admins to see all data
         // Eventually we should add support so users can give access to their data
-        if (!email.isEmpty() && !email.equals(userInfo)) {
-            throw new NotAuthorizedException(userInfo + " is not authorized to view datasets owned by " + email, Response.status(Response.Status.UNAUTHORIZED));
-        }
-
-        // Only fetch the users datasets
-        if (email.isEmpty()) {
-            email = userInfo;
-        }
 
         // without paging
         Iterable<Dataset> results = null;
         if (size < 1) {
-            if (email.equals("")) {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findAll();
-                    } else {
-                        results = datasetDao.findByDeleted(false);
-                    }
+            if (pattern.equals("")) {
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmail(email);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByTitleLike(pattern);
-                    } else {
-                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false);
-                    }
+                    results = datasetDao.findByCreatorEmailAndDeleted(email, false);
                 }
             } else {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmail(email);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndDeleted(email, false);
-                    }
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false);
-                    }
+                    results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false);
                 }
             }
 
@@ -370,33 +346,17 @@ public class DatasetsResource {
             return list;
 
         } else { // with paging
-            if (email.equals("")) {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findAll(page, size);
-                    } else {
-                        results = datasetDao.findByDeleted(false, page, size);
-                    }
+            if (pattern.equals("")) {
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmail(email, page, size);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByTitleLike(pattern, page, size);
-                    } else {
-                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, page, size);
-                    }
+                    results = datasetDao.findByCreatorEmailAndDeleted(email, false, page, size);
                 }
             } else {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmail(email, page, size);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, page, size);
-                    }
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, page, size);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, page, size);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, page, size);
-                    }
+                    results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, page, size);
                 }
             }
 
