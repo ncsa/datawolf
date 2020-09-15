@@ -63,7 +63,10 @@ public class LoginUtil {
             } else {
                 account = accountDao.findByToken(credential);
             }
-            return account.getPerson().getEmail();
+
+            if (account != null) {
+                return account.getPerson().getEmail();
+            }
         }
 
         // Check for kong header if not using datawolf authentication
