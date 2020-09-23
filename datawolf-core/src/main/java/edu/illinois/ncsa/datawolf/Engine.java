@@ -112,6 +112,8 @@ public class Engine {
     private UnitOfWork            unitOfWork;
 
     /** Page size when loading queue */
+    @Inject
+    @Named("engine.pageSize")
     private int                   pageSize           = 50;
 
     /**
