@@ -122,9 +122,12 @@ DELETE | persons/{person-id} | id of user to delete
 request method | URL | Description
 -------------- | --- | -----------
 GET | login | Login a user by email and password
-POST | login | Create a user eaccount with specified email and password
-PUT | login/{person-id}/active | Enable/Disable user accounts 
+GET | login/key | the key/token associated with a user account
+POST | login | Create a user account with specified email and password
+POST | login/updatePassword | Update password
+PUT | login/{person-id}/active | Enable/Disable user accounts
 DELETE | login | Delete specified user account
+DELETE | login/token | Delete user token
 
 **Workflows**
 
@@ -144,7 +147,7 @@ DELETE | workflows/{workflow-id} | delete a workflow by id
 
 request method | URL | Description
 -------------- | --- | -----------
-GET | datasets | get all datasets
+GET | datasets | get all user datasets
 GET | datasets/{dataset-id} | get dataset by id
 GET | datasets/{dataset-id}/zip | get a zip file containing dataset by id
 GET | datasets/{dataset-id}/{filedescriptor-id} | get a file descriptor by dataset id and file descriptor id
@@ -179,6 +182,7 @@ GET | executions/{execution-id} | get execution by id
 GET | executions/{execution-id}/logfiles | get all logfiles associated with an execution
 GET | executions/{execution-id}/logfiles/{step-id} | get logfile associated with a single step of the execution
 GET | executions/{execution-id}/state | get the state of all steps in an execution
+GET | executions/{workflow-id}/template | get submission template for a workflow
 POST | executions | create an execution for a submission
 DELETE | executions/{execution-id} | delete execution by id
 PUT | executions/{execution-id}/start | start an execution
@@ -221,22 +225,25 @@ The latest version of Data Wolf can be downloaded from:
 
 https://opensource.ncsa.illinois.edu/projects/artifacts.php?key=WOLF
 
-By default, the latest release is selected in the page (currently 4.3.0). To get early access to development releases, check the box **Show also prereleases.**
+By default, the latest release is selected in the page (currently 4.4.0). To get early access to development releases, check the box **Show also prereleases.**
 
 * Click on **Version** 
-    * Select **4.3.0**
-    * Under **Files** select **datawolf-webapp-all-4.3.0-bin.zip**
+    * Select **4.4.0**
+    * Under **Files** select **datawolf-webapp-all-4.4.0-bin.zip**
 * Click **I Accept** to accept the License.
 
 This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the javacode there as well as the manual. The link to the source code can be found at the end of this document.
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.3.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.4.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
 #### Data Wolf properties
 
-Open the folder that was created by unzipping the installation zip file and go into the **Conf** folder. You should see a file called **datawolf.properties**. For the purpose of running Data Wolf server and editor, you won't need to make any changes to this file or understand its contents. However, for those who are interested, the rest of this section will dissect the file for informational purposes to highlight the important parts of the file you might want to modify to configure available executors and where information is stored. If you open the **datawolf.properties** in a text editor, you should see the snippet below:
+Open the folder that was created by unzipping the installation zip file and go into the **Conf** folder. You should see a file called **datawolf.properties**.
+For the purpose of running Data Wolf server and editor, you won't need to make any changes to this file or understand its contents. However, for those who are
+interested, the rest of this section will dissect the file for informational purposes to highlight the important parts of the file you might want to modify to
+configure available executors and where information is stored. If you open the **datawolf.properties** in a text editor, you should see the snippet below:
 
 ```
 #Clowder settings
@@ -250,7 +257,7 @@ disk.folder=data/files
 
 * **Clowder settings**
     * **clowder.server** Uncomment this to specify the Clowder server URL. 
-  * * **clowder.key** Uncomment this to specify the key for the Clowder server. 
+    * **clowder.key** Uncomment this to specify the key for the Clowder server.
 * **Local Disk settings** By default, Data Wolf is configured to store data on local disk. 
     * **disk.levels** - indicates the number of folder levels to use, this prevents too many files in a single folder
     * **disk.folder** - indicates the location on disk to store the files. 
@@ -263,6 +270,7 @@ engine.extraLocalExecutor = 1
 engine.localExecutorThreads = 8
 engine.storeLogs = false
 engine.timeout = 3600
+engine.pageSize = 50
 
 # Executors
 java.executor=edu.illinois.ncsa.datawolf.executor.java.JavaExecutor
@@ -388,12 +396,13 @@ ldap.groupDN=ou=groups
 ldap.objectClass=inetorgperson
 ldap.trustAllCertificates=false
 ```
-   
-The next section will discuss the launch script for Data Wolf.
+
+In the same folder at **datawolf.properties** is a **custom.properties** file that can also be used to override parameters set in **datawolf.properties**. The
+next section will discuss the launch script for Data Wolf.
 
 #### Launch Scripts
 
-If you go back to the folder **Data Wolf-webapp-all-4.3.0** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
+If you go back to the folder **Data Wolf-webapp-all-4.4.0** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
 
 ```
 # port for the jetty server
@@ -551,7 +560,8 @@ After launching the datawolf-service script, you will have both a Data Wolf Serv
 
 ![Web Editor login page.](images/login-page.png)
 
-If you don't have an account on Data Wolf, fill in the registration form and click **Register with email** link to create an account. Unless you are an administrator, you will need to contact the server administrator to enable your new account. 
+If you don't have an account on Data Wolf, click the **Sign Up** button and fill in the registration form.  Once that is finished, click the **Register** button to
+create an account. Unless you are an administrator, you will need to contact the server administrator to enable your new account.
 
 After you register an account and it is activated, the next time you see the login page just enter the email address you registered and click the **Sign-in** button. This should bring you to a page that looks similar to the one below:
 
