@@ -46,13 +46,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -61,20 +62,26 @@ import javax.ws.rs.core.StreamingOutput;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.spi.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.illinois.ncsa.datawolf.ImportExport;
+import edu.illinois.ncsa.datawolf.service.utils.LoginUtil;
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.FileDescriptor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.Person;
+import edu.illinois.ncsa.domain.dao.AccountDao;
 import edu.illinois.ncsa.domain.dao.DatasetDao;
 import edu.illinois.ncsa.domain.dao.PersonDao;
 import edu.illinois.ncsa.domain.util.DatasetUtil;
 
 @Path("/datasets")
 public class DatasetsResource {
+
+    @Inject
+    private AccountDao          accountDao;
 
     @Inject
     private PersonDao           personDao;
@@ -296,48 +303,37 @@ public class DatasetsResource {
      *            number of datasets per page
      * @param page
      *            page number starting 0
-     * @param email
-     *            email of creator
      * @param pattern
      *            filename pattern such as %.msh
      * @return
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Dataset> getDatasets(@QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page, @QueryParam("email") @DefaultValue("") String email,
+    public List<Dataset> getDatasets(@Context HttpRequest request, @QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         // TODO add sort capability
+
+        // Check request headers for user information.
+        // For now, only users can get their own data
+        String email = LoginUtil.getUserInfo(accountDao, request.getHttpHeaders());
+
+        // TODO open Jira issue to allow admins to see all data
+        // Eventually we should add support so users can give access to their data
 
         // without paging
         Iterable<Dataset> results = null;
         if (size < 1) {
-            if (email.equals("")) {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findAll();
-                    } else {
-                        results = datasetDao.findByDeleted(false);
-                    }
+            if (pattern.equals("")) {
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmail(email);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByTitleLike(pattern);
-                    } else {
-                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false);
-                    }
+                    results = datasetDao.findByCreatorEmailAndDeleted(email, false);
                 }
             } else {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmail(email);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndDeleted(email, false);
-                    }
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false);
-                    }
+                    results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false);
                 }
             }
 
@@ -348,33 +344,17 @@ public class DatasetsResource {
             return list;
 
         } else { // with paging
-            if (email.equals("")) {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findAll(page, size);
-                    } else {
-                        results = datasetDao.findByDeleted(false, page, size);
-                    }
+            if (pattern.equals("")) {
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmail(email, page, size);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByTitleLike(pattern, page, size);
-                    } else {
-                        results = datasetDao.findByTitleLikeAndDeleted(pattern, false, page, size);
-                    }
+                    results = datasetDao.findByCreatorEmailAndDeleted(email, false, page, size);
                 }
             } else {
-                if (pattern.equals("")) {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmail(email, page, size);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndDeleted(email, false, page, size);
-                    }
+                if (showdeleted) {
+                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, page, size);
                 } else {
-                    if (showdeleted) {
-                        results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, page, size);
-                    } else {
-                        results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, page, size);
-                    }
+                    results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, page, size);
                 }
             }
 
@@ -400,10 +380,18 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Dataset getDataset(@PathParam("dataset-id") String datasetId) {
-        Dataset findOne = datasetDao.findOne(datasetId);
+    public Dataset getDataset(@Context HttpRequest request, @PathParam("dataset-id") String datasetId) {
+        Dataset dataset = datasetDao.findOne(datasetId);
 
-        return findOne;
+        if (dataset == null) {
+            return null;
+        }
+
+        if (!isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
+        return dataset;
     }
 
     /**
@@ -416,7 +404,7 @@ public class DatasetsResource {
     @DELETE
     @Path("{dataset-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public boolean deleteDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
+    public boolean deleteDataset(@Context HttpRequest request, @PathParam("dataset-id") @DefaultValue("") String datasetId) throws Exception {
         if ("".equals(datasetId)) {
             throw (new Exception("Invalid id passed in."));
         }
@@ -424,6 +412,11 @@ public class DatasetsResource {
         if (dataset == null) {
             throw (new Exception("Invalid id passed in."));
         }
+
+        if (!isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to delete this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         dataset.setDeleted(true);
         datasetDao.save(dataset);
 
@@ -437,16 +430,28 @@ public class DatasetsResource {
      *            id of dataset to delete from repository
      * @return response message from delete operation
      */
-    @PUT
+    @DELETE
     @Path("{dataset-id}/purge")
-    public Response purgeDataset(@PathParam("dataset-id") @DefaultValue("") String datasetId) {
-        if ("".equals(datasetId))
-            return Response.status(500).entity("Must have dataset id").build();
+    public Response purgeDataset(@Context HttpRequest request, @PathParam("dataset-id") @DefaultValue("") String datasetId) {
+        if ("".equals(datasetId)) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Must have dataset id").build();
+        }
 
-        if (DatasetUtil.deleteDataset(datasetId))
+        Dataset dataset = datasetDao.findOne(datasetId);
+
+        if (dataset == null) {
+            Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        if (!isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to delete this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
+        if (DatasetUtil.deleteDataset(datasetId)) {
             return Response.ok().build();
-        else
-            return Response.status(500).entity("Can't delete dataset: " + datasetId).build();
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Can't delete dataset: " + datasetId).build();
+        }
     }
 
     /**
@@ -461,8 +466,18 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}/zip")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
-    public Response getDatasetZip(@PathParam("dataset-id") String datasetId) {
+    public Response getDatasetZip(@Context HttpRequest request, @PathParam("dataset-id") String datasetId) {
         try {
+            Dataset dataset = datasetDao.findOne(datasetId);
+
+            if (dataset == null) {
+                Response.status(Response.Status.NOT_FOUND).build();
+            }
+
+            if (!isAuthorized(request, dataset)) {
+                throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+            }
+
             final File tempfile = File.createTempFile("dataset", ".zip");
             ImportExport.exportDataset(tempfile, datasetId);
             ResponseBuilder response = Response.ok(new FileInputStream(tempfile) {
@@ -476,8 +491,8 @@ public class DatasetsResource {
             response.header("Content-Disposition", "attachment; filename=\"dataset.zip\"");
             return response.build();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            log.error("Error zipping dataset", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Can't delete dataset: " + datasetId).build();
         }
     }
 
@@ -495,8 +510,17 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}/{filedescriptor-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public FileDescriptor getFileDescriptor(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+    public FileDescriptor getFileDescriptor(@Context HttpRequest request, @PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
         Dataset dataset = datasetDao.findOne(datasetId);
+
+        if (dataset == null) {
+            return null;
+        }
+
+        if (!isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         for (FileDescriptor fd : fileDescriptors) {
             if (fd.getId().equals(fileDescriptorId))
@@ -516,8 +540,16 @@ public class DatasetsResource {
     @GET
     @Path("{dataset-id}/{filedescriptor-id}/file")
     @Produces({ MediaType.APPLICATION_OCTET_STREAM })
-    public Response getFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+    public Response getFile(@Context HttpRequest request, @PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
         Dataset dataset = datasetDao.findOne(datasetId);
+        if (dataset == null) {
+            Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        if (!isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         FileDescriptor fileDescriptor = null;
         for (FileDescriptor fd : fileDescriptors) {
@@ -527,8 +559,9 @@ public class DatasetsResource {
             }
         }
 
-        if (fileDescriptor == null)
-            return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
+        if (fileDescriptor == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
+        }
 
         // FileStorage fileStorage = SpringData.getFileStorage();
 
@@ -564,7 +597,7 @@ public class DatasetsResource {
             log.error("Error streaming the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId);
         }
 
-        return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
     }
 
     /**
@@ -575,11 +608,21 @@ public class DatasetsResource {
      * @return
      *         file
      */
-    @GET
-    @Path("{dataset-id}/{filedescriptor-id}/delete")
+    @DELETE
+    @Path("{dataset-id}/{filedescriptor-id}")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response deleteFile(@PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
+    public Response deleteFile(@Context HttpRequest request, @PathParam("dataset-id") String datasetId, @PathParam("filedescriptor-id") String fileDescriptorId) {
         Dataset dataset = datasetDao.findOne(datasetId);
+
+        if (dataset == null) {
+            Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // Eventually we should add support so users can give access to their data
+        if (!isAuthorized(request, dataset)) {
+            throw new NotAuthorizedException("You are not authorized to modify this dataset", Response.status(Response.Status.UNAUTHORIZED));
+        }
+
         List<FileDescriptor> fileDescriptors = dataset.getFileDescriptors();
         FileDescriptor fileDescriptor = null;
         for (FileDescriptor fd : fileDescriptors) {
@@ -590,10 +633,22 @@ public class DatasetsResource {
         }
 
         if (fileDescriptor == null)
-            return Response.status(500).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Can't find the file (id:" + fileDescriptorId + ") in dataset id: " + datasetId).build();
         dataset.getFileDescriptors().remove(fileDescriptor);
         datasetDao.save(dataset);
         return Response.ok().build();
+    }
+
+    private boolean isAuthorized(HttpRequest request, Dataset dataset) {
+        // Check request headers for user information.
+        String userInfo = LoginUtil.getUserInfo(accountDao, request.getHttpHeaders());
+
+        String email = dataset.getCreator().getEmail();
+        if (email.equals(userInfo)) {
+            return true;
+        }
+
+        return false;
     }
 
 }

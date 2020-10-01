@@ -2,3 +2,6 @@
 *.iml
 .DS_Store
 /target
+
+# ignore customizations to datawolf
+datawolf-webapp-all/src/assembly/conf/custom.properties

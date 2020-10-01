@@ -58,13 +58,27 @@ public class PersistenceModule extends AbstractModule {
             File file = new File(datawolfProperties);
             try {
                 configuration.load(new FileInputStream(file));
-                Names.bindProperties(binder(), configuration);
-                jpa.properties(configuration);
             } catch (IOException e) {
                 logger.error("Error reading properties file: " + System.getProperty("datawolf.properties"), e);
             }
         }
 
+        // Read custom properties that replace default properties
+        String customProperties = System.getProperty("custom.properties");
+        if (customProperties.trim() != "") {
+            File file = new File(customProperties);
+            if (file.exists()) {
+                try {
+                    configuration.load(new FileInputStream(file));
+                } catch (IOException e) {
+                    logger.error("Error reading properties file: " + System.getProperty("custom.properties"), e);
+                }
+            }
+        }
+
+        // Bind properties
+        Names.bindProperties(binder(), configuration);
+        jpa.properties(configuration);
         install(jpa);
 
         try {
