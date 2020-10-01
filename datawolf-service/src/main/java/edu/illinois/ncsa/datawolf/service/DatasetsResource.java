@@ -297,7 +297,7 @@ public class DatasetsResource {
     }
 
     /**
-     * Get all datasets
+     * Get all user datasets
      * 
      * @param size
      *            number of datasets per page
@@ -337,11 +337,9 @@ public class DatasetsResource {
         }
 
         List<Dataset> list = new ArrayList<Dataset>();
-        for (Dataset d : results) {
-            list.add(d);
-        }
+        results.forEach(list::add);
+        
         return list;
-
     }
 
     /**
@@ -578,7 +576,7 @@ public class DatasetsResource {
 
     /**
      * get the file with given id
-     * 
+     *
      * @param id
      *            file-descriptor id
      * @return
