@@ -20,6 +20,15 @@ RUN cat /usr/share/maven/ref/settings-docker.xml
 
 FROM openjdk:8-jre-alpine
 
+ENV DATAWOLF_ADMINS=admin@example.com \
+    DB_CLASS_NAME="org.postgresql.ds.PGSimpleDataSource" \
+    DB_DIALECT="org.hibernate.dialect.PostgreSQL9Dialect" \
+    DB_SOURCE_URL="jdbc:postgresql://postgres/datawolf" \
+    DB_MAX_POOLSIZE=100 \
+    DB_IDLE_TIMEOUT=30000 \
+    DB_USER=datawolf \
+    DB_PASSWORD=datawolf
+
 EXPOSE 8888
 VOLUME /home/datawolf/data
 WORKDIR /home/datawolf
@@ -29,5 +38,6 @@ COPY --from=build /src/datawolf-webapp-all/target/datawolf-webapp-all-4.4.0-SNAP
 COPY --from=build /src/datawolf-webapp-all/target/dependency/jetty-runner.jar /home/datawolf/lib/
 COPY --from=build /src/datawolf-webapp-all/src/assembly/bin/datawolf-service /home/datawolf/bin/
 COPY --from=build /src/datawolf-webapp-all/src/assembly/conf/* /home/datawolf/conf/
+COPY docker/custom.properties /home/datawolf/conf
 
 CMD /home/datawolf/bin/datawolf-service

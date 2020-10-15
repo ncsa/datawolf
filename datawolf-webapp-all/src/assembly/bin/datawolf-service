@@ -10,10 +10,10 @@ PORT=8888
 CONTEXT=/datawolf
 
 # log file, leave blank for console
-#LOG="--out ${PWD}/log/datawolf-yyyy_mm_dd.log"
+LOG="--out ${PWD}/log/datawolf-yyyy_mm_dd.log"
 
 # Use authentication to access APIs
-USE_AUTH=false
+USE_AUTH=${DATAWOLF_USE_AUTH:-false}
 
 # create some folders just in case
 if [ ! -e log ]; then
