@@ -34,14 +34,14 @@ services:
     image: postgres:9.6
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-123456}
+      POSTGRES_USER: ${DB_USER:-datawolf}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-datawolf}
     networks:
       - datawolf
     volumes:
-      - postgres:/data/db
+      - postgres:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${POSTGRESQL_PORT:-15432}:5432"
 
 volumes:
   postgres:
