@@ -38,7 +38,7 @@ for i in datawolf; do
 	if [ "$v" != "latest" -o "$SERVER" != "" ]; then
             ${DEBUG} docker tag ncsa/${i}:latest ${SERVER}ncsa/${i}:${v}
         fi
-	${DEBUG} docker push ${SERVER}datawolf/${i}:${v}
+	${DEBUG} docker push ${SERVER}ncsa/datawolf/${i}:${v}
     done
 done
     
