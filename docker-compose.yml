@@ -3,7 +3,7 @@ version: "3.5"
 services:
   # DataWolf application
   datawolf:
-    image: datawolf/datawolf:latest
+    image: ncsa/datawolf:latest
     volumes:
       - datawolf:/home/datawolf/data
     depends_on:
@@ -24,6 +24,7 @@ services:
       - ENGINE_EXTRALOCALEXECUTOR=${ENGINE_EXTRALOCALEXECUTOR:-1}
       - ENGINE_LOCALEXECUTORTHREADS=${ENGINE_LOCALEXECUTORTHREADS:-8}
       - ENGINE_PAGESIZE=${ENGINE_PAGESIZE:-250}
+      - EXECUTOR_DEBUG=${EXECUTOR_DEBUG:-false}
       - LOG=${LOG}
     ports:
       - 8888:8888

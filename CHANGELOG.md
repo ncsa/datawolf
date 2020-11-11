@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Changed docker-compose reference to correct image and renamed .env-example to env-example
+  [WOLF-293](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-293)
+
 ### Changed
 - Datasets endpoint only returns users data and allows user to modify
   [WOLF-286](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-286)
