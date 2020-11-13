@@ -9,14 +9,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - Custom property file to customize datawolf properties
   [WOLF-272](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-272)
+- Docker build process and how DataWolf is launched in Docker
+  [WOLF-274](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-274)
+- Configurable engine queue page size
+  [WOLF-289](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-289)
 
 ### Fixed
+- Changed docker-compose reference to correct image and renamed .env-example to env-example
+  [WOLF-293](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-293)
+- Persons endpoint was returning an array with null element instead of null when person not found
+  [WOLF-283](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-283)
 
 ### Changed
 - Datasets endpoint only returns users data and allows user to modify
   [WOLF-286](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-286)
 - Updated documentation for 4.4 release changes
   [WOLF-236](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-236)
+- Set default page size for Datasets endpoint 
+  [WOLF-284](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-284)
 
 ## [4.3.0] - 2019-01-31
 

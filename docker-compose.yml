@@ -1,0 +1,53 @@
+version: "3.5"
+
+services:
+  # DataWolf application
+  datawolf:
+    image: ncsa/datawolf:latest
+    volumes:
+      - datawolf:/home/datawolf/data
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    environment:
+      - DATAWOLF_ADMINS=${DATAWOLF_ADMINS:-admin@example.com}
+      - DATAWOLF_USE_AUTH=${DATAWOLF_USE_AUTH:-false}
+      - DB_CLASS_NAME=${DB_CLASS_NAME:-org.postgresql.ds.PGSimpleDataSource}
+      - DB_DIALECT=${DB_DIALECT:-}
+      - DB_SOURCE_URL=${DB_SOURCE_URL:-jdbc:postgresql://postgres/datawolf}
+      - DB_MAX_POOLSIZE=${DB_MAX_POOLSIZE:-100}
+      - DB_IDLE_TIMEOUT=${DB_IDLE_TIMEOUT:-30000}
+      - DB_USER=${DB_USER:-datawolf}
+      - DB_PASSWORD=${DB_PASSWORD:-datawolf}
+      - ENGINE_STORELOGS=${ENGINE_STORELOGS:-false}
+      - ENGINE_TIMEOUT=${ENGINE_TIMEOUT:-3600}
+      - ENGINE_EXTRALOCALEXECUTOR=${ENGINE_EXTRALOCALEXECUTOR:-1}
+      - ENGINE_LOCALEXECUTORTHREADS=${ENGINE_LOCALEXECUTORTHREADS:-8}
+      - ENGINE_PAGESIZE=${ENGINE_PAGESIZE:-250}
+      - EXECUTOR_DEBUG=${EXECUTOR_DEBUG:-false}
+      - LOG=${LOG}
+    ports:
+      - 8888:8888
+    networks:
+      - datawolf
+
+  postgres:
+    image: postgres:9.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-datawolf}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-datawolf}
+    networks:
+      - datawolf
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRESQL_PORT:-15432}:5432"
+
+volumes:
+  postgres:
+  datawolf:
+
+networks:
+  datawolf:
+

@@ -4,8 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +73,13 @@ public class PersistenceModule extends AbstractModule {
             if (file.exists()) {
                 try {
                     configuration.load(new FileInputStream(file));
+                    // Resolve any environment variables found in the configuration
+                    Iterator<Object> iterator = configuration.keySet().iterator();
+                    while (iterator.hasNext()) {
+                        String key = iterator.next().toString();
+                        String value = resolveEnvVars(configuration.getProperty(key));
+                        configuration.put(key, value);
+                    }
                 } catch (IOException e) {
                     logger.error("Error reading properties file: " + System.getProperty("custom.properties"), e);
                 }
@@ -153,6 +163,23 @@ public class PersistenceModule extends AbstractModule {
         defaultDAOs.put("filestorage.dao", "edu.illinois.ncsa.domain.impl.FileStorageDisk"); //$NON-NLS-1$//$NON-NLS-2$
 
         return defaultDAOs;
+    }
+
+    private String resolveEnvVars(String input) {
+        if (null == input) {
+            return null;
+        }
+        // match ${ENV_VAR_NAME} or $ENV_VAR_NAME
+        Pattern p = Pattern.compile("\\$\\{(\\w+)\\}|\\$(\\w+)");
+        Matcher m = p.matcher(input); // get a matcher object
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            String envVarName = null == m.group(1) ? m.group(2) : m.group(1);
+            String envVarValue = System.getenv(envVarName);
+            m.appendReplacement(sb, null == envVarValue ? "" : envVarValue);
+        }
+        m.appendTail(sb);
+        return sb.toString();
     }
 
 }
