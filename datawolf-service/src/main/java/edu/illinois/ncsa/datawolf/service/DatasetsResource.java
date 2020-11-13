@@ -297,7 +297,7 @@ public class DatasetsResource {
     }
 
     /**
-     * Get all datasets
+     * Get all user datasets
      * 
      * @param size
      *            number of datasets per page
@@ -309,7 +309,7 @@ public class DatasetsResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Dataset> getDatasets(@Context HttpRequest request, @QueryParam("size") @DefaultValue("-1") int size, @QueryParam("page") @DefaultValue("0") int page,
+    public List<Dataset> getDatasets(@Context HttpRequest request, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("pattern") @DefaultValue("") String pattern, @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
         // TODO add sort capability
 
@@ -320,52 +320,26 @@ public class DatasetsResource {
         // TODO open Jira issue to allow admins to see all data
         // Eventually we should add support so users can give access to their data
 
-        // without paging
         Iterable<Dataset> results = null;
-        if (size < 1) {
-            if (pattern.equals("")) {
-                if (showdeleted) {
-                    results = datasetDao.findByCreatorEmail(email);
-                } else {
-                    results = datasetDao.findByCreatorEmailAndDeleted(email, false);
-                }
+        // with paging
+        if (pattern.equals("")) {
+            if (showdeleted) {
+                results = datasetDao.findByCreatorEmail(email, page, size);
             } else {
-                if (showdeleted) {
-                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern);
-                } else {
-                    results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false);
-                }
+                results = datasetDao.findByCreatorEmailAndDeleted(email, false, page, size);
             }
-
-            ArrayList<Dataset> list = new ArrayList<Dataset>();
-            for (Dataset d : results) {
-                list.add(d);
-            }
-            return list;
-
-        } else { // with paging
-            if (pattern.equals("")) {
-                if (showdeleted) {
-                    results = datasetDao.findByCreatorEmail(email, page, size);
-                } else {
-                    results = datasetDao.findByCreatorEmailAndDeleted(email, false, page, size);
-                }
+        } else {
+            if (showdeleted) {
+                results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, page, size);
             } else {
-                if (showdeleted) {
-                    results = datasetDao.findByCreatorEmailAndTitleLike(email, pattern, page, size);
-                } else {
-                    results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, page, size);
-                }
+                results = datasetDao.findByCreatorEmailAndTitleLikeAndDeleted(email, pattern, false, page, size);
             }
-
-            ArrayList<Dataset> list = new ArrayList<Dataset>();
-            for (Dataset d : results) {
-                list.add(d);
-            }
-            return list;
-
         }
 
+        List<Dataset> list = new ArrayList<Dataset>();
+        results.forEach(list::add);
+        
+        return list;
     }
 
     /**
@@ -602,7 +576,7 @@ public class DatasetsResource {
 
     /**
      * get the file with given id
-     * 
+     *
      * @param id
      *            file-descriptor id
      * @return
