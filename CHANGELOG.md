@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 ### Fixed
+- Dockerfile uses a wildcard to find war files in target directories
+  [WOLF-294](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-294)
 
 ### Changed
 
