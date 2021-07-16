@@ -363,22 +363,15 @@ public class WorkflowsResource {
     @GET
     @Path("{workflow-id}/executions")
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId, @QueryParam("size") @DefaultValue("100") int size, @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted) {
-        // TODO implement paging
-        // Page<Execution> results;
-        List<Execution> results;
-        if (showdeleted) {
-            // results = executionDao.findByWorkflowId(workflowId, new
-// PageRequest(page, size));
-            results = executionDao.findByWorkflowId(workflowId);
-        } else {
-            // results = executionDao.findByWorkflowIdAndDeleted(workflowId,
-// false, new PageRequest(page, size));
-            results = executionDao.findByWorkflowIdAndDeleted(workflowId, false);
-        }
-        // return results.getContent();
-        return results;
+    public List<Execution> getExecutions(@PathParam("workflow-id") String workflowId,
+                                         @QueryParam("showdeleted") @DefaultValue("false") boolean showdeleted,
+                                         @QueryParam("email") @DefaultValue("") String email,
+                                         @QueryParam("page") @DefaultValue("0") int page,
+                                         @QueryParam("size") @DefaultValue("100") int size,
+                                         @QueryParam("since") @DefaultValue("") String since,
+                                         @QueryParam("until") @DefaultValue("") String until) {
+
+        return executionDao.findByWorkflowIdAndFilters(workflowId, email, showdeleted, page, size, since, until);
     }
 
     /**

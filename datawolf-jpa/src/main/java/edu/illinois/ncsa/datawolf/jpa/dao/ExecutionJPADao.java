@@ -69,6 +69,48 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
 
     @Override
     @Transactional
+    public List<Execution> findByWorkflowIdAndFilters(String workflowId, String email, boolean deleted,
+                                                      int page, int size, String since, String until){
+        List<Execution> results;
+        String queryString = "SELECT e FROM Execution e " + "WHERE e.workflowId = :workflowId AND e.deleted = :deleted";
+
+        if (!email.trim().equals("")){
+            queryString = queryString + " AND e.creator.email = :email";
+        }
+
+        if(!since.equals("")){
+            queryString = queryString + " AND e.date > :since";
+        }
+
+        if(!until.equals("")){
+            queryString = queryString + " AND e.date < :until";
+        }
+        queryString = queryString + " ORDER BY date DESC";
+
+        System.out.println(queryString);
+        TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
+        typedQuery.setParameter("workflowId", workflowId);
+        typedQuery.setParameter("deleted", deleted);
+
+        if (!email.trim().equals("")){
+            typedQuery.setParameter("email", email);
+        }
+
+        addDateToQuery(typedQuery, since, "since");
+        addDateToQuery(typedQuery, until, "until");
+
+        // Don't apply pagination if page size < 0
+        if (page >= 0) {
+            typedQuery.setFirstResult(page * size);
+            typedQuery.setMaxResults(size);
+        }
+
+        results = typedQuery.getResultList();
+        return results;
+    }
+
+    @Override
+    @Transactional
     public List<Execution> findByWorkflowId(String workflowId, int page, int size) {
 
         List<Execution> results = null;

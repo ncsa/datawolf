@@ -22,6 +22,9 @@ public interface ExecutionDao extends IDao<Execution, String> {
 
     List<Execution> findByWorkflowId(String workflowId, int page, int size);
 
+    List<Execution> findByWorkflowIdAndFilters(String workflowId, String email, boolean deleted,
+                                                      int page, int size, String since, String until);
+
     List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted);
 
     List<Execution> findByWorkflowIdAndDeleted(String workflowId, boolean deleted, int page, int size);
