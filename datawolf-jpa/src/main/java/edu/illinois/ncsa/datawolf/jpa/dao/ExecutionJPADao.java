@@ -87,7 +87,6 @@ public class ExecutionJPADao extends AbstractJPADao<Execution, String> implement
         }
         queryString = queryString + " ORDER BY date DESC";
 
-        System.out.println(queryString);
         TypedQuery<Execution> typedQuery = getEntityManager().createQuery(queryString, Execution.class);
         typedQuery.setParameter("workflowId", workflowId);
         typedQuery.setParameter("deleted", deleted);
