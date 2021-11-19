@@ -19,7 +19,8 @@ import edu.illinois.ncsa.domain.Account;
 import edu.illinois.ncsa.domain.dao.AccountDao;
 
 public class LoginUtil {
-    private static final Logger log = LoggerFactory.getLogger(LoginUtil.class);
+    private static final String PREFERRED_USERNAME = "preferred_username";
+    private static final Logger log                = LoggerFactory.getLogger(LoginUtil.class);
 
     /**
      * 
@@ -69,16 +70,31 @@ public class LoginUtil {
             }
         }
 
-        // Check for kong header if not using datawolf authentication
-        headers = httpHeaders.getRequestHeader("X-Userinfo");
+        // Check for presence of x-userinfo header
+        headers = httpHeaders.getRequestHeader("x-userinfo");
         if (headers != null && !headers.isEmpty()) {
-            String xUserinfoString = headers.get(0);
-            String xUserinfoJson = new String(Base64.getDecoder().decode(xUserinfoString));
-            JsonParser parser = new JsonParser();
-            JsonElement xUserinfoElement = parser.parse(xUserinfoJson);
-            JsonObject xUserinfo = xUserinfoElement.getAsJsonObject();
             log.debug("Parsing X-Userinfo");
-            return xUserinfo.get("email").getAsString();
+            String userInfoString = headers.get(0);
+            String userInfoJson = new String(Base64.getDecoder().decode(userInfoString));
+
+            JsonParser parser = new JsonParser();
+            JsonElement userInfoElement = parser.parse(userInfoJson);
+            JsonObject userInfo = userInfoElement.getAsJsonObject();
+
+            return userInfo.get(PREFERRED_USERNAME).getAsString();
+        }
+
+        // Check for presence of x-auth-userinfo header"
+        headers = httpHeaders.getRequestHeader("x-auth-userinfo");
+        if (headers != null && !headers.isEmpty()) {
+            log.debug("Parsing x-auth-userinfo");
+            String userInfoJson = headers.get(0);
+
+            JsonParser parser = new JsonParser();
+            JsonElement userInfoElement = parser.parse(userInfoJson);
+            JsonObject userInfo = userInfoElement.getAsJsonObject();
+
+            return userInfo.get(PREFERRED_USERNAME).getAsString();
         }
 
         log.warn("Didn't find user information");
