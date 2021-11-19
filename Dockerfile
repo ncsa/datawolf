@@ -33,8 +33,8 @@ EXPOSE 8888
 VOLUME /home/datawolf/data
 WORKDIR /home/datawolf
 
-COPY --from=build /src/datawolf-editor/target/datawolf-editor-4.4.0-SNAPSHOT.war /home/datawolf/lib/
-COPY --from=build /src/datawolf-webapp-all/target/datawolf-webapp-all-4.4.0-SNAPSHOT.war /home/datawolf/lib/
+COPY --from=build /src/datawolf-editor/target/datawolf-editor-*.war /home/datawolf/lib/
+COPY --from=build /src/datawolf-webapp-all/target/datawolf-webapp-all-*.war /home/datawolf/lib/
 COPY --from=build /src/datawolf-webapp-all/target/dependency/jetty-runner.jar /home/datawolf/lib/
 COPY --from=build /src/datawolf-webapp-all/src/assembly/bin/datawolf-service /home/datawolf/bin/
 COPY --from=build /src/datawolf-webapp-all/src/assembly/conf/* /home/datawolf/conf/
