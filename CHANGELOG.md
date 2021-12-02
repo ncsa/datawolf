@@ -4,13 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [4.5.0] - 2021-12-03
 
 ### Added
+- Pagination for getting all executions by workflow id and user sorted by newest first 
+  [WOLF-299](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-299)
 
 ### Fixed
 - Dockerfile uses a wildcard to find war files in target directories
   [WOLF-294](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-294)
+
+- Authorization fails if X-Userinfo doesn't contain email address
+  [WOLF-291](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-291)
 
 ### Changed
 

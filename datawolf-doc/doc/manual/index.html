@@ -219,24 +219,41 @@ The web editor is an HTML5/Javascript application that allows a user to interact
 * dualStorage
     * an adapter for Backbone's Backbone.Sync() method to handle saving to a localStorage database as a cache for the remote models. This allows us to provide offline capabilities so users can continue to work while disconnected from the internet and then when reconnected, the model changes will be synchronized with the server.
 
-### Download
+### Installing
+DataWolf can be deployed in two different ways. Users can either use [Docker](https://www.docker.com/) or manually installed using the provided zip file. Using Docker is the quickest way to run DataWolf and can be used
+for testing features and development. It can be used in production, but it will likely require using a custom build to include dependencies for workflow tools.
+
+### Docker
+
+To start using DataWolf using Docker, you can use the provided [docker compose file](https://opensource.ncsa.illinois.edu/bitbucket/projects/WOLF/repos/datawolf/browse/docker-compose.yml). Environment settings
+can be found in [env.example](https://opensource.ncsa.illinois.edu/bitbucket/projects/WOLF/repos/datawolf/browse/env.example). To get started, do the following:
+
+* Install [Docker](https://www.docker.com/)
+* Start up all required services with ```docker-compose up -d``` (detached mode)
+* To see the logs, run ```docker-compose log -f```
+* To stop the containers, execute ```docker-compose down``` in the same directory
+
+All commands need to be executed in the same directory at the DataWolf docker compose file. When running the first, you may get an error connecting to the database if DataWolf starts before the
+PostgreSQL database. Stopping and starting the container again will fix this.
+
+### Manual Installation
 
 The latest version of Data Wolf can be downloaded from: 
 
 https://opensource.ncsa.illinois.edu/projects/artifacts.php?key=WOLF
 
-By default, the latest release is selected in the page (currently 4.4.0). To get early access to development releases, check the box **Show also prereleases.**
+By default, the latest release is selected in the page (currently 4.5.0). To get early access to development releases, check the box **Show also prereleases.**
 
 * Click on **Version** 
-    * Select **4.4.0**
-    * Under **Files** select **datawolf-webapp-all-4.4.0-bin.zip**
+    * Select **4.5.0**
+    * Under **Files** select **datawolf-webapp-all-4.5.0-bin.zip**
 * Click **I Accept** to accept the License.
 
 This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the javacode there as well as the manual. The link to the source code can be found at the end of this document.
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.4.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.5.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
 #### Data Wolf properties
 
@@ -402,7 +419,7 @@ next section will discuss the launch script for Data Wolf.
 
 #### Launch Scripts
 
-If you go back to the folder **Data Wolf-webapp-all-4.4.0** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
+If you go back to the folder **Data Wolf-webapp-all-4.5.0** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
 
 ```
 # port for the jetty server
