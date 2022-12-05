@@ -89,11 +89,11 @@
 			<name>NCSA Nexus Snapshots</name>
 			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
 		</snapshotRepository>
-		<snapshotRepository>
+		<repository>
 			<id>github</id>
 			<name>GitHub Packages</name>
 			<url>https://maven.pkg.github.com/ncsa/datawolf</url>
-		</snapshotRepository>
+		</repository>
 	</distributionManagement>
 
   <build>
