@@ -14,9 +14,6 @@ on:
       - "master"
       - "develop"
   pull_request:
-  release:
-    types:
-      - published
 
 jobs:
   build:
@@ -43,7 +40,7 @@ jobs:
     - name: Build with Maven
       run: mvn --batch-mode package
     - name: Publish to GitHub Packages
-      if: github.event_name == 'release' && github.event.prerelease == false
+      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop'
       run: mvn --batch-mode deploy
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
