@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Compile using maven
+- Build and push docker images
+
 ### Changed
 - Updated PostgreSQL jdbc driver to work with version 14
   [WOLF-301](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-301)
