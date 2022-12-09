@@ -68,7 +68,11 @@
 			<artifactId>datawolf-executor-hpc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>edu.illinois.ncsa</groupId>
+			<artifactId>datawolf-executor-kubernetes</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpmime</artifactId>

@@ -23,7 +23,8 @@
 		<jetty.version>9.2.2.v20140723</jetty.version>
 		<!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
 		<hikaricp.version>2.5.1</hikaricp.version>
-                <unboundid.version>4.0.7</unboundid.version>
+		<unboundid.version>4.0.7</unboundid.version>
+		<kubernetes.version>16.0.2</kubernetes.version>
 	</properties>
 
 	<repositories>
@@ -122,6 +123,7 @@
 		<module>datawolf-executor-commandline</module>
 		<module>gondola</module>
 		<module>datawolf-executor-hpc</module>
+		<module>datawolf-executor-kubernetes</module>
 		<module>datawolf-service-client</module>
 		<module>datawolf-service</module>
 		<module>datawolf-webapp</module>
