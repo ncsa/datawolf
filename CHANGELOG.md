@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Compile using maven
-- Build and push docker images
+- Add GitHub actions to build using maven and docker
 
 ### Changed
 - Updated PostgreSQL jdbc driver to work with version 14
