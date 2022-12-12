@@ -1,22 +1,14 @@
-# syntax=docker/dockerfile:1.0-experimental
 FROM maven:3-jdk-8 AS build
 
 RUN apt-get update && apt-get -y install net-tools
 
 WORKDIR /src
 
-COPY pom.xml datawolf-* gondola* file-* ncsa-* /src/
+COPY . /src/
 
-RUN --mount=type=cache,target=/root/.m2 \
-    --mount=type=cache,target=/src/target \
-    mvn dependency:resolve
-RUN --mount=type=cache,target=/root/.m2 \
-    --mount=type=cache,target=/src/target \
-    mvn compile
-RUN --mount=type=cache,target=/root/.m2 \
-    --mount=type=cache,target=/src/target \
-    mvn package -Dmaven.test.skip=true
-RUN cat /usr/share/maven/ref/settings-docker.xml
+RUN mvn dependency:resolve
+RUN mvn compile
+RUN mvn package -Dmaven.test.skip=true
 
 FROM openjdk:8-jre-alpine
 

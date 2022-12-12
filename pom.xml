@@ -80,15 +80,10 @@
 
 	<distributionManagement>
 		<repository>
-			<id>ncsa.releases</id>
-			<name>NCSA Nexus Releases</name>
-			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/releases</url>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/ncsa/datawolf</url>
 		</repository>
-		<snapshotRepository>
-			<id>ncsa.snapshots</id>
-			<name>NCSA Nexus Snapshots</name>
-			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
-		</snapshotRepository>
 	</distributionManagement>
 
   <build>
