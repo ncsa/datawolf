@@ -9,7 +9,7 @@ import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption;
 
 public class KubernetesToolImplementation {
     private String                  image              = null;
-    private String                  namespace          = null;
+    private String                  pullSecretName     = null;
     private List<CommandLineOption> commandLineOptions = new ArrayList<CommandLineOption>();
     private Map<String, String>     env                = new HashMap<String, String>();
     private String                  captureStdOut      = null;
@@ -37,18 +37,18 @@ public class KubernetesToolImplementation {
 
 
     /**
-     * @return the namespace
+     * @return the pullSecretName
      */
-    public String getNamespace() {
-        return image;
+    public String getPullSecretName() {
+        return pullSecretName;
     }
 
     /**
-     * @param namespace
-     *            the executable to set
+     * @param pullSecretName
+     *            the pullSecretName to set
      */
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
+    public void setPullSecretName(String pullSecretName) {
+        this.pullSecretName = pullSecretName;
     }
 
     /**
@@ -59,7 +59,7 @@ public class KubernetesToolImplementation {
     }
 
     /**
-     * @param options
+     * @param commandLineOptions
      *            the options to set
      */
     public void setCommandLineOptions(List<CommandLineOption> commandLineOptions) {
