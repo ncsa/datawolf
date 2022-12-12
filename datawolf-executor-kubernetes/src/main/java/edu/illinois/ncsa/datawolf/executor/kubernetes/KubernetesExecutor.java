@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
+import io.kubernetes.client.openapi.models.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,20 +31,19 @@ import edu.illinois.ncsa.domain.util.BeanUtil;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
-import io.kubernetes.client.openapi.models.V1Job;
-import io.kubernetes.client.openapi.models.V1JobList;
-import io.kubernetes.client.openapi.models.V1JobStatus;
 import io.kubernetes.client.util.Config;
 
 public class KubernetesExecutor extends RemoteExecutor {
     private static Logger       logger        = LoggerFactory.getLogger(KubernetesExecutor.class);
     public static final String  EXECUTOR_NAME = "kubernetes";
 
-    // TODO add any kubernetes variables to save state for checking job status
+    private static final int    gracePeriod   = 3600;
+
     // Need to populate this or maybe this should be Job?
-    private V1Job               job;
-    private BatchV1Api          api;
+    private V1Job               job           = null;
+    private BatchV1Api          api           = null;
     private String              jobId         = null;
+
 
     // Output files specified in the tool description
     // These should be in the folder that is mounted to the docker image
@@ -54,6 +55,12 @@ public class KubernetesExecutor extends RemoteExecutor {
         // TODO - We need a folder we can put any input files or tool files in and mount
         // it
         // Currently - my Dockerfile assumes the working directory will be /tmp
+
+        // cwd should be a unique folder in the datawolf data folder. This is a shared
+        // folder available to datawolf and all kubernetes jobs. The jobID can be used
+        // as this magic folder.
+        // TODO unique name of execution of this step. can we use execution-id+step-id
+        String jobID = UUID.randomUUID().toString();
 
         // Here is an example of running the docker tool I created assuming we mount a
         // folder called /data into the image as /tmp
@@ -69,20 +76,18 @@ public class KubernetesExecutor extends RemoteExecutor {
         // --retrofit_strategy
 
         // Similar to LocalExecutor, we need the commands to append to command line
-        // that will get passed to the docker image that runs a the tool
+        // that will get passed to the docker image that runs the tool
         ArrayList<String> command = new ArrayList<String>();
 
         // Tool should contain the docker image to run in the executable field of the
         // tool implementation
 
-        String dockerImage = null;
         try {
             work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
             Execution execution = executionDao.findOne(getExecutionId());
             KubernetesToolImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), KubernetesToolImplementation.class);
 
-            dockerImage = impl.getExecutable();
             // add the options in order
             for (CommandLineOption option : impl.getCommandLineOptions()) {
                 // all have a flag option
@@ -212,13 +217,68 @@ public class KubernetesExecutor extends RemoteExecutor {
             ApiClient client = Config.defaultClient();
             api = new BatchV1Api(client);
 
-            // V1JobBuilder is removed in version 13 of the client - what is it replaced
-            // with?
-            // V1Job body = new
-            // V1JobBuilder().withNewMetadata().withNamespace("report-jobs").withName("payroll-report-job").endMetadata().withNewSpec().withNewTemplate().withNewMetadata()
-            // .addToLabels("name",
-            // "payroll-report").endMetadata().editOrNewSpec().addNewContainer().withName("main").withImage("report-runner").addNewCommand("payroll").addNewArg("--date")
-            // .addNewArg("2021-05-01").endContainer().withRestartPolicy("Never").endSpec().endTemplate().endSpec().build();
+            // create the job
+            job = new V1Job();
+
+            // add metadata, name is critical
+            V1ObjectMeta metadata = new V1ObjectMeta();
+            job.setMetadata(metadata);
+            metadata.setNamespace(impl.getNamespace());
+            //metadata.setName("unique name of execution of this step");
+            metadata.setName(jobID);
+
+            // add spec for a job, allow job to stay around for 1 hour after it finishes
+            V1JobSpec jobSpec = new V1JobSpec();
+            job.setSpec(jobSpec);
+            jobSpec.setTtlSecondsAfterFinished(gracePeriod);
+
+            // selector to find pod associated with this job
+            V1LabelSelector jobSelector = new V1LabelSelector();
+            jobSpec.setSelector(jobSelector);
+            jobSelector.putMatchLabelsItem("job-id", jobID);
+
+            V1PodTemplateSpec templateSpec = new V1PodTemplateSpec();
+            jobSpec.setTemplate(templateSpec);
+
+            // metadata for pod, used by selector
+            V1ObjectMeta templateMeta = new V1ObjectMeta();
+            templateSpec.setMetadata(templateMeta);
+            templateMeta.putLabelsItem("job-id", jobID);
+            templateMeta.putLabelsItem("execution-id", getExecutionId());
+            templateMeta.putLabelsItem("step-id", getStepId());
+
+            // actual job
+            V1PodSpec podSpec = new V1PodSpec();
+            templateSpec.setSpec(podSpec);
+
+            // create the container that will be executed
+            V1Container container = new V1Container();
+            podSpec.addContainersItem(container);
+            // set the name
+            container.setName(step.getTitle().replaceAll(" ", "-"));
+            // docker image
+            container.setImage(impl.getImage());
+            // command line arguments for container
+            container.args(command);
+            // add any environment variables
+            //container.addEnvItem();
+            // add volumes, this is a subpath in the datawolf volume
+            V1VolumeMount volumeMount = new V1VolumeMount();
+            container.addVolumeMountsItem(volumeMount);
+            volumeMount.setName("data");
+            volumeMount.setMountPath("/data");
+            volumeMount.setSubPath(jobID);
+
+            // add volume, this is the same pvc as mounted to datawolf
+            V1Volume volume = new V1Volume();
+            volume.setName("data");
+            V1PersistentVolumeClaimVolumeSource pvc = new V1PersistentVolumeClaimVolumeSource();
+            volume.setPersistentVolumeClaim(pvc);
+            // TODO need the same pvc as mounted into datawolf
+            pvc.claimName("datawolf-pvc");
+
+            // create the actual job
+            job = api.createNamespacedJob(impl.getNamespace(), job, null, null, null, null);
         } catch (AbortException e) {
             throw e;
         } catch (FailedException e) {
@@ -243,7 +303,11 @@ public class KubernetesExecutor extends RemoteExecutor {
 
     @Override
     public void cancelRemoteJob() {
-        // TODO add code to cancel kubernetes job
+        try {
+            api.deleteNamespacedJob(this.job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, gracePeriod, null, null, null);
+        } catch (ApiException e1) {
+            logger.error("Unable to delete job from Kubernetes", e1);
+        }
 
     }
 
@@ -253,11 +317,9 @@ public class KubernetesExecutor extends RemoteExecutor {
         // to communicate with the job
 
         try {
-            // TODO need to figure out how to get just the job this executor submitted
-            V1JobList jobList = api.listJobForAllNamespaces(null, null, null, null, null, null, null, null, null, null);
-            V1Job job = jobList.getItems().get(0);
-
+            V1Job job = api.readNamespacedJob(this.job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null);
             V1JobStatus status = job.getStatus();
+
             // This isn't quite right
             // If the job is finished, get the log files and any outputs we need to store in
             // DataWolf
@@ -348,7 +410,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             }
 
         } catch (ApiException e1) {
-            logger.debug("Unable to get a list of jobs from Kubernetes");
+            logger.error("Unable to get a job from Kubernetes", e1);
         }
         return State.UNKNOWN;
     }

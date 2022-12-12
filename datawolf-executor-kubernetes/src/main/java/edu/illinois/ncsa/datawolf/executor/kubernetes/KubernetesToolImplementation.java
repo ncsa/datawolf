@@ -8,7 +8,8 @@ import java.util.Map;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineOption;
 
 public class KubernetesToolImplementation {
-    private String                  executable         = null;
+    private String                  image              = null;
+    private String                  namespace          = null;
     private List<CommandLineOption> commandLineOptions = new ArrayList<CommandLineOption>();
     private Map<String, String>     env                = new HashMap<String, String>();
     private String                  captureStdOut      = null;
@@ -20,18 +21,34 @@ public class KubernetesToolImplementation {
     }
 
     /**
-     * @return the executable
+     * @return the image
      */
-    public String getExecutable() {
-        return executable;
+    public String getImage() {
+        return image;
     }
 
     /**
-     * @param executable
+     * @param image
      *            the executable to set
      */
-    public void setExecutable(String executable) {
-        this.executable = executable;
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+
+    /**
+     * @return the namespace
+     */
+    public String getNamespace() {
+        return image;
+    }
+
+    /**
+     * @param namespace
+     *            the executable to set
+     */
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
     }
 
     /**
