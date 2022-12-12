@@ -6,9 +6,7 @@ WORKDIR /src
 
 COPY . /src/
 
-RUN mvn dependency:resolve
-RUN mvn compile
-RUN mvn package -Dmaven.test.skip=true
+RUN mvn clean package -Dmaven.test.skip=true
 
 FROM openjdk:8-jre-alpine
 
