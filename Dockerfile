@@ -17,7 +17,10 @@ ENV DATAWOLF_ADMINS=admin@example.com \
     DB_MAX_POOLSIZE=100 \
     DB_IDLE_TIMEOUT=30000 \
     DB_USER=datawolf \
-    DB_PASSWORD=datawolf
+    DB_PASSWORD=datawolf \
+    KUBERNETES_NAMESPACE="datawolf" \
+    KUBERNETES_PVC="datawolf" \
+    KUBERNETES_DATA="/data"
 
 EXPOSE 8888
 VOLUME /home/datawolf/data
