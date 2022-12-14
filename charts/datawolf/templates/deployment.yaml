@@ -87,6 +87,10 @@ spec:
               value: {{ include "datawolf.pvc" . | quote }}
             - name: KUBERNETES_DATA
               value: "/data"
+            - name: KUBERNETES_CPUS
+              value: {{ .Values.job.cpus }}
+            - name: KUBERNETES_MEMORY
+              value: {{ .Values.job.memory }}
           volumeMounts:
             - name: {{ include "datawolf.fullname" . }}
               mountPath: /data

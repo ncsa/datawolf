@@ -24,6 +24,12 @@ engine:
   localexecutorthreads: 8
   pagesize: 250
 
+jobs:
+  # default number of cpus per job
+  cpus: 2.0
+  # default memory in GB per job
+  memory: 4.0
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import io.kubernetes.client.PodLogs;
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.models.*;
 import io.kubernetes.client.proto.V1Batch;
 import org.slf4j.Logger;
@@ -48,6 +49,14 @@ public class KubernetesExecutor extends RemoteExecutor {
     private V1Job               job           = null;
     private BatchV1Api          batchApi      = null;
     private File                jobFolder     = null;
+    @Inject
+    @Named("kubernetes.cpus")
+    // default number of cpus for a single job, can be changed per tool
+    private float               cpus          = 2;
+    @Inject
+    @Named("kubernetes.memory")
+    // default memory for a single job, can be changed per tool
+    private float               memory        = 4;
     @Inject
     @Named("kubernetes.namespace")
     private String              namespace     = null;
@@ -286,6 +295,15 @@ public class KubernetesExecutor extends RemoteExecutor {
             if (!impl.getEnv().isEmpty()) {
                 //container.addEnvItem();
             }
+
+            // add resource limits
+            V1ResourceRequirements resources = new V1ResourceRequirements();
+            container.setResources(resources);
+            String val = impl.getResources().getOrDefault("cpus", Float.toString(cpus));
+            resources.putLimitsItem("cpus", new Quantity(val));
+            val = impl.getResources().getOrDefault("memory", Float.toString(memory));
+            resources.putLimitsItem("memory", new Quantity(val + "Gi"));
+
             // add volumes, this is a subpath in the datawolf volume
             V1VolumeMount volumeMount = new V1VolumeMount();
             container.addVolumeMountsItem(volumeMount);

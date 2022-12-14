@@ -20,7 +20,9 @@ ENV DATAWOLF_ADMINS=admin@example.com \
     DB_PASSWORD=datawolf \
     KUBERNETES_NAMESPACE="datawolf" \
     KUBERNETES_PVC="datawolf" \
-    KUBERNETES_DATA="/data"
+    KUBERNETES_DATA="/data" \
+    KUBERNETES_CPUS=2 \
+    KUBERNETES_MEMORY=4
 
 EXPOSE 8888
 VOLUME /home/datawolf/data

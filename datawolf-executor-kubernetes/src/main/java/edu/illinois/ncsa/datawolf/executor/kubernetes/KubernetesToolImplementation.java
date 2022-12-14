@@ -12,6 +12,7 @@ public class KubernetesToolImplementation {
     private String                  pullSecretName     = null;
     private List<CommandLineOption> commandLineOptions = new ArrayList<CommandLineOption>();
     private Map<String, String>     env                = new HashMap<String, String>();
+    private Map<String, String>     resources          = new HashMap<String, String>();
     private String                  captureStdOut      = null;
     private String                  captureStdErr      = null;
     private boolean                 joinStdOutStdErr   = false;
@@ -79,6 +80,21 @@ public class KubernetesToolImplementation {
      */
     public void setEnv(Map<String, String> env) {
         this.env = env;
+    }
+
+    /**
+     * @return the resources
+     */
+    public Map<String, String> getResources() {
+        return resources;
+    }
+
+    /**
+     * @param resources
+     *            the resources to set
+     */
+    public void setResources(Map<String, String> resources) {
+        this.resources = resources;
     }
 
     /**
