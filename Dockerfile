@@ -21,7 +21,7 @@ ENV DATAWOLF_ADMINS=admin@example.com \
     KUBERNETES_NAMESPACE="datawolf" \
     KUBERNETES_PVC="datawolf" \
     KUBERNETES_DATA="/data" \
-    KUBERNETES_CPUS=2 \
+    KUBERNETES_CPU=2 \
     KUBERNETES_MEMORY=4
 
 EXPOSE 8888

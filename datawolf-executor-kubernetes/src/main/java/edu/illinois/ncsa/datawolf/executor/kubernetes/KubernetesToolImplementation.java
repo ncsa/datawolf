@@ -12,6 +12,7 @@ public class KubernetesToolImplementation {
     private String                  pullSecretName     = null;
     private List<CommandLineOption> commandLineOptions = new ArrayList<CommandLineOption>();
     private Map<String, String>     env                = new HashMap<String, String>();
+    // this sets the limits for memory and cpu
     private Map<String, String>     resources          = new HashMap<String, String>();
     private String                  captureStdOut      = null;
     private String                  captureStdErr      = null;

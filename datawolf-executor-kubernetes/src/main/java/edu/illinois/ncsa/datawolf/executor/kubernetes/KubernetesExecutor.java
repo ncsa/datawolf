@@ -1,22 +1,16 @@
 package edu.illinois.ncsa.datawolf.executor.kubernetes;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
+import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.PodLogs;
 import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.models.*;
-import io.kubernetes.client.proto.V1Batch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +39,16 @@ public class KubernetesExecutor extends RemoteExecutor {
 
     private static final int    gracePeriod   = 3600;
 
-    // Need to populate this or maybe this should be Job?
+    private String              jobID         = null;
     private V1Job               job           = null;
     private BatchV1Api          batchApi      = null;
+    private CoreV1Api           coreApi       = null;
     private File                jobFolder     = null;
+    private String              lastlog       = "";
     @Inject
-    @Named("kubernetes.cpus")
+    @Named("kubernetes.cpu")
     // default number of cpus for a single job, can be changed per tool
-    private float               cpus          = 2;
+    private float               cpu           = 2;
     @Inject
     @Named("kubernetes.memory")
     // default memory for a single job, can be changed per tool
@@ -65,7 +61,7 @@ public class KubernetesExecutor extends RemoteExecutor {
     private String              pvcName       = null;
     @Inject
     @Named("kubernetes.data")
-    private String              dataFolder    = "/data";
+    private String              dataFolder    = "/home/datawolf/data";
 
 
     // Output files specified in the tool description
@@ -80,8 +76,8 @@ public class KubernetesExecutor extends RemoteExecutor {
         // jobFolder should be a unique folder in the datawolf data folder. This is a shared
         // folder available to datawolf and all kubernetes jobs. The jobID can be used
         // as this magic folder.
-        String jobID = UUID.randomUUID().toString();
-        jobFolder = new File(dataFolder, jobID);
+        jobID = UUID.randomUUID().toString();
+        jobFolder = new File(new File(dataFolder, "jobs"), jobID);
         jobFolder.mkdirs();
 
         // Here is an example of running the docker tool I created assuming we mount a
@@ -235,10 +231,14 @@ public class KubernetesExecutor extends RemoteExecutor {
 
             // create api
             ApiClient client = Config.defaultClient();
+            Configuration.setDefaultApiClient(client);
             batchApi = new BatchV1Api(client);
+            coreApi = new CoreV1Api(client);
 
             // create the job
             job = new V1Job();
+            job.setApiVersion("batch/v1");
+            job.setKind("Job");
 
             // add metadata, name is critical
             V1ObjectMeta metadata = new V1ObjectMeta();
@@ -255,15 +255,10 @@ public class KubernetesExecutor extends RemoteExecutor {
             job.setSpec(jobSpec);
             jobSpec.setTtlSecondsAfterFinished(gracePeriod);
 
-            // selector to find pod associated with this job
-            V1LabelSelector jobSelector = new V1LabelSelector();
-            jobSpec.setSelector(jobSelector);
-            jobSelector.putMatchLabelsItem("job-id", jobID);
-
             V1PodTemplateSpec templateSpec = new V1PodTemplateSpec();
             jobSpec.setTemplate(templateSpec);
 
-            // metadata for pod, used by selector
+            // metadata for pod
             V1ObjectMeta templateMeta = new V1ObjectMeta();
             templateSpec.setMetadata(templateMeta);
             templateMeta.putLabelsItem("job-id", jobID);
@@ -274,6 +269,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             // actual job
             V1PodSpec podSpec = new V1PodSpec();
             templateSpec.setSpec(podSpec);
+            podSpec.setRestartPolicy("OnFailure");
 
             // pull secret
             if (impl.getPullSecretName() != null) {
@@ -299,17 +295,16 @@ public class KubernetesExecutor extends RemoteExecutor {
             // add resource limits
             V1ResourceRequirements resources = new V1ResourceRequirements();
             container.setResources(resources);
-            String val = impl.getResources().getOrDefault("cpus", Float.toString(cpus));
-            resources.putLimitsItem("cpus", new Quantity(val));
-            val = impl.getResources().getOrDefault("memory", Float.toString(memory));
+            String val = impl.getResources().getOrDefault("memory", Float.toString(memory));
             resources.putLimitsItem("memory", new Quantity(val + "Gi"));
+            val = impl.getResources().getOrDefault("cpu", Float.toString(cpu));
+            resources.putLimitsItem("cpu", new Quantity(val));
 
             // add volumes, this is a subpath in the datawolf volume
             V1VolumeMount volumeMount = new V1VolumeMount();
             container.addVolumeMountsItem(volumeMount);
             volumeMount.setName("data");
-            volumeMount.setMountPath("/data");
-            volumeMount.setSubPath(jobID);
+            volumeMount.setMountPath(dataFolder);
 
             // add volume, this is the same pvc as mounted to datawolf
             V1Volume volume = new V1Volume();
@@ -361,8 +356,15 @@ public class KubernetesExecutor extends RemoteExecutor {
             // This isn't quite right
             // If the job is finished, get the log files and any outputs we need to store in
             // DataWolf
-            if (status.equals(V1JobStatus.SERIALIZED_NAME_SUCCEEDED)) {
-
+            if (status.getActive() != null) {
+                // job is running
+                return State.RUNNING;
+            } else if (status.getReady() != 0) {
+                return State.WAITING;
+            } else if (status.getFailed() != null) {
+                return State.FAILED;
+            } else if (status.getSucceeded() != null) {
+                // job is finished
                 try {
                     work.begin();
                     WorkflowStep step = workflowStepDao.findOne(getStepId());
@@ -372,16 +374,17 @@ public class KubernetesExecutor extends RemoteExecutor {
                     // If there are any changes to the execution - save it
                     boolean saveExecution = false;
 
+                    // save the logfiles
+                    getJobLog();
+
                     // This is a placeholder - we need to find what kind of logs we capture with
                     // kubernetes
                     if (impl.getCaptureStdOut() != null) {
-                        // TODO - Fetch and Store any log file that we get from kubernetes execution
-                        String stdout = "job finished";
                         Dataset ds = new Dataset();
                         ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                         ds.setCreator(execution.getCreator());
 
-                        ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
+                        ByteArrayInputStream bais = new ByteArrayInputStream(lastlog.getBytes("UTF-8"));
                         FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, execution.getCreator(), ds);
 
                         ds = datasetDao.save(ds);
@@ -441,55 +444,44 @@ public class KubernetesExecutor extends RemoteExecutor {
                     work.end();
                 }
                 deleteDirectory(jobFolder);
+                batchApi.deleteNamespacedJob(job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, null, null, "Foreground", null);
                 return State.FINISHED;
-            } else if (status.equals(V1JobStatus.SERIALIZED_NAME_FAILED)) {
-                deleteDirectory(jobFolder);
-                return State.FAILED;
-            } else if (status.equals(V1JobStatus.SERIALIZED_NAME_ACTIVE)) {
-                return State.RUNNING;
+            } else {
+                logger.debug("STATUS = " + status);
             }
-
         } catch (ApiException e1) {
             logger.error("Unable to get a job from Kubernetes", e1);
         }
         return State.UNKNOWN;
     }
 
-
-    /**
-     * Recursively remove a directory and all files in the directory.
-     *
-     * @param path
-     *            the directory to be removed
-     * @return true if the directory could be deleted.
-     */
-    private boolean deleteDirectory(File path) {
-        if (path.exists()) {
-            File[] files = path.listFiles();
-            for (File element : files) {
-                if (element.isDirectory()) {
-                    deleteDirectory(element);
-                } else {
-                    element.delete();
-                }
-            }
+    private void getJobLog() {
+        // only check for job if running
+        if (getState() != State.RUNNING) {
+            return;
         }
-        return (path.delete());
+        String selector = "job-id=" + jobID;
+        try {
+            V1PodList items = coreApi.listNamespacedPod(job.getMetadata().getNamespace(), null, null, null, null, selector, null, null, null, null, null);
+            if (items.getItems().size() > 0) {
+                PodLogs logs = new PodLogs();
+                InputStream is = logs.streamNamespacedPodLog(items.getItems().get(0));
+                lastlog = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
+                        .lines()
+                        .collect(Collectors.joining("\n"));
+            } else {
+                logger.debug("Could not find pod " + selector);
+            }
+        } catch (IOException e1) {
+            logger.debug("Unable to get logs from Kubernetes");
+        } catch (ApiException e1) {
+            logger.debug("Unable to get a job from Kubernetes");
+        }
     }
 
     @Override
     public String getRemoteLog() {
-        StringBuffer sb = new StringBuffer();
-        String line = null;
-
-        sb.append("-------- STDOUT --------");
-        sb.append(System.getProperty("line.separator"));
-
-        sb.append("-------- STDERR --------");
-        sb.append(System.getProperty("line.separator"));
-
-        // TODO implement
-
-        return sb.toString();
+        getJobLog();
+        return "-------- STDOUT/STDERR --------\n" + lastlog;
     }
 }

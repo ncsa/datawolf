@@ -86,14 +86,14 @@ spec:
             - name: KUBERNETES_PVC
               value: {{ include "datawolf.pvc" . | quote }}
             - name: KUBERNETES_DATA
-              value: "/data"
-            - name: KUBERNETES_CPUS
-              value: {{ .Values.jobs.cpus | quote }}
+              value: "/home/datawolf/data"
+            - name: KUBERNETES_CPU
+              value: {{ .Values.jobs.cpu | quote }}
             - name: KUBERNETES_MEMORY
               value: {{ .Values.jobs.memory | quote }}
           volumeMounts:
             - name: {{ include "datawolf.fullname" . }}
-              mountPath: /data
+              mountPath: /home/datawolf/data
           ports:
             - name: http
               containerPort: 8888
