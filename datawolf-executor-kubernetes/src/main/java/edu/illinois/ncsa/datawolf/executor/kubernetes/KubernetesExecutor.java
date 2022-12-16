@@ -210,12 +210,15 @@ public class KubernetesExecutor extends RemoteExecutor {
             // We have the docker image name to run and all the arguments to pass in
             // We've also copied any input datasets into the image
             // Next we setup the kubernetes specific run pieces
-            StringBuilder sb = new StringBuilder();
-            for (String s : command) {
-                sb.append(s);
-                sb.append(" ");
+            if (logger.isDebugEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(impl.getImage());
+                for (String s : command) {
+                    sb.append(s);
+                    sb.append(" ");
+                }
+                logger.debug("Executing : " + sb.toString());
             }
-            System.out.println("Executing : " + sb.toString());
 
             // create api
             ApiClient client = Config.defaultClient();
@@ -277,6 +280,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             container.args(command);
             // add any environment variables
             if (!impl.getEnv().isEmpty()) {
+                // TODO implement
                 //container.addEnvItem();
             }
 
@@ -439,7 +443,10 @@ public class KubernetesExecutor extends RemoteExecutor {
                 logger.debug("STATUS = " + status);
             }
         } catch (ApiException e1) {
-            logger.error("Unable to get a job from Kubernetes", e1);
+            if (e1.getCode() == 404) {
+                throw (new FailedException("Job [" + jobID + "] was removed."));
+            }
+            logger.error("Unable to get a job from Kubernetes (code=" + e1.getCode() + " body=" + e1.getResponseBody() + ")", e1);
         }
         return State.UNKNOWN;
     }
@@ -450,11 +457,12 @@ public class KubernetesExecutor extends RemoteExecutor {
             return;
         }
         String selector = "job-id=" + jobID;
+        InputStream is = null;
         try {
             V1PodList items = coreApi.listNamespacedPod(job.getMetadata().getNamespace(), null, null, null, null, selector, null, null, null, null, null);
             if (items.getItems().size() > 0) {
                 PodLogs logs = new PodLogs();
-                InputStream is = logs.streamNamespacedPodLog(items.getItems().get(0));
+                is = logs.streamNamespacedPodLog(items.getItems().get(0));
                 lastlog = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
                         .lines()
                         .collect(Collectors.joining("\n"));
@@ -465,6 +473,14 @@ public class KubernetesExecutor extends RemoteExecutor {
             logger.debug("Unable to get logs from Kubernetes");
         } catch (ApiException e1) {
             logger.debug("Unable to get a job from Kubernetes");
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    logger.error("Could not close log stream");
+                }
+            }
         }
     }
 
