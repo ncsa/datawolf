@@ -80,19 +80,6 @@ public class KubernetesExecutor extends RemoteExecutor {
         jobFolder = new File(new File(dataFolder, "jobs"), jobID);
         jobFolder.mkdirs();
 
-        // Here is an example of running the docker tool I created assuming we mount a
-        // folder called /data into the image as /tmp
-
-        // docker run --rm -v /data/:/$jobFolder/
-        // incore/dw-pyincore --analysis
-        // pyincore.analyses.buildingdamage.buildingdamage:BuildingDamage --service_url
-        // https://incore.ncsa.illinois.edu --token /tmp/cbi/.incore_token --result_name
-        // slc-bldg-dmg --hazard_type earthquake --hazard_id 628fc3a2be7de109e898d718
-        // --fragility_key --use_liquefaction False --use_hazard_uncertainty --num_cpu 4
-        // --seed 1234 --liquefaction_geology_dataset_id --buildings
-        // 62fea288f5438e1f8c515ef8 --dfr3_mapping_set 6309005ad76c6d0e1f6be081
-        // --retrofit_strategy
-
         // Similar to LocalExecutor, we need the commands to append to command line
         // that will get passed to the docker image that runs the tool
         ArrayList<String> command = new ArrayList<String>();
@@ -206,7 +193,8 @@ public class KubernetesExecutor extends RemoteExecutor {
                             }
                         }
                         if (option.isCommandline()) {
-                            command.add(filename);
+                            String datafile = new File("/data", filename.substring(jobFolder.getAbsolutePath().length())).getAbsolutePath();
+                            command.add(datafile);
                         }
                     }
 
@@ -304,7 +292,8 @@ public class KubernetesExecutor extends RemoteExecutor {
             V1VolumeMount volumeMount = new V1VolumeMount();
             container.addVolumeMountsItem(volumeMount);
             volumeMount.setName("data");
-            volumeMount.setMountPath(dataFolder);
+            volumeMount.setMountPath("/data");
+            volumeMount.setSubPath(new File("jobs", jobID).toString());
 
             // add volume, this is the same pvc as mounted to datawolf
             V1Volume volume = new V1Volume();
