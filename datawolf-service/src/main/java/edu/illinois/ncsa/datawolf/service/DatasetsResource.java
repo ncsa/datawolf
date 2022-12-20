@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -92,7 +93,12 @@ public class DatasetsResource {
     @Inject
     private FileStorage         fileStorage;
 
-    private static final Logger log = LoggerFactory.getLogger(DatasetsResource.class);
+    @Inject
+    @Named("dataset.permissions")
+    // default view permissions for datasets
+    private String              permissions = "private";
+
+    private static final Logger log         = LoggerFactory.getLogger(DatasetsResource.class);
 
     /**
      * 
@@ -338,7 +344,7 @@ public class DatasetsResource {
 
         List<Dataset> list = new ArrayList<Dataset>();
         results.forEach(list::add);
-        
+
         return list;
     }
 
@@ -356,12 +362,11 @@ public class DatasetsResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Dataset getDataset(@Context HttpRequest request, @PathParam("dataset-id") String datasetId) {
         Dataset dataset = datasetDao.findOne(datasetId);
-
         if (dataset == null) {
             return null;
         }
 
-        if (!isAuthorized(request, dataset)) {
+        if (permissions.equalsIgnoreCase("private") && !isAuthorized(request, dataset)) {
             throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
         }
 
@@ -448,7 +453,7 @@ public class DatasetsResource {
                 Response.status(Response.Status.NOT_FOUND).build();
             }
 
-            if (!isAuthorized(request, dataset)) {
+            if (permissions.equalsIgnoreCase("private") && !isAuthorized(request, dataset)) {
                 throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
             }
 
@@ -491,7 +496,7 @@ public class DatasetsResource {
             return null;
         }
 
-        if (!isAuthorized(request, dataset)) {
+        if (permissions.equalsIgnoreCase("private") && !isAuthorized(request, dataset)) {
             throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
         }
 
@@ -520,7 +525,7 @@ public class DatasetsResource {
             Response.status(Response.Status.NOT_FOUND).build();
         }
 
-        if (!isAuthorized(request, dataset)) {
+        if (permissions.equalsIgnoreCase("private") && !isAuthorized(request, dataset)) {
             throw new NotAuthorizedException("You are not authorized to view this dataset", Response.status(Response.Status.UNAUTHORIZED));
         }
 
