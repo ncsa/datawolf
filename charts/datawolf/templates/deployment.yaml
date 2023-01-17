@@ -11,10 +11,11 @@ spec:
       {{- include "datawolf.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- include "datawolf.selectorLabels" . | nindent 8 }}
     spec:
@@ -94,6 +95,9 @@ spec:
           volumeMounts:
             - name: {{ include "datawolf.fullname" . }}
               mountPath: /home/datawolf/data
+            - name: log4j
+              mountPath: /home/datawolf/conf/log4j.properties
+              subPath: log4j.properties
           ports:
             - name: http
               containerPort: 8888
@@ -109,6 +113,12 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
+        - name: log4j
+          configMap:
+            name: {{ include "datawolf.fullname" . }}-config
+            items:
+              - key: log4j.properties
+                path: log4j.properties
         - name: {{ include "datawolf.fullname" . }}
           persistentVolumeClaim:
             claimName: {{ include "datawolf.pvc" . }}
