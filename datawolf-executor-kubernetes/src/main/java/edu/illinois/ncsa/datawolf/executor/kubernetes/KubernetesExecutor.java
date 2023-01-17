@@ -69,6 +69,10 @@ public class KubernetesExecutor extends RemoteExecutor {
     // and will be saved to file storage
     private Map<String, String> outputfiles   = new HashMap<String, String>();
 
+    static {
+        REMOTE_JOB_CHECK_INTERVAL = 5000;
+    }
+
     @Override
     public State submitRemoteJob(File cwd) throws AbortException, FailedException {
         // cwd is ignored, since that is on the local machine where datawolf runs.
@@ -245,6 +249,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             V1JobSpec jobSpec = new V1JobSpec();
             job.setSpec(jobSpec);
             jobSpec.setTtlSecondsAfterFinished(gracePeriod);
+            jobSpec.setBackoffLimit(0);
 
             V1PodTemplateSpec templateSpec = new V1PodTemplateSpec();
             jobSpec.setTemplate(templateSpec);
@@ -260,7 +265,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             // actual job
             V1PodSpec podSpec = new V1PodSpec();
             templateSpec.setSpec(podSpec);
-            podSpec.setRestartPolicy("OnFailure");
+            podSpec.setRestartPolicy("Never");
 
             // pull secret
             if (impl.getPullSecretName() != null) {
@@ -350,10 +355,13 @@ public class KubernetesExecutor extends RemoteExecutor {
             // If the job is finished, get the log files and any outputs we need to store in
             // DataWolf
             if (status.getActive() != null) {
-                // job is running
-                return State.RUNNING;
-            } else if (status.getReady() != 0) {
-                return State.WAITING;
+                if (status.getReady() != 0) {
+                    // job is running
+                    return State.RUNNING;
+                } else {
+                    // no pods ready, return previous state
+                    return getState();
+                }
             } else if (status.getFailed() != null) {
                 return State.FAILED;
             } else if (status.getSucceeded() != null) {
@@ -452,10 +460,6 @@ public class KubernetesExecutor extends RemoteExecutor {
     }
 
     private void getJobLog() {
-        // only check for job if running
-        if (getState() != State.RUNNING) {
-            return;
-        }
         String selector = "job-id=" + jobID;
         InputStream is = null;
         try {
@@ -463,9 +467,16 @@ public class KubernetesExecutor extends RemoteExecutor {
             if (items.getItems().size() > 0) {
                 PodLogs logs = new PodLogs();
                 is = logs.streamNamespacedPodLog(items.getItems().get(0));
-                lastlog = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))
-                        .lines()
-                        .collect(Collectors.joining("\n"));
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte buf[] = new byte[1024];
+                int len = 42;
+                while (len > 0) {
+                    len = is.read(buf);
+                    if (len > 0) {
+                        out.write(buf, 0, len);
+                    }
+                }
+                lastlog = out.toString("UTF-8");
             } else {
                 logger.debug("Could not find pod " + selector);
             }

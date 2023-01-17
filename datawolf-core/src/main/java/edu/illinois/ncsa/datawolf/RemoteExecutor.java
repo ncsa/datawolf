@@ -28,7 +28,7 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  * 
  */
 public abstract class RemoteExecutor extends Executor implements Runnable {
-    private static final int    REMOTE_JOB_CHECK_INTERVAL = 30000;
+    protected static int        REMOTE_JOB_CHECK_INTERVAL = 30000;
 
     private static final Logger logger                    = LoggerFactory.getLogger(RemoteExecutor.class);
 
