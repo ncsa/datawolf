@@ -1,0 +1,136 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "datawolf.fullname" . }}
+  labels:
+    {{- include "datawolf.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "datawolf.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "datawolf.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "datawolf.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: check-postgresql
+          image: "ncsa/checks:1.0.1"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: PGURI
+              value: {{ include "datawolf.postgresql" . | quote }}
+            - name: PGUSER
+              value: {{ .Values.postgresql.postgresqlUsername | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.postgresql.existingSecret }}
+                  name: {{ .Values.postgresql.existingSecret }}
+                  {{- else }}
+                  name: {{ include "datawolf.fullname" . }}-postgresql
+                  {{- end }}
+                  key: postgresql-password              
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DATAWOLF_ADMINS
+              value: {{ join "," .Values.auth.admins | quote }}
+            - name: DATAWOLF_USE_AUTH
+              value: {{ .Values.auth.enabled | quote }}
+            - name: DB_SOURCE_URL
+              value: "jdbc:{{ include "datawolf.postgresql" . }}"
+            - name: DB_MAX_POOLSIZE
+              value: {{ .Values.postgresql.max_poolsize | quote }}
+            - name: DB_IDLE_TIMEOUT
+              value: {{ .Values.postgresql.idle_timeout | quote }}
+            - name: DB_USER
+              value: {{ .Values.postgresql.postgresqlUsername | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if .Values.postgresql.existingSecret }}
+                  name: {{ .Values.postgresql.existingSecret }}
+                  {{- else }}
+                  name: {{ include "datawolf.fullname" . }}-postgresql
+                  {{- end }}
+                  key: postgresql-password
+            - name: ENGINE_STORELOGS
+              value: {{ .Values.engine.storelogs | quote }}
+            - name: ENGINE_TIMEOUT
+              value: {{ .Values.engine.timeout | quote }}
+            - name: ENGINE_EXTRALOCALEXECUTOR
+              value: {{ .Values.engine.extralocalexecutor | quote }}
+            - name: ENGINE_LOCALEXECUTORTHREADS
+              value: {{ .Values.engine.localexecutorthreads | quote }}
+            - name: ENGINE_PAGESIZE
+              value: {{ .Values.engine.pagesize | quote }}
+            - name: KUBERNETES_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: KUBERNETES_PVC
+              value: {{ include "datawolf.pvc" . | quote }}
+            - name: KUBERNETES_DATA
+              value: "/home/datawolf/data"
+            - name: KUBERNETES_CPU
+              value: {{ .Values.jobs.cpu | quote }}
+            - name: KUBERNETES_MEMORY
+              value: {{ .Values.jobs.memory | quote }}
+          volumeMounts:
+            - name: {{ include "datawolf.fullname" . }}
+              mountPath: /home/datawolf/data
+            - name: log4j
+              mountPath: /home/datawolf/conf/log4j.properties
+              subPath: log4j.properties
+          ports:
+            - name: http
+              containerPort: 8888
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /datawolf/persons
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /datawolf/persons
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: log4j
+          configMap:
+            name: {{ include "datawolf.fullname" . }}-config
+            items:
+              - key: log4j.properties
+                path: log4j.properties
+        - name: {{ include "datawolf.fullname" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "datawolf.pvc" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
