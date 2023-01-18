@@ -1,0 +1,114 @@
+# Default values for datawolf.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: ncsa/datawolf
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+auth:
+  enabled: false
+  admins:
+    - datawolf@example.com
+
+engine:
+  storelogs: false
+  timeout: 3600
+  extralocalexecutor: 1
+  localexecutorthreads: 8
+  pagesize: 250
+
+jobs:
+  # default number of cpus per job
+  cpu: 2.0
+  # default memory in GB per job
+  memory: 4.0
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+rbac:
+  # Should RBAC be created to create kubernetes jobs, the service account
+  # needs ability to create/list/destroy jobs if you plan on using the
+  # kubernetes executor.
+  create: true
+
+persistence:
+  #existingClaim: 
+  #storageClass: "-"
+  size: 20Gi
+
+postgresql:
+  enabled: true
+  # url: jdbc:postgresql://postgresql/datawolf
+
+  ## @param existingSecret Name of existing secret to use for PostgreSQL passwords
+  ## The secret has to contain the keys postgresql-password which is the password for postgresqlUsername
+  # existingSecret: 
+  postgresqlUsername: datawolf
+  postgresqlPassword: datawolf
+  postgresqlDatabase: datawolf
+
+  max_poolsize: 20
+  idle_timeout: 30000
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8888
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

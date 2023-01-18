@@ -6,3 +6,7 @@
 # ignore customizations to datawolf
 datawolf-webapp-all/src/assembly/conf/custom.properties
 .env
+
+# ignore charts
+charts/datawolf/charts
+charts/datawolf/values-*.yaml

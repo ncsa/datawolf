@@ -12,7 +12,7 @@ on:
 env:
   MAIN_REPO: ncsa/datawolf
   DOCKERHUB_ORG: ncsa
-  #NCSAHUB: hub.ncsa.illinois.edu/incore
+  NCSAHUB: hub.ncsa.illinois.edu/incore
   #PLATFORM: "linux/amd64,linux/arm64"
   PLATFORM: "linux/amd64"
 

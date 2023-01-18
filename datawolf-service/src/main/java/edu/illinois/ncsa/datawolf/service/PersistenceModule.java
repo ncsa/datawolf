@@ -32,6 +32,7 @@ import edu.illinois.ncsa.datawolf.domain.dao.WorkflowToolParameterDao;
 import edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor;
 import edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor;
 import edu.illinois.ncsa.datawolf.executor.java.JavaExecutor;
+import edu.illinois.ncsa.datawolf.executor.kubernetes.KubernetesExecutor;
 import edu.illinois.ncsa.domain.FileStorage;
 import edu.illinois.ncsa.domain.TokenProvider;
 import edu.illinois.ncsa.domain.dao.AccountDao;
@@ -123,6 +124,10 @@ public class PersistenceModule extends AbstractModule {
 
             if (configuration.containsKey("hpc.executor")) { //$NON-NLS-1$
                 binder.addBinding(HPCExecutor.EXECUTOR_NAME).to(HPCExecutor.class);
+            }
+            if (configuration.containsKey("kubernetes.executor")) { //$NON-NLS-1$
+                binder.addBinding(KubernetesExecutor.EXECUTOR_NAME).to(KubernetesExecutor.class);
+                bind(KubernetesExecutor.class);
             }
 
             bind(Engine.class);

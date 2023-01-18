@@ -6,9 +6,7 @@ WORKDIR /src
 
 COPY . /src/
 
-RUN mvn dependency:resolve
-RUN mvn compile
-RUN mvn package -Dmaven.test.skip=true
+RUN mvn clean package -Dmaven.test.skip=true
 
 FROM openjdk:8-jre-alpine
 
@@ -19,7 +17,12 @@ ENV DATAWOLF_ADMINS=admin@example.com \
     DB_MAX_POOLSIZE=100 \
     DB_IDLE_TIMEOUT=30000 \
     DB_USER=datawolf \
-    DB_PASSWORD=datawolf
+    DB_PASSWORD=datawolf \
+    KUBERNETES_NAMESPACE="datawolf" \
+    KUBERNETES_PVC="datawolf" \
+    KUBERNETES_DATA="/data" \
+    KUBERNETES_CPU=2 \
+    KUBERNETES_MEMORY=4
 
 EXPOSE 8888
 VOLUME /home/datawolf/data
