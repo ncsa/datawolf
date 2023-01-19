@@ -12,6 +12,8 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+loglevel: INFO
+
 auth:
   enabled: false
   admins:
