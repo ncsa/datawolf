@@ -22,7 +22,8 @@ ENV DATAWOLF_ADMINS=admin@example.com \
     KUBERNETES_PVC="datawolf" \
     KUBERNETES_DATA="/data" \
     KUBERNETES_CPU=2 \
-    KUBERNETES_MEMORY=4
+    KUBERNETES_MEMORY=4 \
+    DATASET_PERMISSIONS=private
 
 EXPOSE 8888
 VOLUME /home/datawolf/data
