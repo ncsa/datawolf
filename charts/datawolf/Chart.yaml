@@ -1,4 +1,4 @@
-piVersion: v2
+apiVersion: v2
 name: datawolf
 icon: https://raw.githubusercontent.com/ncsa/datawolf/develop/datawolf.png
 home: https://datawolf.ncsa.illinois.edu/
@@ -32,7 +32,7 @@ sources:
 dependencies:
   - name: postgresql
     version: ~10
-    repository: https://charts.bitnami.com/bitnami
+    repository: https://raw.githubusercontent.com/bitnami/charts/archive-full-index/bitnami
     condition: postgresql.enabled
 
 # annotations for artifact.io
