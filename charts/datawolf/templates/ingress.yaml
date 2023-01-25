@@ -30,7 +30,7 @@ spec:
     - host: {{ . | quote }}
       http:
         paths:
-          - path: /
+          - path: /datawolf
             pathType: ImplementationSpecific
             backend:
               service:

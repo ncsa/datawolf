@@ -55,6 +55,8 @@ spec:
               value: {{ join "," .Values.auth.admins | quote }}
             - name: DATAWOLF_USE_AUTH
               value: {{ .Values.auth.enabled | quote }}
+            - name: DATASET_PERMISSION
+              value: {{ .Values.dataset | quote }}
             - name: DB_SOURCE_URL
               value: "jdbc:{{ include "datawolf.postgresql" . }}"
             - name: DB_MAX_POOLSIZE
