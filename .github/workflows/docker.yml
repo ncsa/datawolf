@@ -42,7 +42,7 @@ jobs:
 
           # calculate the version and all tags
           if [ "$BRANCH" == "main" ]; then
-            VERSION="$(xpath -q -e 'project/version/text()' pom.xml)"
+            VERSION="$(cat pom.xml | grep "<version>.*</version>" | head -1 |awk -F'[><]' '{print $3}')"
             tags="latest"
             oldversion=""
             tmpversion="${VERSION}"
