@@ -1,22 +1,12 @@
-# syntax=docker/dockerfile:1.0-experimental
 FROM maven:3-jdk-8 AS build
 
 RUN apt-get update && apt-get -y install net-tools
 
 WORKDIR /src
 
-COPY pom.xml datawolf-* gondola* file-* ncsa-* /src/
+COPY . /src/
 
-RUN --mount=type=cache,target=/root/.m2 \
-    --mount=type=cache,target=/src/target \
-    mvn dependency:resolve
-RUN --mount=type=cache,target=/root/.m2 \
-    --mount=type=cache,target=/src/target \
-    mvn compile
-RUN --mount=type=cache,target=/root/.m2 \
-    --mount=type=cache,target=/src/target \
-    mvn package -Dmaven.test.skip=true
-RUN cat /usr/share/maven/ref/settings-docker.xml
+RUN mvn clean package -Dmaven.test.skip=true
 
 FROM openjdk:8-jre-alpine
 
@@ -27,7 +17,13 @@ ENV DATAWOLF_ADMINS=admin@example.com \
     DB_MAX_POOLSIZE=100 \
     DB_IDLE_TIMEOUT=30000 \
     DB_USER=datawolf \
-    DB_PASSWORD=datawolf
+    DB_PASSWORD=datawolf \
+    KUBERNETES_NAMESPACE="datawolf" \
+    KUBERNETES_PVC="datawolf" \
+    KUBERNETES_DATA="/data" \
+    KUBERNETES_CPU=2 \
+    KUBERNETES_MEMORY=4 \
+    DATASET_PERMISSIONS=private
 
 EXPOSE 8888
 VOLUME /home/datawolf/data

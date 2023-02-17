@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>edu.illinois.ncsa</groupId>
-	<version>4.5.0</version>
+	<version>4.6.0</version>
 	<artifactId>datawolf</artifactId>
 	<packaging>pom</packaging>
 
@@ -13,7 +13,7 @@
 		<hibernate.version>4.3.5.Final</hibernate.version>
 		<hsql.version>2.3.2</hsql.version>
 		<mysql.version>5.1.34</mysql.version>
-		<postgresql.version>9.4.1212</postgresql.version>
+		<postgresql.version>42.4.0</postgresql.version>
 		<apache.http.version>4.5.13</apache.http.version>
 		<slf4j.version>1.7.0</slf4j.version>
 		<junit.version>4.13.1</junit.version>
@@ -23,7 +23,8 @@
 		<jetty.version>9.2.2.v20140723</jetty.version>
 		<!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
 		<hikaricp.version>2.5.1</hikaricp.version>
-                <unboundid.version>4.0.7</unboundid.version>
+		<unboundid.version>4.0.7</unboundid.version>
+		<kubernetes.version>17.0.0</kubernetes.version>
 	</properties>
 
 	<repositories>
@@ -80,15 +81,10 @@
 
 	<distributionManagement>
 		<repository>
-			<id>ncsa.releases</id>
-			<name>NCSA Nexus Releases</name>
-			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/releases</url>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/ncsa/datawolf</url>
 		</repository>
-		<snapshotRepository>
-			<id>ncsa.snapshots</id>
-			<name>NCSA Nexus Snapshots</name>
-			<url>https://opensource.ncsa.illinois.edu/nexus/content/repositories/snapshots</url>
-		</snapshotRepository>
 	</distributionManagement>
 
   <build>
@@ -122,6 +118,7 @@
 		<module>datawolf-executor-commandline</module>
 		<module>gondola</module>
 		<module>datawolf-executor-hpc</module>
+		<module>datawolf-executor-kubernetes</module>
 		<module>datawolf-service-client</module>
 		<module>datawolf-service</module>
 		<module>datawolf-webapp</module>

@@ -103,7 +103,12 @@ If you already have an executable (e.g. your model is written in C/C++/etc) and 
 
 #### HPC Executor
 
-The HPC Executor is a Remote Executor that uses SSH Channels to communicate with various queueing systems for submitting jobs to high performance computers (HPC) such as the [XSEDE](http://www.xsede.org) resources. The remote executor is similar to the command line executor except the execution line (executable, flags, inputs, etc) for the tool are appended to a script and submitted to a queueing system. When creating an HPC tool, an XML definition file with information about the HPC (e.g. location of submit, terminate, and status commands), a script to append the execution line to, and the regular expressions necessary for parsing job status messages, must be provided. The executor will use this information to communicate with the HPC to submit jobs, cancel jobs, get job status, etc. The queueing systems that have been tested with the HPCExecutor include Portable Batch System (PBS), IBM Loadleveler, and Sun Grid Engine (SGE), which was minimally tested. 
+The HPC Executor is a Remote Executor that uses SSH Channels to communicate with various queueing systems for submitting jobs to high performance computers (HPC) such as the [XSEDE](http://www.xsede.org) resources. The remote executor is similar to the command line executor except the execution line (executable, flags, inputs, etc) for the tool are appended to a script and submitted to a queueing system. When creating an HPC tool, an XML definition file with information about the HPC (e.g. location of submit, terminate, and status commands), a script to append the execution line to, and the regular expressions necessary for parsing job status messages, must be provided. The executor will use this information to communicate with the HPC to submit jobs, cancel jobs, get job status, etc. The queueing systems that have been tested with the HPCExecutor include Portable Batch System (PBS), IBM Loadleveler, and Sun Grid Engine (SGE), which was minimally tested.
+
+#### Kubernetes Executor
+The Kubernetes Executor is a Remote Executor that can run workflow tools using available Kubernetes cluster resources where DataWolf is running. The executor handles communicating with a Kubernetes cluster using the
+Kubernetes Java Client. Using the client API, DataWolf creates jobs on the cluster, sets up the job for execution, and runs the job. While the job is running the executor communicates with the cluster to check job
+status and fetches results from the job when it's finished.
 
 ### REST Interface
 Data Wolf provides a thin service layer that wraps around the Data Wolf Engine and exposes all primary functionality through a REST API that clients can program against. Below are all of Data Wolf's REST endpoints and a brief description about them. For a more information on how to use each endpoint, please see the javadoc associated with the service layer. If you are interested in an example that uses the the REST API, checkout the source code for the web editor. Instructions are included in the Source Code section.
@@ -242,18 +247,18 @@ The latest version of Data Wolf can be downloaded from:
 
 https://opensource.ncsa.illinois.edu/projects/artifacts.php?key=WOLF
 
-By default, the latest release is selected in the page (currently 4.5.0). To get early access to development releases, check the box **Show also prereleases.**
+By default, the latest release is selected in the page (currently 4.6.0). To get early access to development releases, check the box **Show also prereleases.**
 
 * Click on **Version** 
-    * Select **4.5.0**
-    * Under **Files** select **datawolf-webapp-all-4.5.0-bin.zip**
+    * Select **4.6.0**
+    * Under **Files** select **datawolf-webapp-all-4.6.0-bin.zip**
 * Click **I Accept** to accept the License.
 
 This will give you the latest stable build that includes both the Data Wolf Server and the Web Editor. You can also find links to the javacode there as well as the manual. The link to the source code can be found at the end of this document.
 
 ### Installation and Setup
 
-To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.5.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
+To install the files necessary for the Server and Editor, find where you downloaded Data Wolf and unzip it somewhere. This will create a folder called **datawolf-webapp-all-4.6.0**. In the next few sections, we'll discuss some of the important files that come with the installation you just unzipped so you can tailor your setup to meet your needs. If you wish to skip this, you can go directly to the section **Running Data Wolf Server and Editor**.
 
 #### Data Wolf properties
 
@@ -293,6 +298,7 @@ engine.pageSize = 50
 java.executor=edu.illinois.ncsa.datawolf.executor.java.JavaExecutor
 commandline.executor=edu.illinois.ncsa.datawolf.executor.commandline.CommandLineExecutor
 hpc.executor=edu.illinois.ncsa.datawolf.executor.hpc.HPCExecutor
+kubernetes.executor=edu.illinois.ncsa.datawolf.executor.kubernetes.KubernetesExecutor
 
 # Initial admins for the DataWolf server, this is a comma separated list of 
 # email addresses who will automatically get active accounts with admin access 
@@ -414,12 +420,30 @@ ldap.objectClass=inetorgperson
 ldap.trustAllCertificates=false
 ```
 
+To configure the kubernetes executor, you will need to provide some configuration values. These provide some default parameters for running jobs (e.g. 2 cpu, 4 gb memory, mount a data volume at /data, etc).
+Below is a snippet from the datawolf properties file with an example configuration:
+
+```
+kubernetes.namespace=some-namespace
+kubernetes.pvc=mypvc
+kubernetes.data=/data/
+kubernetes.cpu=2
+kubernetes.memory=4
+```
+
+By default, DataWolf datasets are only visible to the creator. For cases where you want to allow all authenticated user to see each other's data, you can set the permission to public. Below is the default. If you
+replace private with public all data will be visible to authenticated users (if USE_AUTH is on) or anyone if authentication is set to false.
+
+```
+dataset.permissions=private
+```
+
 In the same folder at **datawolf.properties** is a **custom.properties** file that can also be used to override parameters set in **datawolf.properties**. The
 next section will discuss the launch script for Data Wolf.
 
 #### Launch Scripts
 
-If you go back to the folder **Data Wolf-webapp-all-4.5.0** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
+If you go back to the folder **Data Wolf-webapp-all-4.6.0** you will see a sub-folder called **bin**, open this. Inside you will find two scripts, **datawolf-service** and **datawolf-service.bat**. The latter is intended for running Data Wolf on a Windows machine and the former is for running on Mac & Linux. As with the previous section, knowledge of this file is not required unless you are interested in configuring the Data Wolf Server and Editor beyond the default settings. We will show snippets of the file **datawolf-service** and discuss what each section is configuring.
 
 ```
 # port for the jetty server

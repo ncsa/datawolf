@@ -3,7 +3,7 @@
 	<artifactId>ncsa-common-incore</artifactId>
 	<parent>
 		<groupId>edu.illinois.ncsa</groupId>
-		<version>4.5.0</version>
+		<version>4.6.0</version>
 		<artifactId>datawolf</artifactId>
 	</parent>
 	<build>

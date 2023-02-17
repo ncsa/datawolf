@@ -28,7 +28,7 @@ import edu.illinois.ncsa.domain.FileDescriptor;
  * 
  */
 public abstract class RemoteExecutor extends Executor implements Runnable {
-    private static final int    REMOTE_JOB_CHECK_INTERVAL = 30000;
+    protected static int        REMOTE_JOB_CHECK_INTERVAL = 30000;
 
     private static final Logger logger                    = LoggerFactory.getLogger(RemoteExecutor.class);
 
@@ -256,7 +256,7 @@ public abstract class RemoteExecutor extends Executor implements Runnable {
      *            the directory to be removed
      * @return true if the directory could be deleted.
      */
-    private boolean deleteDirectory(File path) {
+    protected boolean deleteDirectory(File path) {
         if (path.exists()) {
             File[] files = path.listFiles();
             for (File element : files) {
