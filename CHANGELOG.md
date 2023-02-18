@@ -4,14 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [4.6.0] - 2023-02-15
 
 ### Added
 - Add GitHub actions to build using maven and docker
+- Kubernetes executor to run jobs on kubernetes cluster [#9](https://github.com/ncsa/datawolf/issues/9)
+- Configuration option to allow administrators to configure datasets as public or private [#16](https://github.com/ncsa/datawolf/issues/16)
 
 ### Changed
-- Updated PostgreSQL jdbc driver to work with version 14
-  [WOLF-301](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-301)
+- Updated PostgreSQL jdbc driver to work with version 14 [WOLF-301](https://opensource.ncsa.illinois.edu/jira/browse/WOLF-301)
 
 ## [4.5.0] - 2021-12-03
 
