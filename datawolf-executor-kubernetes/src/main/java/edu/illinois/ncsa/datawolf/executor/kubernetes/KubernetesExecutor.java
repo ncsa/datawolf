@@ -318,7 +318,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             throw e;
         } catch (FailedException e) {
             // Job could not be submitted, set state to waiting to try again
-            logger.info("Job not submitted because the job scheduler appears to be down, will try again shortly...");
+            logger.info("Job not submitted because the job scheduler appears to be down, will try again shortly...", e);
             return State.WAITING;
             // throw e;
         } catch (Throwable e) {
