@@ -12,6 +12,14 @@ public abstract class AbstractIncoreDao<T, ID extends Serializable> implements I
     @Named("incore.server")
     private String server;
 
+    @Inject
+    @Named("incore.group")
+    private String group;
+
+    @Inject
+    @Named("incore.user")
+    private String incoreUser;
+
     /**
      * IN-CORE Service endpoint
      * 
@@ -23,6 +31,22 @@ public abstract class AbstractIncoreDao<T, ID extends Serializable> implements I
         }
 
         return this.server;
+    }
+
+    /**
+     * Primary IN-CORE user group
+     * @return
+     */
+    public String getGroup() {
+        return this.group;
+    }
+
+    /**
+     * DataWolf User that can access data on IN-CORE services
+     * @return
+     */
+    public String getIncoreUser() {
+        return this.incoreUser;
     }
 
 }

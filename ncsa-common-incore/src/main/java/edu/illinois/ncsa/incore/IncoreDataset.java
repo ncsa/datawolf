@@ -9,6 +9,10 @@ import edu.illinois.ncsa.domain.Person;
 
 public class IncoreDataset {
 
+    // Auth API
+    public static final String X_AUTH_USERINFO          = "x-auth-userinfo";
+    public static final String X_AUTH_USERGROUP         = "x-auth-usergroup";
+
     // Datasets API
     public static final String  DATASETS_ENDPOINT       = "data/api/datasets";
     public static final String  PARENT_DATASET          = "parentdataset";
@@ -52,6 +56,7 @@ public class IncoreDataset {
         dataset.setId(datasetId);
         dataset.setDescription(description);
         dataset.setTitle(title);
+
 
         for (int index = 0; index < fileDescriptors.size(); index++) {
             JsonObject fileDescriptor = fileDescriptors.get(index).getAsJsonObject();
