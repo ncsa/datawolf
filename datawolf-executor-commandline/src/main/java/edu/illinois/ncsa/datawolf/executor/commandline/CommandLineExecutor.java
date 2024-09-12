@@ -108,6 +108,12 @@ public class CommandLineExecutor extends LocalExecutor {
                 env.putAll(impl.getEnv());
             }
 
+            // Add user to the environment in case a tool needs this information
+            if(execution.getCreator() != null) {
+                String user = execution.getCreator().getEmail();
+                env.put(DATAWOLF_USER, user);
+            }
+
             // find the app to execute
             command.add(findApp(impl.getExecutable().trim(), cwd));
 

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- User information to environment of process running the tool [#28](https://github.com/ncsa/datawolf/issues/28)
+
+
 ### Changed
 - Kubernetes executor prints exception [#23](https://github.com/ncsa/datawolf/issues/23)
 
