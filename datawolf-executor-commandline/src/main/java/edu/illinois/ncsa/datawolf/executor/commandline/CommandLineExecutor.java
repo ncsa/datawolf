@@ -173,6 +173,12 @@ public class CommandLineExecutor extends LocalExecutor {
 
                             // Create a folder for the datasets
                             File inputFolder = new File(filename);
+                            if (inputFolder.exists()) {
+                                // For single file, a tmp file got created above; however in this case, we need
+                                // a temporary folder to store the files
+                                inputFolder.delete();
+                            }
+
                             if (!inputFolder.mkdirs()) {
                                 throw (new FailedException("Could not create folder for input files"));
                             }
@@ -251,6 +257,7 @@ public class CommandLineExecutor extends LocalExecutor {
             sb.append(" ");
         }
         println("Executing : " + sb.toString());
+        logger.debug("Executing : " + sb.toString());
 
         // create the process builder
         ProcessBuilder pb = new ProcessBuilder(command);
@@ -369,10 +376,10 @@ public class CommandLineExecutor extends LocalExecutor {
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                     ds.setCreator(execution.getCreator());
 
+                    ds = datasetDao.save(ds);
+
                     ByteArrayInputStream bais = new ByteArrayInputStream(stdout.toString().getBytes("UTF-8"));
                     FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, execution.getCreator(), ds);
-
-                    ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
                     saveExecution = true;
@@ -385,11 +392,11 @@ public class CommandLineExecutor extends LocalExecutor {
                     Dataset ds = new Dataset();
                     ds.setTitle(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle());
                     ds.setCreator(execution.getCreator());
+                    ds = datasetDao.save(ds);
 
                     ByteArrayInputStream bais = new ByteArrayInputStream(stderr.toString().getBytes("UTF-8"));
                     FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdErr()).getTitle(), bais, execution.getCreator(), ds);
 
-                    ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(impl.getCaptureStdErr()), ds.getId());
                     saveExecution = true;
@@ -419,15 +426,15 @@ public class CommandLineExecutor extends LocalExecutor {
                         for (File file : files) {
                             logger.debug("adding files to a dataset: " + file);
                             FileInputStream fis = new FileInputStream(file);
-                            fileStorage.storeFile(file.getName(), fis, ds.getCreator(), ds);
+                            fileStorage.storeFile(file.getName(), fis, execution.getCreator(), ds);
                             fis.close();
                         }
 
                     } else {
                         FileInputStream fis = new FileInputStream(entry.getValue());
-                        fileStorage.storeFile(new File(entry.getValue()).getName(), fis, ds.getCreator(), ds);
+                        fileStorage.storeFile(new File(entry.getValue()).getName(), fis, execution.getCreator(), ds);
                     }
-                    ds = datasetDao.save(ds);
+//                    ds = datasetDao.save(ds);
 
                     execution.setDataset(step.getOutputs().get(entry.getKey()), ds.getId());
                     saveExecution = true;
