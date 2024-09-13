@@ -285,8 +285,25 @@ public class KubernetesExecutor extends RemoteExecutor {
             container.args(command);
             // add any environment variables
             if (!impl.getEnv().isEmpty()) {
-                // TODO implement
-                //container.addEnvItem();
+                Map<String, String> environment = impl.getEnv();
+
+                for (Map.Entry<String, String> entry : environment.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    V1EnvVar envVar = new V1EnvVar();
+                    envVar.setName(key);
+                    envVar.setValue(value);
+                    container.addEnvItem(envVar);
+                }
+            }
+
+            // Add user to the environment in case a tool needs this information
+            if(execution.getCreator() != null) {
+                String user = execution.getCreator().getEmail();
+                V1EnvVar envVar = new V1EnvVar();
+                envVar.setName(DATAWOLF_USER);
+                envVar.setValue(user);
+                container.addEnvItem(envVar);
             }
 
             // add resource limits
