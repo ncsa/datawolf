@@ -1,14 +1,17 @@
 package edu.illinois.ncsa.incore.dao;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
@@ -469,11 +472,21 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     // Helper method for testing with a local instance
     public String getToken() {
+        String server = getServer();
+        // pyincore uses the server URL without ending in / when creating the token name
+        if(server.endsWith("/")) {
+            server = server.substring(0, server.length() - 1);
+        }
+
+        String tokenFile = "." + DigestUtils.sha256Hex(server) + "_token";
         String bearerToken = null;
         try {
             String userHome = System.getProperty("user.home");
-            byte[] encoded = Files.readAllBytes(Paths.get(userHome + "/.incore/.a0309ff368531845cbeef9a617fcf11361da600ec8cc1467b2a579cb52890f85_token"));
-            bearerToken = new String(encoded, StandardCharsets.UTF_8);
+            Path path = Paths.get(userHome + "/.incore/" + tokenFile);
+            if (Files.exists(path)) {
+                byte[] encoded = Files.readAllBytes(path);
+                bearerToken = new String(encoded, StandardCharsets.UTF_8);
+            }
         } catch(IOException e) {
             logger.error("Error getting token", e);
         }
