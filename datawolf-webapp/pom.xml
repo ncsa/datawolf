@@ -28,6 +28,7 @@
 			<artifactId>hsqldb</artifactId>
 			<version>${hsql.version}</version>
 			<scope>runtime</scope>
+			<classifier>jdk8</classifier>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>

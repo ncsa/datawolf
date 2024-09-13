@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 - Kubernetes executor prints exception [#23](https://github.com/ncsa/datawolf/issues/23)
+- Clean dependency updates [#27](https://github.com/ncsa/datawolf/issues/27)
 
 ## [4.6.0] - 2023-02-15
 
