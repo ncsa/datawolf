@@ -170,10 +170,9 @@ public class CommandLineExecutor extends LocalExecutor {
                                 throw (new FailedException("Could not get input file.", e));
                             }
                         } else {
-
                             // Create a folder for the datasets
                             File inputFolder = new File(filename);
-                            if (inputFolder.exists()) {
+                            if (inputFolder.exists() && inputFolder.getAbsolutePath().startsWith(System.getProperty("java.io.tmpdir"))) {
                                 // For single file, a tmp file got created above; however in this case, we need
                                 // a temporary folder to store the files
                                 inputFolder.delete();
