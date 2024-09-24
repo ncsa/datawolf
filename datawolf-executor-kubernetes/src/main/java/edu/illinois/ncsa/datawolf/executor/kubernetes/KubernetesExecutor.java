@@ -159,9 +159,16 @@ public class KubernetesExecutor extends RemoteExecutor {
 
                             // Create a folder for the datasets
                             File inputFolder = new File(filename);
+                            if (inputFolder.exists()) {
+                                // For single file, a tmp file got created above; however in this case, we need
+                                // a temporary folder to store the files
+                                inputFolder.delete();
+                            }
+
                             if (!inputFolder.mkdirs()) {
                                 throw (new FailedException("Could not create folder for input files"));
                             }
+
 
                             int duplicate = 1;
                             for (FileDescriptor fd : ds.getFileDescriptors()) {
@@ -401,11 +408,10 @@ public class KubernetesExecutor extends RemoteExecutor {
                         Dataset ds = new Dataset();
                         ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                         ds.setCreator(execution.getCreator());
+                        ds = datasetDao.save(ds);
 
                         ByteArrayInputStream bais = new ByteArrayInputStream(lastlog.getBytes("UTF-8"));
                         FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, execution.getCreator(), ds);
-
-                        ds = datasetDao.save(ds);
 
                         execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
                         saveExecution = true;
@@ -436,15 +442,15 @@ public class KubernetesExecutor extends RemoteExecutor {
                                 for (File file : files) {
                                     logger.debug("adding files to a dataset: " + file);
                                     FileInputStream fis = new FileInputStream(file);
-                                    fileStorage.storeFile(file.getName(), fis, ds.getCreator(), ds);
+                                    fileStorage.storeFile(file.getName(), fis, execution.getCreator(), ds);
                                     fis.close();
                                 }
 
                             } else {
                                 FileInputStream fis = new FileInputStream(entry.getValue());
-                                fileStorage.storeFile(new File(entry.getValue()).getName(), fis, ds.getCreator(), ds);
+                                fileStorage.storeFile(new File(entry.getValue()).getName(), fis, execution.getCreator(), ds);
                             }
-                            ds = datasetDao.save(ds);
+//                            ds = datasetDao.save(ds);
 
                             execution.setDataset(step.getOutputs().get(entry.getKey()), ds.getId());
                             saveExecution = true;
