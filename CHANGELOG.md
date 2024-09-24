@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - IN-CORE Dataset DAO and FileStorage implementation to use latest API [#29](https://github.com/ncsa/datawolf/issues/29)
 - Kubernetes executor prints exception [#23](https://github.com/ncsa/datawolf/issues/23)
+- Upgrade hsqldb to 2.7.3 [#27](https://github.com/ncsa/datawolf/issues/27)
 
 ## [4.6.0] - 2023-02-15
 

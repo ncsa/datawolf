@@ -73,6 +73,7 @@
 			<artifactId>hsqldb</artifactId>
 			<version>${hsql.version}</version>
 			<scope>test</scope>
+			<classifier>jdk8</classifier>
 		</dependency>
 
 		<dependency>
