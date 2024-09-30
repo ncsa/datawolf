@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - User information to environment of process running the tool [#28](https://github.com/ncsa/datawolf/issues/28)
 
-
 ### Changed
 - IN-CORE Dataset DAO and FileStorage implementation to use latest API [#29](https://github.com/ncsa/datawolf/issues/29)
 - Kubernetes executor prints exception [#23](https://github.com/ncsa/datawolf/issues/23)
 - Upgrade hsqldb to 2.7.3 [#27](https://github.com/ncsa/datawolf/issues/27)
+- Custom properties to include more configuration variables [#33](https://github.com/ncsa/datawolf/issues/33)
 
 ## [4.6.0] - 2023-02-15
 
