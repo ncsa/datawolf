@@ -33,6 +33,8 @@ jobs:
   # default memory in GB per job
   memory: 4.0
 
+extraEnvVars: {}
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
