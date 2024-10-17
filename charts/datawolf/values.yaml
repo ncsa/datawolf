@@ -33,6 +33,13 @@ jobs:
   # default memory in GB per job
   memory: 4.0
 
+extraEnvVars:
+  datasetdao: edu.illinois.ncsa.incore.dao.IncoreDatasetDao
+  incoreserver: incore_services_local_url
+  incoregroup: group_in_incore
+  filestorage: edu.illinois.ncsa.incore.impl.IncoreFileStorage
+  incoreuser: user_in_incore
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

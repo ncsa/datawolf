@@ -94,6 +94,16 @@ spec:
               value: {{ .Values.jobs.cpu | quote }}
             - name: KUBERNETES_MEMORY
               value: {{ .Values.jobs.memory | quote }}
+            - name: DATASET_DAO
+              value: {{ .Values.extraEnvVars.datasetdao | quote }}
+            - name: INCORE_SERVER
+              value: {{ .Values.extraEnvVars.incoreserver | quote }}
+            - name: INCORE_GROUP
+              value: {{ .Values.extraEnvVars.incoregroup | quote }}
+            - name: FILE_STORAGE
+              value: {{ .Values.extraEnvVars.filestorage | quote }}
+            - name: INCORE_USER
+              value: {{ .Values.extraEnvVars.incoreuser | quote }}
           volumeMounts:
             - name: {{ include "datawolf.fullname" . }}
               mountPath: /home/datawolf/data
