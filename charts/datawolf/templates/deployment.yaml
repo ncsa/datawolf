@@ -95,10 +95,7 @@ spec:
             - name: KUBERNETES_MEMORY
               value: {{ .Values.jobs.memory | quote }}
             {{- if .Values.extraEnvVars }}
-            {{- range $key, $value := .Values.extraEnvVars }}
-            - name: {{ $key | upper }}
-              value: {{ $value | quote }}
-            {{- end }}
+            {{ .Values.extraEnvVars | toYaml | nindent 12 }}
             {{- end }}
           volumeMounts:
             - name: {{ include "datawolf.fullname" . }}
