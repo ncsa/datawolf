@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 - User information to environment of process running the tool [#28](https://github.com/ncsa/datawolf/issues/28)
+- Ability for extra environment variables (used by IN-CORE) [#35](https://github.com/ncsa/datawolf/issues/35)
 
 ### Changed
 - IN-CORE Dataset DAO and FileStorage implementation to use latest API [#29](https://github.com/ncsa/datawolf/issues/29)
