@@ -5,7 +5,7 @@
         <parent>
                 <artifactId>datawolf</artifactId>
                 <groupId>edu.illinois.ncsa</groupId>
-                <version>4.7.0-SNAPSHOT</version>
+                <version>4.7.0</version>
         </parent>
 	<artifactId>gondola</artifactId>
 	<packaging>jar</packaging>
