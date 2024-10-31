@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [4.7.0] - 2024-10-29
+
+### Added
+- User information to environment of process running the tool [#28](https://github.com/ncsa/datawolf/issues/28)
+- Ability for extra environment variables (used by IN-CORE) [#35](https://github.com/ncsa/datawolf/issues/35)
+
+### Changed
+- IN-CORE Dataset DAO and FileStorage implementation to use latest API [#29](https://github.com/ncsa/datawolf/issues/29)
+- Kubernetes executor prints exception [#23](https://github.com/ncsa/datawolf/issues/23)
+- Upgrade hsqldb to 2.7.3 [#27](https://github.com/ncsa/datawolf/issues/27)
+- Custom properties to include more configuration variables [#33](https://github.com/ncsa/datawolf/issues/33)
+
 ## [4.6.0] - 2023-02-15
 
 ### Added

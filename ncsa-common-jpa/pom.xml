@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>edu.illinois.ncsa</groupId>
 		<artifactId>datawolf</artifactId>
-		<version>4.6.0</version>
+		<version>4.7.0</version>
 	</parent>
 	<build>
 		<resources>
@@ -73,6 +73,7 @@
 			<artifactId>hsqldb</artifactId>
 			<version>${hsql.version}</version>
 			<scope>test</scope>
+			<classifier>jdk8</classifier>
 		</dependency>
 
 		<dependency>

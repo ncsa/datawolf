@@ -8,7 +8,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -45,6 +50,10 @@ public class IncoreFileStorage implements FileStorage {
     @Named("incore.server")
     private String              server;
 
+    @Inject
+    @Named("incore.group")
+    private String              group;
+
     @Inject(optional = true)
     private AccountDao          accountDao;
 
@@ -77,24 +86,9 @@ public class IncoreFileStorage implements FileStorage {
 
     @Override
     public FileDescriptor storeFile(String id, String filename, InputStream is, Person creator, Dataset ds) throws IOException {
-        // TODO we should clean up this temporary file
-        // Write file to temp file to remove source dataset id
-        File cwd = File.createTempFile("cib", ".dir"); //$NON-NLS-1$ //$NON-NLS-2$
-        cwd.delete();
-        if (!cwd.mkdirs()) {
-            throw (new IOException("Error creating temp directory."));
-        }
-
-        File output = new File(cwd, filename);
-        String datasetId = null;
-        try (final BufferedReader br = new BufferedReader(new InputStreamReader(is)); BufferedWriter bw = new BufferedWriter(new FileWriter(output));) {
-            datasetId = br.readLine();
-            String line = null;
-
-            while ((line = br.readLine()) != null) {
-                bw.write(line + "\n");
-            }
-        }
+        logger.debug("Store the file on the IN-CORE service");
+        // Uncomment this for testing locally
+//        String bearerToken = getToken();
 
         String incoreEndpoint = server;
         if (!incoreEndpoint.endsWith("/")) {
@@ -106,43 +100,52 @@ public class IncoreFileStorage implements FileStorage {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
 
-        // Hack to update the source dataset
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("property name", "sourceDataset");
-        jsonObject.addProperty("property value", datasetId);
-
-        MultipartEntityBuilder paramBuilder = MultipartEntityBuilder.create();
-        paramBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        paramBuilder.addTextBody("update", jsonObject.toString());
-
-        HttpPut httpPut = new HttpPut(requestUrl);
-        httpPut.setEntity(paramBuilder.build());
-
-        if (creator != null) {
-            httpPut.setHeader("X-Credential-Username", creator.getId());
-        }
-
+        // This was an old Hack to update the source dataset, but doesn't work with the current pyincore
+        // This might be something to handle on the frontend when visualizing the outputs and updating the parent from
+        // the execution
+//        JsonObject jsonObject = new JsonObject();
+//        jsonObject.addProperty("property name", "sourceDataset");
+//        jsonObject.addProperty("property value", datasetId);
+//
+//        MultipartEntityBuilder paramBuilder = MultipartEntityBuilder.create();
+//        paramBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+//        paramBuilder.addTextBody("update", jsonObject.toString());
+//
+//        HttpPut httpPut = new HttpPut(requestUrl);
+//        httpPut.setEntity(paramBuilder.build());
+//
+//        if (creator != null) {
+//            httpPut.setHeader("X-Credential-Username", creator.getId());
+//        }
+//
         HttpResponse response = null;
         ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
-        response = httpclient.execute(httpPut);
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            logger.warn("failed to update parent dataset - " + response);
-        }
+//        response = httpclient.execute(httpPut);
+//        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+//            logger.warn("failed to update parent dataset - " + response);
+//        }
 
         // Add the file to the dataset
         requestUrl = incoreEndpoint;
         requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + ds.getId() + "/" + IncoreDataset.DATASET_FILES;
 
-        paramBuilder = MultipartEntityBuilder.create();
+        MultipartEntityBuilder paramBuilder = MultipartEntityBuilder.create();
         paramBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        paramBuilder.addTextBody(IncoreDataset.PARENT_DATASET, jsonObject.toString());
-        paramBuilder.addBinaryBody(IncoreDataset.DATASET_FILE, output, ContentType.DEFAULT_BINARY, filename);
+//        paramBuilder.addTextBody(IncoreDataset.PARENT_DATASET, jsonObject.toString());
+        paramBuilder.addBinaryBody(IncoreDataset.DATASET_FILE, is, ContentType.DEFAULT_BINARY, filename);
 
         HttpPost httpPost = new HttpPost(requestUrl);
         httpPost.setEntity(paramBuilder.build());
         if (creator != null) {
-            httpPost.setHeader("X-Credential-Username", creator.getId());
+            // Uncomment this for testing locally
+//            httpPost.setHeader("Authorization", bearerToken);
+
+            String creatorGroup = "[\""+ this.group + "\"]";
+            String creatorId = creator.getEmail();
+            httpPost.setHeader(IncoreDataset.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creatorId + "\"}");
+            httpPost.setHeader(IncoreDataset.X_AUTH_USERGROUP, "{\"groups\": " + creatorGroup + "}" );
+
         }
 
         response = httpclient.execute(httpPost);
@@ -165,6 +168,8 @@ public class IncoreFileStorage implements FileStorage {
 
     @Override
     public InputStream readFile(FileDescriptor fd) throws IOException {
+        // Uncomment for local testing
+//        String bearerToken = getToken();
         String incoreEndpoint = server;
         if (!incoreEndpoint.endsWith("/")) {
             incoreEndpoint += "/";
@@ -174,7 +179,15 @@ public class IncoreFileStorage implements FileStorage {
 
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
+
+        String creatorId = "";
+        String creatorGroup = "[\""+ this.group + "\"]";
+
         HttpGet httpGet = new HttpGet(requestUrl);
+        // Uncomment for local testing
+//        httpGet.setHeader("Authorization", bearerToken);
+        httpGet.setHeader(IncoreDataset.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creatorId + "\"}");
+        httpGet.setHeader(IncoreDataset.X_AUTH_USERGROUP, "{\"groups\": " + creatorGroup + "}" );
 
         HttpResponse response = httpclient.execute(httpGet);
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -196,6 +209,29 @@ public class IncoreFileStorage implements FileStorage {
     public boolean deleteFile(FileDescriptor fd, Person creator) {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    // Helper method for testing with a local instance
+    public String getToken() {
+        String server = this.server;
+        // pyincore uses the server URL without ending in / when creating the token name
+        if(server.endsWith("/")) {
+            server = server.substring(0, server.length() - 1);
+        }
+
+        String tokenFile = "." + DigestUtils.sha256Hex(server) + "_token";
+        String bearerToken = null;
+        try {
+            String userHome = System.getProperty("user.home");
+            Path path = Paths.get(userHome + "/.incore/" + tokenFile);
+            if (Files.exists(path)) {
+                byte[] encoded = Files.readAllBytes(path);
+                bearerToken = new String(encoded, StandardCharsets.UTF_8);
+            }
+        } catch(IOException e) {
+            logger.error("Error getting token", e);
+        }
+        return bearerToken;
     }
 
 }

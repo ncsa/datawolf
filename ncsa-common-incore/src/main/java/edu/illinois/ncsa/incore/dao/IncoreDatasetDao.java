@@ -1,11 +1,17 @@
 package edu.illinois.ncsa.incore.dao;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
@@ -24,7 +30,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 import edu.illinois.ncsa.domain.Dataset;
 import edu.illinois.ncsa.domain.Person;
@@ -42,40 +47,44 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     @Override
     public Dataset save(Dataset entity) {
+        // Uncomment for local testing
+//        String bearerToken = getToken();
 
         // Check if this is a new entity (e.g. still has UUID)
         if (entity.getId().contains("-")) {
-
+            // The description should contain the type and format to store
             // TODO is there a better way?
             String description = entity.getDescription();
             String[] datasetInfo = description.split(",");
-            String schema = "Unknown";
             String type = "Unknown";
             String format = "Unknown";
-            if (datasetInfo.length == 3) {
-                schema = datasetInfo[0];
-                type = datasetInfo[1];
-                format = datasetInfo[2];
+            if (datasetInfo.length == 2) {
+                type = datasetInfo[0];
+                format = datasetInfo[1];
+                logger.debug("Saving data with dataType = " + type + ", format = " + format);
+            } else {
+                // Assume this is something like stdout which didn't define anything
+                logger.debug("Saving plain text file with type = incore:stdout");
+                type = "incore:stdout";
+                format = "text";
             }
 
             JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("schema", schema);
-            jsonObject.addProperty("type", type);
+            jsonObject.addProperty("dataType", type);
             jsonObject.addProperty("title", entity.getTitle());
             jsonObject.addProperty("sourceDataset", "");
             jsonObject.addProperty("format", format);
 
-            JsonArray spaces = new JsonArray();
-
             String creatorId = null;
+            String creatorEmail = null;
             if (entity.getCreator() != null) {
                 creatorId = entity.getCreator().getId();
-                spaces.add(new JsonPrimitive(creatorId));
+                creatorEmail = entity.getCreator().getEmail();
             }
-            jsonObject.add("spaces", spaces);
 
             String incoreEndpoint = getServer();
             String requestUrl = incoreEndpoint;
+
             HttpClientBuilder builder = HttpClientBuilder.create();
             HttpClient httpclient = builder.build();
 
@@ -86,8 +95,14 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                 requestUrl += IncoreDataset.DATASETS_ENDPOINT;
 
                 HttpPost httpPost = new HttpPost(requestUrl);
+
                 if (creatorId != null) {
-                    httpPost.setHeader("X-Credential-Username", creatorId);
+                    // This will only work for internal communication, for testing, we add the auth token
+                    String creatorGroup = "[\""+ this.getGroup() + "\"]";
+                    httpPost.setHeader(IncoreDataset.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creatorEmail + "\"}");
+                    httpPost.setHeader(IncoreDataset.X_AUTH_USERGROUP, "{\"groups\": " + creatorGroup + "}" );
+                    // Uncomment for local testing
+//                    httpPost.setHeader("Authorization", bearerToken);
                 }
 
                 MultipartEntityBuilder params = MultipartEntityBuilder.create();
@@ -128,6 +143,9 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     @Override
     public Dataset findOne(String id) {
+        // Uncomment for local testing
+//        String bearerToken = getToken();
+
         String incoreEndpoint = getServer();
         String requestUrl = incoreEndpoint;
 
@@ -141,6 +159,20 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
             String responseStr = null;
             requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + id;
             HttpGet httpGet = new HttpGet(requestUrl);
+
+            // This is a workaround for data that is stored outside of DataWolf
+            // DataWolf assumes a level of trust that only authenticated/authorized users could reach here
+            // This works fine with local storage/data; however, when accessing an external source, the user
+            // info, which we don't have, might be needed.
+            // A potential solution could be to add the requester info to the method
+            String user = this.getIncoreUser();
+            String creatorGroup = "[\""+ this.getGroup() + "\"]";
+
+            httpGet.setHeader(IncoreDataset.X_AUTH_USERINFO, "{\"preferred_username\": \"" + user + "\"}");
+            httpGet.setHeader(IncoreDataset.X_AUTH_USERGROUP, "{\"groups\": " + creatorGroup + "}" );
+
+            // Uncomment for local testing
+//            httpGet.setHeader("Authorization", bearerToken);
 
             response = httpclient.execute(httpGet);
 
@@ -238,9 +270,16 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
         String incoreEndpoint = getServer();
         String requestUrl = incoreEndpoint;
+
+        // TODO if this method is needed, we will need to get this from the request
+        String creatorEmail = "";
         try {
             requestUrl += IncoreDataset.DATASETS_ENDPOINT;
             HttpGet httpGet = new HttpGet(requestUrl);
+            String creatorGroup = "[\""+ this.getGroup() + "\"]";
+
+            httpGet.setHeader(IncoreDataset.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creatorEmail + "\"}");
+            httpGet.setHeader(IncoreDataset.X_AUTH_USERGROUP, "{\"groups\": " + creatorGroup + "}" );
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
 
             try {
@@ -360,8 +399,63 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
 
     @Override
     public List<Dataset> findByCreatorEmailAndDeleted(String email, boolean deleted, int page, int size) {
-        // TODO Auto-generated method stub
-        return null;
+        // Uncomment for local testing
+//        String bearerToken = getToken();
+
+        List<Dataset> results = new ArrayList<Dataset>();
+
+        String responseStr = null;
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        HttpClient httpclient = builder.build();
+
+        String incoreEndpoint = getServer();
+        String requestUrl = incoreEndpoint;
+        try {
+            requestUrl += IncoreDataset.DATASETS_ENDPOINT + "?skip="+page + "&limit="+size;
+            HttpGet httpGet = new HttpGet(requestUrl);
+
+            String creatorGroup = "[\""+ this.getGroup() + "\"]";
+            httpGet.setHeader(IncoreDataset.X_AUTH_USERINFO, "{\"preferred_username\": \"" + email + "\"}");
+            httpGet.setHeader(IncoreDataset.X_AUTH_USERGROUP, "{\"groups\": " + creatorGroup + "}" );
+            // Uncomment for local testing
+//            httpGet.setHeader("Authorization", bearerToken);
+            ResponseHandler<String> responseHandler = new BasicResponseHandler();
+
+            try {
+                responseStr = httpclient.execute(httpGet, responseHandler);
+                JsonElement jsonElement = new JsonParser().parse(responseStr);
+                JsonArray jsonArray = jsonElement.getAsJsonArray();
+
+                Dataset dataset = null;
+                for (int index = 0; index < jsonArray.size(); index++) {
+
+                    JsonObject datasetProperties = jsonArray.get(index).getAsJsonObject();
+
+                    if (datasetProperties != null) {
+                        Person creator = null;
+                        if (datasetProperties.has(IncoreDataset.CREATOR)) {
+                            String creatorId = datasetProperties.get(IncoreDataset.CREATOR).getAsString();
+                            if (creatorId != null) {
+                                creator = personDao.findByEmail(creatorId);
+                            }
+                        }
+                        dataset = IncoreDataset.getDataset(datasetProperties, creator);
+                        results.add(dataset);
+                    }
+
+                }
+            } catch (Exception e) {
+                logger.error("HTTP Get failed.", e);
+            }
+
+        } finally {
+            try {
+                ((CloseableHttpClient) httpclient).close();
+            } catch (IOException e) {
+                logger.warn("Error closing http client", e);
+            }
+        }
+        return results;
     }
 
     @Override
@@ -374,6 +468,29 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
     public List<Dataset> findByCreatorEmailAndTitleLikeAndDeleted(String email, String titlePattern, boolean deleted, int page, int size) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    // Helper method for testing with a local instance
+    public String getToken() {
+        String server = getServer();
+        // pyincore uses the server URL without ending in / when creating the token name
+        if(server.endsWith("/")) {
+            server = server.substring(0, server.length() - 1);
+        }
+
+        String tokenFile = "." + DigestUtils.sha256Hex(server) + "_token";
+        String bearerToken = null;
+        try {
+            String userHome = System.getProperty("user.home");
+            Path path = Paths.get(userHome + "/.incore/" + tokenFile);
+            if (Files.exists(path)) {
+                byte[] encoded = Files.readAllBytes(path);
+                bearerToken = new String(encoded, StandardCharsets.UTF_8);
+            }
+        } catch(IOException e) {
+            logger.error("Error getting token", e);
+        }
+        return bearerToken;
     }
 
 }

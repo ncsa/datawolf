@@ -159,9 +159,16 @@ public class KubernetesExecutor extends RemoteExecutor {
 
                             // Create a folder for the datasets
                             File inputFolder = new File(filename);
+                            if (inputFolder.exists()) {
+                                // For single file, a tmp file got created above; however in this case, we need
+                                // a temporary folder to store the files
+                                inputFolder.delete();
+                            }
+
                             if (!inputFolder.mkdirs()) {
                                 throw (new FailedException("Could not create folder for input files"));
                             }
+
 
                             int duplicate = 1;
                             for (FileDescriptor fd : ds.getFileDescriptors()) {
@@ -285,8 +292,25 @@ public class KubernetesExecutor extends RemoteExecutor {
             container.args(command);
             // add any environment variables
             if (!impl.getEnv().isEmpty()) {
-                // TODO implement
-                //container.addEnvItem();
+                Map<String, String> environment = impl.getEnv();
+
+                for (Map.Entry<String, String> entry : environment.entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    V1EnvVar envVar = new V1EnvVar();
+                    envVar.setName(key);
+                    envVar.setValue(value);
+                    container.addEnvItem(envVar);
+                }
+            }
+
+            // Add user to the environment in case a tool needs this information
+            if(execution.getCreator() != null) {
+                String user = execution.getCreator().getEmail();
+                V1EnvVar envVar = new V1EnvVar();
+                envVar.setName(DATAWOLF_USER);
+                envVar.setValue(user);
+                container.addEnvItem(envVar);
             }
 
             // add resource limits
@@ -318,7 +342,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             throw e;
         } catch (FailedException e) {
             // Job could not be submitted, set state to waiting to try again
-            logger.info("Job not submitted because the job scheduler appears to be down, will try again shortly...");
+            logger.info("Job not submitted because the job scheduler appears to be down, will try again shortly...", e);
             return State.WAITING;
             // throw e;
         } catch (Throwable e) {
@@ -384,11 +408,10 @@ public class KubernetesExecutor extends RemoteExecutor {
                         Dataset ds = new Dataset();
                         ds.setTitle(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle());
                         ds.setCreator(execution.getCreator());
+                        ds = datasetDao.save(ds);
 
                         ByteArrayInputStream bais = new ByteArrayInputStream(lastlog.getBytes("UTF-8"));
                         FileDescriptor fd = fileStorage.storeFile(step.getTool().getOutput(impl.getCaptureStdOut()).getTitle(), bais, execution.getCreator(), ds);
-
-                        ds = datasetDao.save(ds);
 
                         execution.setDataset(step.getOutputs().get(impl.getCaptureStdOut()), ds.getId());
                         saveExecution = true;
@@ -419,15 +442,15 @@ public class KubernetesExecutor extends RemoteExecutor {
                                 for (File file : files) {
                                     logger.debug("adding files to a dataset: " + file);
                                     FileInputStream fis = new FileInputStream(file);
-                                    fileStorage.storeFile(file.getName(), fis, ds.getCreator(), ds);
+                                    fileStorage.storeFile(file.getName(), fis, execution.getCreator(), ds);
                                     fis.close();
                                 }
 
                             } else {
                                 FileInputStream fis = new FileInputStream(entry.getValue());
-                                fileStorage.storeFile(new File(entry.getValue()).getName(), fis, ds.getCreator(), ds);
+                                fileStorage.storeFile(new File(entry.getValue()).getName(), fis, execution.getCreator(), ds);
                             }
-                            ds = datasetDao.save(ds);
+//                            ds = datasetDao.save(ds);
 
                             execution.setDataset(step.getOutputs().get(entry.getKey()), ds.getId());
                             saveExecution = true;

@@ -36,6 +36,8 @@ import edu.illinois.ncsa.domain.dao.FileDescriptorDao;
 public abstract class Executor {
     private static Logger       logger      = LoggerFactory.getLogger(Executor.class);
 
+    protected static String DATAWOLF_USER   = "DATAWOLF_USER";
+
     private StringBuilder       log         = new StringBuilder();
     private LogFile             logfile     = new LogFile();
     private int                 lastsave    = 0;

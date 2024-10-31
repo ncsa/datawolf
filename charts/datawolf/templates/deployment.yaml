@@ -94,6 +94,9 @@ spec:
               value: {{ .Values.jobs.cpu | quote }}
             - name: KUBERNETES_MEMORY
               value: {{ .Values.jobs.memory | quote }}
+            {{- if .Values.extraEnvVars }}
+            {{ .Values.extraEnvVars | toYaml | nindent 12 }}
+            {{- end }}
           volumeMounts:
             - name: {{ include "datawolf.fullname" . }}
               mountPath: /home/datawolf/data

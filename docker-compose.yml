@@ -26,6 +26,11 @@ services:
       - ENGINE_PAGESIZE=${ENGINE_PAGESIZE:-250}
       - EXECUTOR_DEBUG=${EXECUTOR_DEBUG:-false}
       - DATASET_PERMISSIONS=${DATASET_PERMISSIONS:-private}
+      - DATASET_DAO=${DATASET_DAO:-edu.illinois.ncsa.jpa.dao.DatasetJPADao}
+      - FILE_STORAGE=${FILE_STORAGE:-edu.illinois.ncsa.domain.impl.FileStorageDisk}
+      - INCORE_USER=${INCORE_USER:-incrtst}
+      - INCORE_GROUP=${INCORE_GROUP:-incore_user}
+      - INCORE_SERVER=${INCORE_SERVER:-http://localhost:8080}
       - LOG=${LOG}
     ports:
       - 8888:8888
