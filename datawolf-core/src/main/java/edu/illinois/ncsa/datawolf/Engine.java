@@ -45,6 +45,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import edu.illinois.ncsa.datawolf.domain.WorkflowToolData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -566,17 +567,22 @@ public class Engine {
                                 if (local >= (LocalExecutor.getWorkers() + getExtraLocalExecutor())) {
                                     canrun = 1;
                                 } else {
-                                    // Transaction transaction = null;
+                                    // Map of step inputs and whether they are required
+                                    Map<String, Boolean> requiredInputs = new HashMap<>();
                                     try {
                                         unitOfWork.begin();
-                                        // transaction =
-// SpringData.getTransaction();
-                                        // transaction.start();
 
                                         execution = executionDao.findOne(exec.getExecutionId());
                                         execution.getDatasets().values();
                                         step = workflowStepDao.findOne(exec.getStepId());
-                                        step.getInputs().values();
+
+                                        // Populate map of step inputs and whether they are required
+                                        for(String inputKey : step.getInputs().values()) {
+                                            WorkflowToolData inputData = step.getInput(inputKey);
+                                            requiredInputs.put(inputKey, inputData.isAllowNull());
+                                        }
+
+//                                        step.getInputs().values();
                                     } catch (Exception e) {
                                         logger.error("Error getting job information.", e);
                                     } finally {
@@ -594,7 +600,8 @@ public class Engine {
                                     if (step != null) {
                                         for (String id : step.getInputs().values()) {
                                             if (execution != null) {
-                                                if (!execution.hasDataset(id)) {
+                                                boolean allowNull = requiredInputs.get(id);
+                                                if (!execution.hasDataset(id) && !allowNull) {
                                                     canrun = 1;
                                                 } else if (execution.getDataset(id) == null) {
                                                     canrun = 2;

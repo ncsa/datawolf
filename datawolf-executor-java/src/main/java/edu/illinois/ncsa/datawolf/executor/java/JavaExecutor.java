@@ -149,6 +149,10 @@ public class JavaExecutor extends LocalExecutor {
                 // set inputs
                 if (tool.getInputs() != null) {
                     for (Entry<String, String> entry : step.getInputs().entrySet()) {
+                        if (execution.getDataset(entry.getValue()).isEmpty()) {
+                            // No dataset has been set, must be an optional dataset so skip it
+                            break;
+                        }
                         Dataset ds = datasetDao.findOne(execution.getDataset(entry.getValue()));
                         if (ds == null) {
                             throw (new AbortException("Dataset is missing."));
