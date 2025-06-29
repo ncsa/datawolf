@@ -62,6 +62,9 @@ public class KubernetesExecutor extends RemoteExecutor {
     @Inject
     @Named("kubernetes.data")
     private String              dataFolder    = "/home/datawolf/data";
+    @Inject
+    @Named("kubernetes.workerNodeAffinityRequired")
+    private boolean             workerNodeAffinityRequired = false;
 
 
     // Output files specified in the tool description
@@ -335,6 +338,22 @@ public class KubernetesExecutor extends RemoteExecutor {
             V1PersistentVolumeClaimVolumeSource pvc = new V1PersistentVolumeClaimVolumeSource();
             volume.setPersistentVolumeClaim(pvc);
             pvc.claimName(pvcName);
+
+            // add node affinity
+            V1NodeSelectorTerms nodeSelectorTerms = new V1NodeSelectorTerms();
+            nodeSelectorTerms.add(new V1NodeSelectorTerm());
+            nodeSelectorTerms.get(0).setMatchExpressions(new ArrayList<V1NodeSelectorRequirement>());
+            nodeSelectorTerms.get(0).getMatchExpressions().add(new V1NodeSelectorRequirement());
+            nodeSelectorTerms.get(0).getMatchExpressions().get(0).setKey("datawolf/node-purpose");
+            nodeSelectorTerms.get(0).getMatchExpressions().get(0).setOperator("In");
+            nodeSelectorTerms.get(0).getMatchExpressions().get(0).setValues(Arrays.asList("worker"));
+            V1NodeAffinity nodeAffinity = new V1NodeAffinity();
+            podSpec.setAffinity(nodeAffinity);
+            if (workerNodeAffinityRequired) {
+                nodeAffinity.setRequiredDuringSchedulingIgnoredDuringExecution(nodeSelectorTerms); 
+            } else {
+                nodeAffinity.setPreferredDuringSchedulingIgnoredDuringExecution(nodeSelectorTerms); 
+            }
 
             // create the actual job
             job = batchApi.createNamespacedJob(namespace, job, null, null, null, null);
