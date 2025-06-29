@@ -340,19 +340,31 @@ public class KubernetesExecutor extends RemoteExecutor {
             pvc.claimName(pvcName);
 
             // add node affinity
-            V1NodeSelectorTerms nodeSelectorTerms = new V1NodeSelectorTerms();
-            nodeSelectorTerms.add(new V1NodeSelectorTerm());
-            nodeSelectorTerms.get(0).setMatchExpressions(new ArrayList<V1NodeSelectorRequirement>());
-            nodeSelectorTerms.get(0).getMatchExpressions().add(new V1NodeSelectorRequirement());
-            nodeSelectorTerms.get(0).getMatchExpressions().get(0).setKey("datawolf/node-purpose");
-            nodeSelectorTerms.get(0).getMatchExpressions().get(0).setOperator("In");
-            nodeSelectorTerms.get(0).getMatchExpressions().get(0).setValues(Arrays.asList("worker"));
+            List<V1NodeSelectorTerm> nodeSelectorTerms = new ArrayList<>();
+            V1NodeSelectorTerm nodeSelectorTerm = new V1NodeSelectorTerm();
+            nodeSelectorTerm.setMatchExpressions(new ArrayList<V1NodeSelectorRequirement>());
+            V1NodeSelectorRequirement requirement = new V1NodeSelectorRequirement();
+            requirement.setKey("datawolf/node-purpose");
+            requirement.setOperator("In");
+            requirement.setValues(Arrays.asList("worker"));
+            nodeSelectorTerm.getMatchExpressions().add(requirement);
+            nodeSelectorTerms.add(nodeSelectorTerm);
+            
+            V1Affinity affinity = new V1Affinity();
             V1NodeAffinity nodeAffinity = new V1NodeAffinity();
-            podSpec.setAffinity(nodeAffinity);
+            affinity.setNodeAffinity(nodeAffinity);
+            podSpec.setAffinity(affinity);
             if (workerNodeAffinityRequired) {
-                nodeAffinity.setRequiredDuringSchedulingIgnoredDuringExecution(nodeSelectorTerms); 
+                V1NodeSelector nodeSelector = new V1NodeSelector();
+                nodeSelector.setNodeSelectorTerms(nodeSelectorTerms);
+                nodeAffinity.setRequiredDuringSchedulingIgnoredDuringExecution(nodeSelector); 
             } else {
-                nodeAffinity.setPreferredDuringSchedulingIgnoredDuringExecution(nodeSelectorTerms); 
+                List<V1PreferredSchedulingTerm> preferredTerms = new ArrayList<>();
+                V1PreferredSchedulingTerm preferredTerm = new V1PreferredSchedulingTerm();
+                preferredTerm.setWeight(100);
+                preferredTerm.setPreference(nodeSelectorTerm);
+                preferredTerms.add(preferredTerm);
+                nodeAffinity.setPreferredDuringSchedulingIgnoredDuringExecution(preferredTerms); 
             }
 
             // create the actual job
