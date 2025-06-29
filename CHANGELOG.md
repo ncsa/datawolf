@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Build failure from update to maven assembly plugin configuration element [#44](https://github.com/ncsa/datawolf/issues/44)
+
+
 ## [4.7.0] - 2024-10-29
 
 ### Added
