@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Will now use nodes with datawolf/node-pupose={core,worker} to launch engine and jobs.
+
 ### Fixed
 - Build failure from update to maven assembly plugin configuration element [#44](https://github.com/ncsa/datawolf/issues/44)
 
