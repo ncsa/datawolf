@@ -159,6 +159,11 @@ public class CommandLineExecutor extends LocalExecutor {
 
                     if (option.getInputOutput() != InputOutput.OUTPUT) {
                         String key = step.getInputs().get(option.getOptionId());
+                        if (execution.getDataset(key).isEmpty()) {
+                            // No dataset has been set, must be an optional dataset so skip it
+                            break;
+                        }
+
                         Dataset ds = datasetDao.findOne(execution.getDataset(key));// option.getOptionId()));
                         if (ds == null) {
                             throw (new AbortException("Dataset is missing."));
