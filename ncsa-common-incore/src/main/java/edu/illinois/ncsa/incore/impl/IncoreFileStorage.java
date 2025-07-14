@@ -100,6 +100,8 @@ public class IncoreFileStorage implements FileStorage {
         HttpClientBuilder builder = HttpClientBuilder.create();
         HttpClient httpclient = builder.build();
 
+        logger.debug("Filename in storeFile is "+filename);
+
         // This was an old Hack to update the source dataset, but doesn't work with the current pyincore
         // This might be something to handle on the frontend when visualizing the outputs and updating the parent from
         // the execution
@@ -126,9 +128,41 @@ public class IncoreFileStorage implements FileStorage {
 //            logger.warn("failed to update parent dataset - " + response);
 //        }
 
-        // Add the file to the dataset
+        // Add the file to the dataset and update the name
         requestUrl = incoreEndpoint;
         requestUrl += IncoreDataset.DATASETS_ENDPOINT + "/" + ds.getId() + "/" + IncoreDataset.DATASET_FILES;
+
+        String updateRequestUrl = incoreEndpoint + IncoreDataset.DATASETS_ENDPOINT + "/" + ds.getId();
+
+        String responseStr = "";
+        if (filename != null && !filename.isEmpty()) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("property name", "title");
+            jsonObject.addProperty("property value", filename);
+
+            MultipartEntityBuilder params = MultipartEntityBuilder.create();
+            params.addTextBody("update", jsonObject.toString());
+
+            HttpPut httpPut = new HttpPut(updateRequestUrl);
+            httpPut.setEntity(params.build());
+
+            if (creator != null) {
+                // Uncomment this for testing locally
+//                httpPut.setHeader("Authorization", bearerToken);
+
+                String creatorGroup = "[\""+ this.group + "\"]";
+                String creatorId = creator.getEmail();
+                httpPut.setHeader(IncoreDataset.X_AUTH_USERINFO, "{\"preferred_username\": \"" + creatorId + "\"}");
+                httpPut.setHeader(IncoreDataset.X_AUTH_USERGROUP, "{\"groups\": " + creatorGroup + "}" );
+
+            }
+
+            response = httpclient.execute(httpPut);
+            responseStr = responseHandler.handleResponse(response);
+            System.out.println(responseStr);
+            logger.debug("Updating dataset name on the IN-CORE service to "+filename);
+            logger.debug("Response is " + responseStr);
+        }
 
         MultipartEntityBuilder paramBuilder = MultipartEntityBuilder.create();
         paramBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -149,7 +183,7 @@ public class IncoreFileStorage implements FileStorage {
         }
 
         response = httpclient.execute(httpPost);
-        String responseStr = responseHandler.handleResponse(response);
+        responseStr = responseHandler.handleResponse(response);
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
             JsonElement jsonElement = new JsonParser().parse(responseStr);
             JsonObject datasetProperties = jsonElement.getAsJsonObject();
