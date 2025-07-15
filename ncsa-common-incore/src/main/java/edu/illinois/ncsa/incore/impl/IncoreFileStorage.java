@@ -159,7 +159,6 @@ public class IncoreFileStorage implements FileStorage {
 
             response = httpclient.execute(httpPut);
             responseStr = responseHandler.handleResponse(response);
-            System.out.println(responseStr);
             logger.debug("Updating dataset name on the IN-CORE service to "+filename);
             logger.debug("Response is " + responseStr);
         }
