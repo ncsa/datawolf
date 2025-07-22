@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- WorkflowToolData to allow optional datasets [#39](https://github.com/ncsa/datawolf/issues/39)
+- IncoreFileStorage to use the filename as the dataset name [#47](https://github.com/ncsa/datawolf/issues/47)
+
 ### Fixed
 - Build failure from update to maven assembly plugin configuration element [#44](https://github.com/ncsa/datawolf/issues/44)
 
