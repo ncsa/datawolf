@@ -434,9 +434,7 @@ public class CommandLineExecutor extends LocalExecutor {
                         });
 
                         if (files != null) {
-                            // TODO - once optional datasets is merged, add allow null check for optional datasets
-//                            if (files.length == 0 && (!step.getTool().getOutput(entry.getKey()).isAllowNull())) {
-                            if(files.length == 0) {
+                            if (files.length == 0 && (!step.getTool().getOutput(entry.getKey()).isAllowNull())) {
                                 // Required output was not found, fail the step
                                 logger.error("Could not find required output files, failing the workflow step.");
                                 throw new FailedException("Required output files are missing.");
