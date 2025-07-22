@@ -433,11 +433,19 @@ public class CommandLineExecutor extends LocalExecutor {
                             }
                         });
 
-                        for (File file : files) {
-                            logger.debug("adding files to a dataset: " + file);
-                            FileInputStream fis = new FileInputStream(file);
-                            fileStorage.storeFile(file.getName(), fis, execution.getCreator(), ds);
-                            fis.close();
+                        if (files != null) {
+                            if (files.length == 0 && (!step.getTool().getOutput(entry.getKey()).isAllowNull())) {
+                                // Required output was not found, fail the step
+                                logger.error("Could not find required output files, failing the workflow step.");
+                                throw new FailedException("Required output files are missing.");
+                            }
+
+                            for (File file : files) {
+                                logger.debug("adding files to a dataset: " + file);
+                                FileInputStream fis = new FileInputStream(file);
+                                fileStorage.storeFile(file.getName(), fis, execution.getCreator(), ds);
+                                fis.close();
+                            }
                         }
 
                     } else {
