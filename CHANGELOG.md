@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [4.8.0] - 2025-07-23
 
 ### Added
 - Will now use nodes with datawolf/node-purpose={core,worker} to launch engine and jobs.[#49](https://github.com/ncsa/datawolf/issues/49)
@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 - Build failure from update to maven assembly plugin configuration element [#44](https://github.com/ncsa/datawolf/issues/44)
+- Workflow steps didn't fail when tools used wildcards to find outputs and no outputs were found [#41](https://github.com/ncsa/datawolf/issues/41)
 
 
 ## [4.7.0] - 2024-10-29
