@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Will now use nodes with datawolf/node-purpose={core,worker} to launch engine and jobs.[#49](https://github.com/ncsa/datawolf/issues/49)
+
 ### Changed
 - WorkflowToolData to allow optional datasets [#39](https://github.com/ncsa/datawolf/issues/39)
 - IncoreFileStorage to use the filename as the dataset name [#47](https://github.com/ncsa/datawolf/issues/47)

@@ -26,12 +26,18 @@ engine:
   extralocalexecutor: 1
   localexecutorthreads: 8
   pagesize: 250
+  # default node selector for engine, this will use the nodes labeled with datawolf/node-purpose=core
+  # if set to true the label must be present on the node, otherwise it will prefer the node.
+  nodeAffinityRequired: false
 
 jobs:
   # default number of cpus per job
   cpu: 2.0
   # default memory in GB per job
   memory: 4.0
+  # default node selector for jobs, this will use the nodes labeled with datawolf/node-purpose=core
+  # if set to true the label must be present on the node, otherwise it will prefer the node.
+  nodeAffinityRequired: false
 
 extraEnvVars: {}
 

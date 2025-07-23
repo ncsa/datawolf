@@ -62,6 +62,9 @@ public class KubernetesExecutor extends RemoteExecutor {
     @Inject
     @Named("kubernetes.data")
     private String              dataFolder    = "/home/datawolf/data";
+    @Inject
+    @Named("kubernetes.workerNodeAffinityRequired")
+    private boolean             workerNodeAffinityRequired = false;
 
 
     // Output files specified in the tool description
@@ -340,6 +343,34 @@ public class KubernetesExecutor extends RemoteExecutor {
             V1PersistentVolumeClaimVolumeSource pvc = new V1PersistentVolumeClaimVolumeSource();
             volume.setPersistentVolumeClaim(pvc);
             pvc.claimName(pvcName);
+
+            // add node affinity
+            List<V1NodeSelectorTerm> nodeSelectorTerms = new ArrayList<>();
+            V1NodeSelectorTerm nodeSelectorTerm = new V1NodeSelectorTerm();
+            nodeSelectorTerm.setMatchExpressions(new ArrayList<V1NodeSelectorRequirement>());
+            V1NodeSelectorRequirement requirement = new V1NodeSelectorRequirement();
+            requirement.setKey("datawolf/node-purpose");
+            requirement.setOperator("In");
+            requirement.setValues(Arrays.asList("worker"));
+            nodeSelectorTerm.getMatchExpressions().add(requirement);
+            nodeSelectorTerms.add(nodeSelectorTerm);
+            
+            V1Affinity affinity = new V1Affinity();
+            V1NodeAffinity nodeAffinity = new V1NodeAffinity();
+            affinity.setNodeAffinity(nodeAffinity);
+            podSpec.setAffinity(affinity);
+            if (workerNodeAffinityRequired) {
+                V1NodeSelector nodeSelector = new V1NodeSelector();
+                nodeSelector.setNodeSelectorTerms(nodeSelectorTerms);
+                nodeAffinity.setRequiredDuringSchedulingIgnoredDuringExecution(nodeSelector); 
+            } else {
+                List<V1PreferredSchedulingTerm> preferredTerms = new ArrayList<>();
+                V1PreferredSchedulingTerm preferredTerm = new V1PreferredSchedulingTerm();
+                preferredTerm.setWeight(100);
+                preferredTerm.setPreference(nodeSelectorTerm);
+                preferredTerms.add(preferredTerm);
+                nodeAffinity.setPreferredDuringSchedulingIgnoredDuringExecution(preferredTerms); 
+            }
 
             // create the actual job
             job = batchApi.createNamespacedJob(namespace, job, null, null, null, null);
