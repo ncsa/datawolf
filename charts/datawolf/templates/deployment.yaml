@@ -94,6 +94,8 @@ spec:
               value: {{ .Values.jobs.cpu | quote }}
             - name: KUBERNETES_MEMORY
               value: {{ .Values.jobs.memory | quote }}
+            - name: KUBERNETES_WORKER_NODE_AFFINITY_REQUIRED
+              value: {{ .Values.jobs.nodeAffinityRequired | quote }}
             {{- if .Values.extraEnvVars }}
             {{ .Values.extraEnvVars | toYaml | nindent 12 }}
             {{- end }}
@@ -131,8 +133,27 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
       affinity:
+        nodeAffinity:
+          {{- if .Values.engine.nodeAffinityRequired }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: datawolf/node-purpose
+                operator: In
+                values:
+                - core
+          {{- else }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: datawolf/node-purpose
+                operator: In
+                values:
+                - core
+          {{- end }}
+      {{- with .Values.affinity }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.tolerations }}

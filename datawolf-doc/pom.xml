@@ -3,7 +3,7 @@
   <parent>
     <groupId>edu.illinois.ncsa</groupId>
     <artifactId>datawolf</artifactId>
-    <version>4.7.0</version>
+    <version>4.8.0</version>
   </parent>
   <artifactId>datawolf-doc</artifactId>
 </project>

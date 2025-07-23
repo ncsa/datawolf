@@ -51,6 +51,9 @@ public class WorkflowToolData extends AbstractBean {
     /** Mime type of the workflow tool data */
     private String            mimeType         = "";                          //$NON-NLS-1$
 
+    /** Can the dataset be null */
+    private boolean           allowNull        = false;
+
     /**
      * Create a new instance of the workflow tool.
      */
@@ -68,7 +71,7 @@ public class WorkflowToolData extends AbstractBean {
     /**
      * Sets the id of the workflow tool data
      * 
-     * @param id
+     * @param dataid
      *            sets the id of the workflow tool data.
      * 
      */
@@ -134,6 +137,25 @@ public class WorkflowToolData extends AbstractBean {
      */
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
+    }
+
+    /**
+     * Return true if the dataset is allowed to be empty.
+     *
+     * @return the true if the parameter can be empty.
+     */
+    public boolean isAllowNull() {
+        return allowNull;
+    }
+
+    /**
+     * Sets whether the workflow dataset can be empty.
+     *
+     * @param allowNull
+     *            the allowNull to set
+     */
+    public void setAllowNull(boolean allowNull) {
+        this.allowNull = allowNull;
     }
 
     @Override
