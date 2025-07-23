@@ -220,6 +220,7 @@
 			<basic name="title" />
 			<basic name="description" />
 			<basic name="mimeType" />
+			<basic name="allowNull" />
 		</attributes>
 	</entity>
 	<entity class="WorkflowToolParameter" name="WorkflowToolParameter">
@@ -237,3 +238,4 @@
 	</entity>
 	<!-- how to handle enum types? -->
 </entity-mappings>
+
