@@ -373,7 +373,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             }
 
             // create the actual job
-            job = batchApi.createNamespacedJob(namespace, job, null, null, null, null);
+            job = batchApi.createNamespacedJob(namespace, job).execute();
         } catch (AbortException e) {
             throw e;
         } catch (FailedException e) {
@@ -399,7 +399,7 @@ public class KubernetesExecutor extends RemoteExecutor {
     @Override
     public void cancelRemoteJob() {
         try {
-            batchApi.deleteNamespacedJob(this.job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, gracePeriod, null, null, null);
+            batchApi.deleteNamespacedJob(this.job.getMetadata().getName(), this.job.getMetadata().getNamespace()).gracePeriodSeconds(gracePeriod).execute();
         } catch (ApiException e1) {
             logger.error("Unable to delete job from Kubernetes", e1);
         }
@@ -408,7 +408,7 @@ public class KubernetesExecutor extends RemoteExecutor {
     @Override
     public State checkRemoteJob() throws FailedException {
         try {
-            V1Job jobstatus = batchApi.readNamespacedJobStatus(job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null);
+            V1Job jobstatus = batchApi.readNamespacedJobStatus(job.getMetadata().getName(), this.job.getMetadata().getNamespace()).execute();
             V1JobStatus status = jobstatus.getStatus();
 
             // This isn't quite right
@@ -423,6 +423,7 @@ public class KubernetesExecutor extends RemoteExecutor {
                     return getState();
                 }
             } else if (status.getFailed() != null) {
+                logger.error("Kubernetes job has failed, failed value is "+status.getFailed());
                 return State.FAILED;
             } else if (status.getSucceeded() != null) {
                 // job is finished
@@ -512,7 +513,7 @@ public class KubernetesExecutor extends RemoteExecutor {
                     work.end();
                 }
                 deleteDirectory(jobFolder);
-                batchApi.deleteNamespacedJob(job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, null, null, "Foreground", null);
+                batchApi.deleteNamespacedJob(job.getMetadata().getName(), this.job.getMetadata().getNamespace()).propagationPolicy("Foreground").execute();
                 return State.FINISHED;
             } else {
                 logger.debug("STATUS = " + status);
@@ -530,7 +531,7 @@ public class KubernetesExecutor extends RemoteExecutor {
         String selector = "job-id=" + jobID;
         InputStream is = null;
         try {
-            V1PodList items = coreApi.listNamespacedPod(job.getMetadata().getNamespace(), null, null, null, null, selector, null, null, null, null, null);
+            V1PodList items = coreApi.listNamespacedPod(job.getMetadata().getNamespace()).labelSelector(selector).execute();
             if (items.getItems().size() > 0) {
                 PodLogs logs = new PodLogs();
                 is = logs.streamNamespacedPodLog(items.getItems().get(0));
