@@ -324,10 +324,11 @@ public class KubernetesExecutor extends RemoteExecutor {
             // add resource limits
             V1ResourceRequirements resources = new V1ResourceRequirements();
             container.setResources(resources);
-            String val = impl.getResources().getOrDefault("memory", Float.toString(memory));
-            resources.putLimitsItem("memory", new Quantity(val + "Gi"));
-            val = impl.getResources().getOrDefault("cpu", Float.toString(cpu));
-            resources.putLimitsItem("cpu", new Quantity(val));
+            // Temporarily remove resource settings
+//            String val = impl.getResources().getOrDefault("memory", Float.toString(memory));
+//            resources.putLimitsItem("memory", new Quantity(val + "Gi"));
+//            val = impl.getResources().getOrDefault("cpu", Float.toString(cpu));
+//            resources.putLimitsItem("cpu", new Quantity(val));
 
             // add volumes, this is a subpath in the datawolf volume
             V1VolumeMount volumeMount = new V1VolumeMount();
