@@ -575,11 +575,13 @@ public class Engine {
                                         execution = executionDao.findOne(exec.getExecutionId());
                                         execution.getDatasets().values();
                                         step = workflowStepDao.findOne(exec.getStepId());
+                                        logger.warn("Checking inputs for "+step.getTitle());
 
                                         // Populate map of step inputs and whether they are required
                                         for(String inputKey : step.getInputs().values()) {
                                             WorkflowToolData inputData = step.getInput(inputKey);
                                             requiredInputs.put(inputKey, inputData.isAllowNull());
+                                            logger.warn("Input "+inputData.getTitle() + " can it be null? "+inputData.isAllowNull());
                                         }
 
 //                                        step.getInputs().values();
@@ -598,6 +600,7 @@ public class Engine {
                                     // check to see if all inputs of the
                                     // step are ready
                                     if (step != null) {
+                                        logger.warn("Check if step "+step.getTitle() + "is ready");
                                         for (String id : step.getInputs().values()) {
                                             if (execution != null) {
                                                 boolean allowNull = requiredInputs.get(id);
@@ -610,6 +613,7 @@ public class Engine {
                                                 }
                                             }
                                         }
+                                        logger.warn("Verdict of canRun is? "+canrun);
                                     }
                                 }
                             }

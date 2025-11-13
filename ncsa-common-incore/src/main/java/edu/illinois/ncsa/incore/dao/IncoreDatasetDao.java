@@ -190,6 +190,9 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                     }
                     dataset = IncoreDataset.getDataset(datasetProperties, creator);
                 }
+            } else {
+                logger.warn("Error finding dataset "+response.getStatusLine().getStatusCode());
+                logger.warn("Response from service was: "+responseHandler.handleResponse(response));
             }
         } catch (ClientProtocolException e) {
             e.printStackTrace();

@@ -97,6 +97,7 @@ public class KubernetesExecutor extends RemoteExecutor {
         try {
             work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
+            logger.warn("Getting inputs ready for "+step.getTitle());
             Execution execution = executionDao.findOne(getExecutionId());
             KubernetesToolImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), KubernetesToolImplementation.class);
 
@@ -149,6 +150,7 @@ public class KubernetesExecutor extends RemoteExecutor {
 
                         Dataset ds = datasetDao.findOne(execution.getDataset(key));// option.getOptionId()));
                         if (ds == null) {
+                            logger.error("Dataset with key = "+key + " was missing");
                             throw (new AbortException("Dataset is missing."));
                         }
 
