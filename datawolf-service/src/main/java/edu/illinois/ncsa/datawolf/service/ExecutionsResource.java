@@ -99,7 +99,8 @@ public class ExecutionsResource {
     @Produces({ MediaType.TEXT_PLAIN })
     public String createExecution(Submission submission) {
 
-        log.debug("POST /executions received");
+        log.warn("Here is the job submission datasets");
+
         Execution execution = new Execution();
         // find workflow
         Workflow workflow = workflowDao.findOne(submission.getWorkflowId());
@@ -113,9 +114,11 @@ public class ExecutionsResource {
             }
             for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
                 execution.setDataset(dataset.getKey(), dataset.getValue());
+                log.warn("key = "+dataset.getKey()+" value = "+dataset.getValue());
             }
+            log.warn("Saving execution");
             executionDao.save(execution);
-
+            log.warn("submitting job for execution");
             // start execution
             engine.execute(execution);
 
