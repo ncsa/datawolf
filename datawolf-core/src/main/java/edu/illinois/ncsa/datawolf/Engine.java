@@ -604,11 +604,15 @@ public class Engine {
                                         for (String id : step.getInputs().values()) {
                                             if (execution != null) {
                                                 boolean allowNull = requiredInputs.get(id);
+                                                logger.warn("Checking readiness of input ID "+id + " can it be null?"+allowNull);
                                                 if (!execution.hasDataset(id) && !allowNull) {
+                                                    logger.warn("waiting for input with id = "+id);
                                                     canrun = 1;
                                                 } else if (execution.getDataset(id) == null) {
+                                                    logger.warn("Null for input with id  = "+id);
                                                     canrun = 2;
                                                 } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                    logger.warn("Found Error for input with id = "+id);
                                                     canrun = 2;
                                                 }
                                             }
