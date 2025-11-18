@@ -608,10 +608,10 @@ public class Engine {
                                                 if (!execution.hasDataset(id) && !allowNull) {
                                                     logger.warn("waiting for input with id = "+id);
                                                     canrun = 1;
-                                                } else if (execution.getDataset(id) == null) {
+                                                } else if (execution.getDataset(id) == null && !allowNull) {
                                                     logger.warn("Null for input with id  = "+id);
                                                     canrun = 2;
-                                                } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id)) && !allowNull) {
                                                     logger.warn("Found Error for input with id = "+id);
                                                     canrun = 2;
                                                 }
