@@ -143,6 +143,10 @@ public class KubernetesExecutor extends RemoteExecutor {
 
                     if (option.getInputOutput() != InputOutput.OUTPUT) {
                         String key = step.getInputs().get(option.getOptionId());
+                        logger.warn("key to check for is "+key);
+                        if(execution.getDataset(key) == null) {
+                            logger.warn("Dataset was null, is this expected?");
+                        }
                         if (execution.getDataset(key).isEmpty()) {
                             // No dataset has been set, must be an optional dataset so skip it
                             break;
