@@ -175,6 +175,8 @@ public class ExecutionsResource {
                     if (add) {
                         submission.setDataset(mappingKey, ""); //$NON-NLS-1$
                     }
+                    // Reset add to true
+                    add = true;
                 }
             }
         }
