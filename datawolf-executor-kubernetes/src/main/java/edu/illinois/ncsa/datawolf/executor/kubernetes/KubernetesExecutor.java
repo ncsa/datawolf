@@ -380,6 +380,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             // When we upgrade Java to higher than 8, this will be the right command
             //job = batchApi.createNamespacedJob(namespace, job).execute();
         } catch (AbortException e) {
+            logger.error("Aborting the job.", e);
             throw e;
         } catch (FailedException e) {
             // Job could not be submitted, set state to waiting to try again
@@ -387,6 +388,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             return State.WAITING;
             // throw e;
         } catch (Throwable e) {
+            logger.error("Something went wrong trying to submit the job to kubernetes cluster", e);
             throw (new FailedException("Something went wrong trying to submit the job to kubernetes cluster.", e));
         } finally {
             work.end();
