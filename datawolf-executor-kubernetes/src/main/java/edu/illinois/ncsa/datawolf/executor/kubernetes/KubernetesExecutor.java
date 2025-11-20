@@ -325,11 +325,10 @@ public class KubernetesExecutor extends RemoteExecutor {
             V1ResourceRequirements resources = new V1ResourceRequirements();
             container.setResources(resources);
 
-            // TODO uncomment this once testing is finished
-//            String val = impl.getResources().getOrDefault("memory", Float.toString(memory));
-//            resources.putLimitsItem("memory", new Quantity(val + "Gi"));
-//            val = impl.getResources().getOrDefault("cpu", Float.toString(cpu));
-//            resources.putLimitsItem("cpu", new Quantity(val));
+            String val = impl.getResources().getOrDefault("memory", Float.toString(memory));
+            resources.putLimitsItem("memory", new Quantity(val + "Gi"));
+            val = impl.getResources().getOrDefault("cpu", Float.toString(cpu));
+            resources.putLimitsItem("cpu", new Quantity(val));
 
             // add volumes, this is a subpath in the datawolf volume
             V1VolumeMount volumeMount = new V1VolumeMount();
@@ -434,6 +433,7 @@ public class KubernetesExecutor extends RemoteExecutor {
                 }
             } else if (status.getFailed() != null) {
                 logger.error("Kubernetes job has failed, failed value is " + status.getFailed());
+                // TODO - Save the log file so we can see what happened
                 return State.FAILED;
             } else if (status.getSucceeded() != null) {
                 // job is finished
