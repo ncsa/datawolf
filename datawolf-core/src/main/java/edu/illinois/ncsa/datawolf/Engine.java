@@ -575,13 +575,11 @@ public class Engine {
                                         execution = executionDao.findOne(exec.getExecutionId());
                                         execution.getDatasets().values();
                                         step = workflowStepDao.findOne(exec.getStepId());
-                                        logger.warn("Checking inputs for "+step.getTitle());
 
                                         // Populate map of step inputs and whether they are required
                                         for(String inputKey : step.getInputs().values()) {
                                             WorkflowToolData inputData = step.getInput(inputKey);
                                             requiredInputs.put(inputKey, inputData.isAllowNull());
-                                            logger.warn("Input "+inputData.getTitle() + " can it be null? "+inputData.isAllowNull());
                                         }
 
 //                                        step.getInputs().values();
@@ -600,24 +598,22 @@ public class Engine {
                                     // check to see if all inputs of the
                                     // step are ready
                                     if (step != null) {
-                                        logger.warn("Check if step "+step.getTitle() + "is ready");
+                                        logger.debug("Check if step " + step.getTitle() + " is ready.");
                                         for (String id : step.getInputs().values()) {
                                             if (execution != null) {
                                                 boolean allowNull = requiredInputs.get(id);
-                                                logger.warn("Checking readiness of input ID "+id + " can it be null?"+allowNull);
                                                 if (!execution.hasDataset(id) && !allowNull) {
-                                                    logger.warn("waiting for input with id = "+id);
+                                                    logger.debug("Waiting for input with id "+id);
                                                     canrun = 1;
                                                 } else if (execution.getDataset(id) == null && !allowNull) {
-                                                    logger.warn("Null for input with id  = "+id);
+                                                    logger.debug("Found unexpectd null for input with id "+id);
                                                     canrun = 2;
                                                 } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id)) && !allowNull) {
-                                                    logger.warn("Found Error for input with id = "+id);
+                                                    logger.debug("Found unexpected error for input with id "+id);
                                                     canrun = 2;
                                                 }
                                             }
                                         }
-                                        logger.warn("Verdict of canRun is? "+canrun);
                                     }
                                 }
                             }

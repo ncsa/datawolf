@@ -191,14 +191,13 @@ public class IncoreDatasetDao extends AbstractIncoreDao<Dataset, String> impleme
                     dataset = IncoreDataset.getDataset(datasetProperties, creator);
                 }
             } else {
-                logger.warn("Error finding dataset "+response.getStatusLine().getStatusCode());
-                logger.warn("Response from service was: "+responseHandler.handleResponse(response));
+                logger.error("Error finding dataset on the IN-CORE service: " + response.getStatusLine().getStatusCode());
+                logger.error("Response from service was: " + responseHandler.handleResponse(response));
             }
         } catch (ClientProtocolException e) {
-            e.printStackTrace();
-            logger.error("Error find dataset with id " + id, e);
+            logger.error("Error finding dataset with id " + id, e);
         } catch (IOException e) {
-            logger.error("Error find dataset with id " + id, e);
+            logger.error("Error finding dataset with id " + id, e);
         } finally {
             try {
                 ((CloseableHttpClient) httpclient).close();

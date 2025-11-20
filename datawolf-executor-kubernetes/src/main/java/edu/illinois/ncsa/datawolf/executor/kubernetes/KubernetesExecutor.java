@@ -1,10 +1,8 @@
 package edu.illinois.ncsa.datawolf.executor.kubernetes;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -34,7 +32,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 public class KubernetesExecutor extends RemoteExecutor {
-    private static Logger       logger        = LoggerFactory.getLogger(KubernetesExecutor.class);
+    private static final Logger       logger        = LoggerFactory.getLogger(KubernetesExecutor.class);
     public static final String  EXECUTOR_NAME = "kubernetes";
 
     private static final int    gracePeriod   = 3600;
@@ -97,7 +95,7 @@ public class KubernetesExecutor extends RemoteExecutor {
         try {
             work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
-            logger.warn("Getting inputs ready for "+step.getTitle());
+            logger.debug("Preparing inputs for " + step.getTitle());
             Execution execution = executionDao.findOne(getExecutionId());
             KubernetesToolImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), KubernetesToolImplementation.class);
 
@@ -143,10 +141,6 @@ public class KubernetesExecutor extends RemoteExecutor {
 
                     if (option.getInputOutput() != InputOutput.OUTPUT) {
                         String key = step.getInputs().get(option.getOptionId());
-                        logger.warn("key to check for is "+key);
-                        if(execution.getDataset(key) == null) {
-                            logger.warn("Dataset was null, is this expected?");
-                        }
                         if (execution.getDataset(key).isEmpty()) {
                             // No dataset has been set, must be an optional dataset so skip it
                             break;
@@ -154,7 +148,7 @@ public class KubernetesExecutor extends RemoteExecutor {
 
                         Dataset ds = datasetDao.findOne(execution.getDataset(key));// option.getOptionId()));
                         if (ds == null) {
-                            logger.error("Dataset with key = "+key + " was missing");
+                            logger.error("Dataset with key = " + key + " was missing, aborting step.");
                             throw (new AbortException("Dataset is missing."));
                         }
 
@@ -330,7 +324,8 @@ public class KubernetesExecutor extends RemoteExecutor {
             // add resource limits
             V1ResourceRequirements resources = new V1ResourceRequirements();
             container.setResources(resources);
-            // Temporarily remove resource settings
+
+            // TODO uncomment this once testing is finished
 //            String val = impl.getResources().getOrDefault("memory", Float.toString(memory));
 //            resources.putLimitsItem("memory", new Quantity(val + "Gi"));
 //            val = impl.getResources().getOrDefault("cpu", Float.toString(cpu));
@@ -384,7 +379,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             // When we upgrade Java to higher than 8, this will be the right command
             //job = batchApi.createNamespacedJob(namespace, job).execute();
         } catch (AbortException e) {
-            logger.error("Aborting the job.", e);
+            logger.error("Aborting the workflow step.", e);
             throw e;
         } catch (FailedException e) {
             // Job could not be submitted, set state to waiting to try again
@@ -392,7 +387,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             return State.WAITING;
             // throw e;
         } catch (Throwable e) {
-            logger.error("Something went wrong trying to submit the job to kubernetes cluster", e);
+            logger.error("Something went wrong trying to submit the job to kubernetes cluster.", e);
             throw (new FailedException("Something went wrong trying to submit the job to kubernetes cluster.", e));
         } finally {
             work.end();
@@ -438,7 +433,7 @@ public class KubernetesExecutor extends RemoteExecutor {
                     return getState();
                 }
             } else if (status.getFailed() != null) {
-                logger.error("Kubernetes job has failed, failed value is "+status.getFailed());
+                logger.error("Kubernetes job has failed, failed value is " + status.getFailed());
                 return State.FAILED;
             } else if (status.getSucceeded() != null) {
                 // job is finished
