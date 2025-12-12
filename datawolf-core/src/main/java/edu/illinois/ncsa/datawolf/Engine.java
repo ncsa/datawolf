@@ -598,14 +598,18 @@ public class Engine {
                                     // check to see if all inputs of the
                                     // step are ready
                                     if (step != null) {
+                                        logger.debug("Check if step " + step.getTitle() + " is ready.");
                                         for (String id : step.getInputs().values()) {
                                             if (execution != null) {
                                                 boolean allowNull = requiredInputs.get(id);
                                                 if (!execution.hasDataset(id) && !allowNull) {
+                                                    logger.debug("Waiting for input with id "+id);
                                                     canrun = 1;
-                                                } else if (execution.getDataset(id) == null) {
+                                                } else if (execution.getDataset(id) == null && !allowNull) {
+                                                    logger.debug("Found unexpectd null for input with id "+id);
                                                     canrun = 2;
-                                                } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id))) {
+                                                } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id)) && !allowNull) {
+                                                    logger.debug("Found unexpected error for input with id "+id);
                                                     canrun = 2;
                                                 }
                                             }
