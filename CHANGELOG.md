@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [4.9.0] - 2025-12-12
 
 ### Changed
 - kubernetes-client library to version 24.0.0 [#52](https://github.com/ncsa/datawolf/issues/52)
@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Downstream workflow steps from failing when optional datasets from upstream steps fail [#56](https://github.com/ncsa/datawolf/issues/56)
 - Missing datasets from workflow template endpoint [#55](https://github.com/ncsa/datawolf/issues/55)
-
 
 
 ## [4.8.0] - 2025-07-23
