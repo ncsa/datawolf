@@ -4,7 +4,7 @@
 	<artifactId>ncsa-common-clowder</artifactId>
 	<parent>
 		<groupId>edu.illinois.ncsa</groupId>
-		<version>4.8.0</version>
+		<version>4.9.0</version>
 		<artifactId>datawolf</artifactId>
 	</parent>
 	<build>

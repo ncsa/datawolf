@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>edu.illinois.ncsa</groupId>
 		<artifactId>datawolf</artifactId>
-		<version>4.8.0</version>
+		<version>4.9.0</version>
 	</parent>
 	<packaging>war</packaging>
 	<artifactId>file-webapp</artifactId>

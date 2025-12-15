@@ -8,7 +8,7 @@ COPY . /src/
 
 RUN mvn clean package -Dmaven.test.skip=true
 
-FROM openjdk:8-jre-alpine
+FROM adoptopenjdk/openjdk8:alpine-jre
 
 ENV DATAWOLF_ADMINS=admin@example.com \
     DB_CLASS_NAME="org.postgresql.ds.PGSimpleDataSource" \

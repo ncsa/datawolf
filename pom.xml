@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>edu.illinois.ncsa</groupId>
-	<version>4.8.0</version>
+	<version>4.9.0</version>
 	<artifactId>datawolf</artifactId>
 	<packaging>pom</packaging>
 
@@ -24,7 +24,7 @@
 		<!-- <jargon.version>3.3.3-SNAPSHOT</jargon.version> -->
 		<hikaricp.version>2.5.1</hikaricp.version>
 		<unboundid.version>4.0.7</unboundid.version>
-		<kubernetes.version>17.0.0</kubernetes.version>
+		<kubernetes.version>24.0.0-legacy</kubernetes.version>
 	</properties>
 
 	<repositories>

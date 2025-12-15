@@ -99,7 +99,8 @@ public class ExecutionsResource {
     @Produces({ MediaType.TEXT_PLAIN })
     public String createExecution(Submission submission) {
 
-        log.debug("POST /executions received");
+        log.debug("Preparing a workflow for execution.");
+
         Execution execution = new Execution();
         // find workflow
         Workflow workflow = workflowDao.findOne(submission.getWorkflowId());
@@ -113,9 +114,10 @@ public class ExecutionsResource {
             }
             for (Entry<String, String> dataset : submission.getDatasets().entrySet()) {
                 execution.setDataset(dataset.getKey(), dataset.getValue());
+                log.debug("key = {} value = {}", dataset.getKey(), dataset.getValue());
             }
             executionDao.save(execution);
-
+            log.debug("Submitting the workflow for execution.");
             // start execution
             engine.execute(execution);
 
@@ -172,6 +174,8 @@ public class ExecutionsResource {
                     if (add) {
                         submission.setDataset(mappingKey, ""); //$NON-NLS-1$
                     }
+                    // Reset add to true
+                    add = true;
                 }
             }
         }

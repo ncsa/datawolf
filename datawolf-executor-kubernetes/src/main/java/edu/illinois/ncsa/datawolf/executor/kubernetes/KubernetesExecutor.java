@@ -1,10 +1,8 @@
 package edu.illinois.ncsa.datawolf.executor.kubernetes;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
@@ -34,7 +32,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 public class KubernetesExecutor extends RemoteExecutor {
-    private static Logger       logger        = LoggerFactory.getLogger(KubernetesExecutor.class);
+    private static final Logger       logger        = LoggerFactory.getLogger(KubernetesExecutor.class);
     public static final String  EXECUTOR_NAME = "kubernetes";
 
     private static final int    gracePeriod   = 3600;
@@ -97,6 +95,7 @@ public class KubernetesExecutor extends RemoteExecutor {
         try {
             work.begin();
             WorkflowStep step = workflowStepDao.findOne(getStepId());
+            logger.debug("Preparing inputs for " + step.getTitle());
             Execution execution = executionDao.findOne(getExecutionId());
             KubernetesToolImplementation impl = BeanUtil.JSONToObject(step.getTool().getImplementation(), KubernetesToolImplementation.class);
 
@@ -149,6 +148,7 @@ public class KubernetesExecutor extends RemoteExecutor {
 
                         Dataset ds = datasetDao.findOne(execution.getDataset(key));// option.getOptionId()));
                         if (ds == null) {
+                            logger.error("Dataset with key = " + key + " was missing, aborting step.");
                             throw (new AbortException("Dataset is missing."));
                         }
 
@@ -324,6 +324,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             // add resource limits
             V1ResourceRequirements resources = new V1ResourceRequirements();
             container.setResources(resources);
+
             String val = impl.getResources().getOrDefault("memory", Float.toString(memory));
             resources.putLimitsItem("memory", new Quantity(val + "Gi"));
             val = impl.getResources().getOrDefault("cpu", Float.toString(cpu));
@@ -374,7 +375,10 @@ public class KubernetesExecutor extends RemoteExecutor {
 
             // create the actual job
             job = batchApi.createNamespacedJob(namespace, job, null, null, null, null);
+            // When we upgrade Java to higher than 8, this will be the right command
+            //job = batchApi.createNamespacedJob(namespace, job).execute();
         } catch (AbortException e) {
+            logger.error("Aborting the workflow step.", e);
             throw e;
         } catch (FailedException e) {
             // Job could not be submitted, set state to waiting to try again
@@ -382,6 +386,7 @@ public class KubernetesExecutor extends RemoteExecutor {
             return State.WAITING;
             // throw e;
         } catch (Throwable e) {
+            logger.error("Something went wrong trying to submit the job to kubernetes cluster.", e);
             throw (new FailedException("Something went wrong trying to submit the job to kubernetes cluster.", e));
         } finally {
             work.end();
@@ -399,7 +404,9 @@ public class KubernetesExecutor extends RemoteExecutor {
     @Override
     public void cancelRemoteJob() {
         try {
-            batchApi.deleteNamespacedJob(this.job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, gracePeriod, null, null, null);
+            batchApi.deleteNamespacedJob(this.job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, gracePeriod, null, null, null, null);
+            // When we upgrade Java to higher than 8, this will be the right command
+            //batchApi.deleteNamespacedJob(this.job.getMetadata().getName(), this.job.getMetadata().getNamespace()).gracePeriodSeconds(gracePeriod).execute();
         } catch (ApiException e1) {
             logger.error("Unable to delete job from Kubernetes", e1);
         }
@@ -409,6 +416,8 @@ public class KubernetesExecutor extends RemoteExecutor {
     public State checkRemoteJob() throws FailedException {
         try {
             V1Job jobstatus = batchApi.readNamespacedJobStatus(job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null);
+            // When we upgrade Java to higher than 8, this will be the right command
+            //V1Job jobstatus = batchApi.readNamespacedJobStatus(job.getMetadata().getName(), this.job.getMetadata().getNamespace()).execute();
             V1JobStatus status = jobstatus.getStatus();
 
             // This isn't quite right
@@ -423,6 +432,8 @@ public class KubernetesExecutor extends RemoteExecutor {
                     return getState();
                 }
             } else if (status.getFailed() != null) {
+                logger.error("Kubernetes job has failed, failed value is " + status.getFailed());
+                // TODO - Save the log file so we can see what happened
                 return State.FAILED;
             } else if (status.getSucceeded() != null) {
                 // job is finished
@@ -512,7 +523,9 @@ public class KubernetesExecutor extends RemoteExecutor {
                     work.end();
                 }
                 deleteDirectory(jobFolder);
-                batchApi.deleteNamespacedJob(job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, null, null, "Foreground", null);
+                batchApi.deleteNamespacedJob(job.getMetadata().getName(), this.job.getMetadata().getNamespace(), null, null, null, null, null, "Foreground", null);
+                // When we upgrade Java to higher than 8, this will be the right command
+//              batchApi.deleteNamespacedJob(job.getMetadata().getName(), this.job.getMetadata().getNamespace()).propagationPolicy("Foreground").execute();
                 return State.FINISHED;
             } else {
                 logger.debug("STATUS = " + status);
@@ -530,7 +543,9 @@ public class KubernetesExecutor extends RemoteExecutor {
         String selector = "job-id=" + jobID;
         InputStream is = null;
         try {
-            V1PodList items = coreApi.listNamespacedPod(job.getMetadata().getNamespace(), null, null, null, null, selector, null, null, null, null, null);
+            V1PodList items = coreApi.listNamespacedPod(job.getMetadata().getNamespace(), null, null, null, null, selector, null, null, null, null, null, null);
+            // When we upgrade Java to higher than 8, this will be the right command
+//          V1PodList items = coreApi.listNamespacedPod(job.getMetadata().getNamespace()).labelSelector(selector).execute();
             if (items.getItems().size() > 0) {
                 PodLogs logs = new PodLogs();
                 is = logs.streamNamespacedPodLog(items.getItems().get(0));
