@@ -602,11 +602,11 @@ public class Engine {
                                         for (String id : step.getInputs().values()) {
                                             if (execution != null) {
                                                 boolean allowNull = requiredInputs.get(id);
-                                                if (!execution.hasDataset(id) && !allowNull) {
+                                                if (!execution.hasDataset(id)) {
                                                     logger.debug("Waiting for input with id "+id);
                                                     canrun = 1;
                                                 } else if (execution.getDataset(id) == null && !allowNull) {
-                                                    logger.debug("Found unexpectd null for input with id "+id);
+                                                    logger.debug("Found unexpected null for input with id "+id);
                                                     canrun = 2;
                                                 } else if (Execution.EMPTY_DATASET.equals(execution.getDataset(id)) && !allowNull) {
                                                     logger.debug("Found unexpected error for input with id "+id);
