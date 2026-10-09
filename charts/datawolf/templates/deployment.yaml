@@ -57,6 +57,8 @@ spec:
               value: {{ .Values.auth.enabled | quote }}
             - name: DATASET_PERMISSIONS
               value: {{ .Values.dataset | quote }}
+            - name: DATAWOLF_CONTEXT
+              value: {{ .Values.contextPath | quote }}
             - name: DB_SOURCE_URL
               value: "jdbc:{{ include "datawolf.postgresql" . }}"
             - name: DB_MAX_POOLSIZE
@@ -111,11 +113,11 @@ spec:
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /datawolf/persons
+              path: {{ .Values.contextPath }}/persons
               port: http
           readinessProbe:
             httpGet:
-              path: /datawolf/persons
+              path: {{ .Values.contextPath }}/persons
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

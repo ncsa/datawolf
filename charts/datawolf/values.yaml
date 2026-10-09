@@ -2,6 +2,9 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# url prefix datawolf is served under (no trailing slash), set as DATAWOLF_CONTEXT
+contextPath: /datawolf
+
 image:
   repository: ncsa/datawolf
   pullPolicy: IfNotPresent

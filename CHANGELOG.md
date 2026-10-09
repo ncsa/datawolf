@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Configurable context path, set with `DATAWOLF_CONTEXT` (default `/datawolf`) and `contextPath` in the helm chart. The editor now finds the REST endpoint from its own url.
+
 
 ## [4.9.0] - 2025-12-12
 

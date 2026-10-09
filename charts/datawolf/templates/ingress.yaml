@@ -30,7 +30,7 @@ spec:
     - host: {{ . | quote }}
       http:
         paths:
-          - path: /datawolf
+          - path: {{ $.Values.contextPath }}
             pathType: ImplementationSpecific
             backend:
               service:
