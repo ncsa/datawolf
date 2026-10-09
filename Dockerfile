@@ -1,7 +1,5 @@
 FROM maven:3-jdk-8 AS build
 
-RUN apt-get update && apt-get -y install net-tools
-
 WORKDIR /src
 
 COPY . /src/
